@@ -14,21 +14,24 @@ public interface WdebAwAdsbMgtMapper {
     /* 재지급 대상 생성 전, 임시저장 데이터 삭제 */
     int deleteAdsbObjectTemp(WdebAwAdsbMgtDvo dvo);
 
-    /* 재지급 대상 확인 */
+    /* 재지급 대상 확인 ( WELLS-M ) */
     int selectAdsbObjectCreates(WdebAwAdsbMgtDvo dvo);
+
+    /* 재지급 대상 확인 ( WELLS-총판 ) */
+    int selectChongAdsbObjectCreates(WdebAwAdsbMgtDvo dvo);
+
+    /* 재지급 대상 확인 ( WELLS-B2B ) */
+    int selectB2BAdsbObjectCreates(WdebAwAdsbMgtDvo dvo);
 
     /* 상조 재지급 대상 생성 */
     int updateLifeAdsbObjectWells(WdebAwAdsbMgtDvo dvo);
 
-    /* 재지급 대상 생성  */
+    /* 재지급 대상 생성 ( WELLS-M )  */
     int insertAdsbObjectCreates(WdebAwAdsbMgtDvo dvo);
 
-    // TODO: 수수로 측 서비스 개발 전, 테스트용 UPDATE. 추후 개발 시, 삭제 예정
-    //    int updateAdsbObjectTemp(WdebAwAdsbMgtDvo dvo);
+    /* 재지급 대상 생성 ( WELLS-총판 ) */
+    int insertChongAdsbObjectCreates(WdebAwAdsbMgtDvo dvo);
 
-    /* 재지급 금액 생성, TODO: 수수료쪽에서 제공 예정 */
-
-    // TODO: 수수로 측 서비스 개발 전, 재지급 중복 체크용 SELECT. 추후 로직 확인 후, 삭제 예정
-    //    int selectAdsbDupCheck(CreateReq dto);
-
+    /* 재지급 대상 생성 ( WELLS-B2B ) */
+    int insertB2BAdsbObjectCreates(WdebAwAdsbMgtDvo dvo);
 }

@@ -353,6 +353,15 @@
            AND T1.NTOR_CNFM_STAT_CD   = '02'
     </select>
 
+    <delete id="deleteWelsNetOrders">
+        DELETE FROM TB_FEAM_WELS_NRCTR_MM_CL
+         WHERE 1=1
+           AND BASE_YM = #{perfYm}
+           AND FEE_TCNT_DV_CD = NVL(#{feeTcntDvCd}, '02') /* 차수 */
+           AND CNTR_PERF_CRT_DV_CD = '01' /* 순주문 */
+           AND OG_TP_CD = 'W04'
+    </delete>
+
     <delete id="deleteAggregateNtorMmCl">
         DELETE FROM TB_FEAM_NTOR_MM_CL T1
          WHERE T1.BASE_YM             = #{perfYm}
@@ -375,6 +384,304 @@
            AND T1.PERF_AGRG_CRT_DV_CD = '401'
            AND T1.OG_TP_CD            = 'W04'
     </delete>
+
+    <insert id="insertEtcNetOrders">
+        INSERT INTO TB_FEAM_WELS_NRCTR_MM_CL
+               ( BASE_YM
+               , PERF_YM
+               , FEE_TCNT_DV_CD
+               , CNTR_NO
+               , CNTR_SN
+               , CNTR_PERF_CRT_DV_CD
+               , CO_CD
+               , OG_TP_CD
+               , PRTNR_NO
+               , PD_CD
+               , REF_PD_CLSF_VAL
+               , PERF_TP_CD
+               , SELL_TP_CD
+               , SELL_DSC_DV_CD
+               , SELL_DSCR_CD
+               , RECAP_DUTY_PTRM_N
+               , PMOT_USWY_DV_CD
+               , BFSVC_PRD_CD
+               , MCHN_CH_YN
+               , SELL_DSC_TP_CD
+               , MCHN_CH_TP_CD
+               , RSTL_YN
+               , FEE_ACKMT_DV_CD
+               , HDQ_OG_ID
+               , VTSEL_SODBT_CHNL_DV_CD
+               , SELL_AMT
+               , SL_AMT
+               , REDF_ADSB_OJ_AMT
+               , VAT
+               , ACKMT_PERF_RT
+               , ACKMT_PERF_AMT
+               , ACKMT_PERF_CT
+               , CVT_PERF_AMT
+               , BOO_SELL_YN
+               , RCPDT
+               , SL_DT
+               , CAN_DT
+               , STPL_PTRM_MCN
+               , FEE_CPSN_REDF_ID
+               , OJ_PRCSDT
+               , SRC_CO_CD
+               , DTA_DL_YN
+               <include refid="COMMON.insertSystemField" />
+               )
+        SELECT #{perfYm} AS BASE_YM
+             , #{perfYm} AS PERF_YM
+             , #{feeTcntDvCd} AS FEE_TCNT_DV_CD
+             , A.CNTR_NO
+             , A.CNTR_SN
+             , '01' AS CNTR_PERF_CRT_DV_CD
+             , '2000' AS CO_CD
+             , B.OG_TP_CD AS OG_TP_CD
+             , A.SELL_PRTNR_NO AS PRTNR_NO
+             , A.BASE_PD_CD AS PD_CD
+             , '' AS REF_PD_CLSF_VAL
+             , '' AS PERF_TP_CD
+             , A.SELL_TP_CD
+             , A.SELL_DSC_DV_CD
+             , CASE WHEN A.SELL_DSC_DV_CD IN ('1', '3', '8') THEN
+                         DECODE(A.STPL_PTRM, '12', '1', '24', '2', '36', '3', '48', '4', '60', '5', '72', '6')
+                    WHEN A.SELL_DSC_DV_CD = '5' THEN
+                         A.SELL_DSCR_CD
+                    ELSE
+                        '0'
+                    END AS SELL_DSCR_CD
+             , CASE WHEN A.SELL_DSC_DV_CD != '5' THEN A.STPL_PTRM ELSE 0 END AS RECAP_DUTY_PTRM_N
+             , P.SV_PD_TP_CD AS PMOT_USWY_DV_CD /* 일시불 = 0 */
+             , A.SV_PRD AS BFSVC_PRD_CD
+             , CASE WHEN A.SELL_TP_CD = '1' THEN 'N' /* 일시불 = '' */
+                    WHEN D.MCHN_CH_TP_CD IS NOT NULL THEN 'Y'
+                    ELSE 'N'
+               END AS MCHN_CH_YN
+             , CASE WHEN A.SELL_TP_CD = '1' THEN '' /* 일시불 = 0 */
+                    ELSE A.SELL_DSC_TP_CD
+               END AS SELL_DSC_TP_CD
+             , CASE WHEN A.SELL_TP_CD = '1' THEN '0' /* 일시불 = 0 */
+                    WHEN A.SELL_TP_CD = '6' THEN '0' /* 정기배송 = 0 */
+                    ELSE NVL(D.MCHN_CH_TP_CD,0)
+               END AS MCHN_CH_TP_CD
+             , A.RSTL_YN
+             , CASE WHEN NVL(A.FEE_ACKMT_CT, 0) > 0 AND NVL(A.FEE_ACKMT_BASE_AMT, 0) > 0 THEN '01'
+                    WHEN NVL(A.FEE_ACKMT_BASE_AMT, 0) > 0 THEN '02'
+                    WHEN NVL(A.FEE_ACKMT_CT, 0) > 0 THEN '03'
+                    END AS FEE_ACKMT_DV_CD
+             , B.OG_ID AS HDQ_OG_ID
+             , CASE WHEN A.SELL_INFLW_CHNL_DTL_CD = '8050' THEN '4'
+                    WHEN A.SELL_INFLW_CHNL_DTL_CD = '1090' THEN '3'
+                    WHEN A.SELL_INFLW_CHNL_DTL_CD = '5010' THEN '2'
+                    WHEN A.SELL_INFLW_CHNL_DTL_CD IN ('1010', '1030', '1040', '1050') THEN '1'
+                    ELSE '@'
+                    END AS VTSEL_SODBT_CHNL_DV_CD
+             , '' AS SELL_AMT
+             , '' AS SL_AMT
+             , '' AS REDF_ADSB_OJ_AMT
+             , '' AS VAT
+             , '' AS ACKMT_PERF_RT
+             , NVL(A.ACKMT_PERF_AMT,0) AS ACKMT_PERF_AMT
+             , NVL(A.FEE_ACKMT_CT,0) AS ACKMT_PERF_CT
+             , '' AS CVT_PERF_AMT
+             , CASE WHEN NVL(A.BOO_SELL_TP_CD,0) = 2 THEN 'Y'
+                    ELSE 'N'
+               END AS BOO_SELL_YN
+             , SUBSTR(A.CNTR_CNFM_DTM, 1, 8) AS RCPDT
+             , SUBSTR(A.CNTR_PD_STRTDT, 1, 8) AS SL_DT
+             , CASE WHEN A.CNTR_DTL_STAT_CD IN ('301','303') THEN SUBSTR(A.CNTR_PD_ENDDT,1,8) END AS CAN_DT
+             , CASE WHEN A.SELL_TP_CD = '1' THEN 0 /* 일시불 = 0 */
+                    ELSE NVL(A.STPL_PTRM,0)
+               END AS STPL_PTRM_MCN
+             , '' AS FEE_CPSN_REDF_ID
+             , TO_CHAR(SYSDATE,'YYYYMMDD') AS OJ_PRCSDT
+             , A.CO_CD AS SRC_CO_CD
+             , 'N' AS DTA_DL_YN
+             <include refid="COMMON.insertSystemFieldValue" />
+          FROM ( /* 일시불 */
+                 SELECT BAS.CNTR_NO /*계약번호*/
+                      , BAS.CNTR_CNFM_DTM /* 계약년월 */
+                      , BAS.SELL_OG_TP_CD /* 조직유형코드*/
+                      , BAS.SELL_PRTNR_NO /* 파트너번호 */
+                      , BAS.SELL_INFLW_CHNL_DTL_CD
+                      , DTL.BOO_SELL_TP_CD /*예약판매코드*/
+                      , DTL.BASE_PD_CD /* 상품코드 */
+                      , DTL.CNTR_SN /* 계약sq*/
+                      , DTL.CNTR_PD_STRTDT /* 매출년월 */
+                      , DTL.CNTR_PD_ENDDT /* 취소일자 */
+                      , DTL.SELL_TP_CD /* 판매유형 코드 */
+                      , DTL.SELL_DSC_DV_CD /* 할인구분코드 */
+                      , DTL.SELL_DSC_TP_CD /* 할인유형코드 */
+                      , DTL.SELL_DSCR_CD /* 판매할인율코드 */
+                      , DTL.SV_PRD /* BS주기코드 */
+                      , DTL.FEE_ACKMT_CT /*수수료인정건수*/
+                      , DTL.FEE_ACKMT_BASE_AMT
+                      , DTL.ACKMT_PERF_AMT /*수수료인정실적금액*/
+                      , 'N' AS RSTL_YN   /* 재약정여부 */
+                      , DTL.STPL_PTRM  /*약정기간*/
+                      , DTL.CNTR_DTL_STAT_CD
+                      , DTL.CO_CD
+                   FROM TB_SSCT_CNTR_BAS BAS /* T계약기본T */
+                  INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
+                     ON BAS.CNTR_NO = DTL.CNTR_NO
+                    AND DTL.DTA_DL_YN = 'N'
+                  WHERE 1 = 1
+                    AND BAS.SELL_OG_TP_CD = 'W04'
+                    AND DTL.SELL_TP_CD = '1'  /* 일시불/할부 */
+                    AND BAS.SELL_INFLW_CHNL_DTL_CD != '9020' -- 직원구매제외
+                    AND DTL.BASE_PD_CD NOT IN ( 'WP07110294', 'WP07110295', 'WM07100678', 'WM07100677', 'WM07107040') /*상품코드 스태킹키트 제외*/
+                    AND (
+                               -- 예약판매는 당월접수, 예약판매가 아닌 경우 당월매출 발생 + 당월취소가 아닌 경우 대상
+                               ( DTL.BOO_SELL_TP_CD = '2' AND BAS.CNTR_CNFM_DTM LIKE #{perfYm} || '%' )
+                            OR ( DTL.BOO_SELL_TP_CD IS NULL AND DTL.CNTR_DTL_STAT_CD != '401' AND DTL.CNTR_PD_STRTDT LIKE #{perfYm} || '%' AND SUBSTR(DTL.CNTR_PD_STRTDT, 1, 6) != SUBSTR(DTL.CNTR_PD_ENDDT, 1, 6) )
+                            OR ( DTL.BOO_SELL_TP_CD IS NULL AND DTL.CNTR_DTL_STAT_CD = '401' AND DTL.CNTR_PD_STRTDT LIKE #{perfYm} || '%' )
+                         )
+                  UNION ALL
+                  /* 렌탈 */
+                 SELECT BAS.CNTR_NO /*계약번호*/
+                      , BAS.CNTR_CNFM_DTM /* 계약년월 */
+                      , BAS.SELL_OG_TP_CD /* 조직유형코드*/
+                      , BAS.SELL_PRTNR_NO /* 파트너번호 */
+                      , BAS.SELL_INFLW_CHNL_DTL_CD
+                      , DTL.BOO_SELL_TP_CD /*예약판매코드*/
+                      , DTL.BASE_PD_CD /* 상품코드 */
+                      , DTL.CNTR_SN /* 계약sq*/
+                      , DTL.CNTR_PD_STRTDT /* 매출년월 */
+                      , DTL.CNTR_PD_ENDDT /* 취소일자 */
+                      , DTL.SELL_TP_CD /* 판매유형 코드 */
+                      , DTL.SELL_DSC_DV_CD /* 할인구분코드 */
+                      , DTL.SELL_DSC_TP_CD /* 할인유형코드 */
+                      , DTL.SELL_DSCR_CD /* 판매할인율코드 */
+                      , DTL.SV_PRD /* BS주기코드 */
+                      , DTL.FEE_ACKMT_CT /*수수료인정건수*/
+                      , DTL.FEE_ACKMT_BASE_AMT
+                      , DTL.ACKMT_PERF_AMT /*수수료인정실적금액*/
+                      , 'N' AS RSTL_YN   /* 재약정여부 */
+                      , DTL.STPL_PTRM  /*약정기간*/
+                      , DTL.CNTR_DTL_STAT_CD
+                      , DTL.CO_CD
+                   FROM TB_SSCT_CNTR_BAS BAS /* T계약기본T */
+                  INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
+                     ON BAS.CNTR_NO = DTL.CNTR_NO
+                    AND DTL.DTA_DL_YN = 'N'
+                  WHERE BAS.SELL_OG_TP_CD = 'W04'
+                    AND DTL.SELL_TP_CD = '2'  /* 렌탈 */
+                    AND BAS.SELL_INFLW_CHNL_DTL_CD != '9020' -- 직원구매제외
+                    AND (
+                               -- 예약판매는 당월접수, 예약판매가 아닌 경우 당월매출 발생 + 당월취소가 아닌 경우 대상
+                               ( DTL.BOO_SELL_TP_CD = '2' AND BAS.CNTR_CNFM_DTM LIKE #{perfYm} || '%' )
+                            OR ( DTL.BOO_SELL_TP_CD IS NULL AND DTL.CNTR_PD_STRTDT LIKE #{perfYm} || '%' AND SUBSTR(DTL.CNTR_PD_STRTDT, 1, 6) != SUBSTR(DTL.CNTR_PD_ENDDT, 1, 6) )
+                         )
+                    AND NOT EXISTS (SELECT 1 FROM TB_SSCT_RENTAL_RSTL_IZ X WHERE DTL.CNTR_NO = X.CNTR_NO AND DTL.CNTR_SN = X.CNTR_SN)
+                  UNION ALL
+                  /* 정기배송 */
+                 SELECT BAS.CNTR_NO /*계약번호*/
+                      , BAS.CNTR_CNFM_DTM /* 계약년월 */
+                      , BAS.SELL_OG_TP_CD /* 조직유형코드*/
+                      , BAS.SELL_PRTNR_NO /* 파트너번호 */
+                      , BAS.SELL_INFLW_CHNL_DTL_CD
+                      , DTL.BOO_SELL_TP_CD /*예약판매코드*/
+                      , DTL.BASE_PD_CD /* 상품코드 */
+                      , DTL.CNTR_SN /* 계약sq*/
+                      , DTL.CNTR_PD_STRTDT /* 매출년월 */
+                      , DTL.CNTR_PD_ENDDT /* 취소일자 */
+                      , DTL.SELL_TP_CD /* 판매유형 코드 */
+                      , DTL.SELL_DSC_DV_CD /* 할인구분코드 */
+                      , DTL.SELL_DSC_TP_CD /* 할인유형코드 */
+                      , DTL.SELL_DSCR_CD /* 판매할인율코드 */
+                      , DTL.SV_PRD /* BS주기코드 */
+                      , DTL.FEE_ACKMT_CT /*수수료인정건수*/
+                      , DTL.FEE_ACKMT_BASE_AMT
+                      , DTL.ACKMT_PERF_AMT /*수수료인정실적금액*/
+                      , 'N' AS RSTL_YN   /* 재약정여부 */
+                      , DTL.STPL_PTRM  /*약정기간*/
+                      , DTL.CNTR_DTL_STAT_CD
+                      , DTL.CO_CD
+                   FROM TB_SSCT_CNTR_BAS BAS /* T계약기본T */
+                  INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
+                     ON BAS.CNTR_NO = DTL.CNTR_NO
+                    AND DTL.DTA_DL_YN = 'N'
+                  WHERE 1 = 1
+                    AND BAS.SELL_OG_TP_CD = 'W04'
+                    AND DTL.SELL_TP_CD = '6'  /* 정기배송 */
+                    AND DTL.STPL_PTRM &gt;= 6
+                    AND BAS.SELL_INFLW_CHNL_DTL_CD != '9020' -- 직원구매제외
+                    AND (
+                               -- 예약판매는 당월접수, 예약판매가 아닌 경우 당월매출 발생 + 당월취소가 아닌 경우 대상
+                               ( DTL.BOO_SELL_TP_CD = '2' AND BAS.CNTR_CNFM_DTM LIKE #{perfYm} || '%' )
+                            OR ( DTL.BOO_SELL_TP_CD IS NULL AND DTL.CNTR_PD_STRTDT LIKE #{perfYm} || '%' AND SUBSTR(DTL.CNTR_PD_STRTDT, 1, 6) != SUBSTR(DTL.CNTR_PD_ENDDT, 1, 6) )
+                         )
+                  UNION ALL
+                 /* 멤버십 */
+                 SELECT BAS.CNTR_NO /*계약번호*/
+                      , BAS.CNTR_CNFM_DTM /* 계약년월 */
+                      , BAS.SELL_OG_TP_CD /* 조직유형코드*/
+                      , BAS.SELL_PRTNR_NO /* 파트너번호 */
+                      , BAS.SELL_INFLW_CHNL_DTL_CD
+                      , DTL.BOO_SELL_TP_CD /*예약판매코드*/
+                      , DTL.BASE_PD_CD /* 상품코드 */
+                      , DTL.CNTR_SN /* 계약sq*/
+                      , DTL.CNTR_PD_STRTDT /* 매출년월 */
+                      , DTL.CNTR_PD_ENDDT /* 취소일자 */
+                      , DTL.SELL_TP_CD /* 판매유형 코드 */
+                      , DTL.SELL_DSC_DV_CD /* 할인구분코드 */
+                      , DTL.SELL_DSC_TP_CD /* 할인유형코드 */
+                      , DTL.SELL_DSCR_CD /* 판매할인율코드 */
+                      , DTL.SV_PRD /* BS주기코드 */
+                      , DTL.FEE_ACKMT_CT /*수수료인정건수*/
+                      , DTL.FEE_ACKMT_BASE_AMT
+                      , DTL.ACKMT_PERF_AMT /*수수료인정실적금액*/
+                      , 'N' AS RSTL_YN   /* 재약정여부 */
+                      , DTL.STPL_PTRM  /*약정기간*/
+                      , DTL.CNTR_DTL_STAT_CD
+                      , DTL.CO_CD
+                   FROM TB_SSCT_CNTR_BAS BAS /* T계약기본T */
+                  INNER JOIN TB_SSCT_CNTR_DTL DTL /* T계약상세T */
+                     ON BAS.CNTR_NO = DTL.CNTR_NO
+                    AND DTL.DTA_DL_YN = 'N'
+                  WHERE 1 = 1
+                    AND BAS.SELL_OG_TP_CD = 'W04'
+                    AND DTL.SELL_TP_CD = '3'  /* 멤버십 */
+                    AND DTL.STPL_PTRM &gt;= 6
+                    AND DTL.CNTRW_TP_CD = '5'
+                    AND DTL.CNTR_DTL_STAT_CD <![CDATA[<]]>> '203'
+                    AND BAS.SELL_INFLW_CHNL_DTL_CD != '9020' -- 직원구매제외
+                    AND DTL.CNTR_PD_STRTDT LIKE #{perfYm} || '%'
+                  ) A
+            INNER JOIN TB_OGBS_MM_PRTNR_IZ B /* T월파트너내역T */
+               ON A.SELL_OG_TP_CD = B.OG_TP_CD
+              AND A.SELL_PRTNR_NO = B.PRTNR_NO
+              AND B.BASE_YM = #{perfYm}
+             LEFT OUTER JOIN TB_SSCT_MCHN_CH_IZ D  /*T기기변경내역T*/
+               ON A.CNTR_NO = D.BASE_CNTR_NO
+              AND A.CNTR_SN = D.BASE_CNTR_SN
+            LEFT OUTER JOIN TB_SVPD_CST_SV_EXCN_IZ S /* 고객서비스수행내역    */
+               ON A.CNTR_NO = S.CNTR_NO
+              AND A.CNTR_SN = S.CNTR_SN
+            LEFT OUTER JOIN TB_PDBS_PD_BAS P /* 상품기본 - 서비스상품 */
+               ON S.SV_PD_CD = P.PD_CD
+            WHERE 1=1
+              AND EXISTS (SELECT 1 FROM TB_OGBS_MM_PRTNR_IZ O1 WHERE SUBSTR(A.CNTR_CNFM_DTM, 1, 6) = O1.BASE_YM AND A.SELL_OG_TP_CD = O1.OG_TP_CD AND A.SELL_PRTNR_NO = O1.PRTNR_NO AND O1.HIR_FOM_CD = '4') -- 법인영업수수료대상
+              AND NOT EXISTS (
+               SELECT /*+ index(S1 IX_FEDD_FEE_PERF_EXCD_OJ_BAS_01) */
+                      '1'
+                 FROM TB_FEDD_FEE_PERF_EXCD_OJ_BAS S1 /* 수수료실적제외대상기본 */
+                INNER JOIN TB_FEDD_FEE_PERF_EXCD_OJ_DTL S2 /* 수수료실적제외대상상세 */
+                   ON S1.FEE_PERF_EXCD_OJ_ID = S2.FEE_PERF_EXCD_OJ_ID /* 수수료실적제외대상ID */
+                  AND S2.DTA_DL_YN = 'N'
+                WHERE 1=1
+                  AND S1.DTA_DL_YN = 'N'
+                  AND S1.FEE_PERF_EXCD_DV_CD = '01' /* 수수료실적제외구분코드 = 01 : 실적제외 */
+<!--                  AND #{perfYm} BETWEEN S1.APY_STRT_YM AND S1.APY_END_YM /* 적용시작년월, 적용종료년월 */-->
+                  AND S2.PERF_DV_CD = '0' /* 실적구분코드 = 0 : 개인판매 */
+                  AND S2.OG_TP_CD = A.SELL_OG_TP_CD /* 조직유형코드 */
+                  AND S1.CNTR_NO = A.CNTR_NO /* 계약번호 */
+                  AND S1.CNTR_SN = A.CNTR_SN /* 계약일련번호 */
+               )
+    </insert>
+
 
     <insert id="insertAggregateNtorMmCl">
         INSERT INTO TB_FEAM_NTOR_MM_CL (
