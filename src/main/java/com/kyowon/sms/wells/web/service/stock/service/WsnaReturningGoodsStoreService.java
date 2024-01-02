@@ -361,9 +361,11 @@ public class WsnaReturningGoodsStoreService {
     /**
      * 로그인한 사용자의 창고를 조회
      * @param prtnrNo
+     * @param strtDt
+     * @param endDt
      * @return
      */
-    public List<SearchWareRes> getReturningGoodsStoresLoginWarehouse(String prtnrNo) {
-        return mapper.selectReturningGoodsStoresLoginWarehouse(prtnrNo);
+    public List<SearchWareRes> getReturningGoodsStoresLoginWarehouse(String prtnrNo, String strtDt, String endDt) {
+        return mapper.selectReturningGoodsStoresLoginWarehouse(prtnrNo, strtDt, endDt);
     }
 }

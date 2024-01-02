@@ -172,6 +172,10 @@ public class WsnaQomAsnService {
     public int removeQomAsn(CreateReq dto) {
         WsnaQomAsnRemoveDvo removeDvo = this.converter.mapCreateReqToWsnaQomAsnRemoveDvo(dto);
 
+        // 물류이관 데이터 체크
+        Integer count = this.mapper.selectQomAsnLgstCount(removeDvo);
+        // 물류이관 데이터가 있을 경우 재생성할 수 없음. (물류로 이관된 품목 데이터가 존재하여 처리할 수 없습니다.)
+        BizAssert.isNull(count, "MSG_ALT_QOM_ASN_RE_CRT_VALID");
         return this.mapper.updateQomAsnForRemove(removeDvo);
     }
 
