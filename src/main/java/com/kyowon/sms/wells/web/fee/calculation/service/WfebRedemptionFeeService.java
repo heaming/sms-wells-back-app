@@ -62,7 +62,7 @@ public class WfebRedemptionFeeService {
         String ogTpCd = code.getUserDfn02();
         String perfAgrgCrtDvCd = code.getCodeValidityValue();
 
-        /* 되물림 실적집계 서비스 호출 */
+        /* 되물림 취소 실적집계 서비스 호출 */
         redemptionPerfService.aggregateRedemptionOfFeePerformance(baseYm, ogTpCd, perfAgrgCrtDvCd, cntrPerfCrtDvCd);
 
         /* 취소되물림 서비스 호출 */
