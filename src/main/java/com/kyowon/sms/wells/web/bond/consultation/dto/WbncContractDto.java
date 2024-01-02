@@ -62,6 +62,7 @@ public class WbncContractDto {
     public record SearchRes(
         String ctt, /* 컨택 */
         String bizDv, /* 업무구분 */
+        String bizDvNm, /* 업무구분 */
         String prdf, /* 제품군 */
         String pdctNm, /* 제품명 */
         String cntrNo, /* 계약번호 */
