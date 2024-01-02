@@ -135,6 +135,8 @@ public class WwdbRefundApplicationDto {
         String dpAmt, // 입금금액
         String bltfAdd, // 전금추가
         String rfndPsbAmt, // 환불가능금액
+        String rfndAmt, // 환불금액
+        String rfndPsbBlam, // 환불가능잔액
         /* default 0값 (환불요청값) */
         String rfndCshAkAmt, // 현금환불금액
         String rfndCardAkAmt, // 카드환불요청금액

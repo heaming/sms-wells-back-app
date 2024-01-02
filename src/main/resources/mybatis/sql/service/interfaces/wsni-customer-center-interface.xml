@@ -291,6 +291,11 @@
                  , TO_CHAR(SYSDATE + 40, 'YYYYMMDD') TODAY_PLUS_40_DAY
                  , TO_CHAR(ADD_MONTHS(TO_DATE(T1.IST_DT), 2), 'YYYYMMDD') IST_PLUS_2_MONTH_DT
                  , TO_CHAR(ADD_MONTHS(TO_DATE(T1.IST_DT), 4), 'YYYYMMDD') IST_PLUS_4_MONTH_DT
+                 , (SELECT MIN(X1.VST_DUEDT)
+                      FROM TB_SVPD_CST_SV_RGBSPR_IZ X1
+                     WHERE T1.CNTR_NO = X1.CNTR_NO
+                       AND T1.CNTR_SN = X1.CNTR_SN
+                       AND X1.VST_DUEDT <![CDATA[>]]> TO_CHAR(SYSDATE + 40, 'YYYYMMDD'))  AS NEXT_VST_DUEDT
                  , (SELECT GREATEST(SUBSTR(MAX(X1.MTR_CAN_DT), 1, 4) || '1231', TO_CHAR(SYSDATE + 40, 'YYYYMMDD'))
                       FROM TB_SVPD_CST_SV_RGBSPR_IZ X1
                      WHERE T1.CNTR_NO = X1.CNTR_NO
@@ -318,19 +323,23 @@
                      -- 패키지 변경 가능일자
                      --1. 방문 스케쥴표상에 금일 기준 + 40일 한 날짜 보다 큰 일정 중 제일 작은 날짜를 선택
                      --2. 스케쥴표가 없다면 설치 일자 기준으로 2달 뒤에 날짜가 금일 기준 + 40일 한 날짜 보다 크면 그 날짜를 아니면 4달 뒤에 날짜를 선택
-                     , NVL( (SELECT MIN(X1.VST_DUEDT)
-                               FROM TB_SVPD_CST_SV_RGBSPR_IZ X1
-                              WHERE T1.CNTR_NO = X1.CNTR_NO
-                                AND T1.CNTR_SN = X1.CNTR_SN
-                                AND X1.VST_DUEDT > T1.TODAY_PLUS_40_DAY),
-                              (CASE WHEN T1.TODAY_PLUS_40_DAY <![CDATA[<]]> T1.IST_PLUS_2_MONTH_DT THEN T1.IST_PLUS_2_MONTH_DT ELSE T1.IST_PLUS_4_MONTH_DT END) )  AS VST_DUEDT
+                     , CASE WHEN NEXT_VST_DUEDT IS NULL THEN NEXT_VST_DUEDT
+                            ELSE NVL((SELECT MIN(X1.VST_DUEDT)
+                                        FROM TB_SVPD_CST_SV_RGBSPR_IZ X1
+                                       WHERE T1.CNTR_NO = X1.CNTR_NO
+                                         AND T1.CNTR_SN = X1.CNTR_SN
+                                         AND X1.VST_DUEDT > T1.TODAY_PLUS_40_DAY),
+                              (CASE WHEN T1.TODAY_PLUS_40_DAY <![CDATA[<]]> T1.IST_PLUS_2_MONTH_DT THEN T1.IST_PLUS_2_MONTH_DT ELSE T1.IST_PLUS_4_MONTH_DT END)
+                      ) END AS VST_DUEDT
                      -- 2019.05.13 이충관 수정 - 모종중지 내역이 있는 고객의 경우 12개월 이후 중지 가능에서 연도 별 1회 모종중지신청 가능하도록 쿼리 수정(이난영과장님요청)
-                     , NVL( (SELECT MIN(X1.VST_DUEDT)
-                               FROM TB_SVPD_CST_SV_RGBSPR_IZ X1
-                              WHERE T1.CNTR_NO = X1.CNTR_NO
-                                AND T1.CNTR_SN = X1.CNTR_SN
-                                AND X1.VST_DUEDT > NVL(T1.LAST_MTR_CAN_DT, T1.TODAY_PLUS_40_DAY)),
-                              (CASE WHEN T1.TODAY_PLUS_40_DAY <![CDATA[<]]> T1.IST_PLUS_2_MONTH_DT THEN T1.IST_PLUS_2_MONTH_DT ELSE T1.IST_PLUS_4_MONTH_DT END) )  AS STP_DUEDT
+                     , CASE WHEN NEXT_VST_DUEDT IS NULL THEN NEXT_VST_DUEDT
+                            ELSE NVL((SELECT MIN(X1.VST_DUEDT)
+                                        FROM TB_SVPD_CST_SV_RGBSPR_IZ X1
+                                       WHERE T1.CNTR_NO = X1.CNTR_NO
+                                         AND T1.CNTR_SN = X1.CNTR_SN
+                                         AND X1.VST_DUEDT > NVL(T1.LAST_MTR_CAN_DT, T1.TODAY_PLUS_40_DAY)),
+                              (CASE WHEN T1.TODAY_PLUS_40_DAY <![CDATA[<]]> T1.IST_PLUS_2_MONTH_DT THEN T1.IST_PLUS_2_MONTH_DT ELSE T1.IST_PLUS_4_MONTH_DT END)
+                      ) END AS STP_DUEDT
                      , (SELECT MAX(X1.MTR_CAN_DT)
                           FROM TB_SVPD_CST_SV_RGBSPR_IZ X1
                          WHERE T1.CNTR_NO = X1.CNTR_NO
