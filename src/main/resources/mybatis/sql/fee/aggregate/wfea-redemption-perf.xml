@@ -118,13 +118,20 @@
           FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ T1
                INNER JOIN TB_IFIN_LIF_ALNC_FEE_CNTR_IZ T2
                           ON (T1.LIF_CNTR_NO = T2.LIF_CNTR_NO AND T1.OG_TP_CD = T2.OG_TP_CD)
+               LEFT OUTER JOIN LATERAL (SELECT SUM(CASE WHEN T3.LIF_CNTR_STAT_CD = '2' THEN 1 ELSE -1 END) AS REDF_ADSB_SUM_CNT
+                                         FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ T3
+                                        WHERE T1.LIF_CNTR_NO = T3.LIF_CNTR_NO
+                                          AND T1.OG_TP_CD = T3.OG_TP_CD
+                                          AND T3.LIF_CNTR_STAT_CD IN ('2', '3')) T3
+               ON (1=1)
          WHERE T2.FEE_REDF_YM = ${baseYm}
            AND T2.LIF_CNTR_STAT_CD = '1' /* 취소 */
            AND T1.LIF_CNTR_STAT_CD = '0'
            AND NVL(T1.FEE_DSB_YM, '0') > '0'
            AND T1.OG_TP_CD = #{ogTpCd}
-           --AND T2.CNFM_YN = 'Y'
+           AND T2.CNFM_YN = 'Y'
            AND NVL(T1.FEE_DSB_YM, '0') <![CDATA[<]]> NVL(T2.FEE_REDF_YM,'0')
+           AND NVL(REDF_ADSB_SUM_CNT, 0)  = 0
         GROUP BY T2.FEE_REDF_YM, T1.BASE_YM, T1.PRTNR_NO, T1.CNTR_NO, T1.CNTR_SN
     </insert>
 
@@ -164,14 +171,21 @@
                   FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ T1
                        INNER JOIN TB_IFIN_LIF_ALNC_FEE_CNTR_IZ T2
                                   ON (T1.LIF_CNTR_NO = T2.LIF_CNTR_NO AND T1.OG_TP_CD = T2.OG_TP_CD)
+                       LEFT OUTER JOIN LATERAL (SELECT SUM(CASE WHEN T3.LIF_CNTR_STAT_CD = '2' THEN 1 ELSE -1 END) AS REDF_ADSB_SUM_CNT
+                                         FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ T3
+                                        WHERE T1.LIF_CNTR_NO = T3.LIF_CNTR_NO
+                                          AND T1.OG_TP_CD = T3.OG_TP_CD
+                                          AND T3.LIF_CNTR_STAT_CD IN ('2', '3')) T3
+                                  ON (1=1)
                  WHERE T2.FEE_REDF_YM = ${baseYm}
                    AND T2.LIF_CNTR_STAT_CD = '1' /* 취소 */
                    AND T1.LIF_CNTR_STAT_CD = '0'
                    AND NVL(T1.FEE_DSB_YM, '0') > '0'
                    AND T1.OG_TP_CD = #{ogTpCd}
-                   --AND T2.CNFM_YN = 'Y'
+                   AND T2.CNFM_YN = 'Y'
                    AND T1.LIF_CNTR_OC_TN = 1
                    AND T1.PRTNR_NO != T1.BRMGR_PRTNR_NO
+                   AND NVL(REDF_ADSB_SUM_CNT, 0)  = 0
                    AND NVL(T1.FEE_DSB_YM, '0') <![CDATA[<]]> NVL(T2.FEE_REDF_YM,'0')
                  GROUP BY T2.FEE_REDF_YM, T1.BASE_YM, T1.PRTNR_NO, T1.CNTR_NO, T1.CNTR_SN
     </insert>
