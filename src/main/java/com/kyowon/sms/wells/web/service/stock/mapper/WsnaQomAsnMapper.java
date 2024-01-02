@@ -24,6 +24,8 @@ public interface WsnaQomAsnMapper {
 
     Integer selectQomAsnCount(SearchReq dto);
 
+    Integer selectQomAsnLgstCount(WsnaQomAsnRemoveDvo dvo);
+
     int updateQomAsnForRemove(WsnaQomAsnRemoveDvo dvo);
 
     int insertQomAsnFirstTnIndividuals(WsnaQomAsnCreateDvo dvo);
