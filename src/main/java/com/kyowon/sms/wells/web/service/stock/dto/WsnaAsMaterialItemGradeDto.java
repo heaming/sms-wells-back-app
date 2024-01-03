@@ -71,8 +71,12 @@ public class WsnaAsMaterialItemGradeDto {
 
         // 품목코드
         String itmPdCd,
-        // 자재구분
-        String matUtlzDvCd
+        // 중수리자재여부
+        String commGb,
+        // 기초자재여부
+        String baseGb,
+        // 회전율대상여부
+        String turnoverGb
 
     ) {}
 

@@ -62,7 +62,9 @@ public class WsnaAsMaterialItemGradePsController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", example = "202212", required = true),
         @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query", example = "Y"),
-        @ApiImplicitParam(name = "matUtlzDvCd", value = "자재구분", paramType = "query", example = "01")
+        @ApiImplicitParam(name = "commGb", value = "중수리자재여부", paramType = "query", example = "Y"),
+        @ApiImplicitParam(name = "baseGb", value = "기초자재여부", paramType = "query", example = "Y"),
+        @ApiImplicitParam(name = "turnoverGb", value = "회전율대상여부", paramType = "query", example = "Y")
     })
     public PagingResult<HashMap<String, String>> getAsMaterialsItemGradePsPaging(@Valid
     SearchReq dto, @Valid
@@ -77,7 +79,9 @@ public class WsnaAsMaterialItemGradePsController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", example = "202212", required = true),
         @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query", example = "Y"),
-        @ApiImplicitParam(name = "matUtlzDvCd", value = "자재구분", paramType = "query", example = "01")
+        @ApiImplicitParam(name = "commGb", value = "중수리자재여부", paramType = "query", example = "Y"),
+        @ApiImplicitParam(name = "baseGb", value = "기초자재여부", paramType = "query", example = "Y"),
+        @ApiImplicitParam(name = "turnoverGb", value = "회전율대상여부", paramType = "query", example = "Y")
     })
     public List<HashMap<String, String>> getAsMaterialsItemGradePsExcelDownload(@Valid
     SearchReq dto) {
