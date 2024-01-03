@@ -177,14 +177,11 @@ public class WbncRentalResignExpectedMgtService {
             List<WbncAuthorityResignIzDvo> resignConfirms = this.mapper.selectRentalResignConfirms(dto.baseDt());
             List<WctbContractDtlStatCdChDvo> resignContractList = getResignContractList(resignConfirms);
             if (!resignContractList.isEmpty()) {
-                try {
-                    wctbContractDtlStatCdChService.editContractsDtlStatCdCh(resignContractList);
-                } catch (Exception e) {
-                    throw new BizException(messageResourceService.getMessage("MSG_ALT_CNTR_CH_FAIL")); // 계약 상태 변경에 실패 하였습니다.
+                for (final var resignContract : resignContractList) {
+                    wctbContractDtlStatCdChService.editContractDtlStatCdCh(resignContract);
                 }
             }
         }
-
         return processCount;
     }
 
