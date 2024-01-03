@@ -36,17 +36,12 @@ public class WsnaReturningGoodsStoreService {
 
     private static final String RETURN_DISUSE = "212"; //폐기출고
 
-    private static final String RETURN_QUANTITY = "223"; //물량이동
-
     private static final String RETURN_OSTR = "320"; //물량이동
 
-    private static final String RETURN_STR_QUANTITY = "123"; // 물량이동
     private final WsnaReturningGoodsStoreMapper mapper;
     private final WsnaReturningGoodsStoreConverter converter;
 
     private final WsnaItemStockItemizationService itemStockservice;
-
-    private final WsnaLogisticsInStorageAskService logisticsService;
 
     /**
      * 반품입고 관리 조회

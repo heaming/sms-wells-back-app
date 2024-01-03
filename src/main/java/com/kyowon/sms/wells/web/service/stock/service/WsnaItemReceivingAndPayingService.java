@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.service.stock.converter.WsnaItemReceivingAndPayingConverter;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaItemReceivingAndPayingMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -23,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WsnaItemReceivingAndPayingService {
 
-    private final WsnaItemReceivingAndPayingConverter converter;
     private final WsnaItemReceivingAndPayingMapper mapper;
 
     /**
