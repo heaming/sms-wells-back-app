@@ -76,19 +76,22 @@ public class WdebAwAdsbMgtService {
                 processCount += mapper.insertB2BAdsbObjectCreates(req); // 재지급 대상 생성 - WELLS-B2B
             }
 
-            if (adsbChkW02 > 0) {
-                req.setCntrPerfCrtDvCd("09"); // M추진단 재지급
-                feeService.saveAgainDisbursementOfFees(req.getBaseYm(), req.getCntrPerfCrtDvCd());
-            }
+            // 대상 생성이 된 경우에만 재지급 금액 생성 서비스 call
+            if (processCount != 0) {
+                if (adsbChkW02 > 0) {
+                    req.setCntrPerfCrtDvCd("09"); // M추진단 재지급
+                    feeService.saveAgainDisbursementOfFees(req.getBaseYm(), req.getCntrPerfCrtDvCd());
+                }
 
-            if (adsbChkW04 > 0) {
-                req.setCntrPerfCrtDvCd("12"); // B2B 재지급
-                feeService.saveAgainDisbursementOfFees(req.getBaseYm(), req.getCntrPerfCrtDvCd());
-            }
+                if (adsbChkW04 > 0) {
+                    req.setCntrPerfCrtDvCd("12"); // B2B 재지급
+                    feeService.saveAgainDisbursementOfFees(req.getBaseYm(), req.getCntrPerfCrtDvCd());
+                }
 
-            if (adsbChkW05 > 0) {
-                req.setCntrPerfCrtDvCd("11"); // 총판 재지급
-                feeService.saveAgainDisbursementOfFees(req.getBaseYm(), req.getCntrPerfCrtDvCd());
+                if (adsbChkW05 > 0) {
+                    req.setCntrPerfCrtDvCd("11"); // 총판 재지급
+                    feeService.saveAgainDisbursementOfFees(req.getBaseYm(), req.getCntrPerfCrtDvCd());
+                }
             }
         }
         return processCount;
