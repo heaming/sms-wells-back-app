@@ -14,8 +14,6 @@ public interface WsnaItemByStockAggregationMapper {
 
     List<SearchWareRes> selectItemByStockWareHouses(String baseDt, String wareDvCd);
 
-    long selectItemByStockAggCount(WsnaItemByStockAggregationDvo dvo);
-
     List<HashMap<String, Object>> selectItemByStockAggs(WsnaItemByStockAggregationDvo dvo);
 
 }
