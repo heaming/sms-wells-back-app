@@ -11,7 +11,7 @@ public interface WfebRedemptionFeeMapper {
      * @param feeRedfAdsbDtlId
      * @return
      */
-    Integer insertLifeContractRedf(String baseYm, String ogTpCd, String feeRedfAdsbDtlId);
+    Integer insertLifeContractRedf(String baseYm, String ogTpCd, String feeRedfAdsbDtlId, String plarIndvFeeCd, String brmgrIndvFeeCd, String brmgrOgFeeCd);
 
     /**
      * M조직 연체되물림 계약데이터 생성
