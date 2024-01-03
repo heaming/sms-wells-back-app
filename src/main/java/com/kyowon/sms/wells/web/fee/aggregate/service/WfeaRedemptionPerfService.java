@@ -59,10 +59,10 @@ public class WfeaRedemptionPerfService {
         try {
             /* 기생성 데이터 삭제 */
             feeAgrgPrtcSn = perfAgrgPrtcHistService.savePerfAgrgPrtcDtlHistory(perfAgrgPrtcId, "W00301");
-            zRedfAdsbmapper.deleteCommonRedfAdsbPerfData("TB_FEAM_NTORP_PERF_MM_CL", baseYm, ogTpCd, perfAgrgCrtDvCd);
-            zRedfAdsbmapper.deleteCommonRedfAdsbPerfData("TB_FEAM_NTORP_CNTR_MM_CL", baseYm, ogTpCd, perfAgrgCrtDvCd);
-            zRedfAdsbmapper.deleteCommonRedfAdsbPerfData("TB_FEAM_PRTNR_PERF_MM_CL", baseYm, ogTpCd, perfAgrgCrtDvCd);
-            perfAgrgPrtcHistService.editPerfAgrgPrtcDtlHistory(perfAgrgPrtcId, feeAgrgPrtcSn);
+            Integer deleteCount = zRedfAdsbmapper.deleteCommonRedfAdsbPerfData("TB_FEAM_NTORP_PERF_MM_CL", baseYm, ogTpCd, perfAgrgCrtDvCd);
+            deleteCount += zRedfAdsbmapper.deleteCommonRedfAdsbPerfData("TB_FEAM_NTORP_CNTR_MM_CL", baseYm, ogTpCd, perfAgrgCrtDvCd);
+            deleteCount += zRedfAdsbmapper.deleteCommonRedfAdsbPerfData("TB_FEAM_PRTNR_PERF_MM_CL", baseYm, ogTpCd, perfAgrgCrtDvCd);
+            perfAgrgPrtcHistService.editPerfAgrgPrtcDtlHistory(perfAgrgPrtcId, feeAgrgPrtcSn, deleteCount);
 
             List<String> perfAtcCds = new ArrayList<>();
             /* 조직유형별 실적 생성 */
@@ -94,29 +94,30 @@ public class WfeaRedemptionPerfService {
 
             /* 계약별 되물림 내역 생성 */
             /* 파트너 개인실적 계약 데이터 생성 */
+            Integer insertCount = 0;
             feeAgrgPrtcSn = perfAgrgPrtcHistService.savePerfAgrgPrtcDtlHistory(perfAgrgPrtcId, "W00302");
-            mapper.insertContractDataFromNtorp(baseYm, ogTpCd, cntrPerfCrtDvCd, perfAgrgCrtDvCd, perfAtcCds);
+            insertCount += mapper.insertContractDataFromNtorp(baseYm, ogTpCd, cntrPerfCrtDvCd, perfAgrgCrtDvCd, perfAtcCds);
 
             if ("W01".equals(ogTpCd)) {
                 /* 개인 라이프 상조 취소되물림 계약 데이터 생성 */
-                mapper.insertIndivContractDataFromLife(baseYm, ogTpCd, "W01P00010", cntrPerfCrtDvCd, perfAgrgCrtDvCd);
+                insertCount += mapper.insertIndivContractDataFromLife(baseYm, ogTpCd, "W01P00010", cntrPerfCrtDvCd, perfAgrgCrtDvCd);
                 /* 조직 라이프 상조 취소되물림 계약 데이터 생성 */
-                mapper.insertOrgContractDataFromLife(baseYm, ogTpCd, "W01P00034", cntrPerfCrtDvCd, perfAgrgCrtDvCd);
+                insertCount += mapper.insertOrgContractDataFromLife(baseYm, ogTpCd, "W01P00034", cntrPerfCrtDvCd, perfAgrgCrtDvCd);
                 perfAtcCds.addAll(Arrays.asList("W01P00010", "W01P00034"));
             } else if ("W02".equals(ogTpCd)) {
                 /* 아직 미반영 */
             }
-            perfAgrgPrtcHistService.editPerfAgrgPrtcDtlHistory(perfAgrgPrtcId, feeAgrgPrtcSn);
+            perfAgrgPrtcHistService.editPerfAgrgPrtcDtlHistory(perfAgrgPrtcId, feeAgrgPrtcSn, insertCount);
 
             /* 파트너 개인실적 합계 생성 */
             feeAgrgPrtcSn = perfAgrgPrtcHistService.savePerfAgrgPrtcDtlHistory(perfAgrgPrtcId, "W00303");
-            zRedfAdsbmapper.insertSumOfCntrDataToPrtnrForIndiv(baseYm, ogTpCd, perfAgrgCrtDvCd, perfAtcCds);
-            perfAgrgPrtcHistService.editPerfAgrgPrtcDtlHistory(perfAgrgPrtcId, feeAgrgPrtcSn);
+            insertCount = zRedfAdsbmapper.insertSumOfCntrDataToPrtnrForIndiv(baseYm, ogTpCd, perfAgrgCrtDvCd, perfAtcCds);
+            perfAgrgPrtcHistService.editPerfAgrgPrtcDtlHistory(perfAgrgPrtcId, feeAgrgPrtcSn, insertCount);
 
             /* 조직 합계 생성 */
             feeAgrgPrtcSn = perfAgrgPrtcHistService.savePerfAgrgPrtcDtlHistory(perfAgrgPrtcId, "W00303");
-            zRedfAdsbmapper.insertSumOfCntrDataToPrtnrForOg(baseYm, ogTpCd, perfAgrgCrtDvCd, perfAtcCds, Arrays.asList("2"));
-            perfAgrgPrtcHistService.editPerfAgrgPrtcDtlHistory(perfAgrgPrtcId, feeAgrgPrtcSn);
+            insertCount = zRedfAdsbmapper.insertSumOfCntrDataToPrtnrForOg(baseYm, ogTpCd, perfAgrgCrtDvCd, perfAtcCds, Arrays.asList("2"));
+            perfAgrgPrtcHistService.editPerfAgrgPrtcDtlHistory(perfAgrgPrtcId, feeAgrgPrtcSn, insertCount);
 
             /**
              *  P조직 실활동인원수 되물림실적 생성
@@ -131,8 +132,8 @@ public class WfeaRedemptionPerfService {
              */
             if ("W01".equals(ogTpCd)) {
                 feeAgrgPrtcSn = perfAgrgPrtcHistService.savePerfAgrgPrtcDtlHistory(perfAgrgPrtcId, "W01301");
-                mapper.insertActiPplNForPorganization(baseYm, ogTpCd, perfAgrgCrtDvCd);
-                perfAgrgPrtcHistService.editPerfAgrgPrtcDtlHistory(perfAgrgPrtcId, feeAgrgPrtcSn);
+                insertCount = mapper.insertActiPplNForPorganization(baseYm, ogTpCd, perfAgrgCrtDvCd);
+                perfAgrgPrtcHistService.editPerfAgrgPrtcDtlHistory(perfAgrgPrtcId, feeAgrgPrtcSn, insertCount);
             }
         }catch(Exception e) {
             String errrorMessage = "";
