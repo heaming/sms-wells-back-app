@@ -45,14 +45,16 @@ public class WsnaItemByStockAggregationDto {
         String mgtTypCd,
         // 품목구분
         String itmKndCd,
+        // 품목그룹
+        String itmGrpCd,
         // 품목코드 리스트
         List<String> itmPdCds,
         // 등급
         String itmGdCd,
         // 사용여부
         String useYn,
-        // 자재구분
-        String matUtlzDvCd,
+        // 자재그룹
+        String svMatGrpCd,
         // 창고유형
         String wareTpCd,
         // 품목코드
@@ -60,7 +62,13 @@ public class WsnaItemByStockAggregationDto {
         // 시작SAP코드
         String strtSapCd,
         // 종료SAP코드
-        String endSapCd
+        String endSapCd,
+        // 중수리자재여부
+        String commGb,
+        // 기초자재여부
+        String baseGb,
+        // 회전율대상여부
+        String turnoverGb
 
     ) {}
 }

@@ -6,16 +6,8 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaReceiptsAndPaymentsDvo;
-
 @Mapper
 public interface WsnaItemReceivingAndPayingMapper {
-
-    long selectReceiptsAndPaymentCount(WsnaReceiptsAndPaymentsDvo dvo);
-
-    List<SearchRes> selectReceiptsAndPaymentsPages(
-        WsnaReceiptsAndPaymentsDvo dvo
-    );
 
     List<SearchRes> selectReceiptsAndPaymentsPages(
         SearchReq dto
