@@ -13,6 +13,15 @@ import com.sds.sflex.system.config.validation.validator.ValidDate;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
+/**
+ * <pre>
+ * W-SV-U-0193M01 독립창고 출고 관리 dto
+ * </pre>
+ *
+ * @author SaeRomI.Kim
+ * @since 2024-01-03
+ */
+
 public class WsnaIndependenceWareOstrDto {
 
     @Builder
