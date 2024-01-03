@@ -24,8 +24,12 @@ public class WsnaAsMaterialItemGradePsDto {
         String baseYm,
         // 사용여부
         String useYn,
-        // 자재구분
-        String matUtlzDvCd
+        // 중수리자재여부
+        String commGb,
+        // 기초자재여부
+        String baseGb,
+        // 회전율대상여부
+        String turnoverGb
 
     ) {}
 }

@@ -13,7 +13,7 @@
            AND WARE_DTL_DV_CD = '20'  /* 조직창고 */
            AND DTA_DL_YN      = 'N'
            AND WARE_USE_YN    = 'Y'
-           AND WARE_NM IS NOT NULL
+           AND ( WARE_NM LIKE '%센터' OR WARE_NM LIKE '%지점' OR WARE_NM LIKE '%기장' OR WARE_NM LIKE '%창고' )
          UNION ALL
         SELECT '000001'   AS WARE_NO
              , #{allText} AS WARE_NM
@@ -24,51 +24,29 @@
 
     <select id="selectAsMaterialItemGradePsCount" resultType="java.lang.Long">
         SELECT COUNT(*)
-          FROM
-             (
-               SELECT T1.PD_CD                                                                       AS ITM_PD_CD    /* 품목상품코드 */
-                    , T1.PD_ABBR_NM                                                                  AS ITM_PD_NM    /* 품목상품명 */
-                    , T1.SAP_MAT_CD                                                                  AS SAP_CD       /* SAP코드 */
-                    , NVL(T2.PD_PRP_VAL15, 'N')                                                      AS BASE_GB      /* 상시보유자재 */
-                    , NVL(T2.PD_PRP_VAL21, 'N')                                                      AS COMM_GB      /* 공통부품구분 */
-                    , F_CMZ_CD_NM('TNT_WELLS', 'MAT_MNGT_DV_CD', T2.PD_PRP_VAL02, #{session.langId}) AS MGT_TYP_NM   /* 유형 */
-                 FROM TB_PDBS_PD_BAS T1                 /* 상품기본 */
-                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2   /* 상품각사속성상세 */
-                   ON T1.PD_CD = T2.PD_CD
-                WHERE T1.PD_TP_CD           = 'M'
-                  AND T1.DTA_DL_YN          = 'N'
-                  AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
-                  AND T2.DTA_DL_YN          = 'N'
-                  AND T2.PD_PRP_VAL19       = '6'    /* A/S자재 */
-            <if test="@MybatisUtils@isNotEmpty(matUtlzDvCd)">
-                  AND T2.PD_PRP_VAL21       = #{matUtlzDvCd}
-            </if>
-            <if test='@MybatisUtils@equals(useYn, "Y")'>
-                  AND ( T2.PD_PRP_VAL32 IS NULL OR T2.PD_PRP_VAL32 = 'Y' )
-            </if>
-            <if test='@MybatisUtils@equals(useYn, "N")'>
-                  AND T2.PD_PRP_VAL32 <![CDATA[<>]]> 'Y'
-            </if>
-             ) D1
-          LEFT OUTER JOIN
-             (
-               SELECT *
-                 FROM
-                    (
-                      SELECT ITM_PD_CD
-                           , WARE_NO
-                           , ITM_MNGT_GD_CD
-                        FROM TB_SVST_CST_SV_ITM_GD_IZ   /* 고객서비스품목등급내역 */
-                       WHERE DTA_DL_YN = 'N'
-                         AND MNGT_YM   = #{baseYm}
-                    ) T1
-                PIVOT
-                    (
-                          MAX(ITM_MNGT_GD_CD)
-                      FOR WARE_NO IN (${wareNoInStr})
-                    )
-             ) D2
-            ON D2.ITM_PD_CD = D1.ITM_PD_CD
+          FROM TB_PDBS_PD_BAS T1                 /* 상품기본 */
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2   /* 상품각사속성상세 */
+            ON T1.PD_CD = T2.PD_CD
+         WHERE T1.PD_TP_CD           = 'M'
+           AND T1.DTA_DL_YN          = 'N'
+           AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND T2.DTA_DL_YN          = 'N'
+           AND T2.PD_PRP_VAL19       = '6'    /* A/S자재 */
+    <if test='@MybatisUtils@equals(commGb, "Y")'>
+           AND T2.PD_PRP_VAL21       = '01'
+    </if>
+    <if test='@MybatisUtils@equals(baseGb, "Y")'>
+           AND T2.PD_PRP_VAL15       = 'Y'
+    </if>
+    <if test='@MybatisUtils@equals(turnoverGb, "Y")'>
+           AND T2.PD_PRP_VAL30       = 'Y'
+    </if>
+    <if test='@MybatisUtils@equals(useYn, "Y")'>
+           AND ( T2.PD_PRP_VAL32 IS NULL OR T2.PD_PRP_VAL32 = 'Y' )
+    </if>
+    <if test='@MybatisUtils@equals(useYn, "N")'>
+           AND T2.PD_PRP_VAL32 <![CDATA[<>]]> 'Y'
+    </if>
     </select>
 
     <select id="selectAsMaterialItemGradePs" resultType="camelMap">
@@ -95,8 +73,14 @@
                   AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
                   AND T2.DTA_DL_YN          = 'N'
                   AND T2.PD_PRP_VAL19       = '6'    /* A/S자재 */
-            <if test="@MybatisUtils@isNotEmpty(matUtlzDvCd)">
-                  AND T2.PD_PRP_VAL21       = #{matUtlzDvCd}
+            <if test='@MybatisUtils@equals(commGb, "Y")'>
+                  AND T2.PD_PRP_VAL21       = '01'
+            </if>
+            <if test='@MybatisUtils@equals(baseGb, "Y")'>
+                  AND T2.PD_PRP_VAL15       = 'Y'
+            </if>
+            <if test='@MybatisUtils@equals(turnoverGb, "Y")'>
+                  AND T2.PD_PRP_VAL30       = 'Y'
             </if>
             <if test='@MybatisUtils@equals(useYn, "Y")'>
                   AND ( T2.PD_PRP_VAL32 IS NULL OR T2.PD_PRP_VAL32 = 'Y' )
@@ -124,7 +108,7 @@
                     )
              ) D2
             ON D2.ITM_PD_CD = D1.ITM_PD_CD
-         ORDER BY D1.ITM_PD_CD
+         ORDER BY D1.SAP_CD, D1.ITM_PD_CD
     <if test="@MybatisUtils@isNotEmpty(offSet) and @MybatisUtils@isNotEmpty(size)">
         OFFSET ${offSet} ROW FETCH NEXT ${size} ROW ONLY
     </if>
