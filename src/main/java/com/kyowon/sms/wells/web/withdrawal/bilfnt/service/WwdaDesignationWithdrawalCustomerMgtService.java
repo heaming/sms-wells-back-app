@@ -7,6 +7,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kyowon.sms.common.web.withdrawal.bilfnt.service.ZwdaAutoTransferBillingService;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.converter.WwdaDesignationWithdrawalCustomerMgtConverter;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaDesignationWithdrawalCustomerMgtDto.*;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dvo.WwdaAutomaticFntOjYnConfDvo;
@@ -34,6 +35,7 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
 
     private final WwdaDesignationWithdrawalCustomerMgtMapper mapper;
     private final WwdaDesignationWithdrawalCustomerMgtConverter converter;
+    private final ZwdaAutoTransferBillingService jobService;
 
     /**
      * 자동이체 지정 출금 고객 조회
@@ -68,7 +70,9 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
     @Transactional
     public int saveAutoFntDsnWdrwCst(
         List<SaveReq> req
-    ) {
+    ) throws Exception {
+        jobService.getBillingCreateBatchStatusCheck("0102");
+
         int processCount = 0;
 
         for (SaveReq dto : req) {
@@ -144,7 +148,9 @@ public class WwdaDesignationWithdrawalCustomerMgtService {
     @Transactional
     public int deleteAutoFntDsnWdrwCst(
         List<RemoveReq> req
-    ) {
+    ) throws Exception {
+        jobService.getBillingCreateBatchStatusCheck("0102");
+
         int processCount = 0;
 
         for (RemoveReq dto : req) {
