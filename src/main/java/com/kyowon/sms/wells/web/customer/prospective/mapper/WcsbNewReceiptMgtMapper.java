@@ -102,4 +102,17 @@ public interface WcsbNewReceiptMgtMapper {
         WcsbNewReceiptMgtDto.SearchSummariesReq dto
     );
 
+    /**
+    * 기존 상담 이력 중지 처리
+    * @param pspcCstCnslId 가망고객상담ID
+    * @return 수행결과
+    */
+    int updatePspcCstCnslChHistForEnd(String pspcCstCnslId);
+
+    /**
+    * 신규 이력 생성
+    * @param pspcCstCnslId 가망고객상담ID
+    * @return 수행결과
+    */
+    int insertPspcCstCnslChHist(String pspcCstCnslId);
 }
