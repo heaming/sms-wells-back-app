@@ -134,7 +134,7 @@
                      , TT2.MEXNO_ENCR            /*휴대폰번호2*/
                      , TT2.CRAL_IDV_TNO          /*휴대폰번호3*/
                      , TT.BTD_DLQ_AMT AS DLQ_AMT /*연체금액*/
-                     , (CASE WHEN TT.BTD_DLQ_AMT-TT.BTD_DLQ_ADD_AMT-TT.RVE_AMT <![CDATA[<]]> 0 THEN 0 ELSE TT.BTD_DLQ_AMT-TT.BTD_DLQ_ADD_AMT-TT.RVE_AMT END) AS DLQ_BLAM /*연체잔액*/
+                     , (CASE WHEN TT.BTD_DLQ_AMT-(TT10.PD_RVE_AMT-TT10.RFND_RVE_AMT) <![CDATA[<]]> 0 THEN 0 ELSE TT.BTD_DLQ_AMT-(TT10.PD_RVE_AMT-TT10.RFND_RVE_AMT) END) AS DLQ_BLAM /*연체잔액*/
                      , (SELECT CLCTAM_PRTNR_NO
                           FROM TB_CBBO_BND_CNTR_BAS
                          WHERE CST_NO = TT.CST_NO
@@ -323,9 +323,18 @@
                   AND TT9.RESERVED3 = TT8.FW_BIZ_NM                  /*발송업무명*/
                   AND TT9.RESERVED4 = TT8.BND_MSG_TP_VAL1            /*채권알림톡업무코드*/
                   AND TT9.RESERVED5 = TT8.BND_MSG_TP_VAL2            /*채권알림톡업무상세코드*/
+                 LEFT JOIN LATERAL (SELECT NVL(SUM((CASE WHEN C1.DP_DV_CD IN ('1','3') THEN NVL(C1.RVE_AMT,0) ELSE 0 END)),0) AS PD_RVE_AMT    /*입금금액*/
+                                         , NVL(SUM((CASE WHEN C1.DP_DV_CD IN ('2','4') THEN NVL(C1.RVE_AMT,0) ELSE 0 END)),0) AS RFND_RVE_AMT  /*환불금액*/
+                                      FROM TB_RVDW_RVE_DTL C1        /*T:수납상세*/
+                                     WHERE 1=1
+                                       AND C1.PERF_DT LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),-1),'YYYYMM')||'%'
+                                       AND C1.RVE_DV_CD NOT IN ('09','10') /*수납구분코드->09:대손,10:손료*/
+                                       AND C1.CNTR_NO = TT.CNTR_NO
+                                    ) TT10 /*전달입금금액*/
+                  ON 1=1
                 WHERE 1=1
                   AND TT.FN_SMS_YN != 'Y'
-                  AND (CASE WHEN TT.BTD_DLQ_AMT-TT.BTD_DLQ_ADD_AMT-TT.RVE_AMT <![CDATA[<]]> 0 THEN 0 ELSE TT.BTD_DLQ_AMT-TT.BTD_DLQ_ADD_AMT-TT.RVE_AMT END) >= 100000 /*연체잔액*/
+                  AND (CASE WHEN TT.BTD_DLQ_AMT-(TT10.PD_RVE_AMT-TT10.RFND_RVE_AMT) <![CDATA[<]]> 0 THEN 0 ELSE TT.BTD_DLQ_AMT-(TT10.PD_RVE_AMT-TT10.RFND_RVE_AMT) END) >= 100000 /*연체잔액*/
                ) ZZ
          WHERE 1=1
         <if test="@MybatisUtils@isNotEmpty(cstNo)">
@@ -483,7 +492,7 @@
                  ORDER BY FNL_MDFC_DTM DESC
                  FETCH FIRST 1 ROW ONLY) AS FNT_DV_NM /* 결제수단 */
              , TT.BTD_DLQ_AMT AS DLQ_AMT /*연체금액*/
-             , (CASE WHEN TT.BTD_DLQ_AMT-TT.BTD_DLQ_ADD_AMT-TT.RVE_AMT <![CDATA[<]]> 0 THEN 0 ELSE TT.BTD_DLQ_AMT-TT.BTD_DLQ_ADD_AMT-TT.RVE_AMT END) AS DLQ_BLAM /*연체잔액*/
+             , (CASE WHEN TT.BTD_DLQ_AMT-(TT10.PD_RVE_AMT-TT10.RFND_RVE_AMT) <![CDATA[<]]> 0 THEN 0 ELSE TT.BTD_DLQ_AMT-(TT10.PD_RVE_AMT-TT10.RFND_RVE_AMT) END) AS DLQ_BLAM /*연체잔액*/
              , (SELECT CLCTAM_PRTNR_NO
                   FROM TB_CBBO_BND_CNTR_BAS
                  WHERE CST_NO = TT.CST_NO
@@ -663,6 +672,15 @@
           AND TT9.RESERVED3 = TT8.FW_BIZ_NM                  /*발송업무명*/
           AND TT9.RESERVED4 = TT8.BND_MSG_TP_VAL1            /*채권알림톡업무코드*/
           AND TT9.RESERVED5 = TT8.BND_MSG_TP_VAL2            /*채권알림톡업무상세코드*/
+         LEFT JOIN LATERAL (SELECT NVL(SUM((CASE WHEN C1.DP_DV_CD IN ('1','3') THEN NVL(C1.RVE_AMT,0) ELSE 0 END)),0) AS PD_RVE_AMT    /*입금금액*/
+                                 , NVL(SUM((CASE WHEN C1.DP_DV_CD IN ('2','4') THEN NVL(C1.RVE_AMT,0) ELSE 0 END)),0) AS RFND_RVE_AMT  /*환불금액*/
+                              FROM TB_RVDW_RVE_DTL C1        /*T:수납상세*/
+                             WHERE 1=1
+                               AND C1.PERF_DT LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),-1),'YYYYMM')||'%'
+                               AND C1.RVE_DV_CD NOT IN ('09','10') /*수납구분코드->09:대손,10:손료*/
+                               AND C1.CNTR_NO = TT.CNTR_NO
+                           ) TT10 /*전달입금금액*/
+           ON 1=1
         WHERE 1=1
           AND TT.FN_SMS_YN != 'Y'
           AND EXISTS (SELECT 1
@@ -825,7 +843,7 @@
                                    , TT5.CNTR_SN               /*계약일련번호*/
                                    , TT2.CRAL_LOCARA_TNO       /*휴대폰번호1*/
                                    , TT.BTD_DLQ_AMT AS DLQ_AMT /*연체금액*/
-                                   , (CASE WHEN TT.BTD_DLQ_AMT-TT.BTD_DLQ_ADD_AMT-TT.RVE_AMT <![CDATA[<]]> 0 THEN 0 ELSE TT.BTD_DLQ_AMT-TT.BTD_DLQ_ADD_AMT-TT.RVE_AMT END) AS DLQ_BLAM /*연체잔액*/
+                                   , (CASE WHEN TT.BTD_DLQ_AMT-(TT10.PD_RVE_AMT-TT10.RFND_RVE_AMT) <![CDATA[<]]> 0 THEN 0 ELSE TT.BTD_DLQ_AMT-(TT10.PD_RVE_AMT-TT10.RFND_RVE_AMT) END) AS DLQ_BLAM /*연체잔액*/
                                    , (SELECT CLCTAM_PRTNR_NO
                                         FROM TB_CBBO_BND_CNTR_BAS
                                        WHERE CST_NO = TT.CST_NO
@@ -1005,6 +1023,15 @@
                                 AND TT9.RESERVED3 = TT8.FW_BIZ_NM                  /*발송업무명*/
                                 AND TT9.RESERVED4 = TT8.BND_MSG_TP_VAL1            /*채권알림톡업무코드*/
                                 AND TT9.RESERVED5 = TT8.BND_MSG_TP_VAL2            /*채권알림톡업무상세코드*/
+                               LEFT JOIN LATERAL (SELECT NVL(SUM((CASE WHEN C1.DP_DV_CD IN ('1','3') THEN NVL(C1.RVE_AMT,0) ELSE 0 END)),0) AS PD_RVE_AMT    /*입금금액*/
+                                                       , NVL(SUM((CASE WHEN C1.DP_DV_CD IN ('2','4') THEN NVL(C1.RVE_AMT,0) ELSE 0 END)),0) AS RFND_RVE_AMT  /*환불금액*/
+                                                    FROM TB_RVDW_RVE_DTL C1        /*T:수납상세*/
+                                                   WHERE 1=1
+                                                     AND C1.PERF_DT LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),-1),'YYYYMM')||'%'
+                                                     AND C1.RVE_DV_CD NOT IN ('09','10') /*수납구분코드->09:대손,10:손료*/
+                                                     AND C1.CNTR_NO = TT.CNTR_NO
+                                                 ) TT10 /*당월입금액*/
+                                 ON 1=1
                               WHERE 1=1
                                 AND TT.FN_SMS_YN != 'Y'
                                 AND TT.CST_NO = #{cstNo}                  /*고객번호*/
@@ -1156,7 +1183,8 @@
         /* 렌탈CB납입정보(팝업) */
         WITH DLQ_FST AS /*계약*/
         (
-            SELECT A.CNTR_CST_NO AS CST_NO
+            SELECT /*+ parallel(A) */
+                   A.CNTR_CST_NO AS CST_NO
               FROM TB_SSCT_CNTR_BAS A /*T:계약기본*/
              INNER JOIN TB_SSCT_CNTR_DTL B /*T:계약상세*/
                 ON B.CNTR_NO = A.CNTR_NO
@@ -1189,7 +1217,8 @@
         /*연체 최초 발생(교원키기준) 후 주문코드별 등록(알림톡 실패건 , 해제건 제외)*/
         , NOTY_FAIL AS    /*LC31_1*/
         (
-            SELECT A.CNTR_CST_NO AS CST_NO
+            SELECT /*+ parallel(A) */
+                   A.CNTR_CST_NO AS CST_NO
               FROM TB_SSCT_CNTR_BAS A /*T:계약기본*/
              INNER JOIN TB_SSCT_CNTR_DTL B /*T:계약상세*/
                 ON B.CNTR_NO = A.CNTR_NO
@@ -1289,8 +1318,8 @@
                    AND S1.DTA_DL_YN = 'N'
                  ORDER BY FNL_MDFC_DTM DESC
                  FETCH FIRST 1 ROW ONLY) AS FNT_DV_NM /* 결제수단 */
-             , TT.BTD_DLQ_ADD_AMT+TT.RVE_AMT AS DLQ_AMT /*연체입금액*/
-             , (CASE WHEN TT.BTD_DLQ_AMT-TT.BTD_DLQ_ADD_AMT-TT.RVE_AMT <![CDATA[<]]> 0 THEN 0 ELSE TT.BTD_DLQ_AMT-TT.BTD_DLQ_ADD_AMT-TT.RVE_AMT END) AS DLQ_BLAM /*연체잔액*/
+             , TT10.PD_RVE_AMT-TT10.RFND_RVE_AMT AS DLQ_AMT /*연체입금액*/
+             , (CASE WHEN TT.BTD_DLQ_AMT-(TT10.PD_RVE_AMT-TT10.RFND_RVE_AMT) <![CDATA[<]]> 0 THEN 0 ELSE TT.BTD_DLQ_AMT-(TT10.PD_RVE_AMT-TT10.RFND_RVE_AMT) END) AS DLQ_BLAM /*연체잔액*/
              , (SELECT CLCTAM_PRTNR_NO
                   FROM TB_CBBO_BND_CNTR_BAS
                  WHERE CST_NO = TT.CST_NO
@@ -1505,6 +1534,15 @@
                    ) TT7 /*알림톡관련*/
            ON TT7.CST_NO = TT.CST_NO
           AND TT7.CNTR_NO = TT.CNTR_NO
+         LEFT JOIN LATERAL (SELECT NVL(SUM((CASE WHEN C1.DP_DV_CD IN ('1','3') THEN NVL(C1.RVE_AMT,0) ELSE 0 END)),0) AS PD_RVE_AMT    /*입금금액*/
+                                 , NVL(SUM((CASE WHEN C1.DP_DV_CD IN ('2','4') THEN NVL(C1.RVE_AMT,0) ELSE 0 END)),0) AS RFND_RVE_AMT  /*환불금액*/
+                              FROM TB_RVDW_RVE_DTL C1        /*T:수납상세*/
+                             WHERE 1=1
+                               AND C1.PERF_DT LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),-1),'YYYYMM')||'%'
+                               AND C1.RVE_DV_CD NOT IN ('09','10') /*수납구분코드->09:대손,10:손료*/
+                               AND C1.CNTR_NO = TT.CNTR_NO
+                           ) TT10 /*당월입금액*/
+           ON 1=1
         WHERE 1=1
           AND TT.FN_SMS_YN != 'Y'
           AND TT.BTD_DLQ_AMT <![CDATA[>]]> 0 /*연체금액*/
