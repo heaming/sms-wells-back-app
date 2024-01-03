@@ -97,7 +97,7 @@ public class WfebRedemptionFeeService {
         switch (ogTpCd) {
             case "W01":
                 /* P조직 상조 연체되물림 생성 */
-                insertCount = redemptionFeeMapper.insertLifeContractRedf(baseYm, ogTpCd, getFeeRedemptionDetailIdSql(defaultTenantId, redfAdsbDvCd, baseYm, redfAdsbTpCd));
+                insertCount = redemptionFeeMapper.insertLifeContractRedf(baseYm, ogTpCd, getFeeRedemptionDetailIdSql(defaultTenantId, redfAdsbDvCd, baseYm, redfAdsbTpCd), "W010021", "W010121", "W010022");
                 break;
             case "W02":
                 /* 계약별 연체되물림 데이터 생성 */
