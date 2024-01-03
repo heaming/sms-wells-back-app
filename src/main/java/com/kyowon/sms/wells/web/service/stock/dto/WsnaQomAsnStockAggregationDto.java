@@ -26,7 +26,9 @@ public class WsnaQomAsnStockAggregationDto {
         // 품목명
         String pdNm,
         // 품목종류
-        String itmKndCd
+        String itmKndCd,
+        // 품목그룹
+        String itmGrpCd
     ) {}
 
     @Builder

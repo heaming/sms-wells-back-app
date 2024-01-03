@@ -62,6 +62,8 @@ public class WsnaMonthlyByStockPsDto {
         String useYn,
         // 품목종류
         String itmKndCd,
+        // 품목그룹
+        String itmGrpCd,
         // 품목코드 리스트
         List<String> itmPdCds,
         // 품목코드
@@ -70,8 +72,14 @@ public class WsnaMonthlyByStockPsDto {
         String strtSapCd,
         // 종료SAP코드
         String endSapCd,
-        // 자재구분
-        String matUtlzDvCd
+        // 자재그룹
+        String svMatGrpCd,
+        // 중수리자재여부
+        String commGb,
+        // 기초자재여부
+        String baseGb,
+        // 회전율대상여부
+        String turnoverGb
 
     ) {}
 
