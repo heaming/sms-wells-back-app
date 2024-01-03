@@ -5,12 +5,7 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaDesignationWithdrawalCustomerMgtDto.RemoveReq;
 import com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaDesignationWithdrawalCustomerMgtDto.SaveReq;
@@ -97,9 +92,7 @@ public class WwdaDesignationWithdrawalCustomerMgtController {
     })
     @PostMapping("/designation-wdrw-csts")
     public SaveResponse saveAutoFntDsnWdrwCst(
-        @RequestBody
-        @Valid
-        @NotEmpty
+        @RequestBody @Valid @NotEmpty
         List<SaveReq> req
     ) throws Exception {
         return SaveResponse.builder()
@@ -119,11 +112,9 @@ public class WwdaDesignationWithdrawalCustomerMgtController {
     })
     @DeleteMapping("/designation-wdrw-csts")
     public SaveResponse deleteAutoFntDsnWdrwCst(
-        @RequestBody
-        @Valid
-        @NotEmpty
+        @RequestBody @Valid @NotEmpty
         List<RemoveReq> req
-    ) {
+    ) throws Exception {
         return SaveResponse.builder()
             .processCount(service.deleteAutoFntDsnWdrwCst(req))
             .build();
