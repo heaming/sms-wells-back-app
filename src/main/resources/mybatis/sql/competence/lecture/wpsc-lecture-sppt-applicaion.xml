@@ -150,24 +150,29 @@
     </select>
 
     <select id="selectOrganizationBuildingCode" resultType="com.kyowon.sms.wells.web.competence.lecture.dto.WpscLectureSpptApplicationDto$SearchLevelRes">
-        SELECT A.BLD_CD, A.BLD_NM, A.DGR2_LEVL_OG_ID AS OG_ID
-          FROM TB_OGBS_MM_OG_IZ A
-          INNER JOIN TB_OGBS_MM_PRTNR_IZ B
-           ON B.BASE_YM = A.BASE_YM
-          AND B.OG_TP_CD = A.OG_TP_CD
-          AND B.PRTNR_NO = #{session.employeeIDNumber}
-         WHERE 1=1
-           AND A.DGR2_LEVL_OG_ID IS NOT NULL
-           <if test='@MybatisUtils@isNotEmpty(ogTpCd)'>
-           AND A.OG_TP_CD = #{ogTpCd}
-           </if>
-           <if test='@MybatisUtils@isNotEmpty(baseYm)'>
-           AND A.BASE_YM = #{baseYm}
-           </if>
-         START WITH (A.OG_ID = B.OG_ID OR A.HGR_OG_ID = B.OG_ID)
-         CONNECT BY PRIOR A.BASE_YM = B.BASE_YM AND A.HGR_OG_ID = A.OG_ID
-         GROUP BY A.BLD_CD, A.BLD_NM, A.DGR2_LEVL_OG_ID
-         ORDER BY BLD_CD ASC
+        <include refid="COMMON.dataAuthOrgWithClause">
+            <property name="paramOgTpCd" value="NVL(#{ogTpCd}, 'W02')"/>
+            <property name="paramBaseYm" value="TO_CHAR(ADD_MONTHS(#{baseYm}||'01', -1), 'YYYYMM')"/>
+        </include>
+	   SELECT T1.OG_TP_CD
+	   		, T3.BLD_CD
+	   		, T3.BLD_NM
+	   		, T2.DGR2_LEVL_OG_ID AS OG_ID
+         FROM OBJ_ORG T1
+        INNER JOIN TB_OGBS_MM_OG_IZ T2
+           ON T2.BASE_YM = T1.BASE_YM
+          AND T2.OG_TP_CD = T1.OG_TP_CD
+          AND T2.OG_ID = T1.OG_ID
+        INNER JOIN TB_OGBS_BLD_BAS T3
+           ON T3.OG_TP_CD = T2.OG_TP_CD
+          AND T3.BLD_CD = T2.BLD_CD
+        WHERE T2.BASE_YM = TO_CHAR(ADD_MONTHS(#{baseYm}||'01', -1), 'YYYYMM')
+          AND T2.DGR2_LEVL_OG_ID IS NOT NULL
+        GROUP BY T1.OG_TP_CD
+	   		, T3.BLD_CD
+	   		, T3.BLD_NM
+	   		, T2.DGR2_LEVL_OG_ID
+        ORDER BY BLD_CD ASC
     </select>
 
     <insert id="insertLectureSpptApplication">

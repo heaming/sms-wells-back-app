@@ -103,7 +103,7 @@
                             END) AS REFURBISH_YN    /*리퍼여부 */
                      , T1.FNL_ITM_GD_CD /*등급*/
                      , T1.USE_QTY /*사용수량*/
-                     , CASE WHEN T1.REFR_AS_RCP_YN = '1' THEN '접수완료'
+                     , CASE WHEN T1.REFR_AS_RCP_YN = 'Y' THEN '접수완료'
                             ELSE ''
                         END REFR_AS_RCP_YN /*리퍼접수*/
                      , T1.CNTR_NO || '-' ||T1.CNTR_SN AS CNTR_DTL_NO /*고객번호*/
@@ -183,18 +183,19 @@
                    LEFT OUTER JOIN TB_SSCT_CNTR_BAS X1       /*계약기본*/
                       ON X1.CNTR_NO       = T3.CNTR_NO
                      AND X1.DTA_DL_YN     = 'N'
-                   INNER JOIN TB_SSCT_CNTR_DTL X2            /*계약상세*/
-                      ON X2.CNTR_NO       = X1.CNTR_NO
+                    LEFT OUTER JOIN TB_SSCT_CNTR_DTL X2            /*계약상세*/
+                      ON X2.CNTR_NO       = T3.CNTR_NO
+                     AND X2.CNTR_SN       = T3.CNTR_SN
                      AND X2.DTA_DL_YN     = 'N'
-                   LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL X3        /*계약주소관계*/
+                    LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL X3        /*계약주소관계*/
                       ON X3.DTL_CNTR_NO   = X2.CNTR_NO
                      AND X3.DTL_CNTR_SN   = X2.CNTR_SN
                      AND X3.ADRPC_TP_CD IN ('2','3')
                      AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN X3.VL_STRT_DTM AND X3.VL_END_DTM
                      AND X3.DTA_DL_YN     = 'N'
-                   LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS X4       /*계약주소지기본*/
+                    LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS X4       /*계약주소지기본*/
                       ON X4.CNTR_ADRPC_ID = X3.CNTR_ADRPC_ID
-                   LEFT OUTER JOIN (SELECT A.*
+                    LEFT OUTER JOIN (SELECT A.*
                                       FROM TB_SVPD_CST_SVAS_IST_OJ_IZ A        /*고객서비스AS설치대상내역*/
                                      INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ B  /*고객서비스AS설치배정내역*/
                                         ON A.CST_SV_ASN_NO = B.CST_SV_ASN_NO
@@ -816,15 +817,23 @@
 
 
     <select id="selectReturningGoodsStoresLoginWarehouse" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsStoreDto$SearchWareRes">
-        SELECT A.HGR_WARE_NO /* 창고번호 */
+        SELECT DISTINCT A.HGR_WARE_NO /* 창고번호 */
           FROM TB_SVST_MCBY_WARE_IZ A /*월별창고내역*/
          WHERE 1 = 1
            AND A.DTA_DL_YN          = 'N'
            AND A.WARE_DV_CD         = '2'
-           AND A.WARE_MNGT_PRTNR_NO = #{prtnrNo}
-           AND A.APY_YM             = TO_CHAR(SYSDATE, 'YYYYMM')
            AND A.WARE_USE_YN        = 'Y'
            AND A.WARE_DTL_DV_CD     = '21'
+           AND A.WARE_MNGT_PRTNR_NO = #{prtnrNo}
+        <choose>
+        <when test="@MybatisUtils@isNotEmpty(strtDt) and @MybatisUtils@isNotEmpty(endDt)">
+           AND A.APY_YM BETWEEN SUBSTR(#{strtDt}, 1, 6) AND SUBSTR(#{endDt}, 1, 6)
+        </when>
+        <otherwise>
+           AND A.APY_YM             = TO_CHAR(SYSDATE, 'YYYYMM')
+        </otherwise>
+        </choose>
+           AND ROWNUM               = 1
     </select>
 
 

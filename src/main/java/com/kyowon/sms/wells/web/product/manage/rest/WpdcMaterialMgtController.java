@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.product.manage.rest;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,7 +9,15 @@ import java.util.Map;
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.google.common.base.CaseFormat;
@@ -249,6 +258,7 @@ public class WpdcMaterialMgtController {
             Map<String, Object> headerKeyMap = xlsList.get(0);
             for (int ii = 0; ii < headerKeyMap.size(); ii++) {
                 String key = (String)headerKeyMap.get(Integer.toString(ii));
+
                 if (StringUtil.isNull(key)) {
                     isError = true;
                     break;
@@ -261,12 +271,20 @@ public class WpdcMaterialMgtController {
                 실제 데이터 ROW Map의 KEY를 0번째에서 추출한 Camel 표기법으로 치환하여 신규 MAP return
              ------------------------------------------------------------- */
             Map<String, Object> convertKeyMap = null;
+            Object keyValue;
+            DecimalFormat df = new DecimalFormat("#");
+            df.setMaximumFractionDigits(10);
             for (int xx = 3; xx < xlsList.size(); xx++) {
                 Map<String, Object> dataMap = xlsList.get(xx);
                 convertKeyMap = new HashMap<String, Object>();
 
                 for (int yy = 0; yy < headerKeys.size(); yy++) {
-                    convertKeyMap.put(headerKeys.get(yy), dataMap.get(Integer.toString(yy)));
+                    keyValue = dataMap.get(Integer.toString(yy));
+                    // 엑셀 숫자 셀서식의 경우, .0, 소숫점e 붙는걸 제거
+                    if (keyValue instanceof Double && StringUtil.nvl(keyValue).length() > 1) {
+                        keyValue = df.format(keyValue);
+                    }
+                    convertKeyMap.put(headerKeys.get(yy), keyValue);
                 }
                 convertXlsList.add(convertKeyMap);
             }

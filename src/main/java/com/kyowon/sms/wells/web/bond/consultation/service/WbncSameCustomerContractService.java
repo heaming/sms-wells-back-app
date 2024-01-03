@@ -1,18 +1,13 @@
 package com.kyowon.sms.wells.web.bond.consultation.service;
 
-import java.util.List;
-
+import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.*;
+import com.kyowon.sms.wells.web.bond.consultation.mapper.WbncSameCustomerContractMapper;
+import com.sds.sflex.common.utils.StringUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindBreachOfPromiseRes;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindContractRes;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindDepositDtlRes;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindDepositInfoRes;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindDepositRes;
-import com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto.FindSalesRes;
-import com.kyowon.sms.wells.web.bond.consultation.mapper.WbncSameCustomerContractMapper;
-
-import lombok.RequiredArgsConstructor;
+import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * <pre>
@@ -60,7 +55,30 @@ public class WbncSameCustomerContractService {
      * @return 조회결과
      */
     public FindBreachOfPromiseRes getBreachOfPromise(String bndBizDvCd, String cntrNo, int cntrSn) {
-        return mapper.selectBreachOfPromise(bndBizDvCd, cntrNo, cntrSn);
+        var defaultBreachPromise = mapper.selectBreachOfPromise(bndBizDvCd, cntrNo, cntrSn);
+        // 고객요청해약(301), 연체해약(302) 일 경우 조회된 위약금 정보 반환
+        if (StringUtil.isNotEmpty(defaultBreachPromise.cntrDtlStatCd()) && List.of("301", "302").contains(defaultBreachPromise.cntrDtlStatCd())) {
+            return defaultBreachPromise;
+        } else {
+            // 고객요청해약(301), 연체해약(302) 이 아닐 경우 금액 모두 0 으로 반환
+            return FindBreachOfPromiseRes.builder()
+                .borAmt(String.valueOf(BigDecimal.ZERO))
+                .borBlam(String.valueOf(BigDecimal.ZERO))
+                .rgstCostDscBorAmt(String.valueOf(BigDecimal.ZERO))
+                .rentalDscBorAmt(String.valueOf(BigDecimal.ZERO))
+                .csmbCostBorAmt(String.valueOf(BigDecimal.ZERO))
+                .pBorAmt(String.valueOf(BigDecimal.ZERO))
+                .reqdCsBorAmt(String.valueOf(BigDecimal.ZERO))
+                .lsRntf(String.valueOf(BigDecimal.ZERO))
+                .rstlBorAmt(String.valueOf(BigDecimal.ZERO))
+                .cntrDtlStatCd(defaultBreachPromise.cntrDtlStatCd()) /* 현재계약상세상태코드 */
+                .dpCcamSumAmt(String.valueOf(BigDecimal.ZERO)) /* 입금위약금합계금액 */
+                .thmSlSumAmt(String.valueOf(BigDecimal.ZERO)) /* 당월매출합계금액 */
+                .acuDpAmt(String.valueOf(BigDecimal.ZERO)) /* 누적입금금액 */
+                .ucAmt(String.valueOf(BigDecimal.ZERO)) /* 미수금액 */
+                .rsgBorAmt(String.valueOf(BigDecimal.ZERO)) /* 해지위약금액 */
+                .build();
+        }
     }
 
     /**
