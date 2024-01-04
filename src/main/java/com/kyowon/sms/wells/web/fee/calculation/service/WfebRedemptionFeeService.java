@@ -113,7 +113,7 @@ public class WfebRedemptionFeeService {
                 );
 
                 /* P조직 상조 연체되물림 생성 */
-                insertCount = redemptionFeeMapper.insertLifeContractRedf(
+                insertCount += redemptionFeeMapper.insertLifeContractRedf(
                     baseYm, ogTpCd, getFeeRedemptionDetailIdSql(defaultTenantId, redfAdsbDvCd, baseYm, redfAdsbTpCd),
                     "W020125", "W020127", "W020126"
                 );
