@@ -43,6 +43,8 @@ public class WogdIndustrialDisasterInsuranceService {
     private final MessageResourceService messageService;
     private final ExcelReadService excelReadService;
 
+    private static final String PRTNR_NO = "prtnrNo";
+
     public PagingResult<SearchRes> getIndustrialDisasterInsurances(SearchReq dto, PageInfo pageInfo) {
         return mapper.selectIndustrialDisasterInsurances(dto, pageInfo);
     }
@@ -76,7 +78,7 @@ public class WogdIndustrialDisasterInsuranceService {
     public ExcelUploadDto.UploadRes saveIndustrialDisasterInsurancesForDirectExcelUpload(MultipartFile file, String baseYm) throws Exception {
         Map<String, String> headerTitle = new LinkedHashMap<>();
         headerTitle.put("ogTpCd", messageService.getMessage("MSG_TXT_OG_TP"));
-        headerTitle.put("prtnrNo", messageService.getMessage("MSG_TXT_PRTNR_NUM"));
+        headerTitle.put(PRTNR_NO, messageService.getMessage("MSG_TXT_PRTNR_NUM"));
         headerTitle.put("inddInsrDdctam", messageService.getMessage("MSG_TXT_DDCTAM"));
         String specialPattern = "^[0-9a-zA-Zㄱ-ㅎ가-힣]*$"; //특수문자 정규식
         String pattern = "^[0-9\\-]*$"; //숫자 정규식
@@ -106,19 +108,19 @@ public class WogdIndustrialDisasterInsuranceService {
                 } else {
                     if (StringUtils.isEmpty(list.getPrtnrNo())) { //파트너번호 유효성
                         errorDvo.setErrorRow(finalRow);
-                        errorDvo.setHeaderName(headerTitle.get("prtnrNo"));
+                        errorDvo.setHeaderName(headerTitle.get(PRTNR_NO));
                         errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
                     } else {
                         if (!Pattern.matches(pattern, list.getPrtnrNo())) {
                             errorDvo.setErrorRow(finalRow);
-                            errorDvo.setHeaderName(headerTitle.get("prtnrNo"));
+                            errorDvo.setHeaderName(headerTitle.get(PRTNR_NO));
                             errorDvo.setErrorData(messageService.getMessage("MSG_ALT_ONLY_NUMBER")); // 숫자만 입력 가능합니다
                         } else {
                             SearchPrtnrReq dto = SearchPrtnrReq.builder().dsbYm(baseYm).ogTpCd(list.getOgTpCd()).prtnrNo(list.getPrtnrNo()).build();
                             existCnt = mapper.selectCountIndustrialDisasterInsurances(dto);
                             if (existCnt == 0) {
                                 errorDvo.setErrorRow(finalRow);
-                                errorDvo.setHeaderName(headerTitle.get("prtnrNo"));
+                                errorDvo.setHeaderName(headerTitle.get(PRTNR_NO));
                                 errorDvo.setErrorData(messageService.getMessage("MSG_ALT_CRSP_PRTNR_NO_INF_NEX"));// 해당 파트너번호에 대한 정보가 없습니다.
                             }
                         }
@@ -126,15 +128,15 @@ public class WogdIndustrialDisasterInsuranceService {
                 }
                 if (CollectionUtils.isNotEmpty(checks)) {
                     for (int i = 0; i < checks.size(); i++) {
-                        if (checks.get(i).get("prtnrNo").equals(list.getPrtnrNo()) && checks.get(i).get("ogTpCd").equals(list.getOgTpCd())) {
+                        if (checks.get(i).get(PRTNR_NO).equals(list.getPrtnrNo()) && checks.get(i).get("ogTpCd").equals(list.getOgTpCd())) {
                             errorDvo.setErrorRow(finalRow);
-                            errorDvo.setHeaderName(headerTitle.get("prtnrNo"));
+                            errorDvo.setHeaderName(headerTitle.get(PRTNR_NO));
                             errorDvo.setErrorData(messageService.getMessage("MSG_ALT_DUPLICATE_EXISTS")); //중복된 값이 존재합니다.
                         }
                     }
                 }
                 check.put("ogTpCd", list.getOgTpCd());
-                check.put("prtnrNo", list.getPrtnrNo());
+                check.put(PRTNR_NO, list.getPrtnrNo());
                 checks.add(check);
             }
 
