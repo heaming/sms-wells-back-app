@@ -714,7 +714,8 @@ public class WfebOrganizationFeeDto {
         String aksd30,
 
         String aksd26,
-        String aksd99
+        String aksd99,
+        String meetingYn
     ) {}
     @ApiModel(value = "WfebOrganizationFeeDto-SearchPlarBrmgrRes")
     public record SearchPlarBrmgrRes(
@@ -768,7 +769,8 @@ public class WfebOrganizationFeeDto {
         String aksd30,
 
         String aksd26,
-        String aksd99
+        String aksd99,
+        String meetingYn
     ) {}
     @ApiModel(value = "WfebOrganizationFeeDto-SearchPlarTotalRes")
     public record SearchPlarTotalRes(
@@ -828,7 +830,8 @@ public class WfebOrganizationFeeDto {
         String aksd26,
         String aksd99,
         String ddctam,
-        String dsbOjAmt
+        String dsbOjAmt,
+        String meetingYn
     ) {}
     @ApiModel(value = "WfebOrganizationFeeDto-SearchWmRes")
     public record SearchWmRes(
