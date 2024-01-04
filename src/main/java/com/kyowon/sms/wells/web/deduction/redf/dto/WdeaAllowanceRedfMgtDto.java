@@ -344,7 +344,8 @@ public class WdeaAllowanceRedfMgtDto {
         String dlqRedfPerfRental, /*되물림 구분 연체일 때, 연체되물림실적.렌탈*/
         String dlqRedfPerfExcp, /*되물림 구분 연체일 때, 연체되물림실적.가전외일시불*/
         String dlqRedfPerfTot, /*되물림 구분 연체일 때, 연체되물림실적.계*/
-        String wpLifRedfAmt, /*상조되물림*/
+        String wpLifRedfAmt, /*상조되물림 취소*/
+        String wpLif0203RedfAmt, /*상조되물림 연체*/
 
         /*되물림 합계금액(그리드별)*/
         String sumPerfLast201903RedfDstrc, /*2019.03 이전 + 지구장이하 그리드 되물림 합계금액*/
