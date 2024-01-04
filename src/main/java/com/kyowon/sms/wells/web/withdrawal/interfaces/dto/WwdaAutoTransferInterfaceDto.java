@@ -56,6 +56,8 @@ public class WwdaAutoTransferInterfaceDto {
         @NotBlank
         @JsonProperty("CST_NO")
         String cstNo, /*고객번호*/
+        @JsonProperty("SELL_TP_LIST")
+        List<String> sellTps, /*판매유형코드리스트*/
         @JsonProperty("EXCD_YN01")
         String excdYn01, /*제외여부01*/
         @JsonProperty("EXCD_YN02")
@@ -65,19 +67,7 @@ public class WwdaAutoTransferInterfaceDto {
         @JsonProperty("EXCD_YN04")
         String excdYn04, /*제외여부04*/
         @JsonProperty("EXCD_YN05")
-        String excdYn05, /*제외여부05*/
-        @JsonProperty("EXCD_YN06")
-        String excdYn06, /*제외여부06*/
-        @JsonProperty("EXCD_YN07")
-        String excdYn07, /*제외여부07*/
-        @JsonProperty("EXCD_YN08")
-        String excdYn08, /*제외여부08*/
-        @JsonProperty("EXCD_YN09")
-        String excdYn09, /*제외여부09*/
-        @JsonProperty("EXCD_YN10")
-        String excdYn10, /*제외여부10*/
-        @JsonProperty("EXCD_YN11")
-        String excdYn11 /*제외여부11*/
+        String excdYn05 /*제외여부05*/
 
     ) {}
 
@@ -156,24 +146,22 @@ public class WwdaAutoTransferInterfaceDto {
         String cstNo, /*고객번호*/
         @JsonProperty("SELL_TP_CD")
         String sellTpCd, /*판매유형코드*/
+        @JsonProperty("SELL_TP_CD_NM")
+        String sellTpCdNm, /*판매유형코드명*/
         @JsonProperty("CNTR_NO")
         String cntrNo, /*계약번호*/
         @JsonProperty("CNTR_SN")
         String cntrSn, /*계약일련번호*/
-        @JsonProperty("CNTR_DTL_STAT_CD")
-        String cntrDtlStatCd, /*계약상세상태코드*/
         @JsonProperty("CNTRT_NM")
         String cntrtNm, /*계약자명*/
         @JsonProperty("PD_NM")
         String pdNm, /*상품명*/
-        @JsonProperty("MB_NM")
-        String mbNm, /*회원명*/
-        @JsonProperty("MPNO")
-        String mpno, /*휴대전화번호*/
-        @JsonProperty("MM_ISTM_AMT")
-        String mmIstmAmt, /*월할부금액*/
+        @JsonProperty("ISTLL_KNM")
+        String istllKnm, /*설치자한글명*/
         @JsonProperty("FNT_DV_CD")
         String fntDvCd, /*이체구분코드*/
+        @JsonProperty("FNT_DV_CD_NM")
+        String fntDvCdNm, /*이체구분코드명*/
         @JsonProperty("FNIT_NM")
         String fnitNm, /*금융기관명*/
         @JsonProperty("ACNO_CDNO")
@@ -182,12 +170,18 @@ public class WwdaAutoTransferInterfaceDto {
         String owrKnm, /*소유자한글명*/
         @JsonProperty("FNT_STPL_D")
         String fntStplD, /*이체약정일*/
-        @JsonProperty("AFTN_RS_NM")
-        String aftnRsNm, /*자동이체결과명*/
-        @JsonProperty("RVE_CRP_CD_NM")
-        String rveCrpCdNm, /*수납법인코드명*/
-        @JsonProperty("INCMDC_YN")
-        String incmdcYn /*소득공제여부*/
+        @JsonProperty("DG_YN")
+        String dgYn, /*대표여부*/
+        @JsonProperty("BNDL_CNTR_YN")
+        String bndlCntrYn, /*묶음계약여부*/
+        @JsonProperty("DG_CNTR_NO")
+        String dgCntrNo, /*대표계약번호*/
+        @JsonProperty("DG_CNTR_SN")
+        String dgCntrSn, /*대표계약일련번호*/
+        @JsonProperty("IST_DT")
+        String istDt, /*설치일자*/
+        @JsonProperty("IST_ADDR")
+        String istAddr /*설치주소*/
     ) {
         public SearchObjectRes {
             acnoCdno = StringUtils.isNotEmpty(acnoCdno) ? DbEncUtil.dec(acnoCdno) : acnoCdno;
