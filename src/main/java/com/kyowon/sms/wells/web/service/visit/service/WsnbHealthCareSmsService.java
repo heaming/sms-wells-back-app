@@ -3,14 +3,14 @@ package com.kyowon.sms.wells.web.service.visit.service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+//import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
-import com.kyowon.sflex.common.message.service.SmsMessageService;
+//import com.kyowon.sflex.common.message.service.SmsMessageService;
 import com.kyowon.sflex.common.system.service.UrlShortenerService;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbHealthCareSmsDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbHealthCareSmsMapper;
@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 public class WsnbHealthCareSmsService {
 
     private final WsnbHealthCareSmsMapper mapper;
-    private final SmsMessageService smsMessageService;
+    //private final SmsMessageService smsMessageService;
     private final KakaoMessageService kakaoMessageService;
     private final UrlShortenerService urlService;
     @Value("${spring.profiles.active}")
@@ -50,7 +50,7 @@ public class WsnbHealthCareSmsService {
      * @return 변경 개수
      */
     public int sendHealthCareSms(Map<String, Object> jobParam) throws Exception {
-        final AtomicInteger updateCount = new AtomicInteger();
+        //final AtomicInteger updateCount = new AtomicInteger();
         List<WsnbHealthCareSmsDvo> rows = mapper.selectHealthCareSms();
         final Map<String, Object> paramMap = new HashMap<>();
         final String baseUrl = this.getBaseUrl();
