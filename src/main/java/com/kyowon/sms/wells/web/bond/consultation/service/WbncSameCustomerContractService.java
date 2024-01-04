@@ -57,7 +57,9 @@ public class WbncSameCustomerContractService {
     public FindBreachOfPromiseRes getBreachOfPromise(String bndBizDvCd, String cntrNo, int cntrSn) {
         var defaultBreachPromise = mapper.selectBreachOfPromise(bndBizDvCd, cntrNo, cntrSn);
         // 고객요청해약(301), 연체해약(302) 일 경우 조회된 위약금 정보 반환
-        if (StringUtil.isNotEmpty(defaultBreachPromise.cntrDtlStatCd()) && List.of("301", "302").contains(defaultBreachPromise.cntrDtlStatCd())) {
+        if (StringUtil.isNotEmpty(defaultBreachPromise.cntrDtlStatCd())
+            && List.of("301", "302").contains(defaultBreachPromise.cntrDtlStatCd())
+            && !"L10".equals(bndBizDvCd)) {
             return defaultBreachPromise;
         } else {
             // 고객요청해약(301), 연체해약(302) 이 아닐 경우 금액 모두 0 으로 반환
