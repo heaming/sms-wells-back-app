@@ -80,7 +80,8 @@ public class WfebAgainDisbursementFeeService {
                 /* 상조 연체 재지급 */
                 insertCount = againDisbursementFeeMapper.insertLifeContractDlqAdsbsForPog(
                     baseYm, ogTpCd, cntrPerfCrtDvCd,
-                    getFeeRedemptionDetailIdSql(defaultTenantId, AGAIN_DISBURSEMENT, baseYm, redfAdsbTpCd)
+                    getFeeRedemptionDetailIdSql(defaultTenantId, AGAIN_DISBURSEMENT, baseYm, redfAdsbTpCd),
+                    "W010021", "W010121", "W010022"
                 );
                 break;
             case "W02":
@@ -93,7 +94,8 @@ public class WfebAgainDisbursementFeeService {
                 /* 상조 연체 재지급 */
                 insertCount += againDisbursementFeeMapper.insertLifeContractDlqAdsbsForPog(
                     baseYm, ogTpCd, cntrPerfCrtDvCd,
-                    getFeeRedemptionDetailIdSql(defaultTenantId, AGAIN_DISBURSEMENT, baseYm, redfAdsbTpCd)
+                    getFeeRedemptionDetailIdSql(defaultTenantId, AGAIN_DISBURSEMENT, baseYm, redfAdsbTpCd),
+                    "W020125", "W020127", "W020126"
                 );
                 break;
             case "W05":

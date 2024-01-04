@@ -22,6 +22,7 @@
                 )
         WITH DATA AS (SELECT T1.BASE_YM
                            , T1.PRTNR_NO
+                           , T1.OG_TP_CD
                            , T1.BRMGR_PRTNR_NO
                            , T1.CNTR_NO
                            , T1.CNTR_SN
@@ -35,6 +36,7 @@
                          AND NVL(T1.FEE_DSB_YM, '0') > '0'
                          AND T1.OG_TP_CD = #{ogTpCd}
                          AND T2.CNFM_YN = 'Y'
+                         AND LENGTH(NVL(T1.FEE_DSB_YM, '0')) > 1 /* 지급받은 데이터 체크 */
                          AND NVL(T1.FEE_DSB_YM, '0') <![CDATA[<]]> NVL(T2.FEE_REDF_YM,'0'))
         SELECT ${feeRedfAdsbDtlId} AS FEE_REDF_ADSB_DTL_ID
              , #{baseYm} AS REDF_ADSB_OC_YM
@@ -60,6 +62,10 @@
                      , CASE WHEN T1.PRTNR_NO = T1.BRMGR_PRTNR_NO THEN #{brmgrIndvFeeCd} ELSE #{plarIndvFeeCd} END AS FEE_CD
                      , COUNT(1) * 50000                 AS REDF_ADSB_OC_AMT
                   FROM DATA T1
+                 INNER JOIN TB_FEAM_FEE_CALC_BAS BAS /* 해당 실적년월에 수수료를 지급받은 이력이 있는지 체크 */
+                 ON (T1.BASE_YM = BAS.BASE_YM AND T1.OG_TP_CD = BAS.OG_TP_CD AND T1.PRTNR_NO = BAS.PRTNR_NO AND BAS.FEE_TCNT_DV_CD = '02'
+                     AND BAS.SPMT_DSB_DV_CD = '01' AND BAS.FEE_CALC_TP_CD = '01' AND BAS.FEE_DSB_MTHD_CD = '01'
+                     AND BAS.FEE_CD = CASE WHEN T1.PRTNR_NO = T1.BRMGR_PRTNR_NO THEN #{brmgrIndvFeeCd} ELSE #{plarIndvFeeCd} END)
                 GROUP BY T1.BASE_YM, T1.PRTNR_NO, T1.CNTR_NO, T1.CNTR_SN, T1.BRMGR_PRTNR_NO
                 UNION ALL
                 SELECT T1.BASE_YM        AS PERF_YM
@@ -70,6 +76,9 @@
                      , #{brmgrOgFeeCd} AS FEE_CD
                      , COUNT(1) * 40000                 AS REDF_ADSB_OC_AMT
                   FROM DATA T1
+                 INNER JOIN TB_FEAM_FEE_CALC_BAS BAS /* 해당 실적년월에 수수료를 지급받은 이력이 있는지 체크 */
+                 ON (T1.BASE_YM = BAS.BASE_YM AND T1.OG_TP_CD = BAS.OG_TP_CD AND T1.BRMGR_PRTNR_NO = BAS.PRTNR_NO AND BAS.FEE_TCNT_DV_CD = '02'
+                     AND BAS.SPMT_DSB_DV_CD = '01' AND BAS.FEE_CALC_TP_CD = '01' AND BAS.FEE_DSB_MTHD_CD = '01' AND BAS.FEE_CD = #{brmgrOgFeeCd})
                  WHERE T1.LIF_CNTR_OC_TN = 1
                    AND T1.PRTNR_NO != T1.BRMGR_PRTNR_NO
                  GROUP BY T1.BASE_YM, T1.BRMGR_PRTNR_NO, T1.CNTR_NO, T1.CNTR_SN)
