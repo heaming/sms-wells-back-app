@@ -5,14 +5,14 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface WfebAgainDisbursementFeeMapper {
     /**
-     * P조직 상조 연체 재지급 계약데이터 생성
+     * P조직/M조직 상조 연체 재지급 계약데이터 생성
      * @param baseYm
      * @param ogTpCd
      * @param cntrPerfCrtDvCd
      * @param feeRedfAdsbDtlId
      * @return
      */
-    Integer insertLifeContractDlqAdsbsForPog(String baseYm, String ogTpCd, String cntrPerfCrtDvCd, String feeRedfAdsbDtlId);
+    Integer insertLifeContractDlqAdsbsForPog(String baseYm, String ogTpCd, String cntrPerfCrtDvCd, String feeRedfAdsbDtlId, String plarIndvFeeCd, String brmgrIndvFeeCd, String brmgrOgFeeCd);
 
     /**
      * M조직 연체재지급 계약 데이터 생성
