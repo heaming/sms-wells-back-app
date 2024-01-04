@@ -24,15 +24,12 @@ public class WsnaStockStateIndividualWareService {
     private final WsnaStockStateIndividualWareConverter converter;
 
     public List<HashMap<String, String>> getStockStateIndividualWare(SearchReq dto) {
-
         WsnaStockStateIndividualWareDvo dvo = convertPivotWsnaStockStateIndividualWareDvo(dto);
-
         return mapper.selectStockStateIndividualWare(dvo);
     }
 
     // Header용 창고 조회
     public List<WsnaStockStateIndividualWareWareDvo> getWareHouses(SearchReq dto) {
-
         return mapper.selectMcByWares(dto);
     }
 
@@ -92,6 +89,8 @@ public class WsnaStockStateIndividualWareService {
         dvo.setItmGdCd(dto.itmGdCd());
         dvo.setUseYn(dto.useYn());
         dvo.setStndUnuseYn(dto.stndUnuseYn());
+        dvo.setFromSapCd(dto.fromSapCd());
+        dvo.setToSapCd(dto.toSapCd());
 
         return dvo;
     }
