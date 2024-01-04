@@ -99,8 +99,10 @@ public class WfeySellProductTypeService {
     @Transactional
     public ExcelUploadDto.UploadRes saveSellProductTypeExcelUpload(MultipartFile file) throws Exception {
         // 업로드 엑셀 헤더 설정
+        String basePdCd = "basePdCd";
+
         Map<String, String> headerTitle = new LinkedHashMap<>();
-        headerTitle.put("basePdCd", messageService.getMessage("MSG_TXT_PRDT_CODE"));
+        headerTitle.put(basePdCd, messageService.getMessage("MSG_TXT_PRDT_CODE"));
         headerTitle.put("feePdctTpCd1", messageService.getMessage("MSG_TXT_PDCT_TP")+"(M)");
         headerTitle.put("feePdctTpCd2", messageService.getMessage("MSG_TXT_PDCT_TP")+"(P)");
         headerTitle.put("apyStrtYm", messageService.getMessage("MSG_TXT_APY_STRT_YM"));
@@ -124,23 +126,23 @@ public class WfeySellProductTypeService {
             // 필수 유효성
             if (StringUtils.isEmpty(list.getBasePdCd())) {
                 errorDvo.setErrorRow(finalRow);
-                errorDvo.setHeaderName(headerTitle.get("basePdCd"));
+                errorDvo.setHeaderName(headerTitle.get(basePdCd));
                 errorDvo.setErrorData(messageService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL")); //필수값이 누락되어 있습니다.
             }
             if (StringUtils.isNotEmpty(list.getBasePdCd()) && list.getBasePdCd().length() > 10) {
                 errorDvo.setErrorRow(finalRow);
-                errorDvo.setHeaderName(headerTitle.get("basePdCd"));
+                errorDvo.setHeaderName(headerTitle.get(basePdCd));
                 errorDvo.setErrorData(messageService.getMessage("MSG_ALT_INVALID_DATA")); // 데이터가 유효하지않습니다.
             }
             if (StringUtils.isNotEmpty(list.getFeePdctTpCd1())) {
-                if (codes.stream().filter(item -> list.getFeePdctTpCd1().toString().equals(item.getCodeValidityValue())).findFirst().orElse(null) == null) {
+                if (codes.stream().filter(item -> list.getFeePdctTpCd1().equals(item.getCodeValidityValue())).findFirst().orElse(null) == null) {
                     errorDvo.setErrorRow(finalRow);
                     errorDvo.setHeaderName(headerTitle.get("feePdctTpCd1"));
                     errorDvo.setErrorData(messageService.getMessage("MSG_ALT_INVALID_DATA")); // 데이터가 유효하지않습니다.
                 }
             }
             if (StringUtils.isNotEmpty(list.getFeePdctTpCd2())) {
-                if (codes.stream().filter(item -> list.getFeePdctTpCd2().toString().equals(item.getCodeValidityValue())).findFirst().orElse(null) == null) {
+                if (codes.stream().filter(item -> list.getFeePdctTpCd2().equals(item.getCodeValidityValue())).findFirst().orElse(null) == null) {
                     errorDvo.setErrorRow(finalRow);
                     errorDvo.setHeaderName(headerTitle.get("feePdctTpCd2"));
                     errorDvo.setErrorData(messageService.getMessage("MSG_ALT_INVALID_DATA")); // 데이터가 유효하지않습니다.
@@ -161,11 +163,11 @@ public class WfeySellProductTypeService {
                 // 입력 중복 체크
                 if (CollectionUtils.isNotEmpty(checks)) {
                     for (int i = 0; i < checks.size(); i++) {
-                        if (checks.get(i).get("basePdCd").equals(list.getBasePdCd())
+                        if (checks.get(i).get(basePdCd).equals(list.getBasePdCd())
                             && checks.get(i).get("apyStrtYm").equals(list.getApyStrtYm())
                             && checks.get(i).get("apyEndYm").equals(list.getApyEndYm())) {
                             errorDvo.setErrorRow(finalRow);
-                            errorDvo.setHeaderName(headerTitle.get("basePdCd"));
+                            errorDvo.setHeaderName(headerTitle.get(basePdCd));
                             errorDvo.setErrorData(messageService.getMessage("MSG_ALT_DUPLICATE_EXISTS")); //중복된 값이 존재합니다.
                         }
                     }
@@ -174,10 +176,10 @@ public class WfeySellProductTypeService {
                 cntrExistCnt = mapper.selectDuplicateSellProductType(list);
                 if (cntrExistCnt > 0) { //기존데이터 체크
                     errorDvo.setErrorRow(finalRow);
-                    errorDvo.setHeaderName(headerTitle.get("basePdCd"));
+                    errorDvo.setHeaderName(headerTitle.get(basePdCd));
                     errorDvo.setErrorData(messageService.getMessage("MSG_ALT_SAME_PD_DATE")); // 동일한 정보가 존재합니다.
                 }
-                check.put("basePdCd", list.getBasePdCd());
+                check.put(basePdCd, list.getBasePdCd());
                 check.put("apyStrtYm", list.getApyStrtYm());
                 check.put("apyEndYm", list.getApyEndYm());
                 checks.add(check);
