@@ -539,6 +539,7 @@
              , BIZ_CLTN	/* 업무등록-업무해약월 */
              , PRFMT_MM	/* 승진월-지점장은 승진월, 플래너는 강등월*/
              , PRFMT_NMN /*승진차월*/
+             , CASE WHEN RSB_DV_CD = 'W0205' THEN NVL(INDV_METG_BASE_SUFC, 'N') ELSE NVL(OG_METG_BASE_SUFC, 'N') END AS METG_BASE_SUFC	/* 미팅기준충족 */
              , CASE WHEN RSB_DV_CD = 'W0205' THEN NVL(INDV_METG_PRSC_DC, 0) ELSE NVL(OG_METG_PRSC_DC, 0) END AS METG_PRSC_DC	/* 미팅참석일수 */
              , STRTUP	/* 교육-스타트업 */
              , PRE_STRTUP	/* 교육-프리스타트업 */
@@ -633,8 +634,10 @@
     	                   ELSE SUBSTR(PRTNR.DMTN_DT, 1, 6) END AS PRFMT_MM	/* 승진월-지점장은 승진월 플래너는 강등월 */
                     , CASE WHEN PRTNR.PRFMT_DT IS NOT NULL THEN CEIL(MONTHS_BETWEEN(TO_DATE(PRTNR.BASE_YM||'01', 'YYYYMMDD'), TO_DATE(PRTNR.PRFMT_DT, 'YYYYMMDD')))+1
                            ELSE 0 END AS PRFMT_NMN /*승진차월*/
-                    , NVL(INDVMT.PERF_VAL, 0) AS INDV_METG_PRSC_DC	/* 개인미팅참석일수 */
-                    , NVL(OGMT.PERF_VAL, 0) AS OG_METG_PRSC_DC	/* 지점장미팅참석일수 */
+                    , NVL(INDVMTSUFC.FEE_PERF_ATC_VAL, 'N') AS INDV_METG_BASE_SUFC	/* 미팅기준충족 */
+                    , NVL(OGMTSUFC.FEE_PERF_ATC_VAL, 'N') AS OG_METG_BASE_SUFC	/* 미팅기준충족 */
+                    , NVL(INDVMT.PERF_VAL, 0) AS INDV_METG_PRSC_DC	/* 미팅참석일수 */
+                    , NVL(OGMT.PERF_VAL, 0) AS OG_METG_PRSC_DC	/* 미팅참석일수 */
                     , EDU.EDU96_YM AS STRTUP	/* 스타트업 */
                     , EDU.EDU143_YM AS PRE_STRTUP	/* 프리스타트업 */
                     , EDU.EDU100_YM AS TOPMR_SETTLE	/* 수석정착 */
@@ -706,20 +709,33 @@
                    ON PRTNR.BASE_YM = OG.BASE_YM
                   AND PRTNR.OG_ID = OG.OG_ID
                   AND OG.DTA_DL_YN = 'N'
-                 LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL INDVMT	/* 파트너실적월마감 - 미팅참석 실적 */
+                 LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL INDVMTSUFC	/* 파트너실적월마감 */
+                   ON PRTNR.BASE_YM = INDVMTSUFC.BASE_YM
+                  AND PRTNR.BASE_YM = INDVMTSUFC.PERF_YM
+                  AND PRTNR.OG_TP_CD = INDVMTSUFC.OG_TP_CD
+                  AND PRTNR.PRTNR_NO = INDVMTSUFC.PRTNR_NO
+                  AND INDVMTSUFC.FEE_TCNT_DV_CD = #{dto.feeTcntDvCd}
+                  AND INDVMTSUFC.PERF_ATC_CD = 'W02P00001'    /*미팅기준충족*/
+                 LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL INDVMT	/* 파트너실적월마감 */
                    ON PRTNR.BASE_YM = INDVMT.BASE_YM
                   AND PRTNR.BASE_YM = INDVMT.PERF_YM
                   AND PRTNR.OG_TP_CD = INDVMT.OG_TP_CD
                   AND PRTNR.PRTNR_NO = INDVMT.PRTNR_NO
                   AND INDVMT.FEE_TCNT_DV_CD = #{dto.feeTcntDvCd}
                   AND INDVMT.PERF_ATC_CD = 'W02P00093'    /*미팅참석일수*/
-                 LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL OGACL	/* 파트너실적월마감 - 실활동 인원 */
-                   ON PRTNR.BASE_YM = OGACL.BASE_YM
-                  AND PRTNR.BASE_YM = OGACL.PERF_YM
-                  AND PRTNR.OG_TP_CD = OGACL.OG_TP_CD
-                  AND PRTNR.PRTNR_NO = OGACL.PRTNR_NO
-                  AND OGACL.FEE_TCNT_DV_CD = #{dto.feeTcntDvCd}
-                  AND OGACL.PERF_ATC_CD = 'W02P00111'    /*지점실활동인원수*/
+                 LEFT OUTER JOIN
+                 	( SELECT AGRG_YM
+                 		   , OG_TP_CD
+                 		   , PRTNR_NO
+                 		   , METG_PTCP_ACKMT_YN AS FEE_PERF_ATC_VAL
+                 	    FROM TB_PSCA_MCPTN_METG_AGRG
+                 	   WHERE DTA_DL_YN = 'N'
+                 	     AND AGRG_YM = #{dto.perfYm}
+                 	     AND OG_TP_CD = 'W02'
+                 	) OGMTSUFC
+                   ON PRTNR.BASE_YM = OGMTSUFC.AGRG_YM
+                  AND PRTNR.OG_TP_CD = OGMTSUFC.OG_TP_CD
+                  AND PRTNR.PRTNR_NO = OGMTSUFC.PRTNR_NO
                  LEFT OUTER JOIN
                  	( SELECT AGRG_YM
                  		   , OG_TP_CD
@@ -733,6 +749,13 @@
                    ON PRTNR.BASE_YM = OGMT.AGRG_YM
                   AND PRTNR.OG_TP_CD = OGMT.OG_TP_CD
                   AND PRTNR.PRTNR_NO = OGMT.PRTNR_NO
+                 LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL OGACL	/* 파트너실적월마감 - 실활동 인원 */
+                   ON PRTNR.BASE_YM = OGACL.BASE_YM
+                  AND PRTNR.BASE_YM = OGACL.PERF_YM
+                  AND PRTNR.OG_TP_CD = OGACL.OG_TP_CD
+                  AND PRTNR.PRTNR_NO = OGACL.PRTNR_NO
+                  AND OGACL.FEE_TCNT_DV_CD = #{dto.feeTcntDvCd}
+                  AND OGACL.PERF_ATC_CD = 'W02P00111'    /*지점실활동인원수*/
                  LEFT OUTER JOIN
                     ( SELECT MIN(STRTDT) AS MNGER_FST_OPNG /* 매니저 최초개시일 */
                            , PRTNR_NO
@@ -1219,6 +1242,7 @@
              , BIZ_CLTN	/* 업무등록-업무해약월 */
              , PRFMT_MM	/* 승진월-지점장은 승진월, 플래너는 강등월*/
              , PRFMT_NMN /*승진차월*/
+             , CASE WHEN RSB_DV_CD = 'W0205' THEN NVL(INDV_METG_BASE_SUFC, 'N') ELSE NVL(OG_METG_BASE_SUFC, 'N') END AS METG_BASE_SUFC	/* 미팅기준충족 */
              , CASE WHEN RSB_DV_CD = 'W0205' THEN NVL(INDV_METG_PRSC_DC, 0) ELSE NVL(OG_METG_PRSC_DC, 0) END AS METG_PRSC_DC	/* 미팅참석일수 */
              , STRTUP	/* 교육-스타트업 */
              , PRE_STRTUP	/* 교육-프리스타트업 */
@@ -1336,6 +1360,8 @@
     	                   ELSE SUBSTR(PRTNR.DMTN_DT, 1, 6) END AS PRFMT_MM	/* 승진월-지점장은 승진월 플래너는 강등월 */
                     , CASE WHEN PRTNR.PRFMT_DT IS NOT NULL THEN CEIL(MONTHS_BETWEEN(TO_DATE(PRTNR.BASE_YM||'01', 'YYYYMMDD'), TO_DATE(PRTNR.PRFMT_DT, 'YYYYMMDD')))+1
                            ELSE 0 END AS PRFMT_NMN /*승진차월*/
+                    , NVL(INDVMTSUFC.FEE_PERF_ATC_VAL, 'N') AS INDV_METG_BASE_SUFC	/* 미팅기준충족 */
+                    , NVL(OGMTSUFC.FEE_PERF_ATC_VAL, 'N') AS OG_METG_BASE_SUFC	/* 미팅기준충족 */
                     , NVL(INDVMT.PERF_VAL, 0) AS INDV_METG_PRSC_DC	/* 미팅참석일수 */
                     , NVL(OGMT.PERF_VAL, 0) AS OG_METG_PRSC_DC	/* 미팅참석일수 */
                     , EDU.EDU96_YM AS STRTUP	/* 스타트업 */
@@ -1454,6 +1480,13 @@
                    ON PRTNR.BASE_YM = OG.BASE_YM
                   AND PRTNR.OG_ID = OG.OG_ID
                   AND OG.DTA_DL_YN = 'N'
+                 LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL INDVMTSUFC	/* 파트너실적월마감 */
+                   ON PRTNR.BASE_YM = INDVMTSUFC.BASE_YM
+                  AND PRTNR.BASE_YM = INDVMTSUFC.PERF_YM
+                  AND PRTNR.OG_TP_CD = INDVMTSUFC.OG_TP_CD
+                  AND PRTNR.PRTNR_NO = INDVMTSUFC.PRTNR_NO
+                  AND INDVMTSUFC.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                  AND INDVMTSUFC.PERF_ATC_CD = 'W02P00001'    /*미팅기준충족*/
                  LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL INDVMT	/* 파트너실적월마감 */
                    ON PRTNR.BASE_YM = INDVMT.BASE_YM
                   AND PRTNR.BASE_YM = INDVMT.PERF_YM
@@ -1461,6 +1494,19 @@
                   AND PRTNR.PRTNR_NO = INDVMT.PRTNR_NO
                   AND INDVMT.FEE_TCNT_DV_CD = #{feeTcntDvCd}
                   AND INDVMT.PERF_ATC_CD = 'W02P00093'    /*미팅참석일수*/
+                 LEFT OUTER JOIN
+                 	( SELECT AGRG_YM
+                 		   , OG_TP_CD
+                 		   , PRTNR_NO
+                 		   , METG_PTCP_ACKMT_YN AS FEE_PERF_ATC_VAL
+                 	    FROM TB_PSCA_MCPTN_METG_AGRG
+                 	   WHERE DTA_DL_YN = 'N'
+                 	     AND AGRG_YM = #{perfYm}
+                 	     AND OG_TP_CD = 'W02'
+                 	) OGMTSUFC
+                   ON PRTNR.BASE_YM = OGMTSUFC.AGRG_YM
+                  AND PRTNR.OG_TP_CD = OGMTSUFC.OG_TP_CD
+                  AND PRTNR.PRTNR_NO = OGMTSUFC.PRTNR_NO
                  LEFT OUTER JOIN
                  	( SELECT AGRG_YM
                  		   , OG_TP_CD
@@ -2034,6 +2080,7 @@
              , PRTNR_NO	/* 파트너번호 */
              , PRTNR_KNM	/* 성명 */
              , RSB_DV_CD	/* 직책구분코드 */
+             , CASE WHEN RSB_DV_CD = 'W0205' THEN NVL(INDV_METG_BASE_SUFC, 'N') ELSE NVL(OG_METG_BASE_SUFC, 'N') END AS METG_BASE_SUFC	/* 미팅기준충족 */
              , CASE WHEN RSB_DV_CD = 'W0205' THEN NVL(INDV_METG_PRSC_DC, 0) ELSE NVL(OG_METG_PRSC_DC, 0) END AS METG_PRSC_DC	/* 미팅참석일수 */
              , CASE WHEN PSTN_DV_CD = '7' THEN CASE WHEN PRTNR_GD_CD = '12' THEN '플래너지점장' ELSE '매니저지점장' END
                     ELSE F_CMZ_CD_NM('TNT_WELLS', 'QLF_DV_CD', QLF_DV_CD) END AS QLF_DV_NM
@@ -2152,7 +2199,9 @@
                     , SUBSTR(PRTNR.CLTN_DT, 1, 6) AS BIZ_CLTN	/* 업무등록-업무해약월 */
                     , CASE WHEN PRTNR.RSB_DV_CD = 'W0204' THEN SUBSTR(PRTNR.PRFMT_DT, 1, 6)
     	                   ELSE SUBSTR(PRTNR.DMTN_DT, 1, 6) END AS PRFMT_MM	/* 승진월-지점장은 승진월 플래너는 강등월 */
-                    , NVL(INDVMT.METG_PRSC_DC, 0) AS INDV_METG_PRSC_DC	/* 미팅참석일수 */
+                    , NVL(INDVMTSUFC.FEE_PERF_ATC_VAL, 'N') AS INDV_METG_BASE_SUFC	/* 미팅기준충족 */
+                    , NVL(OGMTSUFC.FEE_PERF_ATC_VAL, 'N') AS OG_METG_BASE_SUFC	/* 미팅기준충족 */
+                    , NVL(INDVMT.PERF_VAL, 0) AS INDV_METG_PRSC_DC	/* 미팅참석일수 */
                     , NVL(OGMT.PERF_VAL, 0) AS OG_METG_PRSC_DC	/* 미팅참석일수 */
                     , EDU.EDU11_YM AS PLAR_STRTUP 	/* 스타트업-플래너*/
                     , EDU.EDU96_YM AS STRTUP	/* 스타트업 */
@@ -2240,20 +2289,33 @@
                    ON PRTNR.BASE_YM = OG.BASE_YM
                   AND PRTNR.OG_ID = OG.OG_ID
                   AND OG.DTA_DL_YN = 'N'
+                 LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL INDVMTSUFC	/* 파트너실적월마감 */
+                   ON PRTNR.BASE_YM = INDVMTSUFC.BASE_YM
+                  AND PRTNR.BASE_YM = INDVMTSUFC.PERF_YM
+                  AND PRTNR.OG_TP_CD = INDVMTSUFC.OG_TP_CD
+                  AND PRTNR.PRTNR_NO = INDVMTSUFC.PRTNR_NO
+                  AND INDVMTSUFC.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                  AND INDVMTSUFC.PERF_ATC_CD = 'W02P00001'    /*미팅기준충족*/
+                 LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL INDVMT	/* 파트너실적월마감 */
+                   ON PRTNR.BASE_YM = INDVMT.BASE_YM
+                  AND PRTNR.BASE_YM = INDVMT.PERF_YM
+                  AND PRTNR.OG_TP_CD = INDVMT.OG_TP_CD
+                  AND PRTNR.PRTNR_NO = INDVMT.PRTNR_NO
+                  AND INDVMT.FEE_TCNT_DV_CD = #{feeTcntDvCd}
+                  AND INDVMT.PERF_ATC_CD = 'W02P00093'    /*미팅참석일수*/
                  LEFT OUTER JOIN
-                    ( SELECT PRTNR_NO
-                    	   , MAX(PERF_VAL) AS METG_PRSC_DC	/* 미팅참석일수 */
-                    	   , CASE WHEN MAX(PERF_VAL) <![CDATA[>=]]> 15 THEN 'Y' ELSE 'N' END AS METG_CPC_YN	/* 미팅수료여부 */
-                 		FROM TB_FEAM_PRTNR_PERF_MM_CL	/* 파트너실적월마감 */
-                 	   WHERE BASE_YM = #{perfYm}
-                 	     AND PERF_YM = #{perfYm}
-                 	     AND FEE_TCNT_DV_CD = #{feeTcntDvCd}
-                 	     AND CO_CD = '2000'
+                 	( SELECT AGRG_YM
+                 		   , OG_TP_CD
+                 		   , PRTNR_NO
+                 		   , METG_PTCP_ACKMT_YN AS FEE_PERF_ATC_VAL
+                 	    FROM TB_PSCA_MCPTN_METG_AGRG
+                 	   WHERE DTA_DL_YN = 'N'
+                 	     AND AGRG_YM = #{perfYm}
                  	     AND OG_TP_CD = 'W02'
-                 	     AND PERF_ATC_CD = 'W02P00093'    /* 미팅참석일수 */
-                 	   GROUP BY PRTNR_NO
-                 	) INDVMT	/* 미팅 */
-                   ON PRTNR.PRTNR_NO = INDVMT.PRTNR_NO
+                 	) OGMTSUFC
+                   ON PRTNR.BASE_YM = OGMTSUFC.AGRG_YM
+                  AND PRTNR.OG_TP_CD = OGMTSUFC.OG_TP_CD
+                  AND PRTNR.PRTNR_NO = OGMTSUFC.PRTNR_NO
                  LEFT OUTER JOIN
                  	( SELECT AGRG_YM
                  		   , OG_TP_CD
