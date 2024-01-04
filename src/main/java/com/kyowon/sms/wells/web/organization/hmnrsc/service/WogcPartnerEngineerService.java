@@ -221,7 +221,6 @@ public class WogcPartnerEngineerService {
     @Transactional
     public int saveJoeManagement(List<SaveJoeManagementReq> dtos) {
         int processCnt = 0;
-        List<SaveBiztelephoneReq> bizPhoneReq = new ArrayList<SaveBiztelephoneReq>();
 
         List<ZogzPartnerDvo> partnerDvos = new ArrayList<ZogzPartnerDvo>();
 
@@ -259,7 +258,7 @@ public class WogcPartnerEngineerService {
             partnerDvos.add(partnerDvo);
         }
 
-        bizPhoneReq = converter.mapZogzPartnerDvoToSaveBiztelephoneReq(partnerDvos);
+        List<SaveBiztelephoneReq> bizPhoneReq = converter.mapZogzPartnerDvoToSaveBiztelephoneReq(partnerDvos);
         //업무용 전화번호, 사용자 전화번호 업데이트
         processCnt += zogzPartnerService.editBiztelephone(bizPhoneReq);
 
