@@ -48,9 +48,57 @@
        WHERE 1=1
          AND THMQ.OG_TP_CD = 'W02'
          AND THMQ.QLF_DV_CD IN ('3','6')
-         AND TO_CHAR(LAST_DAY(TO_DATE(#{baseYm}||'01','YYYYMMDD')),'YYYYMMDD') BETWEEN THMQ.STRTDT AND THMQ.ENDDT
+         AND TO_CHAR(LAST_DAY(TO_DATE(#{baseYm} || '01', 'YYYYMMDD')), 'YYYYMMDD') BETWEEN THMQ.STRTDT AND THMQ.ENDDT
          AND THMQ.QLF_APLC_DV_CD IN ('1', '2')
          AND THMQ.DTA_DL_YN = 'N'
+      UNION
+      SELECT NMNQ.OG_TP_CD
+           , NMNQ.PRTNR_NO
+           , THMQ.QLF_DV_CD
+           , NMNQ.QLF_DV_CD                                        AS M1_QLF_DV_CD /* M+1  WM 자격 */
+           , SUBSTR(NMNQ.CV_DT,1,6)                                AS CV_DT /* WM전환월 */
+           , CASE WHEN TO_CHAR(SYSDATE,'YYYYMM')
+               BETWEEN NMNQ.STRTDT AND NMNQ.ENDDT
+                  THEN 'Y' ELSE 'N' END                            AS BZ_STAT_CD /* WM - 활동여부 */
+           , NVL(BSQ.STRTDT, NMNQ.STRTDT)                          AS CNTR_DT /* 계약일 */
+           , NMNQ.ENDDT                                            AS CLTN_DT
+           , NVL(FQ.FST_CNTR_DT,NVL(BSQ.STRTDT, NMNQ.STRTDT))      AS FST_CNTR_DT
+           , FQ.FNL_CLTN_DT
+        FROM TB_OGPS_PLAR_QLF_CH_IZ NMNQ /* 차월 플래너 자격 */
+        LEFT OUTER JOIN TB_OGPS_PLAR_QLF_CH_IZ BSQ /* BS프리매니저에서 웰스플래너로 바뀐 자격 내역 */
+          ON BSQ.OG_TP_CD = NMNQ.OG_TP_CD
+         AND BSQ.PRTNR_NO = NMNQ.PRTNR_NO
+         AND NMNQ.QLF_DV_CD = '3'
+         AND BSQ.QLF_DV_CD = '6'
+         AND BSQ.ENDDT != '99991231'
+         AND BSQ.ENDDT = TO_CHAR(TO_DATE(NMNQ.STRTDT, 'YYYYMMDD') - 1, 'YYYYMMDD')
+         AND BSQ.QLF_APLC_DV_CD IN ('1', '2')
+         AND BSQ.DTA_DL_YN = 'N'
+        LEFT OUTER JOIN (
+                SELECT PRTNR_NO
+                     , MIN(FNLQ.STRTDT) AS FST_CNTR_DT
+                     , MAX(FNLQ.ENDDT)  AS FNL_CLTN_DT
+                  FROM TB_OGPS_PLAR_QLF_CH_IZ FNLQ /* 최초계약, 최종해약 조회 */
+                 WHERE FNLQ.OG_TP_CD = 'W02'
+                   AND FNLQ.QLF_DV_CD IN ('3', '6')
+                   AND FNLQ.QLF_APLC_DV_CD IN ('1', '2')
+                   AND FNLQ.DTA_DL_YN = 'N'
+                   AND NVL(FNLQ.ENDDT, '99991231') <![CDATA[<]]> #{baseYm}
+                 GROUP BY PRTNR_NO
+             ) FQ
+          ON FQ.PRTNR_NO = NMNQ.PRTNR_NO
+        LEFT OUTER JOIN TB_OGPS_PLAR_QLF_CH_IZ THMQ /* 당월 플래너 자격 */
+          ON NMNQ.OG_TP_CD = THMQ.OG_TP_CD
+         AND NMNQ.PRTNR_NO = THMQ.PRTNR_NO
+         AND NMNQ.QLF_APLC_DV_CD IN ('1', '2')
+         AND TO_CHAR(LAST_DAY(TO_DATE(#{baseYm} || '01', 'YYYYMMDD')), 'YYYYMMDD') BETWEEN THMQ.STRTDT AND THMQ.ENDDT
+         AND NMNQ.DTA_DL_YN = 'N'
+       WHERE 1=1
+         AND NMNQ.OG_TP_CD = 'W02'
+         AND NMNQ.QLF_DV_CD IN ('3','6')
+         AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(#{baseYm} || '01', 'YYYYMMDD'), 1)), 'YYYYMMDD') BETWEEN NMNQ.STRTDT AND NMNQ.ENDDT
+         AND NMNQ.QLF_APLC_DV_CD IN ('1', '2')
+         AND NMNQ.DTA_DL_YN = 'N'
     </sql>
 
     <select id="selectWelsMngers"
