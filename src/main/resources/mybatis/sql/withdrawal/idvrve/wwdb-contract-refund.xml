@@ -7,13 +7,21 @@
              , T1.RVE_SN
              , T3.RFND_RCP_NO
              , T3.RFND_RCP_DTL_SN
-             , T1.CNTR_NO /*계약번호*/
-             , T1.CNTR_SN /*계약일련번호*/
-             , T1.CNTR_NO || T1.CNTR_SN AS CNTR_DTL_NO /*계약상세번호*/
+             , CASE WHEN T1.DP_DV_CD = '2' THEN T1.CNTR_NO
+                    WHEN T1.DP_DV_CD = '4' THEN T3.BLTF_OJ_CNTR_NO
+                     END AS CNTR_NO /*계약번호*/
+             , CASE WHEN T1.DP_DV_CD = '2' THEN T1.CNTR_SN
+                    WHEN T1.DP_DV_CD = '4' THEN T3.BLTF_OJ_CNTR_SN
+                     END AS CNTR_SN /*계약일련번호*/
+             , CASE WHEN T1.DP_DV_CD = '2' THEN T1.CNTR_NO || '-' || T1.CNTR_SN
+                    WHEN T1.DP_DV_CD = '4' THEN T3.BLTF_OJ_CNTR_NO || '-' || BLTF_OJ_CNTR_SN
+                     END AS CNTR_DTL_NO /*계약상세번호*/
              , (SELECT S1.CST_KNM
                   FROM TB_CUBS_CST_BAS S1                 /* 고객기본 */
                  WHERE S1.DTA_DL_YN = 'N'
-                   AND T1.CST_NO = S1.CST_NO ) AS CST_KNM  /* 고객명 */
+                   AND S1.CST_NO =  (CASE WHEN T1.DP_DV_CD = '2' THEN T1.CST_NO
+                                          WHEN T1.DP_DV_CD = '4' THEN T3.BLTF_OJ_CST_NO
+                                           END ) ) AS CST_KNM  /* 고객명 */
              , T1.RVE_DT AS RFND_RVE_DT /*처리일자*/
              , T1.PERF_DT AS RFND_PERF_DT /*실적일자*/
              , CASE WHEN T2.CNTRW_TP_CD = '5' THEN '홈케어'
@@ -24,7 +32,9 @@
              , NVL(T1.RVE_AMT,0) AS DSB_AMT 		/*지급금액*/
              , NVL(T1.RVE_AMT,0)	AS RFND_DSB_AMT /*환불금액*/
              , NVL(T3.RFND_DSB_PSP_INT,0) AS RFND_DSB_PSP_INT	/*지연이자*/
-             , NVL(T3.CARD_RFND_FEE,0) AS CARD_RFND_FEE		/*카드수수료*/
+             , CASE WHEN T3.RFND_DSB_DV_CD = '01' THEN NVL(T3.CARD_RFND_FEE,0)
+                    ELSE 0
+                     END AS CARD_RFND_FEE		/*카드수수료*/
              , ( SELECT FNIT_NM
                    FROM TB_RVDW_FNIT_CD                 /* 금융기관코드 */
                   WHERE FNIT_CD = (  CASE WHEN T3.CSH_RFND_FNIT_CD IS NULL
@@ -56,6 +66,14 @@
         					   , S1.CSH_RFND_ACOWN_NM
         					   , S1.CARD_RFND_CRCDONR_NM
         					   , S1.CARD_RFND_CRDCD_ISTM_MCN
+                               , S1.RFND_DSB_DV_CD
+                               , S1.BLTF_OJ_CNTR_NO
+                               , S1.BLTF_OJ_CNTR_SN
+                               , (SELECT SS1.CNTR_CST_NO
+                                    FROM TB_SSCT_CNTR_BAS SS1
+                                   WHERE 1 = 1
+                                     AND SS1.CNTR_NO = S1.BLTF_OJ_CNTR_NO
+                                     AND SS1.DTA_DL_YN = 'N' ) AS BLTF_OJ_CST_NO
         				    FROM TB_RVDW_RFND_RCP_DTL S1
         				   INNER JOIN TB_RVDW_RFND_RCP_BAS S2
         				      ON (    S2.KW_GRP_CO_CD = S1.KW_GRP_CO_CD
@@ -85,8 +103,8 @@
            AND T1.PERF_DT <![CDATA[<=]]> #{perfDtEndDay}
           </if>
            AND T1.KW_GRP_CO_CD = '2000'
-           AND T1.DP_DV_CD IN ('2')
-<!--           AND T1.DP_DV_CD IN ('2','4')-->
+<!--           AND T1.DP_DV_CD IN ('2')-->
+           AND T1.DP_DV_CD IN ('2','4')
            AND T1.RVE_DV_CD = '01'
            AND T1.DP_TP_CD NOT IN ('0204' , '0103')
            AND T1.PROCS_DV_CD = '1'
@@ -181,8 +199,8 @@
        AND T1.PERF_DT <![CDATA[<=]]> #{perfDtEndDay}
       </if>
        AND T1.KW_GRP_CO_CD = '2000'
-       AND T1.DP_DV_CD IN ('2')
-<!--       AND T1.DP_DV_CD IN ('2','4')-->
+<!--       AND T1.DP_DV_CD IN ('2')-->
+        AND T1.DP_DV_CD IN ('2','4')
         AND PROCS_DV_CD = '1'
        AND T1.RVE_DV_CD = '01'
        AND T1.DP_TP_CD NOT IN ('0204' , '0103')

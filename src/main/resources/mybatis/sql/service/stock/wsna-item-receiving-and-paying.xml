@@ -1,52 +1,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaItemReceivingAndPayingMapper">
 
-    <select id="selectReceiptsAndPaymentCount" resultType="java.lang.Long">
-          WITH PD AS
-             (
-               SELECT T1.PD_CD
-                    , T1.PD_ABBR_NM AS PD_NM
-                    , T1.SAP_MAT_CD
-                 FROM TB_PDBS_PD_BAS T1                 /* 상품기본 */
-                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2   /* 상품각사속성상세 */
-                   ON T2.PD_CD = T1.PD_CD
-                WHERE T1.PD_TP_CD           = 'M'
-                  AND T1.DTA_DL_YN          = 'N'
-                  AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
-                  AND T2.DTA_DL_YN          = 'N'
-                <if test="@MybatisUtils@isNotEmpty(itmPdCdFrom)">
-                  AND T1.PD_CD              = #{itmPdCdFrom}
-                </if>
-	            <if test="@MybatisUtils@isNotEmpty(itmKnd)">
-                  AND T2.PD_PRP_VAL19       = #{itmKnd}
-                </if>
-                <if test='@MybatisUtils@equals(useYn, "Y")'>
-                  AND ( T2.PD_PRP_VAL32 IS NULL OR T2.PD_PRP_VAL32 = 'Y' )
-                </if>
-                <if test='@MybatisUtils@equals(useYn, "N")'>
-                  AND T2.PD_PRP_VAL32 <![CDATA[<>]]> 'Y'
-                </if>
-                <if test="@MybatisUtils@isNotEmpty(sapMatCdFrom)">
-                  AND T1.SAP_MAT_CD <![CDATA[>=]]> LPAD(#{sapMatCdFrom}, 18, '0')
-                </if>
-                <if test="@MybatisUtils@isNotEmpty(sapMatCdTo)">
-                  AND T1.SAP_MAT_CD <![CDATA[<=]]> LPAD(#{sapMatCdTo}, 18, '0')
-                </if>
-                <if test="@MybatisUtils@isNotEmpty(sapMatCdFrom) or @MybatisUtils@isNotEmpty(sapMatCdTo)">
-                  AND T1.SAP_MAT_CD IS NOT NULL
-                </if>
-                <if test='@MybatisUtils@isNotEmpty(sapMatDpcts)'>
-                  AND T1.SAP_MAT_CD IS NOT NULL
-                  AND T1.SAP_MAT_CD IN
-                   <foreach collection="sapMatDpcts" item="sapMatDpct" open="(" close=")" separator=",">
-                        LPAD(TRIM(#{sapMatDpct}), 18, '0')
-                   </foreach>
-                </if>
-             )
-        SELECT COUNT(*)
-          FROM PD
-    </select>
-
     <select id="selectReceiptsAndPaymentsPages" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaItemReceivingAndPayingDto$SearchRes" fetchSize="1000">
           WITH PD AS
              (
@@ -66,6 +20,9 @@
 	            <if test="@MybatisUtils@isNotEmpty(itmKnd)">
                   AND T2.PD_PRP_VAL19       = #{itmKnd}
                 </if>
+                <if test="@MybatisUtils@isNotEmpty(svMatGrpCd)">
+                  AND T2.PD_PRP_VAL36       = #{svMatGrpCd}
+                </if>
                 <if test='@MybatisUtils@equals(useYn, "Y")'>
                   AND ( T2.PD_PRP_VAL32 IS NULL OR T2.PD_PRP_VAL32 = 'Y' )
                 </if>
@@ -88,6 +45,27 @@
                         LPAD(TRIM(#{sapMatDpct}), 18, '0')
                    </foreach>
                 </if>
+                <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                  AND T1.PD_CD IN
+                                <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                   #{itmPdCd}
+                                </foreach>
+                </if>
+                <if test="@MybatisUtils@isNotEmpty(itmGrp)">
+                  AND (    T2.PD_PRP_VAL20 = #{itmGrp}
+                        OR EXISTS ( SELECT 1
+                                      FROM TB_PDBS_PD_REL S1
+                                     INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2
+                                        ON S2.PD_CD = S1.BASE_PD_CD
+                                     WHERE S1.DTA_DL_YN          = 'N'
+                                       AND S1.PD_REL_TP_CD       = '14'   /* AS부품 */
+                                       AND S2.DTA_DL_YN          = 'N'
+                                       AND S2.PD_EXTS_PRP_GRP_CD = 'PART'
+                                       AND S1.OJ_PD_CD           = T1.PD_CD
+                                       AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN S1.VL_STRT_DTM AND S1.VL_END_DTM
+                                       AND S2.PD_PRP_VAL20       = #{itmGrp} )
+                      )
+                </if>
              )
              , WARE AS
              (
@@ -97,9 +75,8 @@
                  FROM TB_SVST_MCBY_WARE_IZ
                 WHERE DTA_DL_YN      = 'N'
                   AND APY_YM         = SUBSTR(#{stFromYmd}, 1,6)
-              <if test="@MybatisUtils@isNotEmpty(strWareDvCd)">
                   AND WARE_DV_CD     = #{strWareDvCd}
-              </if>
+                  AND WARE_NO LIKE #{strWareDvCd} || '%'
               <if test="@MybatisUtils@isNotEmpty(strWareNoM)">
                   AND ( HGR_WARE_NO = #{strWareNoM} OR WARE_NO = #{strWareNoM} )
                   </if>
@@ -199,6 +176,7 @@
                          AND D2.WARE_NO = D1.WARE_NO
                        WHERE D1.DTA_DL_YN = 'N'
                          AND D1.BASE_YM   = SUBSTR(#{stFromYmd}, 1, 6)
+                         AND D1.WARE_NO LIKE #{strWareDvCd} || '%'
                        UNION ALL
                       SELECT D1.ITM_PD_CD
                            , 0               AS BTD_STOC_A_GD_QTY

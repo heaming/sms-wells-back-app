@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Deprecated
 public class WdcbSalesConfirmCreateService {
 
     private final WdcbSalesConfirmCreateMapper mapper;
@@ -106,7 +107,7 @@ public class WdcbSalesConfirmCreateService {
         String vatTpCd = mapper.selectVatTpCd(dvo.getPdCd());
         if ("10".equals(vatTpCd)) {
             int slQty = dvo.getSlQty() == 0 ? 1 : dvo.getSlQty();
-            vat = slAmt - (int)(Math.ceil((double)(slAmt / slQty) / 1.1) * slQty); // VAT 계산식 변경 - 2023.12.26
+            vat = slAmt - (int)(Math.ceil((double)slAmt / slQty / 1.1) * slQty); // VAT 계산식 변경 - 2023.12.26
         }
         /* 9-1. 무상여부 - 2023.12.26 */
         String frisuYn = "N";
@@ -115,7 +116,7 @@ public class WdcbSalesConfirmCreateService {
         }
 
         /* 10. CO주문유형 */
-        String ctrlOrdTpCd = mapper.selectCtrlOrdTpCd(sapPdDvCd, dvo.getSellInflwChnlDtlCd(), dvo.getOgTpCd());
+        String ctrlOrdTpCd = mapper.selectCtrlOrdTpCd(dvo, sapPdDvCd, vatTpCd);
         /* 11. 코스트센터코드, WBS코드, SAP목적자재코드 */
         /* ASIS의 ZS2200P 테이블에도 모든 값이 공백임. 공백 넣을것 */
         /* 12. SAP과세면세구분코드 */
@@ -131,16 +132,10 @@ public class WdcbSalesConfirmCreateService {
 
         /* 13. SAP세금계산서발행기준코드 */
         String sapTxinvPblBaseCd = "";
-        if (StringUtils.isNotEmpty(sapPdDvCd) && ("B1".equals(sapPdDvCd) || "B2".equals(sapPdDvCd))) {
-            // SAP상품구분코드가 B1, B2 로 매핑되어있으면 빈칸
-            sapTxinvPblBaseCd = "";
-        } else {
-            // 아니면 모두 4
-            sapTxinvPblBaseCd = "4";
-        }
-        if ((StringUtils.isNotEmpty(sapPdDvCd) && "B3".equals(sapPdDvCd)) || dvo.getPvdaAmt() > 0) {
-            // SAP상품구분코드가 B3 이면서 현찰차금액 PVDA_AMT > 0 이면 3
+        if (dvo.getPvdaAmt() > 0) { // PVDA_AMT > 0 이면 3 - 2023.12.27 (by. 박정교P)
             sapTxinvPblBaseCd = "3";
+        } else {
+            sapTxinvPblBaseCd = "4";
         }
         /* 14. 물류배송방식코드, SAP플랜트코드, SAP저장위치값. */
         // 물류배송방식코드: EDU만 사용
@@ -155,10 +150,10 @@ public class WdcbSalesConfirmCreateService {
         String tempSlRcogClsfCd = ""; /*매출인식분류코드*/
         String sapSlTpCd = ""; // SAP매출유형코드
         String sapBizDvCd = ""; // SAP업무구분코드
-        String slTpDvCd = "1";
-        String clssVal = "1";
-        String addConditionSlTp = "0";
-        String addConditionBizDv = "0";
+        String slTpDvCd = "";
+        String clssVal = "";
+        String addConditionSlTp = "";
+        String addConditionBizDv = "";
 
         // 판매유형상세코드: S% -> "ANY"
         tempSellTpDtlCd = dvo.getSlRcogClsfCd().substring(0, 1).equals("S") ? "ANY" : dvo.getSellTpDtlCd();

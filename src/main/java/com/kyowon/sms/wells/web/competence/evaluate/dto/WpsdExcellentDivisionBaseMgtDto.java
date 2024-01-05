@@ -141,7 +141,7 @@ public class WpsdExcellentDivisionBaseMgtDto {
         String evlDvCd, /* 평가구분코드 */
         String evlAtcDvCd, /* 평가항목구분코드 */
         String evlPdDvCd, /* 평가상품구분코드 */
-        Integer evlBaseUnitN, /* 평가기준단위수 */
+        double evlBaseUnitN, /* 평가기준단위수 */
         Long cvtBasePc, /* 환산기준점수 */
         Long trgBasePc, /* 목표기준점수 */
         String dtaDlYn,

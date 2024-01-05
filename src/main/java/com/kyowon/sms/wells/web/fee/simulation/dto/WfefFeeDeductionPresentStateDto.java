@@ -23,7 +23,8 @@ public class WfefFeeDeductionPresentStateDto {
         String ogLevl1,
         String ogLevl2,
         String ogLevl3,
-        String prtnrNo
+        String prtnrNo,
+        String feeTcntDvCd
 
     ) {
     }
@@ -43,7 +44,9 @@ public class WfefFeeDeductionPresentStateDto {
         String dsbOjAmt,
         String intbsAmt,
         String ddctam,
-        String rdsTax,
+        String rds,
+        String erntx,
+        String rsdntx,
         String einsr,
         String inddInsr,
         String buDdtn,

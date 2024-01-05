@@ -183,6 +183,7 @@ public class WbncCustomerDto {
         String prtnrNo, /* 집금담당번호 */
         String prtnrNm, /*집금담당명*/
         String dfltDt, /* 채무불이행 */
+        String authRsg, /* 직권해지 */
         String lwmMoCn, /* 법조치 */
         String slStp, /* 매출중지 */
         String bndClnPsblDvCd, /* 회수가능성 */
@@ -231,7 +232,7 @@ public class WbncCustomerDto {
         String cntrDtlNo, /* 상세계약번호 */
         String cstKnm, /* 고객명 */
         String dlqMcn, /* 연체개월 */
-        String authRsgCnfmdt, /* 직권해지일자 */
+        String authRsg, /* 직권해지일자 */
         String ojAmt, /* 대상금액 */
         String ojDp, /* 대상입금 */
         String ojBlam, /* 대상금액 - 대상입금 = 대상잔액 */

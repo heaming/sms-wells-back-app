@@ -20,42 +20,42 @@ public class WfeaBsFeeMgtDto {
     @ApiModel(value = "WfeaBsFeeMgtDto-SearchReq")
     public record SearchReq(
         @NotBlank
-        String perfYm,
+        String perfYm, /*실적년월*/
         @NotBlank
-        String ogTpCd,
-        String prtnrNo,
+        String ogTpCd, /*조직유형코드*/
+        String prtnrNo, /*파트너번호*/
         @NotBlank
-        String feeTcntDvCd,
-        String strtPdCd,
-        String endPdCd,
+        String feeTcntDvCd, /*수수료차수구분코드*/
+        String strtPdCd, /*시작상품코드*/
+        String endPdCd, /*종료상품코드*/
         @NotBlank
-        String strtVstDt,
+        String strtVstDt, /*시작방문일자*/
         @NotBlank
-        String endVstDt
+        String endVstDt /*종료방문일자*/
     ) {}
 
     @ApiModel(value = "WfeaBsFeeMgtDto-SearchCheckReq")
     public record SearchCheckReq(
         @NotBlank
-        String perfYm,
+        String perfYm, /*실적년월*/
         @NotBlank
-        String ogTpCd,
+        String ogTpCd, /*조직유형코드*/
         @NotBlank
-        String feeTcntDvCd,
+        String feeTcntDvCd, /*수수료차수구분코드*/
         @NotBlank
-        String perfAgrgCrtDvCd
+        String perfAgrgCrtDvCd /*실적집계생성구분코드*/
     ) {}
 
     @ApiModel(value = "WfeaBsFeeMgtDto-SaveReq")
     public record SaveReq(
         @NotBlank
-        String perfYm,
+        String perfYm, /*실적년월*/
         @NotBlank
-        String ogTpCd,
+        String ogTpCd, /*조직유형코드*/
         @NotBlank
-        String feeTcntDvCd,
+        String feeTcntDvCd, /*수수료차수구분코드*/
         @NotBlank
-        String perfAgrgCrtDvCd
+        String perfAgrgCrtDvCd /*실적집계생성구분코드*/
     ) {}
 
     // *********************************************************
@@ -63,9 +63,9 @@ public class WfeaBsFeeMgtDto {
     // *********************************************************
     @ApiModel(value = "WfeaBsFeeMgtDto-SearchRes")
     public record SearchRes(
-        String prtnrNo,
-        String ogCd,
-        String prtnrKnm,
+        String prtnrNo, /*파트너번호*/
+        String ogCd, /*조직코드*/
+        String prtnrKnm, /*파트너명*/
         String cntrNo, /*계약번호*/
         String bfOrdNo, /*이전계약번호*/
         String basePdCd, /*상품코드*/
@@ -87,6 +87,6 @@ public class WfeaBsFeeMgtDto {
 
     @ApiModel(value = "WfeaBsFeeMgtDto-SearchCheckRes")
     public record SearchCheckRes(
-        String ogTpCd
+        String ogTpCd /*조직유형코드*/
     ) {}
 }

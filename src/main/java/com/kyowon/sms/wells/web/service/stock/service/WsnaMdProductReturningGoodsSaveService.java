@@ -56,7 +56,12 @@ public class WsnaMdProductReturningGoodsSaveService {
                 // 1. 동일 키값으로 작업결과 조회
                 selectExistSvpdCstSvWkRsIz(dvo);
                 // 2. 고객서비스설치배정내역 업데이트
-                saveMapper.updateSvpdCstSvasIstAsnIz(dvo);
+                if ("AS".equals(dvo.getSvcTyp())) {
+                    // A/S 인 경우
+                    saveMapper.updateSvpdCstSvasIstAsnIz(dvo);
+                } else {
+                    // TO-DO. B/S 인 경우 TB_SVPD_CST_SV_BFSVC_ASN_IZ 업데이트 추가 작업 필요
+                }
                 // 3. 작업결과 저장
                 saveMapper.insertSvpdCstSvWkRsIz(dvo);
                 // 4. 철거일자 업데이트(고객서비스수행내역)
@@ -83,8 +88,15 @@ public class WsnaMdProductReturningGoodsSaveService {
                 // 성공 시, 다음 단계 진행
                 if ("S".equals(counselRes.getResultCode())) {
                     // 2. 고객서비스AS설치배정내역 업데이트
-                    saveMapper.updateSvpdCstSvasAsIstAsnIz(dvo);
-                    log.info("[고객서비스AS설치배정내역 업데이트] => {}", dvo);
+                    if ("AS".equals(dvo.getSvcTyp())) {
+                        // A/S 인 경우
+                        saveMapper.updateSvpdCstSvasAsIstAsnIz(dvo);
+                        log.info("[고객서비스AS설치배정내역 업데이트] => {}", dvo);
+                    } else {
+                        // TO-DO. B/S 인 경우 TB_SVPD_CST_SV_BFSVC_ASN_IZ 업데이트 추가 작업 필요
+                        log.info("[고객서비스BS배정내역 업데이트] => {}", dvo);
+                    }
+
                 } else {
                     log.info("[고객센터 상담정보 연계 실패] => {}", counselRes);
                 }

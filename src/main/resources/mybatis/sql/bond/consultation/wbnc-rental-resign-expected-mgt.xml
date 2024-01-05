@@ -20,7 +20,7 @@
              , X.TOT_NPD_AMT          /*총미납금액*/
              , (CASE WHEN X.SELL_TP_CD = '2' THEN 0 ELSE X.TOT_MCHN_NPD_AMT END) AS TOT_MCHN_NPD_AMT  /*총미납금액(결합기기)*/
              , X.LSTMM_OCPT_CS      /*전월점유비*/
-             , X.THM_OCPT_CS /*당월점유비*/
+             , (CASE WHEN X.THM_OCPT_CS = 0 THEN X.RENTAL_AMT ELSE X.THM_OCPT_CS END) AS THM_OCPT_CS /*당월점유비*/
              , X.THM_ADN_SV_UC_AMT /*당월가압펌프*/
              , X.TOT_NPD_AMT+ X.RENTAL_AMT + X.RENTAL_RES_BOR_AMT + X.RENTAL_RGST_COST_BOR_AMT
                + X.DSC_CS_BOR_AMT + X.RSTL_BOR_AMT + X.POINT_BOR_AMT + X.CSMB_CS_BOR_AMT + LS_RNTF AS NRTRN_DBT_TOT_AMT /*미반환시총체납액*/
@@ -100,9 +100,11 @@
                                   END
                             )
                        END AS TOT_NPD_AMT          /*총미납금액*/
-                     , (CASE WHEN NVL(R1.TOT_NPD_AMT,0) - (NVL(E.BTD_ATAM,0) + NVL(M_22.PD_RVE_AMT,0) - NVL(M_22.RFND_RVE_AMT,0)) <![CDATA[<]]> 0 THEN 0
-                             ELSE NVL(R1.TOT_NPD_AMT,0) - (NVL(E.BTD_ATAM,0) + NVL(M_22.PD_RVE_AMT,0) - NVL(M_22.RFND_RVE_AMT,0))
-                        END) AS TOT_MCHN_NPD_AMT /*총미납금액(결합기기)*/
+                     , (CASE WHEN A.SELL_TP_CD = '2' THEN 0
+                             WHEN A.SELL_TP_CD = '6' THEN (CASE WHEN R1.TOT_NPD_AMT - (NVL(E1.BTD_ATAM,0) + NVL(M_22.PD_RVE_AMT,0) - NVL(M_22.RFND_RVE_AMT,0)) <![CDATA[<]]> 0 THEN 0
+                                                                ELSE R1.TOT_NPD_AMT - (NVL(E1.BTD_ATAM,0) + NVL(M_22.PD_RVE_AMT,0) - NVL(M_22.RFND_RVE_AMT,0))
+                                                           END)
+                       END) AS TOT_MCHN_NPD_AMT /*총미납금액(결합기기)*/
                      , NVL(A.LSTMM_OCPT_CS,0) AS LSTMM_OCPT_CS      /*전월점유비*/
                      , NVL(A.THM_OCPT_CS,0) AS THM_OCPT_CS /*당월점유비*/
                      , NVL(A.THM_ADN_SV_UC_AMT,0) AS THM_ADN_SV_UC_AMT /*당월가압펌프*/
@@ -156,11 +158,11 @@
                      , F.OG_CD
                      , C.SELL_PRTNR_NO                              /*판매자번호*/
                      , F.PRTNR_KNM AS PLAR_KNM                      /*플래너*/
-                     , (CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN MONTHS_BETWEEN(TO_DATE(A.RQDT,'YYYYMMDD'), TO_DATE(D.CNTR_PD_STRTDT,'YYYYMMDD'))  <![CDATA[>=]]> 12
-                                                                     AND SVCR.DP_AGG_AMT  <![CDATA[>=]]> (NVL(E.RENTAL_AMT,0) - NVL(E.RENTAL_DSC_AMT,0)) * 12 - NVL(E.DSC_AGG_AMT,0) THEN 'N'
+                     , (CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN MONTHS_BETWEEN(TO_DATE(A.RQDT,'YYYYMMDD'), TO_DATE(D.CNTR_PD_STRTDT,'YYYYMMDD')) >= 12
+                                                                     AND SVCR.DP_AGG_AMT >= M4.RENTAL_AMT_SUM - M4.RENTAL_DSC_AMT_SUM THEN 'N'
                                                                 ELSE 'Y' END)
-                             WHEN A.SELL_TP_CD = '6' THEN (CASE WHEN NOT (SUBSTR(D.CNTR_PD_STRTDT,1,6)  <![CDATA[<=]]> '202203' AND D.SELL_TP_DTL_CD != '62' AND NVL(D.CNTR_PTRM,0)  <![CDATA[>=]]> 6)
-                                                                     AND NOT (SUBSTR(D.CNTR_PD_STRTDT,1,6)  <![CDATA[>=]]> '202203' AND NVL(D.CNTR_PTRM,0)  <![CDATA[>=]]> 6 AND NOT (F.OG_CD LIKE 'Z95'||'%' AND D.SELL_TP_DTL_CD = '62')) THEN 'N'
+                             WHEN A.SELL_TP_CD = '6' THEN (CASE WHEN NOT (SUBSTR(D.CNTR_PD_STRTDT,1,6) <![CDATA[<=]]> '202203' AND D.SELL_TP_DTL_CD != '62' AND NVL(D.CNTR_PTRM,0) >= 6)
+                                                                     AND NOT (SUBSTR(D.CNTR_PD_STRTDT,1,6) >= '202203' AND NVL(D.CNTR_PTRM,0) >= 6 AND NOT (F.OG_CD LIKE 'Z95'||'%' AND D.SELL_TP_DTL_CD = '62')) THEN 'N'
                                                                 ELSE 'Y' END)
                         END) AS CAN_REDF_YN                         /*취소되물림여부*/
                      , A.DLQ_MCN                                    /*연체개월*/
@@ -203,11 +205,14 @@
                     ON E.SL_CL_YM = A.BASE_YM
                    AND E.CNTR_NO = A.CNTR_NO
                    AND E.CNTR_SN = A.CNTR_SN
+                  LEFT JOIN TB_CBCL_WELLS_SL_MM_CL_IZ E1  /*T:WELLS매출월마감내역-(기기)*/
+                    ON E.SL_CL_YM = A.BASE_YM
+                   AND E.CNTR_NO = A.LK_CNTR_NO
+                   AND E.CNTR_SN = A.CNTR_SN
                   LEFT JOIN TB_OGBS_PRTNR_BAS F  /*T:파트너기본*/
                     ON 1 = 1
                    AND F.OG_TP_CD = C.SELL_OG_TP_CD
                    AND F.PRTNR_NO = C.SELL_PRTNR_NO
-                  /* 직권해지정보(기기) */
                   LEFT OUTER JOIN TB_CBBO_WELLS_AUTH_RSG_IZ R1  /*T:WELLS직권해지내역-직권해지정보(기기)-LB325_J*/
                     ON R1.BASE_YM = A.BASE_YM
                    AND R1.CNTR_NO = A.LK_CNTR_NO    /* 연계계약번호 AND LB325_J.LCCODE = LB325.LCJCOD */
@@ -235,7 +240,7 @@
                                        FROM TB_RVDW_RVE_DTL C1        /*T:수납상세*/
                                       INNER JOIN TB_SSCT_CNTR_DTL C2    /* 계약상세 */
                                          ON 1 = 1
-                                        AND C1.PERF_DT BETWEEN SUBSTR('20231231',0,6) || '01' AND SUBSTR('20231231',0,6) || '31'
+                                        AND C1.PERF_DT BETWEEN SUBSTR(#{baseDt},0,6) || '01' AND SUBSTR(#{baseDt},0,6) || '31'
                                         AND C1.RVE_DV_CD NOT IN ('09','10') /*수납구분코드->09:대손,10:손료*/
                                         AND C2.SELL_TP_CD IN ('2','6')    /* LCTYPE != '3' */
                                         AND C1.CNTR_NO = A.LK_CNTR_NO
@@ -317,6 +322,17 @@
                                         AND C2.CNTR_SN = C1.CNTR_SN
                                     ) M3_6 /*기준월-1,-2 금액*/
                     ON 1 = 1
+                  /*렌탈-취소되물림계산용*/
+                  LEFT JOIN LATERAL (
+                                     SELECT NVL(SUM(S1.RENTAL_AMT),0) AS RENTAL_AMT_SUM    /*정상렌탈금액합계*/
+                                          , NVL(SUM(S1.RENTAL_DSC_AMT),0) AS RENTAL_DSC_AMT_SUM  /*할인금액합계*/
+                                       FROM TB_CBCL_WELLS_SL_MM_CL_IZ S1 /*T:WELLS매출월마감내역*/
+                                      WHERE 1=1
+                                        AND S1.SL_CL_YM BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{baseDt}),-12),'YYYYMM')||'01' AND #{baseDt}
+                                        AND S1.CNTR_NO = A.CNTR_NO
+                                        AND S1.CNTR_SN = A.CNTR_SN
+                                    ) M4
+                    ON 1 = 1
                  WHERE 1 = 1
                    AND A.BASE_YM = SUBSTR(#{baseDt},1,6)
                    AND A.RQDT = #{baseDt}                       /*요청일->직권해지일*/
@@ -356,7 +372,7 @@
                 </choose>
                ) X
          WHERE 1=1
-         ORDER BY X.CST_KNM, X.CST_NO, X.LK_CNTR_NO, X.CNTR_NO, X.CNTR_SN
+         ORDER BY X.CST_KNM, X.CST_NO, X.CNTR_NO, X.CNTR_SN, X.LK_CNTR_NO
     </select>
 
     <select id="selectcheckRentalResignExpectedByReq" resultType="integer">
@@ -590,10 +606,12 @@
              , 0                             AS RENTAL_RGST_COST_RFND_AMT       /*렌탈등록비환불금액*/
              , 0                             AS RENTAL_RGST_COST_RFND_AMT_VAT   /*렌탈등록비환불금액부가가치세*/
              , NVL(T3.A441,0) + NVL(T3.A443,0) + NVL(T2.A445,0) AS BOR_AMT      /*위약금액*/
-             , (SELECT (SUM(NVL(THM_DLQ_RFND_SUM_AMT,0))+SUM(NVL(THM_DLQ_ADD_RFND_SUM_AMT,0)) * -1) /*당월연체환불합계금액+당월연체가산환불합계금액*/
-                  FROM TB_CBCL_DLQ_BAS /*연체기본*/
-                 WHERE CNTR_NO = C.CNTR_NO
-                   AND CNTR_SN = C.CNTR_SN)  AS TOT_RFND_AMT                    /*총환불금액 - 당월미수잔액(THM_UC_BLAM) */
+             , NVL(T3.AM31,0) + NVL(H.THM_DLQ_ADD_DP_SUM_AMT,0)
+               - (NVL(T3.A441,0) + NVL(T2.A442,0) + NVL(T3.A443,0) + NVL(T2.A445,0))
+               - NVL(T2.A444,0)
+               - NVL(T2.AM46,0)
+               - NVL(PM1.BTD_UC_AMT,0) /*기초미수금액*/
+               + NVL(C.MLG_SL_AMT,0)         AS TOT_RFND_AMT                    /*총환불금액*/
              , NVL(T2.AM46,0)                AS LS_RNTF                         /*분실손료 - G.LS_RNTF - T2.AM46 */
              , NVL(C.MLG_BTD_PRPD_AMT,0)     AS P_BTD_AMT                       /*포인트기초금액*/
              , NVL(C.MLG_DP_AMT,0)           AS P_DP_AMT                        /*포인트입금금액*/
@@ -1125,10 +1143,7 @@
              , 0                             AS RENTAL_RGST_COST_RFND_AMT       /*렌탈등록비환불금액*/
              , 0                             AS RENTAL_RGST_COST_RFND_AMT_VAT   /*렌탈등록비환불금액부가가치세*/
              , 0                             AS BOR_AMT                         /*위약금액*/
-             , (SELECT (SUM(NVL(THM_DLQ_RFND_SUM_AMT,0))+SUM(NVL(THM_DLQ_ADD_RFND_SUM_AMT,0)) * -1) /*당월연체환불합계금액+당월연체가산환불합계금액*/
-                  FROM TB_CBCL_DLQ_BAS /*연체기본*/
-                 WHERE CNTR_NO = C.CNTR_NO
-                   AND CNTR_SN = C.CNTR_SN)  AS TOT_RFND_AMT                    /*총환불금액*/
+             , NVL(C1.EOT_UC_AMT,0) * -1     AS TOT_RFND_AMT                    /*총환불금액*/
              , 0                             AS LS_RNTF                         /*분실손료*/
              , 0                             AS P_BTD_AMT                       /*포인트기초금액*/
              , 0                             AS P_DP_AMT                        /*포인트입금금액*/
@@ -1384,6 +1399,7 @@
                         , NVL(T.RENTAL_AMT1,0) - (NVL(I.PD_RVE_AMT,0) - NVL(I.RFND_RVE_AMT,0)) AS COL08
                         , F.CLCTAM_DV_CD        AS COL09    /*집금구분코드*/
                         , F.CLCTAM_PRTNR_NO     AS COL10    /*집금파트너번호*/
+                        , (NVL(T.CSMB_CS_BOR_AMT,0) + NVL(T.LS_RNTF,0) + NVL(T.TOT_NPD_AMT,0) + NVL(T.BOR_AMT,0)) * -1 AS COL20  /*총환불금액=소모품위약금액+분실손료+총미납금액+위약금액*/
                      FROM TB_CBBO_WELLS_AUTH_RSG_IZ T /*T:WELLS직권해지내역*/
                     INNER JOIN TB_SSCT_CNTR_BAS A /*T:계약기본*/
                        ON A.CNTR_NO = T.CNTR_NO
@@ -1406,7 +1422,6 @@
                                            AND CNTR_NO = T.CNTR_NO
                                            AND CNTR_SN = T.CNTR_SN
                                            AND RVE_DV_CD NOT IN ('09','10') /*수납구분코드->09:대손,10:손료*/
-                                           AND RVE_DT BETWEEN SUBSTR(#{baseDt} , 0, 6) || '01' AND SUBSTR(#{baseDt} , 0, 6) || '31' /*수납월*/
                                        ) I
                        ON 1 = 1
                     WHERE 1 = 1
@@ -1489,6 +1504,7 @@
                 , X1.RSG_MM_UC_AMT = X2.COL08       /*해지월미수금액*/
                 , X1.CLCTAM_DV_CD = X2.COL09        /*집금구분코드*/
                 , X1.CLCTAM_PRTNR_NO = X2.COL10     /*집금파트너번호*/
+                , X1.TOT_RFND_AMT = X2.COL20        /*총환불금액*/
             <include refid="COMMON.updateSystemField"/>
         </if>
     </update>
@@ -1515,6 +1531,7 @@
                         , NVL(K.UC_AMT,0) - (NVL(I.PD_RVE_AMT,0) - NVL(I.RFND_RVE_AMT,0)) AS COL17
                         , F.CLCTAM_DV_CD            AS COL18    /*집금구분코드*/
                         , F.CLCTAM_PRTNR_NO         AS COL19    /*집금파트너번호*/
+                        , (NVL(T.CSMB_CS_BOR_AMT,0) + NVL(T.LS_RNTF,0) + NVL(T.TOT_NPD_AMT,0) + NVL(T.BOR_AMT,0)) * -1 AS COL20  /*총환불금액=소모품위약금액+분실손료+총미납금액+위약금액*/
                      FROM TB_CBBO_WELLS_AUTH_RSG_IZ T /*T:WELLS직권해지내역*/
                     INNER JOIN TB_CBBO_WELLS_AUTH_RSG_IZ T1 /*T:WELLS직권해지내역*/
                        ON T1.BASE_YM = T.BASE_YM
@@ -1561,7 +1578,6 @@
                                            AND S1.PERF_DT BETWEEN T.BASE_YM || '01' AND T.BASE_YM || '31'
                                            AND S1.CNTR_NO = T.LK_CNTR_NO
                                            AND S1.RVE_DV_CD NOT IN ('09','10') /*수납구분코드->09:대손,10:손료*/
-                                           AND S1.RVE_DT BETWEEN SUBSTR(#{baseDt} , 0, 6) || '01' AND SUBSTR(#{baseDt} , 0, 6) || '31' /*수납월*/
                                            AND S2.SELL_TP_CD = '6'  /*판매유형코드->6:정기배송*/
                                        ) I  /*T:수납상세->정기배송 수납정보*/
                        ON 1 = 1
@@ -1575,7 +1591,6 @@
                                            AND S1.PERF_DT BETWEEN T.BASE_YM || '01' AND T.BASE_YM || '31'
                                            AND S1.CNTR_NO = T.LK_CNTR_NO
                                            AND S1.RVE_DV_CD NOT IN ('09','10') /*수납구분코드->09:대손,10:손료*/
-                                           AND S1.RVE_DT BETWEEN SUBSTR(#{baseDt} , 0, 6) || '01' AND SUBSTR(#{baseDt} , 0, 6) || '31' /*수납월*/
                                            AND S2.SELL_TP_CD = '2'  /*판매유형코드->2:렌탈*/
                                        ) J  /*T:수납상세->렌탈기기 수납정보*/
                        ON 1 = 1
@@ -1592,6 +1607,21 @@
                                    AND Z1.CNTR_NO = T.CNTR_NO
                                    AND Z1.CNTR_SN = T.CNTR_SN
                               )
+                      /*렌탈이 존재하는 계약에 딸린 정기배송(모종)만 가져오도록...*/
+                      AND EXISTS (
+                                SELECT 1
+                                  FROM TB_CBBO_WELLS_AUTH_RSG_IZ Z1 /*T:WELLS직권해지내역*/
+                                 WHERE 1=1
+                                   AND Z1.BASE_YM = SUBSTR(#{baseDt},1,6)
+                                   AND Z1.SELL_TP_CD = '2' /*렌탈,리스*/
+                                   AND Z1.CNTR_NO = T.LK_CNTR_NO  /*LK_CNTR_NO:렌탈계약번호, CNTR_NO:모종계약번호*/
+                              <if test='@MybatisUtils@equals(confirmDvCd,"01")'>  <!--"예정확정" 버튼 클릭 시...-->
+                                   AND Z1.AUTH_RSG_EXP_YN = 'N'
+                              </if>
+                              <if test='@MybatisUtils@equals(confirmDvCd,"02")'>  <!--"최종확정" 버튼 클릭 시...-->
+                                   AND Z1.AUTH_RSG_EXP_YN = 'Y'
+                              </if>
+                          )
                   ) X2
                ON (     X2.COL04 = X1.LK_CNTR_NO
                     AND X2.COL16 = X1.BASE_YM
@@ -1632,6 +1662,7 @@
                 , X1.RSG_MM_UC_AMT = X2.COL17       /*해지월미수금액*/
                 , X1.CLCTAM_DV_CD = X2.COL18        /*집금구분코드*/
                 , X1.CLCTAM_PRTNR_NO = X2.COL19     /*집금파트너번호*/
+                , X1.TOT_RFND_AMT = X2.COL20        /*총환불금액*/
             <include refid="COMMON.updateSystemField"/>
         </if>
     </update>

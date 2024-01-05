@@ -1,18 +1,19 @@
 package com.kyowon.sms.wells.web.fee.calculation.service;
 
-import com.kyowon.sms.common.web.fee.calculation.service.ZfebRedfAdsbFeeCalculationService;
-import com.kyowon.sms.wells.web.fee.calculation.mapper.WfebAgainDisbursementFeeMapper;
-import com.sds.sflex.common.common.dvo.CodeDetailDvo;
-import com.sds.sflex.common.common.service.CodeService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import static com.kyowon.sms.common.web.fee.common.dvo.FeeIdGenerator.getFeeRedemptionDetailIdSql;
+import static com.kyowon.sms.common.web.fee.standard.constant.FeFeeConst.AGAIN_DISBURSEMENT;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.kyowon.sms.common.web.fee.common.dvo.FeeIdGenerator.getFeeRedemptionDetailIdSql;
-import static com.kyowon.sms.common.web.fee.common.dvo.FeeIdGenerator.getRedfAdsbBaseIdPrefix;
-import static com.kyowon.sms.common.web.fee.standard.constant.FeFeeConst.AGAIN_DISBURSEMENT;
+import com.kyowon.sms.common.web.fee.calculation.service.ZfebRedfAdsbFeeCalculationService;
+import com.kyowon.sms.wells.web.fee.calculation.mapper.WfebAgainDisbursementFeeMapper;
+import com.sds.sflex.common.common.dvo.CodeDetailDvo;
+import com.sds.sflex.common.common.service.CodeService;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <pre>
@@ -77,15 +78,32 @@ public class WfebAgainDisbursementFeeService {
         switch (ogTpCd) {
             case "W01":
                 /* 상조 연체 재지급 */
-                insertCount = againDisbursementFeeMapper.insertLifeContractDlqAdsbsForPog(baseYm, ogTpCd, cntrPerfCrtDvCd, getFeeRedemptionDetailIdSql(defaultTenantId, AGAIN_DISBURSEMENT, baseYm, redfAdsbTpCd));
+                insertCount = againDisbursementFeeMapper.insertLifeContractDlqAdsbsForPog(
+                    baseYm, ogTpCd, cntrPerfCrtDvCd,
+                    getFeeRedemptionDetailIdSql(defaultTenantId, AGAIN_DISBURSEMENT, baseYm, redfAdsbTpCd),
+                    "W010021", "W010121", "W010022"
+                );
                 break;
             case "W02":
                 /* 계약별 연체재지급 데이터 생성 */
-                insertCount = againDisbursementFeeMapper.insertContractDlqAdsbsForMog(baseYm, ogTpCd, cntrPerfCrtDvCd, getFeeRedemptionDetailIdSql(defaultTenantId, AGAIN_DISBURSEMENT, baseYm, redfAdsbTpCd));
+                insertCount = againDisbursementFeeMapper.insertContractDlqAdsbsForMog(
+                    baseYm, ogTpCd, cntrPerfCrtDvCd,
+                    getFeeRedemptionDetailIdSql(defaultTenantId, AGAIN_DISBURSEMENT, baseYm, redfAdsbTpCd)
+                );
+
+                /* 상조 연체 재지급 */
+                insertCount += againDisbursementFeeMapper.insertLifeContractDlqAdsbsForPog(
+                    baseYm, ogTpCd, cntrPerfCrtDvCd,
+                    getFeeRedemptionDetailIdSql(defaultTenantId, AGAIN_DISBURSEMENT, baseYm, redfAdsbTpCd),
+                    "W020125", "W020127", "W020126"
+                );
                 break;
             case "W05":
                 /* 계약별 기본수수료 연체재지급 데이터 생성 */
-                insertCount = againDisbursementFeeMapper.insertBaseContractDlqAdsbs(baseYm, ogTpCd, cntrPerfCrtDvCd, getFeeRedemptionDetailIdSql(defaultTenantId, AGAIN_DISBURSEMENT, baseYm, redfAdsbTpCd));
+                insertCount = againDisbursementFeeMapper.insertBaseContractDlqAdsbs(
+                    baseYm, ogTpCd, cntrPerfCrtDvCd,
+                    getFeeRedemptionDetailIdSql(defaultTenantId, AGAIN_DISBURSEMENT, baseYm, redfAdsbTpCd)
+                );
                 break;
         }
         /* 파트너별 연체재지급 데이터 생성 */

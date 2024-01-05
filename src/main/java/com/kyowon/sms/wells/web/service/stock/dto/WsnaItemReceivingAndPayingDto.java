@@ -28,6 +28,12 @@ public class WsnaItemReceivingAndPayingDto {
         String edToYmd,
         // 품목구분
         String itmKnd,
+        // 품목그룹
+        String itmGrp,
+        // 자재그룹
+        String svMatGrpCd,
+        // 품목리스트
+        List<String> itmPdCds,
         // 등급
         String itmGdCd,
         // 사용여부

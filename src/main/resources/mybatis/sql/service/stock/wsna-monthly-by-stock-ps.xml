@@ -263,7 +263,9 @@
            AND D3.PD_EXTS_PRP_GRP_CD = 'PART'
            AND D4.DTA_DL_YN          = 'N'
            AND D1.BASE_YM            = #{baseYm}
+           AND D4.APY_YM             = #{baseYm}
            AND D4.WARE_DV_CD         = #{wareDvCd}
+           AND D1.WARE_NO LIKE #{wareDvCd} || '%'
         <if test="@MybatisUtils@isNotEmpty(wareDtlDvCd)">
            AND D4.WARE_DTL_DV_CD     = #{wareDtlDvCd}
         </if>
@@ -300,8 +302,32 @@
         <if test="@MybatisUtils@isNotEmpty(strtSapCd) or @MybatisUtils@isNotEmpty(endSapCd)">
            AND D2.SAP_MAT_CD IS NOT NULL
         </if>
-        <if test="@MybatisUtils@isNotEmpty(matUtlzDvCd)">
-           AND D3.PD_PRP_VAL21       = #{matUtlzDvCd}
+        <if test="@MybatisUtils@isNotEmpty(svMatGrpCd)">
+           AND D3.PD_PRP_VAL36       = #{svMatGrpCd}
+        </if>
+        <if test='@MybatisUtils@equals(commGb, "Y")'>
+           AND D3.PD_PRP_VAL21       = '01'   /* 중수리자재 */
+        </if>
+        <if test='@MybatisUtils@equals(baseGb, "Y")'>
+           AND D3.PD_PRP_VAL15       = 'Y'    /* 기초자재 */
+        </if>
+        <if test='@MybatisUtils@equals(turnoverGb, "Y")'>
+           AND D3.PD_PRP_VAL30       = 'Y'    /* 회전율대상 */
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(itmGrpCd)">
+           AND (    D3.PD_PRP_VAL20 = #{itmGrpCd}
+                 OR EXISTS ( SELECT 1
+                               FROM TB_PDBS_PD_REL T1
+                              INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+                                 ON T2.PD_CD = T1.BASE_PD_CD
+                              WHERE T1.DTA_DL_YN          = 'N'
+                                AND T1.PD_REL_TP_CD       = '14'   /* AS부품 */
+                                AND T2.DTA_DL_YN          = 'N'
+                                AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+                                AND T1.OJ_PD_CD           = D2.PD_CD
+                                AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
+                                AND T2.PD_PRP_VAL20       = #{itmGrpCd} )
+               )
         </if>
          GROUP BY D2.SAP_MAT_CD, D1.ITM_PD_CD, D2.PD_ABBR_NM
          ORDER BY D1.ITM_PD_CD

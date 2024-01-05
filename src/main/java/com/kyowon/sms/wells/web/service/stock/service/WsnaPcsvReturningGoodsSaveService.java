@@ -162,6 +162,8 @@ public class WsnaPcsvReturningGoodsSaveService {
             AskReqDvo.setCntrNo(dvo.getCntrNo());
             // 물류 계약일련번호 추가
             AskReqDvo.setCntrSn(Integer.parseInt(dvo.getCntrSn()));
+            // 물류 고객명 추가 - 이영진P 요청
+            AskReqDvo.setCstNm(dvo.getRcgvpKnm());
             AskReqList.add(AskReqDvo);
         }
 

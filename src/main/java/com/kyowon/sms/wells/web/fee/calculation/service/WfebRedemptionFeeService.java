@@ -1,21 +1,23 @@
 package com.kyowon.sms.wells.web.fee.calculation.service;
 
+import static com.kyowon.sms.common.web.fee.common.dvo.FeeIdGenerator.getFeeRedemptionDetailIdSql;
+
+import java.util.Arrays;
+
+import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.kyowon.sms.common.web.fee.calculation.service.ZfebRedfAdsbFeeCalculationService;
 import com.kyowon.sms.wells.web.fee.aggregate.service.WfeaRedemptionPerfService;
 import com.kyowon.sms.wells.web.fee.calculation.mapper.WfebRedemptionFeeMapper;
 import com.sds.sflex.common.common.dvo.CodeDetailDvo;
 import com.sds.sflex.common.common.service.CodeService;
 import com.sds.sflex.system.config.validation.BizAssert;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Arrays;
-
-import static com.kyowon.sms.common.web.fee.common.dvo.FeeIdGenerator.getFeeRedemptionDetailIdSql;
 
 /**
  * <pre>
@@ -54,7 +56,8 @@ public class WfebRedemptionFeeService {
     @Transactional
     public void saveRedemptionOfFees(String baseYm, String cntrPerfCrtDvCd) {
         /* 계약실적생성구분코드로 처리해야 하는 수수료계산단위유형코드 목록, 실적생성생성구분코드 목록 조회 */
-        CodeDetailDvo code = codeService.getCodeDetails("PERF_AGRG_CRT_DV_CD").stream().filter(item -> cntrPerfCrtDvCd.equals(item.getUserDfn03())).findFirst().orElse(null);
+        CodeDetailDvo code = codeService.getCodeDetails("PERF_AGRG_CRT_DV_CD").stream()
+            .filter(item -> cntrPerfCrtDvCd.equals(item.getUserDfn03())).findFirst().orElse(null);
 
         /* 계약실적생성구분코드값이 잘못된 경우 오류 발생 */
         BizAssert.isTrue(ObjectUtils.isNotEmpty(code), "");
@@ -62,14 +65,14 @@ public class WfebRedemptionFeeService {
         String ogTpCd = code.getUserDfn02();
         String perfAgrgCrtDvCd = code.getCodeValidityValue();
 
-        /* 되물림 실적집계 서비스 호출 */
+        /* 되물림 취소 실적집계 서비스 호출 */
         redemptionPerfService.aggregateRedemptionOfFeePerformance(baseYm, ogTpCd, perfAgrgCrtDvCd, cntrPerfCrtDvCd);
 
         /* 취소되물림 서비스 호출 */
         redfAdsbFeeCalculationService.saveRedfAdsbCalculation(baseYm, ogTpCd, perfAgrgCrtDvCd, cntrPerfCrtDvCd);
 
         /* 연체되물림 서비스 호출 */
-        if(Arrays.asList("W01", "W02", "W03").contains(ogTpCd)) {
+        if (Arrays.asList("W01", "W02", "W05").contains(ogTpCd)) {
             saveDlqRedemptionOfFees(baseYm, ogTpCd, cntrPerfCrtDvCd);
         }
     }
@@ -97,16 +100,32 @@ public class WfebRedemptionFeeService {
         switch (ogTpCd) {
             case "W01":
                 /* P조직 상조 연체되물림 생성 */
-                insertCount = redemptionFeeMapper.insertLifeContractRedf(baseYm, cntrPerfCrtDvCd, getFeeRedemptionDetailIdSql(defaultTenantId, redfAdsbDvCd, baseYm, redfAdsbTpCd));
+                insertCount = redemptionFeeMapper.insertLifeContractRedf(
+                    baseYm, ogTpCd, getFeeRedemptionDetailIdSql(defaultTenantId, redfAdsbDvCd, baseYm, redfAdsbTpCd),
+                    "W010021", "W010121", "W010022"
+                );
                 break;
             case "W02":
                 /* 계약별 연체되물림 데이터 생성 */
-                insertCount = redemptionFeeMapper.insertContractDlqRedf(baseYm, cntrPerfCrtDvCd, getFeeRedemptionDetailIdSql(defaultTenantId, redfAdsbDvCd, baseYm, redfAdsbTpCd));
+                insertCount = redemptionFeeMapper.insertContractDlqRedf(
+                    baseYm, cntrPerfCrtDvCd,
+                    getFeeRedemptionDetailIdSql(defaultTenantId, redfAdsbDvCd, baseYm, redfAdsbTpCd)
+                );
+
+                /* P조직 상조 연체되물림 생성 */
+                insertCount += redemptionFeeMapper.insertLifeContractRedf(
+                    baseYm, ogTpCd, getFeeRedemptionDetailIdSql(defaultTenantId, redfAdsbDvCd, baseYm, redfAdsbTpCd),
+                    "W020125", "W020127", "W020126"
+                );
                 break;
             case "W05":
                 /* 계약별 기본수수료 연체되물림 데이터 생성 */
-                insertCount = redemptionFeeMapper.insertBaseContractDlqRedf(baseYm, cntrPerfCrtDvCd, getFeeRedemptionDetailIdSql(defaultTenantId, redfAdsbDvCd, baseYm, redfAdsbTpCd), ogTpCd);
-                break;}
+                insertCount = redemptionFeeMapper.insertBaseContractDlqRedf(
+                    baseYm, cntrPerfCrtDvCd,
+                    getFeeRedemptionDetailIdSql(defaultTenantId, redfAdsbDvCd, baseYm, redfAdsbTpCd), ogTpCd
+                );
+                break;
+        }
 
         /* 파트너별 연체되물림 데이터 생성 */
         if (insertCount > 0) {

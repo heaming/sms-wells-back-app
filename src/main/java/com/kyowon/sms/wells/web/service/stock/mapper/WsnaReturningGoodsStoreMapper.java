@@ -56,6 +56,6 @@ public interface WsnaReturningGoodsStoreMapper {
 
     int updateReturningGoodsStrConfirm(WsnaReturningGoodsStoreDvo dvo);
 
-    List<SearchWareRes> selectReturningGoodsStoresLoginWarehouse(String prtnrNo);
+    List<SearchWareRes> selectReturningGoodsStoresLoginWarehouse(String prtnrNo, String strtDt, String endDt);
 
 }

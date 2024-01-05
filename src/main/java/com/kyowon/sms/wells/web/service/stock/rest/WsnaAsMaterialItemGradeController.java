@@ -70,7 +70,9 @@ public class WsnaAsMaterialItemGradeController {
         @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query", example = "Y"),
         @ApiImplicitParam(name = "itmKndCd", value = "품목구분", paramType = "query", example = "6", required = true),
         @ApiImplicitParam(name = "itmPdCd", value = "품목코드", paramType = "query", example = "WM07100214"),
-        @ApiImplicitParam(name = "matUtlzDvCd", value = "자재구분", paramType = "query", example = "01")
+        @ApiImplicitParam(name = "commGb", value = "중수리자재여부", paramType = "query", example = "Y"),
+        @ApiImplicitParam(name = "baseGb", value = "기초자재여부", paramType = "query", example = "Y"),
+        @ApiImplicitParam(name = "turnoverGb", value = "회전율대상여부", paramType = "query", example = "Y")
     })
     public PagingResult<SearchRes> getAsMaterialsItemGradePages(@Valid
     SearchReq dto, @Valid
@@ -90,7 +92,9 @@ public class WsnaAsMaterialItemGradeController {
         @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query", example = "Y"),
         @ApiImplicitParam(name = "itmKndCd", value = "품목구분", paramType = "query", example = "6", required = true),
         @ApiImplicitParam(name = "itmPdCd", value = "품목코드", paramType = "query", example = "WM07100214"),
-        @ApiImplicitParam(name = "matUtlzDvCd", value = "자재구분", paramType = "query", example = "01")
+        @ApiImplicitParam(name = "commGb", value = "중수리자재여부", paramType = "query", example = "Y"),
+        @ApiImplicitParam(name = "baseGb", value = "기초자재여부", paramType = "query", example = "Y"),
+        @ApiImplicitParam(name = "turnoverGb", value = "회전율대상여부", paramType = "query", example = "Y")
     })
     public List<SearchRes> getAsMaterialsItemGradeExcelDownload(@Valid
     SearchReq dto) {

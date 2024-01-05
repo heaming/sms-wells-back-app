@@ -136,7 +136,6 @@
                 <if test="@MybatisUtils@isNotEmpty(bndBizDvCd)">
                    AND T2.BND_BIZ_DV_CD    = #{bndBizDvCd}              /* 채권업무구분코드 */
                 </if>
-                   AND T1.DLQ_MCN BETWEEN #{fromDlqMcn} AND #{toDlqMcn} /* 연체개월 */
                    AND T1.CST_NO = (SELECT DISTINCT(TT1.CST_NO)
                                       FROM TB_CBBO_BND_CNTR_BAS TT1
                                      WHERE TT1.BASE_YM = T2.BASE_YM
@@ -258,12 +257,14 @@
              , T7.RENTAL_AMT AS RENTAL_AMT1         -- 렌탈료1
              , T7.RENTAL_AMT2 AS RENTAL_AMT2        -- 렌탈료2
              , T2.DLQ_AMT AS DLQ_AMT                -- 연체금
-             , T2.UC_AMT AS NPD_AMT                 -- 미납금
+-- 삭제       , T2.UC_AMT AS NPD_AMT                 -- 미납금
+/* 수정 */    , T2.DLQ_AMT + T2.DLQ_ADD_AMT + T2.THM_CHRAM_AMT AS NPD_AMT -- 대상금액(대상금액 = 연체금액+연체가산금액+당월요금금액)
              , T2.THM_CHRAM_AMT AS  THM_CHRAM_AMT   -- 당월요금
              , T2.DLQ_ADD_AMT AS DLQ_ADD_AMT        -- 연체가산금
              , T7.SPMT_SL_AMT AS SPMT_SL_AMT        -- 추가매출액
              , T2.DLQ_MCN AS DLQ_MCN                -- 연체개월
-             , T2.UC_AMT AS TOT_NPD_AMT             -- 총연체금액
+-- 삭제       , T2.UC_AMT AS TOT_NPD_AMT             -- 총연체금액
+/* 수정 */    , (T2.DLQ_AMT + T2.DLQ_ADD_AMT + T2.THM_CHRAM_AMT) - (T2.DLQ_DP_AMT + T2.DLQ_ADD_DP_AMT + T2.THM_CHRAM_DP_AMT) AS TOT_NPD_AMT -- 대상잔액(대상금액 - 대상입금(연체입금금액+연체가산입금금액+당월요금입금금액))
              , CASE WHEN T2.BND_BIZ_DV_CD = 'L60' THEN (SELECT TT1.PD_CLSF_NM FROM TB_PDBS_PD_CLSF_BAS TT1 WHERE TT1.PD_CLSF_ID = (SELECT TT2.PD_CLSF_ID FROM TB_PDBS_PD_BAS TT2 WHERE TT2.PD_CD = T8.BASE_PD_CD)) --정기배송일경우 소분류
                     ELSE (SELECT TT1.PD_CLSF_NM FROM TB_PDBS_PD_CLSF_BAS TT1 WHERE TT1.PD_CLSF_ID = (SELECT TT2.PD_MCLSF_ID FROM TB_PDBS_PD_BAS TT2 WHERE TT2.PD_CD = T8.BASE_PD_CD)) --아닐경우 중분류
                 END AS PDGRP_NM /* 제품군 */
@@ -287,7 +288,30 @@
           LEFT JOIN TB_CBBO_BND_CNTR_BAS T2 ON T2.BASE_YM = T1.BASE_YM  AND T2.CNTR_NO = T1.CNTR_NO AND T2.CNTR_SN = T1.CNTR_SN AND T2.DTA_DL_YN = 'N'
           LEFT JOIN TB_CUBS_CST_BAS T3 ON T3.CST_NO = T1.CST_NO AND T3.DTA_DL_YN = 'N'
           LEFT JOIN TB_SSCT_CNTR_BAS T4 ON T4.CNTR_NO = T1.CNTR_NO AND T4.DTA_DL_YN = 'N'
-          LEFT JOIN TB_GBCO_ADR_BAS T5 ON T5.ADR_ID = T3.ADR_ID AND T5.DTA_DL_YN = 'N'
+          LEFT JOIN (
+                    SELECT CR.CNTR_ADRPC_ID /* 계약주소지ID */
+                         , CB.ADR_ID /* 주소ID */
+                         , CR.DTL_CNTR_NO /* 상세계약번호 */
+                         , CR.DTL_CNTR_SN /* 상세계약일련번호 */
+                         , CB.LOCARA_TNO /* 전화번호1 */
+                         , CB.EXNO_ENCR /* 전화번호2 */
+                         , CB.IDV_TNO /* 전화번호3 */
+                         , CB.CRAL_LOCARA_TNO /* 휴대전화번호1 */
+                         , CB.MEXNO_ENCR /* 휴대전화번호2 */
+                         , CB.CRAL_IDV_TNO /* 휴대전화번호3 */
+                         , NVL(AB.NEW_ADR_ZIP, AB.OLD_ADR_ZIP) AS NEW_ADR_ZIP /* 우편번호 */
+                         , NVL(AB.RNADR, AB.LTN_ADR) AS RNADR /* 주소 */
+                         , NVL(AB.RDADR, AB.LTN_DTL_ADR) AS RDADR /* 상세주소 */
+                      FROM TB_SSCT_CNTR_ADR_REL CR /* 계약주소관계 */
+                      LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS CB /* 계약주소지기본 */
+                        ON CB.CNTR_ADRPC_ID = CR.CNTR_ADRPC_ID
+                      LEFT OUTER JOIN TB_GBCO_ADR_BAS AB /* 주소기본 */
+                        ON AB.ADR_ID = CB.ADR_ID
+                     WHERE CR.ADRPC_TP_CD = '1'   /* 계약주소 */
+                       AND CR.DTA_DL_YN = 'N'
+                    ) T5
+            ON T1.CNTR_NO = T5.DTL_CNTR_NO
+           AND T1.CNTR_SN = T5.DTL_CNTR_SN
           LEFT JOIN TB_SSCT_CNTR_WELLS_DTL T6 ON T6.CNTR_NO = T1.CNTR_NO AND T6.CNTR_SN = T1.CNTR_SN AND T6.DTA_DL_YN = 'N'
           LEFT JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T7 ON T7.SL_CL_YM = T1.BASE_YM AND T7.CNTR_NO = T1.CNTR_NO AND T7.CNTR_SN = T1.CNTR_SN AND T7.DTA_DL_YN = 'N'
           LEFT JOIN TB_SSCT_CNTR_DTL T8 ON T8.CNTR_NO = T1.CNTR_NO AND T8.CNTR_SN = T1.CNTR_SN AND T8.DTA_DL_YN = 'N'

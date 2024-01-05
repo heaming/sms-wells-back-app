@@ -12,7 +12,7 @@ public class WpsdElvDetailDvo {
     private String evlDvCd;           /* 평가구분코드 */
     private String evlAtcDvCd;        /* 평가항목구분코드 */
     private String evlPdDvCd;         /* 평가상품구분코드 */
-    private Integer evlBaseUnitN;     /* 평가기준단위수 */
+    private double evlBaseUnitN;     /* 평가기준단위수 */
     private Long cvtBasePc;           /* 환산기준점수 */
     private Long trgBasePc;           /* 목표기준점수 */
     private String ctstGrpCd;         /* 경진그룹코드 */

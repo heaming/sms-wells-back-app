@@ -86,10 +86,14 @@ public class WsnaReturningGoodsStoreController {
     @ApiOperation(value = "반품입고 관리 로그인 사용자 창고조회", notes = "로그인한 사용자의 창고를 조회한다.")
     @GetMapping("/login-warehouse")
     public List<SearchWareRes> getReturningGoodsStoresLoginWarehouse(
-        @RequestParam
-        String prtnrNo
+        @RequestParam(name = "prtnrNo")
+        String prtnrNo,
+        @RequestParam(name = "stFnlVstFshDtFrom", required = false, defaultValue = "")
+        String strtDt,
+        @RequestParam(name = "edFnlVstFshDtTo", required = false, defaultValue = "")
+        String endDt
     ) {
-        return service.getReturningGoodsStoresLoginWarehouse(prtnrNo);
+        return service.getReturningGoodsStoresLoginWarehouse(prtnrNo, strtDt, endDt);
     }
 
 }

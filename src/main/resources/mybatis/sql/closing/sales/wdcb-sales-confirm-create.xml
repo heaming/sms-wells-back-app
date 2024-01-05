@@ -53,11 +53,18 @@
         SELECT SLP_MAPNG_CDV
           FROM TB_CBCL_SLP_BASE_INF_BAS
          WHERE SLP_BASE_CDV = 'CTRL_ORD_TP_CD'
-           AND CNDT_VARB_NM1 = #{sapPdDvCd}
-           AND CNDT_VARB_NM2 = (CASE WHEN #{sellInflwChnlDtlCd} IN ('1010','2010','9020','9040') THEN #{sellInflwChnlDtlCd}
-                                     ELSE '1010' END)
-           AND NVL(CNDT_VARB_NM3, 'NULL') = (CASE WHEN #{ogTpCd} = 'W01' THEN 'W01'
-                                                  ELSE 'NULL' END)
+           AND CNDT_VARB_NM1 = #{sellTpDtlCd}
+           AND CNDT_VARB_NM2 = #{ogTpCd}
+           AND CNDT_VARB_NM3 = (CASE WHEN #{vatTpCd} = '10' /*10 일반, 20 영세 30 면세*/ THEN 'Y'
+                                     ELSE 'N' END)
+           AND CNDT_VARB_NM4 = NVL((SELECT CASE WHEN OJ_DTL_CNTR_NO IS NOT NULL THEN 'Y'
+                                                ELSE 'N' END
+                                      FROM TB_SSCT_CNTR_REL
+                                     WHERE CNTR_REL_TP_CD = '20' /*연계계약상품*/
+                                       AND SUBSTR(#{slRcogDt},1,6) || '00000000' BETWEEN VL_STRT_DTM AND VL_END_DTM
+                                       AND BASE_DTL_CNTR_NO = #{cntrNo}
+                                       AND BASE_DTL_CNTR_SN = #{cntrSn}
+                                       AND DTA_DL_YN = 'N' ) , 'N')
            AND SAP_BZ_TERY_CD = '1210'
            AND ROWNUM = 1
     </select>

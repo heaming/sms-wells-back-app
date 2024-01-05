@@ -3,14 +3,14 @@ package com.kyowon.sms.wells.web.service.visit.service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+//import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
-import com.kyowon.sflex.common.message.service.SmsMessageService;
+//import com.kyowon.sflex.common.message.service.SmsMessageService;
 import com.kyowon.sflex.common.system.service.UrlShortenerService;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbHealthCareSmsDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbHealthCareSmsMapper;
@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 public class WsnbHealthCareSmsService {
 
     private final WsnbHealthCareSmsMapper mapper;
-    private final SmsMessageService smsMessageService;
+    //private final SmsMessageService smsMessageService;
     private final KakaoMessageService kakaoMessageService;
     private final UrlShortenerService urlService;
     @Value("${spring.profiles.active}")
@@ -50,12 +50,12 @@ public class WsnbHealthCareSmsService {
      * @return 변경 개수
      */
     public int sendHealthCareSms(Map<String, Object> jobParam) throws Exception {
-        final AtomicInteger updateCount = new AtomicInteger();
+        //final AtomicInteger updateCount = new AtomicInteger();
         List<WsnbHealthCareSmsDvo> rows = mapper.selectHealthCareSms();
         final Map<String, Object> paramMap = new HashMap<>();
         final String baseUrl = this.getBaseUrl();
         final String callback = SendTemplateConst.CALL_BACK_4113;
-        String templateId = "";
+        //String templateId = "";
         String templateCode = "";
         for (WsnbHealthCareSmsDvo row : rows) {
             String yn = "";
@@ -80,7 +80,7 @@ public class WsnbHealthCareSmsService {
             paramMap.put("url1", baseUrl + urlService.getShortedUrl(url1));
             paramMap.put("url2", url2);
 
-            templateId = yn.equals("Y") ? SendTemplateConst.TMP_SNB_WELLS18287 : SendTemplateConst.TMP_SNB_WELLS18286;
+            //templateId = yn.equals("Y") ? SendTemplateConst.TMP_SNB_WELLS18287 : SendTemplateConst.TMP_SNB_WELLS18286;
             templateCode = yn.equals("Y") ? SendTemplateConst.WELLS18287 : SendTemplateConst.WELLS18286;
 
             /* 고객에게 수락취소 문자발송 */

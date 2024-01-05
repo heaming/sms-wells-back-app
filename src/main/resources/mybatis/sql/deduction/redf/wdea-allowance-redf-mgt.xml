@@ -77,14 +77,14 @@
              , C1.CST_KNM /*고객성명*/
              , D.PRTNR_KNM /*판매자*/
              , M.PRTNR_NO /*판매자번호*/
-             , T1.PRTNR_NO AS GNLR_LEDR_NO /*총괄단장*/
-             , T1.PRTNR_KNM AS GNLR_LEDR /*총괄단장 성명*/
-             , T2.PRTNR_NO AS LOCAL_AREA_MANAGER_NO /*지역단장*/
-             , T2.PRTNR_KNM AS LOCAL_AREA_MANAGER /*지역단장 성명*/
-             , T3.PRTNR_NO AS BRANCH_MANAGER_NO /*지점장*/
-             , T3.PRTNR_KNM AS BRANCH_MANAGER /*지점장 성명*/
-             , T4.PRTNR_NO AS DSTRC_MANAGER_NO /*지구장*/
-             , T4.PRTNR_KNM AS DSTRC_MANAGER /*지구장 성명*/
+             , OG.GNLR_LEDR_NO /*총괄단장*/
+             , OG.GNLR_LEDR /*총괄단장 성명*/
+             , OG.LOCAL_AREA_MANAGER_NO /*지역단장*/
+             , OG.LOCAL_AREA_MANAGER /*지역단장 성명*/
+             , OG.BRANCH_MANAGER_NO /*지점장*/
+             , OG.BRANCH_MANAGER /*지점장 성명*/
+             , OG.DSTRC_MANAGER_NO /*지구장*/
+             , OG.DSTRC_MANAGER /*지구장 성명*/
              , (CASE WHEN M.PERF_TP_CD = '3' THEN '매변'
              		 WHEN M.PERF_TP_CD IN ('0', '1') THEN '취소'
              		 WHEN M.PERF_TP_CD = '10' THEN '연체'
@@ -94,14 +94,10 @@
      	     			  F.CNTR_DTL_STAT_CH_RSON_CD || '. ' || F_CMZ_CD_NM('TNT_WELLS', 'CMN_STAT_CH_RSON_CD', F.CNTR_DTL_STAT_CH_RSON_CD, 'ko')
  	     			 ELSE ''
      			  END) AS CNTR_DTL_STAT_CH_RSON_NM /*취소유형*/
-     	     , E.PERF_YM AS DLQ_YM /*연체되물림년월*/
-     	     , (SELECT MIN(X.BASE_YM) AS BASE_YM
-     	     	  FROM TB_FEAM_WELS_NRCTR_MM_CL X
-     	     	 WHERE M.BASE_YM <![CDATA[ < ]]> X.BASE_YM
-     	     	   AND X.CNTR_NO = M.CNTR_NO
-     	     	   AND X.CNTR_SN = M.CNTR_SN
-     	     	   AND X.CNTR_PERF_CRT_DV_CD <![CDATA[ > ]]> '07'
- 	     	    ) AS RDSB_YM
+     	     , CASE WHEN M.OG_TP_CD != 'W01'THEN SUBSTR(T1.REDF_DT, 1, 6)
+     	     		ELSE '' END AS DLQ_YM /*연체되물림년월*/
+     	     , CASE WHEN M.OG_TP_CD != 'W01'THEN SUBSTR(T1.ADSB_DT, 1, 6)
+     	     		ELSE '' END AS RDSB_YM /*재지급년월*/
      	     , (CASE WHEN A.SELL_TP_CD = '6' /*정기배송일 떄 ASIS 계산식, ((판매금액 - 할인금액)/서비스주기)*/
      	     		 THEN TRUNC((A.SELL_AMT - A.DSC_AMT) / A.SV_PRD)
      	     		 ELSE G.RENTAL_AMT
@@ -164,66 +160,38 @@
             ON D.BASE_YM = M.PERF_YM
            AND D.PRTNR_NO = M.PRTNR_NO
            AND D.OG_TP_CD = M.OG_TP_CD
-          LEFT OUTER JOIN (
-                           SELECT A.BASE_YM
-                                , A.OG_TP_CD
-                                , A.PRTNR_NO
-                                , A.PRTNR_KNM
-                                , A.OG_ID
-                                , A.OG_CD
-                                , A.OG_NM
-                            FROM TB_OGBS_MM_PRTNR_IZ A  /*월파트너내역*/
-                           WHERE A.PSTN_DV_CD = '2'  /*총괄단장*/
-                             AND A.DTA_DL_YN = 'N'
-                             ) T1  /* 총괄단장 */
-             ON T1.BASE_YM = M.PERF_YM
-            AND D.OG_ID = T1.OG_ID
-            AND D.OG_CD = T1.OG_CD
-           LEFT OUTER JOIN (
-                           SELECT A.BASE_YM
-                                , A.OG_TP_CD
-                                , A.PRTNR_NO
-                                , A.PRTNR_KNM
-                                , A.OG_ID
-                                , A.OG_CD
-                                , A.OG_NM
-                            FROM TB_OGBS_MM_PRTNR_IZ A  /*월파트너내역*/
-                           WHERE A.PSTN_DV_CD = '4'  /*지역단장*/
-                             AND A.DTA_DL_YN = 'N'
-                             ) T2  /* 지역단장 */
-             ON T2.BASE_YM = M.PERF_YM
-            AND D.OG_ID = T2.OG_ID
-            AND D.OG_CD = T2.OG_CD
-           LEFT OUTER JOIN (
-                           SELECT A.BASE_YM
-                                , A.OG_TP_CD
-                                , A.PRTNR_NO
-                                , A.PRTNR_KNM
-                                , A.OG_ID
-                                , A.OG_CD
-                                , A.OG_NM
-                            FROM TB_OGBS_MM_PRTNR_IZ A  /*월파트너내역*/
-                           WHERE A.PSTN_DV_CD = '7'  /*지점장 */
-                             AND A.DTA_DL_YN = 'N'
-                             ) T3  /* 지점장 */
-             ON T3.BASE_YM = M.PERF_YM
-            AND D.OG_ID = T3.OG_ID
-            AND D.OG_CD = T3.OG_CD
-           LEFT OUTER JOIN (
-                           SELECT A.BASE_YM
-                                , A.OG_TP_CD
-                                , A.PRTNR_NO
-                                , A.PRTNR_KNM
-                                , A.OG_ID
-                                , A.OG_CD
-                                , A.OG_NM
-                            FROM TB_OGBS_MM_PRTNR_IZ A  /*월파트너내역*/
-                           WHERE A.PSTN_DV_CD = '10'  /*지구장*/
-                             AND A.DTA_DL_YN = 'N'
-                             ) T4  /* 지구장 */
-            ON T4.BASE_YM = M.PERF_YM
-           AND D.OG_ID = T4.OG_ID
-           AND D.OG_CD = T4.OG_CD
+          LEFT OUTER JOIN LATERAL (
+		          SELECT A.BASE_YM   /*기준년월*/
+	                   , A.OG_TP_CD     /*조직유형코드*/
+	                   , A.OG_ID    /* 조직ID */
+	                   , A.DGR1_LEVL_OG_ID  /*총괄단*/
+	                   , A.DGR2_LEVL_OG_ID  /*지역단*/
+	                   , A.DGR3_LEVL_OG_ID  /*지점*/
+	                   , A.DGR1_LEVL_DG_PRTNR_NO AS GNLR_LEDR_NO    /*총괄단대표파트너번호*/
+	                   , A.DGR1_LEVL_DG_PRTNR_NM AS GNLR_LEDR    /*총괄단대표파트너번호*/
+	                   , A.DGR2_LEVL_DG_PRTNR_NO AS LOCAL_AREA_MANAGER_NO   /*지역단대표파트너번호*/
+	                   , A.DGR2_LEVL_DG_PRTNR_NM AS LOCAL_AREA_MANAGER   /*지역단대표파트너번호*/
+	                   , A.DGR3_LEVL_DG_PRTNR_NO AS BRANCH_MANAGER_NO   /*지점대표파트너번호*/
+	                   , A.DGR3_LEVL_DG_PRTNR_NM AS BRANCH_MANAGER   /*지점대표파트너번호*/
+	                   , A.DGR4_LEVL_DG_PRTNR_NO AS DSTRC_MANAGER_NO
+	                   , A.DGR4_LEVL_DG_PRTNR_NM AS DSTRC_MANAGER
+	                   , B.PRTNR_NO     /*파트너번호*/
+	                   , B.PRTNR_KNM    /*파트너명*/
+	                FROM TB_OGBS_MM_OG_IZ A /* 월조직내역 */
+	               INNER JOIN TB_OGBS_MM_PRTNR_IZ B /* 월파트너내역 */
+	                  ON A.BASE_YM = B.BASE_YM
+	                 AND A.OG_TP_CD = B.OG_TP_CD
+	                 AND A.OG_ID = B.OG_ID
+	                 AND B.DTA_DL_YN = 'N'
+	               WHERE A.DTA_DL_YN = 'N'
+	                 AND A.BASE_YM = M.PERF_YM
+			         AND M.OG_TP_CD = B.OG_TP_CD
+			         AND M.PRTNR_NO = B.PRTNR_NO
+             ) OG
+            ON 1 = 1
+          LEFT OUTER JOIN TB_CBCL_REDF_ADSB_BAS T1
+            ON T1.CNTR_NO = M.CNTR_NO
+           AND T1.CNTR_SN = M.CNTR_SN
           LEFT OUTER JOIN TB_CBCL_DLQ_BAS E /*연체기본*/
     	   ON M.CNTR_NO = E.CNTR_NO
     	  AND M.CNTR_SN = E.CNTR_SN
@@ -657,7 +625,8 @@
              , NVL(D.WP_ENVR_OG_REDF ,0) AS WP_ENVR_OG_REDF /*가전 조직비례*/
              , NVL(D.WP_ENVR_EXCP_OG_REDF ,0) AS WP_ENVR_EXCP_OG_REDF /*가전외 조직비례*/
              , NVL(D.WP_OG_SELL_ENCRG_REDF ,0) AS WP_OG_SELL_ENCRG_REDF /*조직 판매장려*/
-             , NVL(D.WP_LIF_REDF_AMT, 0) AS WP_LIF_REDF_AMT /*상조되물림*/
+             , NVL(D.WP_LIF_REDF_AMT, 0) AS WP_LIF_REDF_AMT /*상조되물림 취소*/
+             , NVL(D.WP_LIF_0203_REDF_AMT, 0) AS WP_LIF_0203_REDF_AMT /*상조되물림 연체*/
              , NVL(D.DLQ_REDF_AMT, 0) AS DLQ_REDF_AMT /*연체되물림*/
              , NVL(D.REDF_PERF_RENTAL, 0) AS REDF_PERF_RENTAL  /*되물림실적.렌탈*/
              , NVL(D.REDF_PERF_EXCP, 0) AS REDF_PERF_EXCP  /*되물림실적.가전외일시불실적*/
@@ -907,28 +876,33 @@
                                                    THEN M.REDF_ADSB_OC_AMT
                                                    ELSE M.REDF_ADSB_CTR_CNFM_AMT END)
                                     END), 0)) AS WP_SETTLE_REDF_BRCH /*정착수수료(지점장이상)*/
-                                , SUM(NVL((CASE WHEN M.FEE_CD IN ('W010021', 'W010121', 'W010022')
+                                , SUM(NVL((CASE WHEN M.FEE_CD IN ('W010021', 'W010121', 'W010022') AND M.REDF_ADSB_TP_CD = '0202'
                                         THEN (CASE WHEN M.REDF_ADSB_CTR_CNFM_AMT IS NULL
                                                    THEN M.REDF_ADSB_OC_AMT
                                                    ELSE M.REDF_ADSB_CTR_CNFM_AMT END)
-                                    END), 0)) AS WP_LIF_REDF_AMT /*상조되물림(개인,조직 모두 표현(화면상))*/
+                                    END), 0)) AS WP_LIF_REDF_AMT /*상조 취소 되물림(개인,조직 모두 표현(화면상))  상조취소 */
+                                , SUM(NVL((CASE WHEN M.FEE_CD IN ('W010021', 'W010121', 'W010022') AND M.REDF_ADSB_TP_CD = '0203'
+                                        THEN (CASE WHEN M.REDF_ADSB_CTR_CNFM_AMT IS NULL
+                                                   THEN M.REDF_ADSB_OC_AMT
+                                                   ELSE M.REDF_ADSB_CTR_CNFM_AMT END)
+                                    END), 0)) AS WP_LIF_0203_REDF_AMT /*상조 연체 되물림(개인,조직 모두 표현(화면상))  상조연체 */
                                 , SUM(NVL((CASE WHEN M.REDF_ADSB_TP_CD = '0203'
                                         THEN (CASE WHEN M.REDF_ADSB_CTR_CNFM_AMT IS NULL
                                                    THEN M.REDF_ADSB_OC_AMT
                                                    ELSE M.REDF_ADSB_CTR_CNFM_AMT END)
                                     END), 0)) AS DLQ_REDF_AMT /*연체되물림*/
-                                , SUM(NVL((CASE WHEN M.REDF_ADSB_TP_CD = '0203' AND S.SELL_TP_CD = '2'
+                                , SUM(NVL((CASE WHEN M.REDF_ADSB_TP_CD = '0203' AND S.SELL_TP_CD_2 IS NOT NULL
                                         THEN S.FEE_ACKMT_BASE_AMT
                                     END), 0)) AS REDF_PERF_RENTAL /*되물림구분이 연체일 때, 되물림실적.렌탈*/
-                                , SUM(NVL((CASE WHEN M.REDF_ADSB_TP_CD = '0203' AND S.SELL_TP_CD = '2'
+                                , SUM(NVL((CASE WHEN M.REDF_ADSB_TP_CD = '0203' AND S.SELL_TP_CD_2 IS NOT NULL
                                         THEN (CASE WHEN M.REDF_ADSB_CTR_CNFM_AMT IS NULL
                                                    THEN M.REDF_ADSB_OC_AMT
                                                    ELSE M.REDF_ADSB_CTR_CNFM_AMT END)
                                     END), 0)) AS DLQ_REDF_PERF_RENTAL /*되물림구분이 연체일 때, 연체되물림실적.렌탈*/
-                                , SUM(NVL((CASE WHEN M.REDF_ADSB_TP_CD = '0203' AND S.SELL_TP_CD = '1'
+                                , SUM(NVL((CASE WHEN M.REDF_ADSB_TP_CD = '0203' AND S.SELL_TP_CD_1 IS NOT NULL
                                         THEN S.FEE_ACKMT_BASE_AMT
                                     END), 0)) AS REDF_PERF_EXCP /*되물림구분이 연체일 때, 되물림실적.가전외일시불*/
-                                , SUM(NVL((CASE WHEN M.REDF_ADSB_TP_CD = '0203' AND S.SELL_TP_CD = '1'
+                                , SUM(NVL((CASE WHEN M.REDF_ADSB_TP_CD = '0203' AND S.SELL_TP_CD_1 IS NOT NULL
                                         THEN (CASE WHEN M.REDF_ADSB_CTR_CNFM_AMT IS NULL
                                                    THEN M.REDF_ADSB_OC_AMT
                                                    ELSE M.REDF_ADSB_CTR_CNFM_AMT END)
@@ -936,10 +910,12 @@
                              FROM TB_FEDD_FEE_REDF_ADSB_BAS M /*수수료되물림재지급기본*/
                              LEFT OUTER JOIN (
                              				  SELECT S1.FEE_REDF_ADSB_ID
-                             				  	   , S2.SELL_TP_CD /*1: 일시불, 2: 렌탈*/
-                             				  	   , S2.FEE_ACKMT_BASE_AMT /*수수료인정기준금액, = 되물림실적*/
-                             				  	   , S1.REDF_ADSB_OC_AMT
-                             				  	   , S1.REDF_ADSB_CTR_CNFM_AMT
+                                                   , MAX(CASE WHEN S2.SELL_TP_CD = '1' THEN '1' END) AS SELL_TP_CD_1
+                                                   , MAX(CASE WHEN S2.SELL_TP_CD = '2' THEN '2' END) AS SELL_TP_CD_2
+                             				  	   <!--, S2.SELL_TP_CD /*1: 일시불, 2: 렌탈*/-->
+                             				  	   , SUM(S2.FEE_ACKMT_BASE_AMT) AS FEE_ACKMT_BASE_AMT /*수수료인정기준금액, = 되물림실적*/
+                             				  	   , SUM(S1.REDF_ADSB_OC_AMT) AS REDF_ADSB_OC_AMT
+                             				  	   , SUM(S1.REDF_ADSB_CTR_CNFM_AMT) AS REDF_ADSB_CTR_CNFM_AMT
                              				    FROM TB_FEDD_FEE_REDF_ADSB_DTL S1 /*수수료되물림재지급상세*/
                              				    LEFT OUTER JOIN TB_SSCT_CNTR_DTL S2 /*계약상세*/
                              				      ON S1.CNTR_NO = S2.CNTR_NO
@@ -951,6 +927,8 @@
                                                  <if test='@MybatisUtils@isNotEmpty(redfAdsbOcYmFrom) and @MybatisUtils@isNotEmpty(redfAdsbOcYmTo)'>
                               					 AND S1.REDF_ADSB_OC_YM BETWEEN #{redfAdsbOcYmFrom} AND #{redfAdsbOcYmTo} /*PARAM: 발생년월*/
                                                  </if>
+                                               GROUP BY S1.FEE_REDF_ADSB_ID
+                                                      <!--, S2.SELL_TP_CD-->
                          	   ) S
                          	   ON M.FEE_REDF_ADSB_ID = S.FEE_REDF_ADSB_ID
                             WHERE M.DTA_DL_YN = 'N'
@@ -958,7 +936,16 @@
                               <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
                               AND M.PRTNR_NO = #{prtnrNo}
                               </if>
-                              AND M.REDF_ADSB_TP_CD = #{redfAdsbTpCd}
+                              <if test='@MybatisUtils@isNotEmpty(redfAdsbTpCd)'>
+                                <choose>
+                                  <when test="@MybatisUtils@equals(ogTpCd, 'W01')">
+                                  AND M.REDF_ADSB_TP_CD IN( '0202', '0203') /*P조직일 경우에는 취소연체 둘다*/
+                                  </when>
+                                  <otherwise>
+                                  AND M.REDF_ADSB_TP_CD = #{redfAdsbTpCd}
+                                  </otherwise>
+                                </choose>
+                              </if>
                               <if test='@MybatisUtils@equals(ogTpCd, "W02")'>
                                   <if test='@MybatisUtils@equals(rsbDvCd, "01")'>
                                   AND M.PERF_DV_CD = '0'
@@ -980,8 +967,7 @@
                                    , M.REDF_ADSB_TP_CD
                                    , M.PERF_DV_CD
                           ) D /*되물림 수수료*/
-
-          LEFT OUTER JOIN (
+          LEFT OUTER JOIN LATERAL (
                 SELECT MAX(B.BASE_YM) AS BASE_YM
                      , A.PERF_YM
                      , TO_CHAR(ADD_MONTHS(TO_DATE(A.PERF_YM || '01', 'YYYYMMDD'), 1), 'YYYYMM') AS PERF_YM_1
@@ -1109,6 +1095,9 @@
                           WHERE DTA_DL_YN = 'N'
                             AND FEE_TCNT_DV_CD = '02'
                             AND BASE_YM = PERF_YM
+
+                            AND PERF_YM = D.PERF_YM
+
                             <if test='@MybatisUtils@equals(ogTpCd, "W01")'>
                             AND PERF_AGRG_CRT_DV_CD = '101' /*귀속월실적(순주문집계)_P */
                             </if>
@@ -1124,7 +1113,7 @@
                             </if>
                           GROUP BY BASE_YM , PERF_YM, OG_TP_CD, PRTNR_NO
                        ) A /*귀속월실적(기준년월 실적년월이 같은 최초 실적)*/
-                   INNER JOIN (
+                   LEFT OUTER JOIN (
                                   SELECT A.RN
                                        , A.BASE_YM
                                        , A.PERF_YM
@@ -1170,6 +1159,9 @@
                                              FROM TB_FEAM_NTORP_PERF_MM_CL /* 순주문파트너실적월마감(ASIS: AK1700P) */
                                             WHERE DTA_DL_YN = 'N'
                                               AND FEE_TCNT_DV_CD = '02'
+
+                                              AND PERF_YM = D.PERF_YM
+
                                               <if test='@MybatisUtils@equals(ogTpCd, "W01")'>
                                               AND PERF_AGRG_CRT_DV_CD = '102' /*되물림후실적(순주문집계)_P */
                                               </if>
@@ -1198,6 +1190,7 @@
                     ON A.PERF_YM = B.PERF_YM
                    AND A.OG_TP_CD = B.OG_TP_CD
                    AND A.PRTNR_NO = B.PRTNR_NO
+                   AND B.RN IN ('1', '2')
                   LEFT OUTER JOIN (
                                    SELECT BASE_YM
                                         , PERF_YM
@@ -1243,7 +1236,6 @@
                    AND A.OG_TP_CD = C.OG_TP_CD
                    AND A.PRTNR_NO = C.PRTNR_NO
                  WHERE 1=1
-                   AND B.RN IN ('1', '2')
                    <!--AND C.RN = '1' /*TODO: 현재 C쪽 데이터 없어서 임시주석처리*/-->
                  GROUP BY  A.PERF_YM, A.OG_TP_CD, A.PRTNR_NO, B.HOME_CARE, B.ATDC_DC, B.MC_PERF
                         , A.T_ENVR_ELHM, A.T_ENVR_ELHM_CNT, A.T_ENVR_ELHM_BASE_AMT, A.T_ENVR_ELHM_RENTAL, A.T_ENVR_ELHM_SPAY
@@ -1255,10 +1247,16 @@
                         , C.TB_ENVR_ELHM_EXCP_FXAM, A.T_NW_SELL_CNT_PR, A.T_NW_SELL_CNT_JO, A.T_ENVR_ELHM_EXCP_FXAM_PR, A.T_ENVR_ELHM_FXAM_PR
                         , A.T_OG_MGT_PPL, C.TB_OG_MGT_PPL, A.T_MC, C.TB_MC, A.T_FXAM, C.TB_FXAM, C.TB_ENVR_ELHM_FXAM_PR
               ) M
-
             <!--ON M.BASE_YM = D.REDF_ADSB_OC_YM-->
             ON M.PERF_YM = D.PERF_YM
-           AND M.BASE_YM = D.REDF_ADSB_OC_YM /*임시로 추가*/
+            <choose>
+              <when test="@MybatisUtils@equals(ogTpCd, 'W01')">
+              /*P조직일 경우에는 조인제외*/
+              </when>
+              <otherwise>
+              AND M.BASE_YM = D.REDF_ADSB_OC_YM /*임시로 추가*/
+              </otherwise>
+            </choose>
            AND M.OG_TP_CD = D.OG_TP_CD
            AND M.PRTNR_NO = D.PRTNR_NO
           LEFT OUTER JOIN TB_OGBS_PRTNR_DTL AK04 /*현재 직급으로 조회*/

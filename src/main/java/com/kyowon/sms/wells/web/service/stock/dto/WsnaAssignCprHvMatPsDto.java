@@ -22,6 +22,7 @@ public class WsnaAssignCprHvMatPsDto {
         String sapMatCd,
         String pdCd,
         String pdNm,
+        String pdAbbrNm,
         String wareNmUp,
         String onQtyUp,
         String ogCd,

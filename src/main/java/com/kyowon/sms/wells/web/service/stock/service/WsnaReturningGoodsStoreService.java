@@ -36,17 +36,12 @@ public class WsnaReturningGoodsStoreService {
 
     private static final String RETURN_DISUSE = "212"; //폐기출고
 
-    private static final String RETURN_QUANTITY = "223"; //물량이동
-
     private static final String RETURN_OSTR = "320"; //물량이동
 
-    private static final String RETURN_STR_QUANTITY = "123"; // 물량이동
     private final WsnaReturningGoodsStoreMapper mapper;
     private final WsnaReturningGoodsStoreConverter converter;
 
     private final WsnaItemStockItemizationService itemStockservice;
-
-    private final WsnaLogisticsInStorageAskService logisticsService;
 
     /**
      * 반품입고 관리 조회
@@ -361,9 +356,11 @@ public class WsnaReturningGoodsStoreService {
     /**
      * 로그인한 사용자의 창고를 조회
      * @param prtnrNo
+     * @param strtDt
+     * @param endDt
      * @return
      */
-    public List<SearchWareRes> getReturningGoodsStoresLoginWarehouse(String prtnrNo) {
-        return mapper.selectReturningGoodsStoresLoginWarehouse(prtnrNo);
+    public List<SearchWareRes> getReturningGoodsStoresLoginWarehouse(String prtnrNo, String strtDt, String endDt) {
+        return mapper.selectReturningGoodsStoresLoginWarehouse(prtnrNo, strtDt, endDt);
     }
 }

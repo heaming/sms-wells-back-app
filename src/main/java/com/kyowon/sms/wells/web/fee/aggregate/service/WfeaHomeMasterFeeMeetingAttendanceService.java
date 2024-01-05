@@ -7,8 +7,6 @@ import com.kyowon.sms.wells.web.fee.aggregate.converter.WfeaHomeMasterFeeMeeting
 import com.kyowon.sms.wells.web.fee.aggregate.dto.WfeaFeeMeetingAttendanceDto.SaveReq;
 import com.kyowon.sms.wells.web.fee.aggregate.dvo.WfeaHomeMasterFeeMeetingAttendanceDvo;
 import com.kyowon.sms.wells.web.fee.aggregate.mapper.WfeaHomeMasterFeeMeetingAttendanceMapper;
-import com.sds.sflex.system.config.context.SFLEXContextHolder;
-import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -35,8 +33,6 @@ public class WfeaHomeMasterFeeMeetingAttendanceService {
      */
     @Transactional
     public int saveHomeMasterFeeMeetingAttendances(SaveReq dto) {
-
-        UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
 
         int processCount = 0;
 

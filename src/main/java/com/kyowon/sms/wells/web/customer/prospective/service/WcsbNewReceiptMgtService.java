@@ -78,7 +78,7 @@ public class WcsbNewReceiptMgtService {
     }
 
     /**
-     * 담당자 수동배정   저장
+     * 담당자 수동배정 저장
      * @param dto 담당자 정보
      * @return 수행결과
      */
@@ -94,6 +94,9 @@ public class WcsbNewReceiptMgtService {
                     .prtnrNo(dto.prtnrNo())
                     .build()
             );
+            mapper.updatePspcCstCnslChHistForEnd(pspcCstCnslId);
+            mapper.insertPspcCstCnslChHist(pspcCstCnslId);
+
         }
         BizAssert.isTrue(processCount == dto.pspcCstCnslIds().length, "MSG_ALT_SVE_ERR");
         return processCount;
@@ -115,6 +118,8 @@ public class WcsbNewReceiptMgtService {
 
             processCount = mapper.updatePspcCstCnslContact(vo);
             BizAssert.isTrue(processCount == 1, "MSG_ALT_SVE_ERR");
+            mapper.updatePspcCstCnslChHistForEnd(pspcCstCnslId);
+            mapper.insertPspcCstCnslChHist(pspcCstCnslId);
 
         }
         return processCount;

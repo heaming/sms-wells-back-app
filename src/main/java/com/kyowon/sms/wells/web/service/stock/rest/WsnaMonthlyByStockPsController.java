@@ -68,11 +68,15 @@ public class WsnaMonthlyByStockPsController {
         @ApiImplicitParam(name = "itmGdCd", value = "상품등급코드", paramType = "query", example = "A"),
         @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query", example = "Y"),
         @ApiImplicitParam(name = "itmKndCd", value = "품목종류코드", paramType = "query", example = "4"),
+        @ApiImplicitParam(name = "itmGrpCd", value = "품목그룹코드", paramType = "query", example = "1"),
         @ApiImplicitParam(name = "itmPdCds", value = "품목코드 리스트", paramType = "query", example = "[WM07102157]", dataType = "array"),
         @ApiImplicitParam(name = "itmPdCd", value = "품목코드", paramType = "query", example = "WM07102157"),
         @ApiImplicitParam(name = "strtSapCd", value = "시작 SAP코드", paramType = "query", example = "300006248"),
         @ApiImplicitParam(name = "endSapCd", value = "종료 SAP코드", paramType = "query", example = "300006248"),
-        @ApiImplicitParam(name = "matUtlzDvCd", value = "자재구분", paramType = "query", example = "01")
+        @ApiImplicitParam(name = "svMatGrpCd", value = "자재그룹", paramType = "query", example = "B"),
+        @ApiImplicitParam(name = "commGb", value = "중수리자재여부", paramType = "query", example = "Y"),
+        @ApiImplicitParam(name = "baseGb", value = "기초자재여부", paramType = "query", example = "Y"),
+        @ApiImplicitParam(name = "turnoverGb", value = "회전율대상여부", paramType = "query", example = "Y")
     })
     public List<SearchRes> getMonthlyByStocksStates(@Valid
     SearchReq dto) {
@@ -90,11 +94,15 @@ public class WsnaMonthlyByStockPsController {
         @ApiImplicitParam(name = "itmGdCd", value = "상품등급코드", paramType = "query", example = "A"),
         @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query", example = "Y"),
         @ApiImplicitParam(name = "itmKndCd", value = "품목종류코드", paramType = "query", example = "4"),
+        @ApiImplicitParam(name = "itmGrpCd", value = "품목그룹코드", paramType = "query", example = "1"),
         @ApiImplicitParam(name = "itmPdCds", value = "품목코드 리스트", paramType = "query", example = "[WM07102157]", dataType = "array"),
         @ApiImplicitParam(name = "itmPdCd", value = "품목코드", paramType = "query", example = "WM07102157"),
         @ApiImplicitParam(name = "strtSapCd", value = "시작 SAP코드", paramType = "query", example = "300006248"),
         @ApiImplicitParam(name = "endSapCd", value = "종료 SAP코드", paramType = "query", example = "300006248"),
-        @ApiImplicitParam(name = "matUtlzDvCd", value = "자재구분", paramType = "query", example = "01")
+        @ApiImplicitParam(name = "svMatGrpCd", value = "자재그룹", paramType = "query", example = "B"),
+        @ApiImplicitParam(name = "commGb", value = "중수리자재여부", paramType = "query", example = "Y"),
+        @ApiImplicitParam(name = "baseGb", value = "기초자재여부", paramType = "query", example = "Y"),
+        @ApiImplicitParam(name = "turnoverGb", value = "회전율대상여부", paramType = "query", example = "Y")
     })
     public List<SearchRes> getMonthlyByStocksStateExcelDownload(@Valid
     SearchReq dto) {

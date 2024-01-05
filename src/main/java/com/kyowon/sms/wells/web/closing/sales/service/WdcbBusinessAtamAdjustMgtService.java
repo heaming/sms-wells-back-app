@@ -1,9 +1,12 @@
 package com.kyowon.sms.wells.web.closing.sales.service;
 
+import java.io.IOException;
 import java.util.List;
 
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.ibatis.session.SqlSession;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,6 +14,11 @@ import com.kyowon.sms.wells.web.closing.sales.converter.WdcbBusinessAtamAdjustMg
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbBusinessAtamAdjustMgtDto.*;
 import com.kyowon.sms.wells.web.closing.sales.dvo.WdcbBusinessAtamAdjustDvo;
 import com.kyowon.sms.wells.web.closing.sales.mapper.WdcbBusinessAtamAdjustMgtMapper;
+import com.sds.sflex.common.common.dto.ExcelBulkDownloadDto.DownloadReq;
+import com.sds.sflex.common.common.service.ExcelDownloadService;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.interceptor.ExcelResultHandler;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -22,6 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 public class WdcbBusinessAtamAdjustMgtService {
     private final WdcbBusinessAtamAdjustMgtMapper mapper;
     private final WdcbBusinessAtamAdjustMgtConverter converter;
+    private final ExcelDownloadService excelDownloadService;
+    private final SqlSession priSqlSession;
 
     /**
      * 대표고객코드 조회
@@ -32,12 +42,23 @@ public class WdcbBusinessAtamAdjustMgtService {
     }
 
     /**
-     * 영업선수금 정산 관리(집계)
-     * @param dto
+     * 영업선수금 정산 관리(집계) 엑셀 다운로드
+     * @param req
+     * @param response
      * @return
      */
-    public List<SearchTotalRes> getBusinessAtamTotals(SearchReq dto) {
-        return mapper.selectBusinessAtamTotals(dto);
+    public void getBusinessAtamTotalsForBulkExcelDownload(
+        DownloadReq req,
+        HttpServletResponse response
+    ) throws IOException {
+        SXSSFWorkbook workbook = new SXSSFWorkbook(-1);
+        priSqlSession.select(
+            "com.kyowon.sms.wells.web.closing.sales.mapper.WdcbBusinessAtamAdjustMgtMapper.selectBusinessAtamTotals",
+            req.parameter(),
+            new ExcelResultHandler(workbook, req.columns(), req.searchCondition())
+        );
+
+        excelDownloadService.downloadBulkExcel(workbook, response);
     }
 
     /**
@@ -50,12 +71,32 @@ public class WdcbBusinessAtamAdjustMgtService {
     }
 
     /**
-     * 영업선수금 정산 관리(상세)
+     * 영업선수금 정산 관리 Summary
      * @param dto
      * @return
      */
-    public List<SearchDetailRes> getBusinessAtamDetails(SearchReq dto) {
-        return mapper.selectBusinessAtamDetails(dto);
+    public SearchSummaryRes getBusinessAtamSummary(SearchReq dto) {
+        return mapper.selectBusinessAtamSummary(dto);
+    }
+
+    /**
+     * 영업선수금 정산 관리(상세) 엑셀 다운로드
+     * @param req
+     * @param response
+     * @return
+     */
+    public void getBusinessAtamDetailsForBulkExcelDownload(
+        DownloadReq req,
+        HttpServletResponse response
+    ) throws IOException {
+        SXSSFWorkbook workbook = new SXSSFWorkbook(-1);
+        priSqlSession.select(
+            "com.kyowon.sms.wells.web.closing.sales.mapper.WdcbBusinessAtamAdjustMgtMapper.selectBusinessAtamDetails",
+            req.parameter(),
+            new ExcelResultHandler(workbook, req.columns(), req.searchCondition())
+        );
+
+        excelDownloadService.downloadBulkExcel(workbook, response);
     }
 
     /**

@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.service.stock.converter.WsnaChangeOfRentalStatusConverter;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaChangeOfRentalStatusMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -26,7 +25,6 @@ import lombok.RequiredArgsConstructor;
 public class WsnaChangeOfRentalStatusService {
 
     private final WsnaChangeOfRentalStatusMapper mapper;
-    private final WsnaChangeOfRentalStatusConverter converter;
 
     /**
      * 렌탈상태변경 현황 페이징 조회

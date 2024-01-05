@@ -63,15 +63,19 @@ public class WsnaItemByStockAggregationController {
         @ApiImplicitParam(name = "baseDt", value = "기준일자", paramType = "query", example = "202212", required = true),
         @ApiImplicitParam(name = "mgtTypCd", value = "재고유형", paramType = "query", example = "1"),
         @ApiImplicitParam(name = "itmKndCd", value = "품목종류코드", paramType = "query", example = "5"),
+        @ApiImplicitParam(name = "itmGrpCd", value = "품목그룹코드", paramType = "query", example = "1"),
         @ApiImplicitParam(name = "itmPdCds", value = "품목상품코드 리스트", paramType = "query", example = "[WM07104077]", dataType = "array"),
         @ApiImplicitParam(name = "wareDvCd", value = "창고구분", paramType = "query", example = "2", required = true),
         @ApiImplicitParam(name = "wareTpCd", value = "창고유형", paramType = "query", example = "CORP"),
         @ApiImplicitParam(name = "itmGdCd", value = "등급코드", paramType = "query", example = "A"),
-        @ApiImplicitParam(name = "matUtlzDvCd", value = "자재구분", paramType = "query", example = "01"),
+        @ApiImplicitParam(name = "svMatGrpCd", value = "자재그룹", paramType = "query", example = "B"),
         @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query", example = "Y"),
         @ApiImplicitParam(name = "itmPdCd", value = "품목코드", paramType = "query", example = "WM07104077"),
         @ApiImplicitParam(name = "strtSapCd", value = "시작 SAP코드", paramType = "query", example = "300006248"),
-        @ApiImplicitParam(name = "endSapCd", value = "종료 SAP코드", paramType = "query", example = "300006248")
+        @ApiImplicitParam(name = "endSapCd", value = "종료 SAP코드", paramType = "query", example = "300006248"),
+        @ApiImplicitParam(name = "commGb", value = "중수리자재여부", paramType = "query", example = "Y"),
+        @ApiImplicitParam(name = "baseGb", value = "기초자재여부", paramType = "query", example = "Y"),
+        @ApiImplicitParam(name = "turnoverGb", value = "회전율대상여부", paramType = "query", example = "Y")
     })
     public List<HashMap<String, Object>> getItemByStockAggs(@Valid
     SearchReq dto) {
@@ -85,15 +89,19 @@ public class WsnaItemByStockAggregationController {
         @ApiImplicitParam(name = "baseDt", value = "기준일자", paramType = "query", example = "202212", required = true),
         @ApiImplicitParam(name = "mgtTypCd", value = "재고유형", paramType = "query", example = "1"),
         @ApiImplicitParam(name = "itmKndCd", value = "품목종류코드", paramType = "query", example = "5"),
+        @ApiImplicitParam(name = "itmGrpCd", value = "품목그룹코드", paramType = "query", example = "1"),
         @ApiImplicitParam(name = "itmPdCds", value = "품목상품코드 리스트", paramType = "query", example = "[WM07104077]", dataType = "array"),
         @ApiImplicitParam(name = "wareDvCd", value = "창고구분", paramType = "query", example = "2", required = true),
         @ApiImplicitParam(name = "wareTpCd", value = "창고유형", paramType = "query", example = "CORP"),
         @ApiImplicitParam(name = "itmGdCd", value = "등급코드", paramType = "query", example = "A"),
-        @ApiImplicitParam(name = "matUtlzDvCd", value = "자재구분", paramType = "query", example = "01"),
+        @ApiImplicitParam(name = "svMatGrpCd", value = "자재그룹", paramType = "query", example = "B"),
         @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query", example = "Y"),
         @ApiImplicitParam(name = "itmPdCd", value = "품목코드", paramType = "query", example = "WM07104077"),
         @ApiImplicitParam(name = "strtSapCd", value = "시작 SAP코드", paramType = "query", example = "300006248"),
-        @ApiImplicitParam(name = "endSapCd", value = "종료 SAP코드", paramType = "query", example = "300006248")
+        @ApiImplicitParam(name = "endSapCd", value = "종료 SAP코드", paramType = "query", example = "300006248"),
+        @ApiImplicitParam(name = "commGb", value = "중수리자재여부", paramType = "query", example = "Y"),
+        @ApiImplicitParam(name = "baseGb", value = "기초자재여부", paramType = "query", example = "Y"),
+        @ApiImplicitParam(name = "turnoverGb", value = "회전율대상여부", paramType = "query", example = "Y")
     })
     public List<HashMap<String, Object>> getItemByStockAggsExcelDownload(@Valid
     SearchReq dto) {

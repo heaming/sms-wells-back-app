@@ -83,6 +83,25 @@ public class WfeaAccountNetIncreaseController {
         return service.getAccountNetIncreaseCheck(dto);
     }
 
+    @ApiOperation(value = "M조직 계정순증 관리 - 조회", notes = "M조직 계정순증 전월취소 내역을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "inqrDvCd", value = "조회구분", paramType = "query", required = true),
+        @ApiImplicitParam(name = "feeTcntDvCd", value = "차수", paramType = "query", required = false),
+        @ApiImplicitParam(name = "perfYm", value = "수수료년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cnclTpCd", value = "취소유형", paramType = "query", required = false),
+        @ApiImplicitParam(name = "sellTpCd", value = "판매유형", paramType = "query", required = false),
+        @ApiImplicitParam(name = "aggregateTpCd", value = "취소유형", paramType = "query", required = false),
+        @ApiImplicitParam(name = "dgr1LevlOgId", value = "총괄단", paramType = "query", required = false),
+        @ApiImplicitParam(name = "dgr2LevlOgId", value = "지역단", paramType = "query", required = false),
+        @ApiImplicitParam(name = "dgr3LevlOgId", value = "지점", paramType = "query", required = false),
+        @ApiImplicitParam(name = "prtnrNo", value = "번호", paramType = "query", required = false),
+    })
+    @GetMapping("/batch-time")
+    public WwfeaAccountNetIncreaseDto.SearchBatchRes getAccountNetIncreaseBatchTime(@Valid
+    WwfeaAccountNetIncreaseDto.SearchReq dto) throws Exception {
+        return service.getAccountNetIncreaseBatchTime(dto);
+    }
+
     @ApiOperation(value = "M조직 계정순증 관리 - 계정순증집계", notes = "M조직 계정순증 관리 - 계정순증을 집계한다.")
     @PostMapping("/aggregates")
     public String aggregateAccountNetIncrease(

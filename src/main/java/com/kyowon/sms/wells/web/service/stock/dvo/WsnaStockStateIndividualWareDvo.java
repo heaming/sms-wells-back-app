@@ -26,5 +26,6 @@ public class WsnaStockStateIndividualWareDvo {
     String itmGdCd;
     String useYn;
     String stndUnuseYn;
-
+    String fromSapCd;
+    String toSapCd;
 }

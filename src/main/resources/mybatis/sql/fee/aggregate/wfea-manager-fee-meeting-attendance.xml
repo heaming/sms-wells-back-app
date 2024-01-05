@@ -27,19 +27,19 @@
 
     <insert id="insertManagerFeeMeetingAttendances">
         INSERT INTO TB_FEAM_PRTNR_PERF_MM_CL
-               ( BASE_YM
-               , PERF_YM
-               , FEE_TCNT_DV_CD
-               , PERF_AGRG_CRT_DV_CD
-               , PERF_ATC_CD
-               , CO_CD
-               , OG_TP_CD
-               , PRTNR_NO
-               , FEE_PERF_ATC_VAL
-               , PERF_VAL
-               , DTA_DL_YN
-               <include refid="COMMON.insertSystemField" />
-               )
+             ( BASE_YM
+             , PERF_YM
+             , FEE_TCNT_DV_CD
+             , PERF_AGRG_CRT_DV_CD
+             , PERF_ATC_CD
+             , CO_CD
+             , OG_TP_CD
+             , PRTNR_NO
+             , FEE_PERF_ATC_VAL
+             , PERF_VAL
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />
+             )
         SELECT #{perfYm} AS BASE_YM
              , #{perfYm} AS PERF_YM
              , #{feeTcntDvCd} AS FEE_TCNT_DV_CD
@@ -52,54 +52,71 @@
              , T.PERF_VAL
              , 'N' AS DTA_DL_YN
              <include refid="COMMON.insertSystemFieldValue"/>
-          FROM ( SELECT T1.PRTNR_NO
-                      , 'W02P00001' AS PERF_ATC_CD    /* 미팅참석여부 */
-                      , NVL(T2.METG_PTCP_ACKMT_YN,'N') AS FEE_PERF_ATC_VAL
-                      , NULL AS PERF_VAL
-                   FROM TB_OGBS_MM_PRTNR_IZ T1
-                   LEFT OUTER JOIN TB_PSCA_MCPTN_METG_AGRG T2
-                     ON T1.BASE_YM = T2.AGRG_YM
-                    AND T1.OG_TP_CD = T2.OG_TP_CD
-                    AND T1.PRTNR_NO = T2.PRTNR_NO
-                    AND T2.DTA_DL_YN = 'N'
-                  WHERE T1.OG_TP_CD ='W02'
-                    AND T1.BASE_YM = #{perfYm}
-               <if test='@MybatisUtils@equals(rsbTpCd, "W0205")'>
-                    AND T1.PSTN_DV_CD = '15'
-               </if>
-               <if test='@MybatisUtils@equals(rsbTpCd, "W0204")'>
-                    AND T1.PSTN_DV_CD = '7'
-               </if>
-                  UNION ALL
-                 SELECT T1.PRTNR_NO
-                      , 'W02P00093' AS PERF_ATC_CD   /* 미팅참석일수 */
-                      , '' AS FEE_PERF_ATC_VAL
-                      , CASE WHEN T2.METG_PTCP_ACKMT_YN = 'Y'
-                                  AND T2.METG_PRSC_DC &lt; T3.METG_BASE_DC
-                                  THEN  NVL(T3.METG_BASE_DC,0)
-                             ELSE NVL(T2.METG_PRSC_DC,0)
-                        END AS PERF_VAL
-                   FROM TB_OGBS_MM_PRTNR_IZ T1
-                   LEFT OUTER JOIN TB_PSCA_MCPTN_METG_AGRG T2
-                     ON T1.BASE_YM = T2.AGRG_YM
-                    AND T1.OG_TP_CD = T2.OG_TP_CD
-                    AND T1.PRTNR_NO = T2.PRTNR_NO
-                    AND T2.DTA_DL_YN = 'N'
-                   LEFT OUTER JOIN TB_PSCA_PRTNR_METG_BASE_BAS T3/* 파트너미팅기준기본 */
-                     ON SUBSTR(T3.VL_STRTDT,1,6) &lt;= T1.BASE_YM
-                    AND SUBSTR(T3.VL_ENDDT,1,6) &gt;= T1.BASE_YM
-                    AND T3.OG_TP_CD= T1.OG_TP_CD
-                    AND T3.RSB_DV_CD = T1.RSB_DV_CD
-                    AND T3.QLF_DV_CD = T1.QLF_DV_CD
-                  WHERE T1.OG_TP_CD ='W02'
-                    AND T1.BASE_YM = #{perfYm}
-               <if test='@MybatisUtils@equals(rsbTpCd, "W0205")'>
-                    AND T1.PSTN_DV_CD = '15'
-               </if>
-               <if test='@MybatisUtils@equals(rsbTpCd, "W0204")'>
-                    AND T1.PSTN_DV_CD = '7'
-               </if>
-                  UNION ALL
+          FROM
+             (
+               SELECT T1.PRTNR_NO
+                    , 'W02P00001' AS PERF_ATC_CD    /* 미팅참석여부 */
+                    , NVL(T2.METG_PTCP_ACKMT_YN, 'N') AS FEE_PERF_ATC_VAL   /* 수수료실적항목값 */
+                    , NULL AS PERF_VAL                                      /* 실적값 */
+                FROM TB_OGBS_MM_PRTNR_IZ T1 /* 월파트너내역 */
+                LEFT OUTER JOIN TB_PSCA_MCPTN_METG_AGRG T2 /* 월별파트너미팅집계 */
+                  ON T1.BASE_YM = T2.AGRG_YM /* 기준년월 */
+                 AND T1.OG_TP_CD = T2.OG_TP_CD /* 조직유형코드 */
+                 AND T1.PRTNR_NO = T2.PRTNR_NO /* 파트너번호 */
+                 AND T2.DTA_DL_YN = 'N'
+                LEFT OUTER JOIN TB_PSCA_PRTNR_METG_BASE_BAS T3  /* 파트너미팅기준기본 */
+                  ON T1.OG_TP_CD = T3.OG_TP_CD /* 조직유형코드 */
+                 AND T1.RSB_DV_CD = T3.RSB_DV_CD /* 직책구분코드 */
+                 AND T1.PRTNR_GD_CD = T3.PRTNR_GD_CD /* 파트너등급코드 */
+                 AND #{perfYm} || '01' BETWEEN T3.VL_STRTDT AND T3.VL_ENDDT
+                 AND T3.DTA_DL_YN = 'N'
+               WHERE 1 = 1
+                 AND T1.DTA_DL_YN = 'N'
+                 AND T1.OG_TP_CD = 'W02' /* 조직유형코드 */
+                 AND T1.BASE_YM = #{perfYm} /* 기준년월 */
+
+                 <if test='@MybatisUtils@equals(rsbTpCd, "W0205")'>
+                     AND T1.PSTN_DV_CD = '15' /* 직급구분코드 */
+                 </if>
+                 <if test='@MybatisUtils@equals(rsbTpCd, "W0204")'>
+                     AND T1.PSTN_DV_CD = '7' /* 직급구분코드 */
+                 </if>
+
+               UNION ALL
+
+              SELECT T1.PRTNR_NO
+                   , 'W02P00093' AS PERF_ATC_CD   /* 미팅참석일수 */
+                   , NULL AS FEE_PERF_ATC_VAL                              /* 수수료실적항목값 */
+                   , CASE WHEN T2.METG_PTCP_ACKMT_YN = 'Y' AND NVL(T2.METG_PRSC_DC, 0) <![CDATA[<]]> NVL(T3.METG_BASE_DC, 0)
+                               THEN NVL(T3.METG_BASE_DC, 0)
+                          ELSE NVL(T2.METG_PRSC_DC, 0)
+                     END AS PERF_VAL /* 실적값 */
+                FROM TB_OGBS_MM_PRTNR_IZ T1 /* 월파트너내역 */
+                LEFT OUTER JOIN TB_PSCA_MCPTN_METG_AGRG T2 /* 월별파트너미팅집계 */
+                  ON T1.BASE_YM = T2.AGRG_YM /* 기준년월 */
+                 AND T1.OG_TP_CD = T2.OG_TP_CD /* 조직유형코드 */
+                 AND T1.PRTNR_NO = T2.PRTNR_NO /* 파트너번호 */
+                 AND T2.DTA_DL_YN = 'N'
+                LEFT OUTER JOIN TB_PSCA_PRTNR_METG_BASE_BAS T3  /* 파트너미팅기준기본 */
+                  ON T1.OG_TP_CD = T3.OG_TP_CD /* 조직유형코드 */
+                 AND T1.RSB_DV_CD = T3.RSB_DV_CD /* 직책구분코드 */
+                 AND T1.PRTNR_GD_CD = T3.PRTNR_GD_CD /* 파트너등급코드 */
+                 AND #{perfYm} || '01' BETWEEN T3.VL_STRTDT AND T3.VL_ENDDT
+                 AND T3.DTA_DL_YN = 'N'
+               WHERE 1 = 1
+                 AND T1.DTA_DL_YN = 'N'
+                 AND T1.OG_TP_CD = 'W02' /* 조직유형코드 */
+                 AND T1.BASE_YM = #{perfYm} /* 기준년월 */
+
+                 <if test='@MybatisUtils@equals(rsbTpCd, "W0205")'>
+                     AND T1.PSTN_DV_CD = '15' /* 직급구분코드 */
+                 </if>
+                 <if test='@MybatisUtils@equals(rsbTpCd, "W0204")'>
+                     AND T1.PSTN_DV_CD = '7' /* 직급구분코드 */
+                 </if>
+
+               UNION ALL
+
                  SELECT T1.PRTNR_NO
                       , 'W02P00115' AS PERF_ATC_CD   /* 스타트업교육(96)수료여부 */
                       , NVL(T2.EDUC_CPC_ACKMT_YN,'N') AS FEE_PERF_ATC_VAL

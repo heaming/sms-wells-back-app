@@ -63,7 +63,8 @@
                    , BIL_DT
                    , SELL_TP_CD
                    , RVE_AMT
-                   FROM (		SELECT CASE WHEN #{fntDvCd} = '01' THEN '자동이체(은행) 수신되었으나 입금반영 안된 건 묶음출금 (or 묶음출금제외)'
+                   FROM (		SELECT /*+ use_nl(RRAD) push_pred(RRAD) */
+                                    CASE WHEN #{fntDvCd} = '01' THEN '자동이체(은행) 수신되었으나 입금반영 안된 건 묶음출금 (or 묶음출금제외)'
                                          WHEN #{fntDvCd} = '02' THEN '자동이체(카드) 수신되었으나 입금반영 안된 건 묶음출금 (or 묶음출금제외)' END AS AFTN_CLSF
                                    , RBFD.CNTR_NO
                                    , RBFD.CNTR_SN
@@ -71,15 +72,7 @@
                                    , RBFB.BIL_DT
                                    , (SELECT SELL_TP_CD FROM TB_SSCT_CNTR_DTL WHERE DTA_DL_YN = 'N' AND CNTR_NO = RBFD.CNTR_NO AND ROWNUM = 1) AS SELL_TP_CD
                                    , NVL(RBFD.DP_AMT, 0) AS DP_AMT
-                                   , NVL((SELECT SUM(RVE_AMT)
-                                          FROM TB_RVDW_RVE_DTL RRAD
-                                         WHERE RRAD.KW_GRP_CO_CD = '2000'
-                                           AND RBFD.BIL_NO = RRAD.BIL_NO
-                                           AND RBFD.BIL_DTL_SN = RRAD.BIL_DTL_SN
-                                           AND RBFD.CNTR_NO = RRAD.CNTR_NO
-                                           AND RBFD.CNTR_SN = RRAD.CNTR_SN
-                                           AND RRAD.DTA_DL_YN = 'N'
-                                     ),0) AS RVE_AMT
+                                   , NVL(RRAD.RVE_AMT,0) AS RVE_AMT
                                 FROM TB_RVCL_BIL_FNT_AK_BAS RBFB
                                 JOIN TB_RVCL_BIL_FNT_AK_DTL RBFD
                                   ON RBFB.BIL_NO = RBFD.BIL_NO
@@ -99,26 +92,30 @@
                                  AND RCFS.CARD_FNT_RS_CD IS NOT NULL
                                  AND RCFS.RCV_DTM IS NOT NULL
                                 </if>
+                          INNER JOIN LATERAL ( SELECT /*+ index(RRAD IX_RVDW_RVE_DTL_01) */
+                                           RRAD.CNTR_NO, RRAD.CNTR_SN, RRAD.BIL_NO, RRAD.BIL_DTL_SN,   SUM(RVE_AMT) RVE_AMT
+                                          FROM TB_RVDW_RVE_DTL RRAD
+                                         WHERE RRAD.KW_GRP_CO_CD = '2000'
+										   AND RRAD.DP_DT = RBFD.DP_DT
+                                           AND RRAD.DTA_DL_YN = 'N'
+                                           AND DP_TP_CD = CASE WHEN #{fntDvCd} = '01' THEN '0102' ELSE '0203' END
+                                           AND DP_DV_CD = '1'
+                                           AND DP_MES_CD = #{fntDvCd}
+                                           GROUP BY RRAD.CNTR_NO, RRAD.CNTR_SN, RRAD.BIL_NO, RRAD.BIL_DTL_SN
+                                           ) RRAD
+                                  ON RBFD.BIL_NO = RRAD.BIL_NO
+                                 AND RBFD.BIL_DTL_SN = RRAD.BIL_DTL_SN
+                                 AND RBFD.CNTR_NO = RRAD.CNTR_NO
+                                 AND RBFD.CNTR_SN = RRAD.CNTR_SN
                                WHERE 1 = 1
                                  AND RBFB.BIL_DT = #{bilDt}
                                  AND RBFD.BIL_YM = SUBSTR(#{bilDt},0,6)
                                  AND RBFB.FNT_DV_CD = #{fntDvCd}
                                  AND RBFB.CNFM_YN = 'Y'
-                                 AND RBFD.WDRW_FOM_CD != 'N'
-                                 AND EXISTS (
-                                 				SELECT 1
-		                                          FROM TB_RVDW_RVE_DTL RRAD
-		                                         WHERE RRAD.KW_GRP_CO_CD = '2000'
-		                                           AND RBFD.BIL_NO = RRAD.BIL_NO
-		                                           AND RBFD.BIL_DTL_SN = RRAD.BIL_DTL_SN
-		                                           AND RBFD.CNTR_NO = RRAD.CNTR_NO
-		                                           AND RBFD.CNTR_SN = RRAD.CNTR_SN
-		                                           AND RRAD.DTA_DL_YN = 'N'
-                                            )
+                                 AND RBFD.WDRW_FOM_CD NOT IN ('N', '08')
                         )
                      WHERE 1 = 1
                        AND DP_AMT != RVE_AMT
-                       <!--ORDER BY RVE_AMT DESC-->
     </select>
 
     <select id="selectAftnSlPerfCheckInqrPages" resultType="com.kyowon.sms.wells.web.withdrawal.bilfnt.dto.WwdaNotReceivedCheckListDto$SearchAftnSlPerfCheckInqrRes">
@@ -153,24 +150,19 @@
                          AND S1.PERF_DT >= B.SL_CL_YM||'01'
                          AND S1.PERF_DT <![CDATA[<=]]> B.SL_CL_YM||'31'
                          AND S1.DTA_DL_YN = 'N'),0) AS RVE_AMT
-             ,  ( SELECT /*+ use_hash(S1 S2) */
-                              MAX(DP_MES_CD) AS DP_MES_CD
-                         FROM TB_RVDW_RVE_DTL S1
-                        INNER JOIN TB_SSCT_CNTR_DTL S2
-                           ON (    S2.CNTR_NO = S1.CNTR_NO
-                               AND S2.CNTR_SN = S1.CNTR_SN
-                               AND S2.SELL_TP_CD IN ('2','3','6')
-                               AND S2.DTA_DL_YN = 'N')
-                        WHERE 1 = 1
-                         AND S1.CNTR_NO = B.CNTR_NO
-                         AND S1.CNTR_SN = B.CNTR_SN
-                         AND S1.DP_MES_CD NOT IN ('06')
-                         AND S1.KW_GRP_CO_CD = '2000'
-                         AND S1.PERF_DT >= B.SL_CL_YM||'01'
-                         AND S1.PERF_DT <![CDATA[<=]]> B.SL_CL_YM||'31'
-                         AND S1.DTA_DL_YN = 'N') AS DP_MES_CD
+             , CASE WHEN SCSB.DP_TP_CD = '0102' THEN '01' ELSE '02' END AS DP_MES_CD
           FROM TB_CBCL_WELLS_SL_MM_CL_IZ B
+          JOIN TB_SSCT_CNTR_STLM_REL SCSR
+	        ON SCSR.DTL_CNTR_NO = B.CNTR_NO
+	       AND SCSR.DTL_CNTR_SN = B.CNTR_SN
+	       AND SCSR.DTA_DL_YN = 'N'
+	      JOIN TB_SSCT_CNTR_STLM_BAS SCSB
+	        ON SCSB.CNTR_STLM_ID = SCSR.CNTR_STLM_ID
+	       AND SCSB.DTA_DL_YN = 'N'
          WHERE 1 = 1
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN SCSR.VL_STRT_DTM AND SCSR.VL_END_DTM
+		   AND SCSR.VL_END_DTM = '99991231235959'
+		   AND SCSB.DP_TP_CD IN ('0102','0203')
            AND SL_CL_YM = #{baseYm}
            AND (B.THM_ATAM_DP_AMT - B.THM_ATAM_RFND_AMT ) != NVL(( SELECT /*+ use_hash(S1 S2) */
                                                                           SUM(CASE WHEN S1.DP_DV_CD IN ('2','4') THEN -RVE_AMT ELSE RVE_AMT END)

@@ -13,6 +13,7 @@ import com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsManagerScheduleDvo;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncBsManagerScheduleService;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -47,7 +48,7 @@ public class WsncBsManagerScheduleController {
         @ApiImplicitParam(name = "baseDateTo", value = "관리년월To", paramType = "query", required = true),
     })
     @GetMapping("/dt-paging")
-    public List<WsncBsManagerScheduleDvo> getBsScheduleDatePages(
+    public PagingResult<WsncBsManagerScheduleDvo> getBsScheduleDatePages(
         WsncBsManagerScheduleDto.SearchReq dto, @Valid
         PageInfo pageInfo
     ) {

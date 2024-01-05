@@ -14,14 +14,14 @@ public class WfedManagerVisitFeeDto {
     @ApiModel("WfedManagerVisitFeeDto-SearchReq")
     public record SearchReq(
         @NotBlank
-        String baseYm,
+        String baseYm, /*기준년월*/
         @NotBlank
-        String inqrDv,
+        String inqrDv, /*조회구분*/
 
-        String ogLevlDvCd1,
-        String ogLevlDvCd2,
-        String ogLevlDvCd3,
-        String prtnrNo
+        String ogLevlDvCd1, /* 조직레벨1 */
+        String ogLevlDvCd2, /* 조직레벨2 */
+        String ogLevlDvCd3, /* 조직레벨3 */
+        String prtnrNo /* 파트너번호 */
     ) {}
 
     // *********************************************************
@@ -34,8 +34,8 @@ public class WfedManagerVisitFeeDto {
         String dgr1LevlOgId, /*총괄단*/
         String dgr2LevlOgId, /*지역단*/
         String dgr3LevlOgId, /*지점*/
-        String prtnrNo,
-        String prtnrKnm,
+        String prtnrNo, /* 파트너번호 */
+        String prtnrKnm, /* 파트너명 */
         String cntrNo, /*계약번호*/
         String cntrCstNo, /*고객번호*/
         String cstKnm, /*고객명*/
@@ -48,7 +48,7 @@ public class WfedManagerVisitFeeDto {
         String vstRglvlGdCd, /*방문급지*/
         String vstRglvlGdNm, /*방문급지*/
         String wkExcnDt, /*방문일자*/
-        String canYn
+        String canYn /* 취소여부 */
 
     ) {}
 }
