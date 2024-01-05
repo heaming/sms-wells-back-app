@@ -27,6 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/stock-state-individual-ware")
 public class WsnaStockStateIndividualWareController {
+    private final WsnaStockStateIndividualWareService service;
+
     @ApiOperation(value = "재고현황(개인창고) 목록 조회", notes = "조회조건에 일치하는 재고현황(개인창고) 데이터를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "stockDt", value = "재고일자", paramType = "query", required = true),
@@ -46,26 +48,21 @@ public class WsnaStockStateIndividualWareController {
         return service.getStockStateIndividualWare(dto);
     }
 
-    private final WsnaStockStateIndividualWareService service;
-
     @GetMapping("/ware-houses")
     @ApiOperation(value = "세부 창고 조회", notes = "세부 창고를 조회한다.")
     public List<WsnaStockStateIndividualWareWareDvo> getWareHouseNames(SearchReq dto) {
-
         return this.service.getWareHouses(dto);
     }
 
     @GetMapping("/service-center")
     @ApiOperation(value = "서비스센터 조회", notes = "서비스센터를 조회한다.")
     public List<HashMap<String, String>> getServiceCenter(String baseYm) {
-
         return service.getServiceCenter(baseYm);
     }
 
     @GetMapping("/my-service-center")
     @ApiOperation(value = "나의 서비스센터 조회", notes = "나의 서비스센터를 조회한다.")
     public String getMyServiceCenter(String baseYm) {
-
         return service.getMyServiceCenter(baseYm);
     }
 }
