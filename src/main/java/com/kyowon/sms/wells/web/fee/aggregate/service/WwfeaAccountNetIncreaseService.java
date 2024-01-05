@@ -66,6 +66,17 @@ public class WwfeaAccountNetIncreaseService {
     }
 
     /**
+     * M조직 계정순증 관리 - 집계체크 검색 조건 조회
+     * @param req
+     * @return
+     */
+    public WwfeaAccountNetIncreaseDto.SearchBatchRes getAccountNetIncreaseBatchTime(
+        WwfeaAccountNetIncreaseDto.SearchReq dto
+    ) {
+        return mapper.selectAccountNetIncreaseBatchTime(dto);
+    }
+
+    /**
      * M조직 계정순증 관리 - 계정순증 집계
      * @param SaveReq
      * @return 저장 결과
