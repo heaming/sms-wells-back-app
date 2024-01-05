@@ -30,8 +30,8 @@
 			  ) AS SL_DT				/*매출일자*/
 		      , C.FNL_AMT AS SELL_AMT	/*판매금액*/
 		      , D.DLQ_MCN       AS DLQ_MCN                                         /*연체개월수*/
-		      , A.BTD_UC_AMT    AS UC_AMT                                        /*미수금액 - 기초미수금액*/
-		      , D.BTD_DLQ_AMT   AS DLQ_AMT                                        /*연체금액*/
+		      , NVL(A.BTD_UC_AMT,0) + NVL(D.BTD_DLQ_ADD_AMT,0) + NVL(D.THM_OC_DLQ_ADD_AMT,0) AS UC_AMT  /*미수금액=기초미수금액+기초연체가산금+당월발생연체가산금*/
+		      , NVL(A.BTD_UC_AMT,0) + NVL(D.BTD_DLQ_ADD_AMT,0) AS DLQ_AMT  /*연체금액=기초미수금액+기초연체가산금*/
 		      , A.SL_DP_AGG_AMT AS TOT_RVE_AMT /*입금누계-연체시작일자이후부터 입금된 총금액*/
 		      , (SELECT S1.PRTNR_KNM
 		           FROM TB_CBBO_CLCTAM_PRTNR_DTL S1 /*T:집금파트너상세*/
@@ -70,7 +70,7 @@
 		   AND F.PRTNR_NO = B.SELL_PRTNR_NO
 		 LEFT JOIN TB_CBBO_BND_CNTR_BAS G /*T:채권계약기본*/
 		    ON 1 = 1
-		   AND G.BASE_YM = A.SL_CL_YM
+		   AND G.BASE_YM = SUBSTR(#{authRsgDt},1,6)
 		   AND G.CNTR_NO = A.CNTR_NO
 		   AND G.CNTR_SN = A.CNTR_SN
 		  LEFT JOIN TB_FEAM_WELS_NRCTR_MM_CL H	/* 웰스순주문계약월마감 */
@@ -279,10 +279,7 @@
             ,0 AS RENTAL_RGST_COST_RFND_AMT   /* 렌탈등록비환불금액 */
             ,0 AS RENTAL_RGST_COST_RFND_AMT_VAT   /* 렌탈등록비환불금액부가가치세 */
             ,F.RSG_BOR_AMT AS BOR_AMT   /* 위약금액 */
-            , (SELECT (SUM(NVL(THM_DLQ_RFND_SUM_AMT,0))+SUM(NVL(THM_DLQ_ADD_RFND_SUM_AMT,0)) * -1) /*당월연체환불합계금액+당월연체가산환불합계금액*/
-                FROM TB_CBCL_DLQ_BAS /*연체기본*/
-                WHERE CNTR_NO = B.CNTR_NO
-                AND CNTR_SN = B.CNTR_SN)  AS TOT_RFND_AMT                    /*총환불금액*/
+            , (NVL(A.BTD_UC_AMT,0) + NVL(E.BTD_DLQ_ADD_AMT,0) + NVL(E.THM_OC_DLQ_ADD_AMT,0)) * -1 AS TOT_RFND_AMT  /*총환불금액*/
             ,G.LS_RNTF   /* 분실손료 */
             ,D.MLG_BTD_PRPD_AMT   /* 마일리지기초선수금액 */
             ,D.MLG_SL_AMT   /* 마일리지매출금액 */
@@ -331,7 +328,7 @@
             AND E.EOT_DLQ_AMT > 0  /*연체금액이 존재하는 경우*/
             AND E.DLQ_MCN >= 3     /*연체개월 : 3개월 이상인 건*/
         INNER JOIN TB_CBBO_BND_CNTR_BAS F /*T:채권계약기본*/
-            ON F.BASE_YM = D.SL_CL_YM	/* --TO_CHAR(SYSDATE, 'YYYYMM') */
+            ON F.BASE_YM = #{baseYm}
             AND F.CNTR_NO = B.CNTR_NO
             AND F.CNTR_SN = B.CNTR_SN
         LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS G /*T:WELLS위약금액기본*/
