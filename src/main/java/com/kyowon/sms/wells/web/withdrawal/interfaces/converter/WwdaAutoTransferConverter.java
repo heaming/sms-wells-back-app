@@ -46,4 +46,8 @@ public interface WwdaAutoTransferConverter {
     List<WwdaAutoTransferInterfaceDto.SearchCardEffectivenessCheckRes> mapCardEffectivenessCheckDvoToWwdaAutoTransferRealNameCertificationRes(
         List<WwdaAutoTransferCardEffectivenessCheckInterfaceDvo> dvo
     );
+
+    WwdaAutoTransferObjectItemizationInterfaceSearchDvo mapAutoTransferObjectItemizationInterfaceSearch(
+        WwdaAutoTransferInterfaceDto.SearchObjectReq reqDto
+    );
 }
