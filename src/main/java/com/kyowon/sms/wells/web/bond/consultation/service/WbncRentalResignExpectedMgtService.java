@@ -31,6 +31,10 @@ import static com.kyowon.sms.wells.web.bond.consultation.dto.WbncRentalResignExp
 @RequiredArgsConstructor
 public class WbncRentalResignExpectedMgtService {
 
+    public static final String BASE_YM = "baseYm";
+    public static final String CNTR_NO_SN = "cntrNoSn";
+    public static final String EXCD_YN = "excdYn";
+    public static final String AUTH_RSG_EXCD_RSON_CD = "authRsgExcdRsonCd";
     private final WbncRentalResignExpectedMgtMapper mapper;
     private final WbncRentalResignExpectedMgtConverter converter;
     private final MessageResourceService messageResourceService;
@@ -217,18 +221,18 @@ public class WbncRentalResignExpectedMgtService {
 
         // 업로드 엑셀 헤더 설정
         Map<String, String> headerTitle = new LinkedHashMap<>();
-        headerTitle.put("baseYm", messageResourceService.getMessage("MSG_TXT_AUTH_AUTH_RSG_YM")); // 직권해지년월
-        headerTitle.put("cntrNoSn", messageResourceService.getMessage("MSG_TXT_CNTR_DTL_NO")); // 계약상세번호
-        headerTitle.put("excdYn", messageResourceService.getMessage("MSG_TXT_EXCD_YN")); // 제외여부
-        headerTitle.put("authRsgExcdRsonCd", messageResourceService.getMessage("MSG_TXT_EXCD_RSON")); // 제외 사유
+        headerTitle.put(BASE_YM, messageResourceService.getMessage("MSG_TXT_AUTH_AUTH_RSG_YM")); // 직권해지년월
+        headerTitle.put(CNTR_NO_SN, messageResourceService.getMessage("MSG_TXT_CNTR_DTL_NO")); // 계약상세번호
+        headerTitle.put(EXCD_YN, messageResourceService.getMessage("MSG_TXT_EXCD_YN")); // 제외여부
+        headerTitle.put(AUTH_RSG_EXCD_RSON_CD, messageResourceService.getMessage("MSG_TXT_EXCD_RSON")); // 제외 사유
 
         BizAssert.isTrue(StringUtil.isNotBlank(baseDt)
-            , messageResourceService.getMessage("MSG_ALT_NCELL_REQUIRED_VAL", headerTitle.get("baseYm")));
+            , messageResourceService.getMessage("MSG_ALT_NCELL_REQUIRED_VAL", headerTitle.get(BASE_YM)));
         BizAssert.isTrue(DateUtil.getLastDateOfMonth(baseDt).equals(baseDt), "MSG_ALT_CHO_MM_TLST_D"); // 직권해지일자가 월마지막날이 아닙니다. 월마지막날을 선택하기 바랍니다.
 
         Date baseDate = BnBondUtils.parseStrToDate(baseDt.substring(0, 6));
         BizAssert.notNull(baseDate
-            , messageResourceService.getMessage("MSG_ALT_NCELL_REQUIRED_VAL", headerTitle.get("baseYm")));
+            , messageResourceService.getMessage("MSG_ALT_NCELL_REQUIRED_VAL", headerTitle.get(BASE_YM)));
 
         // file
         List<WbncAuthorityResignIzDvo> list = excelReadService
@@ -243,18 +247,18 @@ public class WbncRentalResignExpectedMgtService {
             //null check
             String[] nullColumnName = new String[3];
             if (StringUtil.isBlank(dvo.getBaseYm())) {
-                nullColumnName[0] = "baseYm";
+                nullColumnName[0] = BASE_YM;
             }
             if (StringUtil.isBlank(dvo.getCntrNoSn())) {
-                nullColumnName[1] = "cntrNoSn";
+                nullColumnName[1] = CNTR_NO_SN;
             } else {
                 Matcher matcher = BnBondUtils.cntrDtlNoMatch(dvo.getCntrNoSn());
                 if (matcher == null) {
-                    nullColumnName[1] = "cntrNoSn";
+                    nullColumnName[1] = CNTR_NO_SN;
                 }
             }
             if (StringUtil.isBlank(dvo.getExcdYn())) {
-                nullColumnName[3] = "excdYn";
+                nullColumnName[3] = EXCD_YN;
             }
             for (String column : nullColumnName) {
                 if (StringUtil.isNotBlank(column)) {
@@ -281,18 +285,18 @@ public class WbncRentalResignExpectedMgtService {
                 if (baseYmDate == null) {
                     ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                     errorDvo.setErrorRow(row);
-                    errorDvo.setHeaderName(headerTitle.get("baseYm"));
+                    errorDvo.setHeaderName(headerTitle.get(BASE_YM));
                     // {0}이/가 올바르지 않은 날짜형식입니다.
                     errorDvo.setErrorData(
                         messageResourceService.getMessage(
-                            "MSG_ALT_ERROR_DT", headerTitle.get("baseYm")
+                            "MSG_ALT_ERROR_DT", headerTitle.get(BASE_YM)
                         )
                     );
                     excelUploadErrorDvos.add(errorDvo);
                 } else if (baseYmDate.compareTo(baseDate) != 0) {
                     ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                     errorDvo.setErrorRow(row);
-                    errorDvo.setHeaderName(headerTitle.get("baseYm"));
+                    errorDvo.setHeaderName(headerTitle.get(BASE_YM));
                     // 값이 올바르지 않습니다.
                     errorDvo.setErrorData(
                         messageResourceService.getMessage("MSG_ALT_IS_NOT_VAL")
@@ -303,7 +307,7 @@ public class WbncRentalResignExpectedMgtService {
                     if (matcher == null) {
                         ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                         errorDvo.setErrorRow(row);
-                        errorDvo.setHeaderName(headerTitle.get("cntrNoSn"));
+                        errorDvo.setHeaderName(headerTitle.get(CNTR_NO_SN));
                         // 계약번호가 존재하지 않습니다.
                         errorDvo.setErrorData(
                             messageResourceService.getMessage("MSG_ALT_CNTR_NO_NOT_EXIST")
@@ -319,7 +323,7 @@ public class WbncRentalResignExpectedMgtService {
                         if (checkCount != 1) {
                             ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                             errorDvo.setErrorRow(row);
-                            errorDvo.setHeaderName(headerTitle.get("cntrNoSn"));
+                            errorDvo.setHeaderName(headerTitle.get(CNTR_NO_SN));
                             // 계약번호가 존재하지 않습니다.
                             errorDvo.setErrorData(
                                 messageResourceService.getMessage("MSG_ALT_CNTR_NO_NOT_EXIST")
@@ -332,16 +336,16 @@ public class WbncRentalResignExpectedMgtService {
                 if (!List.of("0", "1").contains(excdYn)) {
                     ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                     errorDvo.setErrorRow(row);
-                    errorDvo.setHeaderName(headerTitle.get("excdYn"));
+                    errorDvo.setHeaderName(headerTitle.get(EXCD_YN));
                     // 잘못된 제외여부 입니다.
                     errorDvo.setErrorData(
-                        messageResourceService.getMessage("MSG_ALT_INVLD_PARAM", headerTitle.get("excdYn"))
+                        messageResourceService.getMessage("MSG_ALT_INVLD_PARAM", headerTitle.get(EXCD_YN))
                     );
                     excelUploadErrorDvos.add(errorDvo);
                 } else if ("1".equals(excdYn) && StringUtil.isBlank(dvo.getAuthRsgExcdRsonCd())) {
                     ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                     errorDvo.setErrorRow(row);
-                    errorDvo.setHeaderName(headerTitle.get("authRsgExcdRsonCd"));
+                    errorDvo.setHeaderName(headerTitle.get(AUTH_RSG_EXCD_RSON_CD));
                     errorDvo.setErrorData(
                         messageResourceService.getMessage(
                             "MSG_ALT_EXIST_INVALID_ITEM" // 유효하지 않은 항목이 있습니다.
@@ -351,7 +355,7 @@ public class WbncRentalResignExpectedMgtService {
                 } else if ("0".equals(excdYn) && StringUtil.isNotBlank(dvo.getAuthRsgExcdRsonCd())) {
                     ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                     errorDvo.setErrorRow(row);
-                    errorDvo.setHeaderName(headerTitle.get("authRsgExcdRsonCd"));
+                    errorDvo.setHeaderName(headerTitle.get(AUTH_RSG_EXCD_RSON_CD));
                     errorDvo.setErrorData(
                         messageResourceService.getMessage(
                             "MSG_ALT_EXIST_INVALID_ITEM" // 유효하지 않은 항목이 있습니다.
@@ -362,11 +366,11 @@ public class WbncRentalResignExpectedMgtService {
                     if (!List.of("1", "2", "3", "4", "5").contains(dvo.getAuthRsgExcdRsonCd())) {
                         ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
                         errorDvo.setErrorRow(row);
-                        errorDvo.setHeaderName(headerTitle.get("authRsgExcdRsonCd"));
+                        errorDvo.setHeaderName(headerTitle.get(AUTH_RSG_EXCD_RSON_CD));
                         // 잘못된 제외사유 입니다.
                         errorDvo.setErrorData(
                             messageResourceService
-                                .getMessage("MSG_ALT_INVLD_PARAM", headerTitle.get("authRsgExcdRsonCd"))
+                                .getMessage("MSG_ALT_INVLD_PARAM", headerTitle.get(AUTH_RSG_EXCD_RSON_CD))
                         );
                         excelUploadErrorDvos.add(errorDvo);
                     }
