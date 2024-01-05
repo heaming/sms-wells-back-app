@@ -53,7 +53,6 @@ public class WsnaReturningGoodsStoreDto {
         String cntrDtlNo, /*고객번호*/
         String cntrNo, /*계약번호*/
         String cntrSn, /*계약순번*/
-        String itemGr, /*상품구분*/
         String rcgvpKnm, /*고객명*/
         String mngtUnitNm, /*관리단위*/
         String sellTpCd, /*판매유형코드*/
@@ -92,7 +91,8 @@ public class WsnaReturningGoodsStoreDto {
         String badDvNm, /*불량구분*/
         String mgtUnt, /*관리단위*/
         String errorCheck, /*등급오류*/
-        String rtngdConfYn1 /*기존반품확인여부*/
+        String rtngdConfYn1, /*기존반품확인여부*/
+        String itemGr /*상품그룹*/
 
     ) {}
 
@@ -136,8 +136,6 @@ public class WsnaReturningGoodsStoreDto {
         String wkWareNo, /*작업창고번호*/
         String rtngdConfYn, /*반품확인여부*/
         String fnlItmGdCd, /*최종품목등급코드*/
-        String itemGrNm, /*품목구분명*/
-        String itemGr, /*품목구분*/
 
         String itmOstrNo, /*품목출고번호*/
         String ostrTpCd, /*출고구분코드*/
@@ -178,8 +176,6 @@ public class WsnaReturningGoodsStoreDto {
         String wkWareNo, /*작업창고번호*/
         String rtngdConfYn, /*반품확인여부*/
         String fnlItmGdCd, /*최종품목등급코드*/
-        String itemGrNm, /*품목구분명*/
-        String itemGr, /*품목구분*/
 
         String itmOstrNo, /*품목출고번호*/
         String ostrTpCd, /*출고구분코드*/
