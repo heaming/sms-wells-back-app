@@ -288,7 +288,30 @@
           LEFT JOIN TB_CBBO_BND_CNTR_BAS T2 ON T2.BASE_YM = T1.BASE_YM  AND T2.CNTR_NO = T1.CNTR_NO AND T2.CNTR_SN = T1.CNTR_SN AND T2.DTA_DL_YN = 'N'
           LEFT JOIN TB_CUBS_CST_BAS T3 ON T3.CST_NO = T1.CST_NO AND T3.DTA_DL_YN = 'N'
           LEFT JOIN TB_SSCT_CNTR_BAS T4 ON T4.CNTR_NO = T1.CNTR_NO AND T4.DTA_DL_YN = 'N'
-          LEFT JOIN TB_GBCO_ADR_BAS T5 ON T5.ADR_ID = T3.ADR_ID AND T5.DTA_DL_YN = 'N'
+          LEFT JOIN (
+                    SELECT CR.CNTR_ADRPC_ID /* 계약주소지ID */
+                         , CB.ADR_ID /* 주소ID */
+                         , CR.DTL_CNTR_NO /* 상세계약번호 */
+                         , CR.DTL_CNTR_SN /* 상세계약일련번호 */
+                         , CB.LOCARA_TNO /* 전화번호1 */
+                         , CB.EXNO_ENCR /* 전화번호2 */
+                         , CB.IDV_TNO /* 전화번호3 */
+                         , CB.CRAL_LOCARA_TNO /* 휴대전화번호1 */
+                         , CB.MEXNO_ENCR /* 휴대전화번호2 */
+                         , CB.CRAL_IDV_TNO /* 휴대전화번호3 */
+                         , NVL(AB.NEW_ADR_ZIP, AB.OLD_ADR_ZIP) AS SPP_ZIP /* 우편번호 */
+                         , NVL(AB.RNADR, AB.LTN_ADR) AS SPP_ADR /* 주소 */
+                         , NVL(AB.RDADR, AB.LTN_DTL_ADR) AS SPP_DTL_ADR /* 상세주소 */
+                      FROM TB_SSCT_CNTR_ADR_REL CR /* 계약주소관계 */
+                      LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS CB /* 계약주소지기본 */
+                        ON CB.CNTR_ADRPC_ID = CR.CNTR_ADRPC_ID
+                      LEFT OUTER JOIN TB_GBCO_ADR_BAS AB /* 주소기본 */
+                        ON AB.ADR_ID = CB.ADR_ID
+                     WHERE CR.ADRPC_TP_CD = '1'   /* 계약주소 */
+                       AND CR.DTA_DL_YN = 'N'
+                    ) T5
+            ON T1.CNTR_NO = T5.DTL_CNTR_NO
+           AND T1.CNTR_SN = T5.DTL_CNTR_SN
           LEFT JOIN TB_SSCT_CNTR_WELLS_DTL T6 ON T6.CNTR_NO = T1.CNTR_NO AND T6.CNTR_SN = T1.CNTR_SN AND T6.DTA_DL_YN = 'N'
           LEFT JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T7 ON T7.SL_CL_YM = T1.BASE_YM AND T7.CNTR_NO = T1.CNTR_NO AND T7.CNTR_SN = T1.CNTR_SN AND T7.DTA_DL_YN = 'N'
           LEFT JOIN TB_SSCT_CNTR_DTL T8 ON T8.CNTR_NO = T1.CNTR_NO AND T8.CNTR_SN = T1.CNTR_SN AND T8.DTA_DL_YN = 'N'
