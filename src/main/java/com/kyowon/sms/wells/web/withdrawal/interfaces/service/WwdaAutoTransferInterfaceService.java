@@ -71,8 +71,15 @@ public class WwdaAutoTransferInterfaceService {
     public List<WwdaAutoTransferInterfaceDto.SearchObjectRes> getObjectItemizations(
         WwdaAutoTransferInterfaceDto.SearchObjectReq dto
     ) {
+        WwdaAutoTransferObjectItemizationInterfaceSearchDvo searchDvo = converter
+            .mapAutoTransferObjectItemizationInterfaceSearch(dto);
+        searchDvo.setSellTps(
+            dto.sellTps().stream()
+                .filter((item) -> !StringUtils.isEmpty(item) && !item.equals("SELL_TP_CD"))
+                .collect(Collectors.toList())
+        );
         return converter
-            .mapWwdaAutoTransferDvoToSearchObjectRes(mapper.selectObjectItemizations(dto));
+            .mapWwdaAutoTransferDvoToSearchObjectRes(mapper.selectObjectItemizations(searchDvo));
     }
 
     /**
