@@ -21,4 +21,8 @@ public interface WwfeaAccountNetIncreaseMapper {
         WwfeaAccountNetIncreaseDto.SearchReq req
     );
 
+    WwfeaAccountNetIncreaseDto.SearchBatchRes selectAccountNetIncreaseBatchTime(
+        WwfeaAccountNetIncreaseDto.SearchReq req
+    );
+
 }

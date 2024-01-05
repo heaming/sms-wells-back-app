@@ -96,4 +96,10 @@ public class WwfeaAccountNetIncreaseDto {
         int accNincYn /* 계정순증 */
 
     ) {}
+
+    public record SearchBatchRes(
+
+        String fnlMdfcDtm /* 최종수정시간 */
+
+    ) {}
 }
