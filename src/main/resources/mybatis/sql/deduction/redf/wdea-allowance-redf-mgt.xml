@@ -891,18 +891,18 @@
                                                    THEN M.REDF_ADSB_OC_AMT
                                                    ELSE M.REDF_ADSB_CTR_CNFM_AMT END)
                                     END), 0)) AS DLQ_REDF_AMT /*연체되물림*/
-                                , SUM(NVL((CASE WHEN M.REDF_ADSB_TP_CD = '0203' AND S.SELL_TP_CD = '2'
+                                , SUM(NVL((CASE WHEN M.REDF_ADSB_TP_CD = '0203' AND S.SELL_TP_CD_2 IS NOT NULL
                                         THEN S.FEE_ACKMT_BASE_AMT
                                     END), 0)) AS REDF_PERF_RENTAL /*되물림구분이 연체일 때, 되물림실적.렌탈*/
-                                , SUM(NVL((CASE WHEN M.REDF_ADSB_TP_CD = '0203' AND S.SELL_TP_CD = '2'
+                                , SUM(NVL((CASE WHEN M.REDF_ADSB_TP_CD = '0203' AND S.SELL_TP_CD_2 IS NOT NULL
                                         THEN (CASE WHEN M.REDF_ADSB_CTR_CNFM_AMT IS NULL
                                                    THEN M.REDF_ADSB_OC_AMT
                                                    ELSE M.REDF_ADSB_CTR_CNFM_AMT END)
                                     END), 0)) AS DLQ_REDF_PERF_RENTAL /*되물림구분이 연체일 때, 연체되물림실적.렌탈*/
-                                , SUM(NVL((CASE WHEN M.REDF_ADSB_TP_CD = '0203' AND S.SELL_TP_CD = '1'
+                                , SUM(NVL((CASE WHEN M.REDF_ADSB_TP_CD = '0203' AND S.SELL_TP_CD_1 IS NOT NULL
                                         THEN S.FEE_ACKMT_BASE_AMT
                                     END), 0)) AS REDF_PERF_EXCP /*되물림구분이 연체일 때, 되물림실적.가전외일시불*/
-                                , SUM(NVL((CASE WHEN M.REDF_ADSB_TP_CD = '0203' AND S.SELL_TP_CD = '1'
+                                , SUM(NVL((CASE WHEN M.REDF_ADSB_TP_CD = '0203' AND S.SELL_TP_CD_1 IS NOT NULL
                                         THEN (CASE WHEN M.REDF_ADSB_CTR_CNFM_AMT IS NULL
                                                    THEN M.REDF_ADSB_OC_AMT
                                                    ELSE M.REDF_ADSB_CTR_CNFM_AMT END)
@@ -910,7 +910,9 @@
                              FROM TB_FEDD_FEE_REDF_ADSB_BAS M /*수수료되물림재지급기본*/
                              LEFT OUTER JOIN (
                              				  SELECT S1.FEE_REDF_ADSB_ID
-                             				  	   , S2.SELL_TP_CD /*1: 일시불, 2: 렌탈*/
+                                                   , MAX(CASE WHEN S2.SELL_TP_CD = '1' THEN '1' END) AS SELL_TP_CD_1
+                                                   , MAX(CASE WHEN S2.SELL_TP_CD = '2' THEN '2' END) AS SELL_TP_CD_2
+                             				  	   <!--, S2.SELL_TP_CD /*1: 일시불, 2: 렌탈*/-->
                              				  	   , SUM(S2.FEE_ACKMT_BASE_AMT) AS FEE_ACKMT_BASE_AMT /*수수료인정기준금액, = 되물림실적*/
                              				  	   , SUM(S1.REDF_ADSB_OC_AMT) AS REDF_ADSB_OC_AMT
                              				  	   , SUM(S1.REDF_ADSB_CTR_CNFM_AMT) AS REDF_ADSB_CTR_CNFM_AMT
@@ -926,7 +928,7 @@
                               					 AND S1.REDF_ADSB_OC_YM BETWEEN #{redfAdsbOcYmFrom} AND #{redfAdsbOcYmTo} /*PARAM: 발생년월*/
                                                  </if>
                                                GROUP BY S1.FEE_REDF_ADSB_ID
-                                                      , S2.SELL_TP_CD
+                                                      <!--, S2.SELL_TP_CD-->
                          	   ) S
                          	   ON M.FEE_REDF_ADSB_ID = S.FEE_REDF_ADSB_ID
                             WHERE M.DTA_DL_YN = 'N'
