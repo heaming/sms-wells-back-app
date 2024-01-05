@@ -57,7 +57,7 @@ public class WsnaReturningGoodsStoreService {
      * @param dtos
      * @return
      */
-    @Transactional
+    @Transactional(timeout = 300)
     public int saveReturningGoodsStores(List<SaveReq> dtos) {
         int processCount = 0;
         int serialNumber = 0;
@@ -339,7 +339,7 @@ public class WsnaReturningGoodsStoreService {
      * @param dtos
      * @return
      */
-    @Transactional
+    @Transactional(timeout = 300)
     public int saveReturningGoodsStoreConfirmations(List<SaveConfirmationReq> dtos) {
         int processCount = 0;
 
