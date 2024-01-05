@@ -133,6 +133,32 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
     }
 
     @Test
+    @DisplayName("wells 일시불 사전점검 테스트")
+    void testPrescreeningContractForSinglePayment() throws Exception {
+        // given
+        CreateSinglePaymentReq req = CreateSinglePaymentReq.builder()
+            .inCls("5")
+            .pdCd01("WP02110453")
+            .rcpChnlDtl("2050")
+            .dscDv("1")
+            .uswy("0")
+            .mngtPrd("3")
+            .build();
+        EaiWrapper<CreateSinglePaymentReq> dto = new EaiWrapper(req);
+
+        // when & then
+        MockHttpServletRequestBuilder request = post(BASE_URL + "/create-singlepayment-contract")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(dto));
+
+        mockMvc.perform(request)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.header.ERR_OC_YN").value("N"))
+            .andExpect(jsonPath("$.body.PRCS_RSLT").value("S"))
+        ;
+    }
+
+    @Test
     @DisplayName("wells 렌털 계약생성")
     void createContractForRental() throws Exception {
         // given
@@ -200,6 +226,39 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
         mockMvc.perform(request)
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.header.ERR_OC_YN").value("N"));
+    }
+
+    @Test
+    @DisplayName("wells 렌탈 사전점검 테스트")
+    void testPrescreeningContractForRental() throws Exception {
+        // given
+        CreateRentalReq req = CreateRentalReq.builder()
+            .inDv("5")
+            .prtnrNo("1653227")
+            .rcpChnlDtl("2010")
+            .pdCd("WP02120342")
+            .dscDvCd("8")
+            .dscTpCd("03")
+            .rtlfe1("24900")
+            .dutyUse("36")
+            .vstPrdCd("3")
+            .uswyCd("0")
+            .chgMcn1("60")
+            .rgstCost("100000")
+            .build();
+
+        EaiWrapper<CreateRentalReq> dto = new EaiWrapper(req);
+
+        // when & then
+        MockHttpServletRequestBuilder request = post(BASE_URL + "/create-rental-contract")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(dto));
+
+        mockMvc.perform(request)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.header.ERR_OC_YN").value("N"))
+            .andExpect(jsonPath("$.body.RS_CD").value("S"))
+        ;
     }
 
     @Test
