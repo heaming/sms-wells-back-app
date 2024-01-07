@@ -1275,6 +1275,17 @@
            AND M.OG_TP_CD = AK06.OG_TP_CD
            AND M.PRTNR_NO = AK06.PRTNR_NO
            AND AK06.OG_TP_CD = 'W01' /* 수석플래너는 P조직만 있음 */
+         INNER JOIN LATERAL ( SELECT /*+ no_unnest */
+                                     B.PSTN_DV_CD
+                                FROM TB_OGBS_MM_PRTNR_IZ B
+                               WHERE B.PERF_EXCD_OJ_YN = 'N'
+                                 AND D.REDF_ADSB_OC_YM >= B.BASE_YM /*되물림발생년월 이거나 없으면 이하, 가장최신*/
+                                 AND D.OG_TP_CD = B.OG_TP_CD
+                                 AND D.PRTNR_NO = B.PRTNR_NO
+                               ORDER BY B.BASE_YM DESC
+                               FETCH FIRST 1 ROWS ONLY
+                                ) AK07
+            ON 1 = 1
           LEFT OUTER JOIN (
                             SELECT C1.BASE_YM
                                  , C1.PERF_YM
@@ -1306,7 +1317,8 @@
                        AND TO_NUMBER(AK05.PSTN_DV_CD) <![CDATA[>=]]> 7
                    </when>
                    <otherwise> /*asis는 연체는 현재 직급, (다시 재수정) 이규병 파트장님 요청, 현직급 아닌 실적 당시 직급으로 변경요청 2023-12-13 by.김대원*/
-                       AND TO_NUMBER(AK05.PSTN_DV_CD) <![CDATA[>=]]> 7 /*지구장 이하, 직급은 지국장도 포함*/
+                               /*지구장이하 연체일 경우. 실적 시점 직급이 아닌 발생 시점 직급으로 조회 필요!!!!(수당(실적) 되물림 관리 - W-DE-U-0003M02)황부장님 */
+                       AND TO_NUMBER(AK07.PSTN_DV_CD) <![CDATA[>=]]> 7 /*지구장 이하, 직급은 지국장도 포함*/
                    </otherwise>
                </choose>
            </if>
@@ -1319,12 +1331,12 @@
                    AND TO_NUMBER(AK05.PSTN_DV_CD) <![CDATA[<=]]> 7 /*지점장 이상*/
                </when>
                <otherwise> /*연체는 현재 직급, (다시 재수정) 이규병 파트장님 요청, 현직급 아닌 실적 당시 직급으로 변경요청 2023-12-13 by.김대원*/
-                   AND TO_NUMBER(AK05.PSTN_DV_CD) <![CDATA[<=]]> 7 /*지점장 이상*/
+                           /*지국장이상 연체일 경우. 실적 시점 직급이 아닌 발생 시점 직급으로 조회 필요!!!!(수당(실적) 되물림 관리 - W-DE-U-0003M02)황부장님 */
+                   AND TO_NUMBER(AK07.PSTN_DV_CD) <![CDATA[<=]]> 7 /*지점장 이상*/
                </otherwise>
                </choose>
            </if>
          ORDER BY D.PERF_YM, AK05.OG_CD, AK05.PRTNR_NO
     </select>
-
 
 </mapper>
