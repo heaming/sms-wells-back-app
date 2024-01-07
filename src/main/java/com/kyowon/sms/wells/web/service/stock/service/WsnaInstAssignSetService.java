@@ -27,14 +27,27 @@ public class WsnaInstAssignSetService {
     }
 
     public int createInstAssignSetDatas(List<WsnaInstAssignSetDto.CreateReq> dtos) {
-        int cnt = 0;
+        int cnt = -1;
         for (WsnaInstAssignSetDto.CreateReq dto : dtos) {
+            cnt = 0;
+
             WsnaInstAssignSetDvo dvo = this.converter.mapCreateReqToInstAssignSetDvo(dto);
-            cnt += mapper.insertInstAssignSet(dvo);
+            dvo.setRstrCndtSn(dto.rstrCndtSn());
+            cnt = mapper.selectInstAssignCnt(dvo);
+
+            if(cnt == 0){
+                int rstrCndtSn =  mapper.selectInstAssignSeq(dvo);
+                dvo.setRstrCndtSn(rstrCndtSn);
+
+                mapper.insertInstAssignBaseSet(dvo);
+                mapper.insertInstAssignDtlSet(dvo);
+            }else{
+                mapper.updateInstAssignBaseSet(dvo);
+            }
 
         }
 
-        return cnt;
+        return dtos.size();
     }
 
     public int removeInstAssignSetDatas(List<WsnaInstAssignSetDto.RemoveReq> dtos) {
