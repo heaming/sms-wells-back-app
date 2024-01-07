@@ -411,54 +411,68 @@
              , B1.RENTAL_RGST_COST + B1.NOM_SL_AMT AS TOT_SL_AMT                                      /* 매출금액-매출합계 */
              , B1.RENTAL_RGST_COST - B1.RENTAL_RGST_COST_VAT + B1.NOM_SL_AMT - B1.VAT AS TOT_SPL  /* 공급가액-매출합계 */
              , B1.RENTAL_RGST_COST_VAT + B1.VAT AS TOT_VAT                                            /* 부가세-매출합계 */
-          FROM (SELECT A1.SL_RCOG_DT
-                     , A1.SELL_TP_CD
-                     , A1.SELL_TP_DTL_CD
-                     , A1.SAP_PD_DV_CD
+          FROM (SELECT C1.SL_RCOG_DT
+                     , C1.SELL_TP_CD
+                     , C1.SELL_TP_DTL_CD
+                     , C1.SAP_PD_DV_CD
                      <if test="@MybatisUtils@equals(inqrDv, '2')">
-                     , A1.PD_CD  /* 집계선택시제외 */
+                     , C1.PD_CD  /* 집계선택시제외 */
                      </if>
-                     , NVL(SUM(CASE WHEN A1.RENTAL_TN = 0 THEN A1.RENTAL_RGST_COST END), 0) AS RENTAL_RGST_COST
-                     , NVL(SUM(CASE WHEN A1.RENTAL_TN = 0 THEN A1.RENTAL_RGST_COST_VAT END), 0) AS RENTAL_RGST_COST_VAT
-                     , NVL(SUM(A1.THM_SL_SUM_AMT), 0) AS NOM_SL_AMT
-                     , NVL(SUM(A1.SL_SUM_VAT), 0) AS VAT
-                 FROM TB_CBCL_WELLS_SL_MM_CL_IZ A1  /* WELLS매출춸마감내역 */
-                 LEFT OUTER JOIN
-                      (SELECT Z1.CNTR_NO
-                            , Z1.CNTR_SN
-                         FROM TB_SSCT_CNTR_PD_REL Z1  /* 계약상품관계 */
-                        INNER JOIN TB_PDBS_PD_BAS Z2  /* 상품기본 */
-                           ON Z2.PD_CD = Z1.BASE_PD_CD
-                          AND Z2.DTA_DL_YN = 'N'
-                        INNER JOIN TB_PDBS_PD_CLSF_BAS Z3  /* 상품분류기본 */
-                           ON Z3.PD_CLSF_ID = Z2.PD_CLSF_ID
-                          AND Z3.REF_PD_CLSF_VAL IN ('05003002','0A003002')  /*원두제외*/
-                          AND Z3.DTA_DL_YN = 'N'
-                        WHERE Z1.DTA_DL_YN = 'N'
-                      ) A3
-                   ON A3.CNTR_NO = A1.CNTR_NO
-                  AND A3.CNTR_SN = A1.CNTR_SN
-                WHERE A1.SL_RCOG_DT BETWEEN #{baseDtFrom} AND #{baseDtTo}
-                  AND A1.SL_RCOG_DT LIKE A1.SL_CL_YM || '%'
-                  AND A1.SELL_TP_CD = '2'
-                  AND A1.SELL_TP_DTL_CD IN ('21', '23')
-                  AND A3.CNTR_NO IS NULL
-                  AND A3.CNTR_SN IS NULL
-                   <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
-                   AND A1.SELL_TP_DTL_CD = #{sellTpDtlCd}
-                   </if>
-                   <if test="@MybatisUtils@isNotEmpty(sellChnlDvCd) and !@MybatisUtils@equals(sellChnlDvCd, 'ALL')">
-                   AND A1.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDvCd}
-                   </if>
-                   <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
-                   AND A1.SAP_PD_DV_CD = #{sapPdDvCd}
-                   </if>
-                 GROUP BY A1.SL_RCOG_DT
-                        , A1.SELL_TP_CD
-                        , A1.SELL_TP_DTL_CD
-                        , A1.SAP_PD_DV_CD
+                     , SUM(C1.RENTAL_RGST_COST) AS RENTAL_RGST_COST
+                     , SUM(SIGN(C1.RENTAL_RGST_COST) * (ABS(C1.RENTAL_RGST_COST) - ABS(CEIL(ABS(C1.RENTAL_RGST_COST / C1.SELL_QTY) / 1.1) * C1.SELL_QTY))) AS RENTAL_RGST_COST_VAT
+                     , SUM(C1.NOM_SL_AMT) AS NOM_SL_AMT
+                     , SUM(C1.VAT) AS VAT
+                 FROM (SELECT A1.SL_RCOG_DT
+                            , A1.SELL_TP_CD
+                            , A1.SELL_TP_DTL_CD
+                            , A1.SAP_PD_DV_CD
+                            , A1.PD_CD
+                            , NVL(A1.SELL_QTY, 1) AS SELL_QTY
+                            , CASE WHEN A1.RENTAL_TN = 0 THEN NVL(A1.RENTAL_RGST_COST, 0) - NVL(A2.CNTRAM_DSC_AMT, 0)
+                                   ELSE 0 END RENTAL_RGST_COST
+                            , NVL(A1.THM_SL_SUM_AMT, 0) AS NOM_SL_AMT
+                            , NVL(A1.SL_SUM_VAT, 0) AS VAT
+                         FROM TB_CBCL_WELLS_SL_MM_CL_IZ A1  /* WELLS매출춸마감내역 */
+                         LEFT OUTER JOIN TB_SSCT_CNTR_DTL A2  /* 계약상세 */
+                           ON A2.CNTR_NO = A1.CNTR_NO
+                          AND A2.CNTR_SN = A2.CNTR_SN
+                         LEFT OUTER JOIN
+                              (SELECT Z1.CNTR_NO
+                                    , Z1.CNTR_SN
+                                 FROM TB_SSCT_CNTR_PD_REL Z1  /* 계약상품관계 */
+                                INNER JOIN TB_PDBS_PD_BAS Z2  /* 상품기본 */
+                                   ON Z2.PD_CD = Z1.BASE_PD_CD
+                                  AND Z2.DTA_DL_YN = 'N'
+                                INNER JOIN TB_PDBS_PD_CLSF_BAS Z3  /* 상품분류기본 */
+                                   ON Z3.PD_CLSF_ID = Z2.PD_CLSF_ID
+                                  AND Z3.REF_PD_CLSF_VAL IN ('05003002','0A003002')  /*원두제외*/
+                                  AND Z3.DTA_DL_YN = 'N'
+                                WHERE Z1.DTA_DL_YN = 'N'
+                              ) A3
+                           ON A3.CNTR_NO = A1.CNTR_NO
+                          AND A3.CNTR_SN = A1.CNTR_SN
+                        WHERE A1.SL_RCOG_DT BETWEEN #{baseDtFrom} AND #{baseDtTo}
+                          AND A1.SL_RCOG_DT LIKE A1.SL_CL_YM || '%'
+                          AND A1.SELL_TP_CD = '2'
+                          AND A1.SELL_TP_DTL_CD IN ('21', '23')
+                          AND A3.CNTR_NO IS NULL
+                          AND A3.CNTR_SN IS NULL
+                           <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                           AND A1.SELL_TP_DTL_CD = #{sellTpDtlCd}
+                           </if>
+                           <if test="@MybatisUtils@isNotEmpty(sellChnlDtl) and !@MybatisUtils@equals(sellChnlDtl, 'ALL')">
+                           AND A1.SELL_INFLW_CHNL_DTL_CD = #{sellChnlDtl}
+                           </if>
+                           <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
+                           AND A1.SAP_PD_DV_CD = #{sapPdDvCd}
+                           </if>
+                      ) C1
+                 GROUP BY C1.SL_RCOG_DT
+                        , C1.SELL_TP_CD
+                        , C1.SELL_TP_DTL_CD
+                        , C1.SAP_PD_DV_CD
                         <if test="@MybatisUtils@equals(inqrDv, '2')">
-                        , A1.PD_CD  /* 집계선택시제외 */
+                        , C1.PD_CD  /* 집계선택시제외 */
                         </if>
                ) B1
           LEFT OUTER JOIN T_CMZ_CD_D B2  /* 코드상세 */
