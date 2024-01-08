@@ -14,7 +14,15 @@ public interface WsnaInstAssignSetMapper {
 
     PagingResult<SearchRes> selectInstAssignSet(SearchReq dto, PageInfo pageInfo);
 
-    int insertInstAssignSet(WsnaInstAssignSetDvo dvo);
+    int selectInstAssignSeq(WsnaInstAssignSetDvo dvo);
+
+    int selectInstAssignCnt(WsnaInstAssignSetDvo dvo);
+
+    int insertInstAssignBaseSet(WsnaInstAssignSetDvo dvo);
+
+    int insertInstAssignDtlSet(WsnaInstAssignSetDvo dvo);
+
+    int updateInstAssignBaseSet(WsnaInstAssignSetDvo dvo);
 
     int deleteInstAssignSet(WsnaInstAssignSetDvo dvo);
 
