@@ -1,7 +1,5 @@
 package com.kyowon.sms.wells.web.service.interfaces.service;
 
-import java.util.List;
-
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.interfaces.dto.WsniCapsulepkgChSppinfDto.SearchReq;
@@ -33,15 +31,13 @@ public class WsniCapsulepkgChSppinfInterfaceService {
      * @param dto { cntrNo: 계약번호, cntrSn: 계약일련번호, pageIndex: 페이지인덱스, pageSize: 페이지크기}
      * @return 조회결과
      */
-    public List<SearchRes> getCapsulepkgChSppinfs(SearchReq dto) {
+    public PagingResult<SearchRes> getCapsulepkgChSppinfs(SearchReq dto) {
 
         PageInfo pageinfo = new PageInfo();
         pageinfo.setPageIndex(dto.pageIndex());
         pageinfo.setPageSize(dto.pageSize());
 
-        PagingResult<SearchRes> result = this.mapper.selectCapsulepkgChSppinfs(dto, pageinfo);
-
-        return result.getList();
+        return this.mapper.selectCapsulepkgChSppinfs(dto, pageinfo);
     }
 
 }
