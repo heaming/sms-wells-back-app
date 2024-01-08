@@ -21,12 +21,12 @@ public interface WpsbOnlineLinkCourseInqrMapper {
         WpsbOnlineLinkCourseDvo dvo
     );
 
-    PagingResult<WpsbOnlineLinkCourseDvo> selectOnlineLinkCourseInqr128Pages(
+    PagingResult<WpsbOnlineLinkCourseDvo> selectOnlineLinkCourseInqr126Pages(
         WpsbOnlineLinkCourseDvo dvo,
         PageInfo pageInfo
     );
 
-    List<WpsbOnlineLinkCourseDvo> selectOnlineLinkCourseInqr128Pages(
+    List<WpsbOnlineLinkCourseDvo> selectOnlineLinkCourseInqr126Pages(
         WpsbOnlineLinkCourseDvo dvo
     );
 
