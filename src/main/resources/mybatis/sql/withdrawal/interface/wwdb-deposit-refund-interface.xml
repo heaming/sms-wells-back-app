@@ -4,56 +4,87 @@
 
     <select id="selectDepositRefunds"
             resultType="com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdbDepositRefundInterfaceDto$SearchRes">
-        SELECT M.RVE_DV_CD_NM
-             , M.RVE_DT
-             , M.PERF_DT
-             , M.RFND_DT
-             , M.RVE_AMT
-             , M.DP_TP_CD_NM
-             , ( SELECT C2.FNIT_NM FROM TB_RVDW_FNIT_CD C2 WHERE C2.FNIT_CD = M.FNIT_CD ) AS FNIT_CD_NM /*금융기관명*/
-             , M.AC_CRCD_NO
-             , M.ISTM_MCN
-             , M.PRM_EYN
-             , M.HDWR_YN
-             , M.MTR_KEP_EYN
-          FROM (
-                 SELECT F_CMZ_CD_NM('TNT_WELLS', 'RVE_DV_CD', A.RVE_DV_CD) AS RVE_DV_CD_NM
-                      , CASE WHEN A.DP_DV_CD IN ('1' , '3') THEN B.RVE_DT /* 수납일자(입금) */
-                              END AS RVE_DT /* 수납일자 */
-                      , A.PERF_DT /* 실적일자 */
-                      , CASE WHEN A.DP_DV_CD IN ('2' , '4') THEN B.RVE_DT /* 환불일자(환불) */
-                              END AS RFND_DT /* 환불일자 */
-                      , A.RVE_AMT /* 금액 */
-                      , A.DP_TP_CD
-                      , F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', A.DP_TP_CD) AS DP_TP_CD_NM
-                      , CASE WHEN A.DP_MES_CD = '02' THEN C.CRDCD_FNIT_CD
-                             ELSE C.FNIT_CD
-                         END AS FNIT_CD /*금융기관명*/
-                      , CASE WHEN A.DP_MES_CD = '02' THEN C.CRCDNO_ENCR
-                             ELSE C.ACNO_ENCR
-                         END AS AC_CRCD_NO /*카드/계좌번호*/
-                      , H.ISTM_MCN /* 할부개월 */
-                      , CASE WHEN NVL(F.PRM_PTRM_MCN, 0) > 0 THEN 'Y'
-                             ELSE 'N'
-                        END AS PRM_EYN /* 선납유무 */
-                      , 'N' AS HDWR_YN /* 수기여부 */
-                      , 'N' AS MTR_KEP_EYN /* 자료보관 TODO: 확인필요 */
-                   FROM TB_RVDW_RVE_DTL A /* 수납상세 */
-                  INNER JOIN TB_RVDW_RVE_BAS B /* 수납기본 */
-                     ON B.KW_GRP_CO_CD = A.KW_GRP_CO_CD
-                    AND B.RVE_NO = A.RVE_NO
-             LEFT OUTER JOIN TB_RVDW_ITG_DP_BAS C /* 통합입금기본 */
-                     ON C.ITG_DP_NO = A.ITG_DP_NO
-                  INNER JOIN TB_SSCT_CNTR_DTL H /* 계약상세 */
-                     ON H.CNTR_NO = A.CNTR_NO
-                    AND H.CNTR_SN = A.CNTR_SN
-                  INNER JOIN TB_SSCT_CNTR_WELLS_DTL F /* 계약WELLS상세 */
-                     ON F.CNTR_NO = A.CNTR_NO
-                    AND F.CNTR_SN = A.CNTR_SN
-                  WHERE A.DTA_DL_YN = 'N'
-                    AND A.CNTR_NO = #{cntrNo}
-                    AND A.CNTR_SN = #{cntrSn}
-               ) M
-      ORDER BY M.PERF_DT DESC
+           SELECT DISTINCT M.RVE_DV_CD_NM -- 수납구분코드명
+                , M.RVE_DT RVE_DT
+                , M.PERF_DT -- 실적일자
+                , M.RFND_DT -- 환불일자(환불)
+                , M.RVE_AMT -- 수납일자(입금)
+                , CASE WHEN M.DP_DV_CD = '1' THEN CASE WHEN M.DP_TP_CD IN ('0102', '0203') THEN M.DP_DV_CD_NM || '-' || M.DP_TP_CD_NM
+                                                       ELSE M.DP_DV_CD_NM || '-' || M.DP_TP_CD_NM || '-' || M.DEPT_NM
+                                                  END
+                       ELSE M.DP_DV_CD_NM || '-' || M.DP_TP_CD_NM
+                  END AS DP_TP_CD_NM -- 입금유형명
+                , ( SELECT C2.FNIT_NM FROM TB_RVDW_FNIT_CD C2 WHERE C2.FNIT_CD = M.FNIT_CD ) AS FNIT_CD_NM -- 금융기관명
+                , M.AC_CRCD_NO AS AC_CRCD_NO -- 카드/계좌번호
+                , M.ISTM_MCN -- 할부개월
+                , M.PRM_EYN -- 선납유무
+                , M.HDWR_YN -- 수기여부
+                , M.MTR_KEP_EYN -- 자료보관
+             FROM (
+                   SELECT
+                          F_CMZ_CD_NM('TNT_WELLS', 'RVE_DV_CD', T1.RVE_DV_CD) AS RVE_DV_CD_NM -- 수납구분코드명
+                        , T1.PERF_DT -- 실적일자
+                        , CASE WHEN T1.DP_DV_CD IN ('1' , '3') THEN T1.RVE_DT -- 수납일자(입금)
+                          END AS RVE_DT -- 수납일자
+                        , CASE WHEN T1.DP_DV_CD IN ('2' , '4') THEN T1.RVE_DT -- 환불일자(환불)
+                          END AS RFND_DT -- 환불일자
+                        , T1.RVE_AMT -- 금액
+                        , T1.RVE_AK_NO -- 수납요청번호
+                        , T1.RVE_AK_SN -- 수납요청일련번호
+                        , T1.ITG_DP_NO -- 통합입금번호
+                        , T1.DP_DV_CD -- 입금구분코드
+                        , F_CMZ_CD_NM('TNT_WELLS', 'DP_DV_CD', T1.DP_DV_CD) AS DP_DV_CD_NM
+                        , T1.DP_TP_CD -- 입금유형코드
+                        , F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', T1.DP_TP_CD) AS DP_TP_CD_NM
+                        , CASE WHEN T1.ITG_DP_NO IS NOT NULL THEN CASE WHEN T1.DP_MES_CD = '02' THEN T3.CRDCD_FNIT_CD
+                                                                       ELSE T3.FNIT_CD
+                                                                  END
+                               ELSE '' -- 통합입금 테이블에 있는 경우에만 금융기관코드 보여줄 수 있음
+                          END AS FNIT_CD -- 금융기관코드
+                        , CASE WHEN T1.ITG_DP_NO IS NOT NULL THEN CASE WHEN T1.DP_MES_CD = '02' THEN T3.CRCDNO_ENCR
+                                                                       ELSE T3.ACNO_ENCR
+                                                                  END
+                               ELSE CASE WHEN T1.DP_MES_CD = '02' THEN T4.CRCDNO_ENCR
+                                          ELSE T4.ACNO_ENCR
+                                    END
+                           END AS AC_CRCD_NO -- 카드/계좌번호
+                        , CASE WHEN T1.ITG_DP_NO IS NOT NULL THEN CASE WHEN T1.DP_MES_CD = '02' THEN T3.CRDCD_ISTM_MCN
+                                                                       ELSE 0
+                                                                  END
+                               ELSE CASE WHEN T1.DP_MES_CD = '02' THEN T4.CRDCD_ISTM_MCN
+                                          ELSE 0
+                                    END
+                           END AS ISTM_MCN -- 할부개월
+                        , T4.FST_RGST_USR_ID
+                        , T7.DEPT_NM
+                        , CASE WHEN ( T1.RVE_DT <![CDATA[<=]]> SUBSTR(T5.CNTR_CNFM_DTM, 0, 8) ) AND NVL(T6.PRM_PTRM_MCN, 0) > 0  THEN 'Y' -- 수납일자가 확정일자보다 작거나 같은 경우에만 선납여부 노출 - 조운용파트장 확인 완료.
+                               ELSE 'N'
+                          END AS PRM_EYN -- 선납유무
+                        , T6.PRM_PTRM_MCN -- 선납기간개월수
+                        , T5.CNTR_CNFM_DTM -- 계약확정일자
+                        , 'N' AS HDWR_YN -- 수기여부
+                        , 'N' AS MTR_KEP_EYN -- 자료보관 TODO: 확인필요
+                     FROM TB_RVDW_RVE_DTL T1 -- 수납상세
+                     LEFT OUTER JOIN TB_RVDW_RVE_BAS T2	-- 수납기본
+                       ON T2.KW_GRP_CO_CD='2000'
+                      AND T2.RVE_AK_NO = T1.RVE_AK_NO
+                     LEFT OUTER JOIN TB_RVDW_ITG_DP_BAS T3 -- 통합입금기본
+                       ON T3.ITG_DP_NO = T1.ITG_DP_NO
+                     LEFT OUTER JOIN TB_RVDW_RVE_AK_DTL T4	-- 수납요청상세
+                       ON T4.RVE_AK_NO = T1.RVE_AK_NO
+                      AND T4.RVE_AK_SN = T1.RVE_AK_SN
+                     LEFT OUTER JOIN TB_SSCT_CNTR_BAS T5 -- 계약기본
+                       ON T5.CNTR_NO = T1.CNTR_NO
+                     LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T6 -- 계약WELLS상세
+                       ON T6.CNTR_NO = T1.CNTR_NO
+                      AND T6.CNTR_SN = T1.CNTR_SN
+                     LEFT OUTER JOIN T_CMP_USR_ACO_M T7	-- 사용자계정기본
+                       ON T7.EPNO = T4.FST_RGST_USR_ID -- T4.FST_RGST_USR_ID 에 사번 들어가면 잘못된 것인데 들어가 있음. USR_ID로 변경 시 쿼리 수정 되어야함
+                      AND t7.EPNO NOT IN ('999999')
+                    WHERE T1.DTA_DL_YN = 'N'
+                      AND T1.CNTR_NO = #{cntrNo}
+                      AND T1.CNTR_SN = #{cntrSn}
+                   ) M
+             ORDER BY M.PERF_DT DESC
     </select>
 </mapper>
