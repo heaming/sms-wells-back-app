@@ -35,38 +35,91 @@
                           ,AC211.CNTR_SN AS CNTR_SN
                           ,AC211.AS_IST_OJ_NO
                           ,VS106.SPP_IVC_NO AS TRACKING_NO
-                          , ( CASE WHEN #{reqdvCd} = '01' AND NVL((SELECT SPP_AK_RS_CD
+                          , ( CASE WHEN #{reqdvCd} = '01' AND (SELECT COUNT(1)     /*  이전 집하지시 신규체크 0체크  */
+                                                                FROM TB_SVPD_SPP_AK_RS_IZ T1
+                                                               WHERE T1.SPP_BZS_CST_ID = '30473216'
+                                                                 AND T1.CNTR_NO  = #{custNo}
+                                                                AND T1.CNTR_SN =  #{cntrSn}
+                                                                AND T1.SPP_IVC_NO = VS106.SPP_IVC_NO
+                                                                AND T1.SPP_RCP_DV_CD = '02'
+                                                                                    ) = 0 THEN 'Y'
+                                   WHEN #{reqdvCd} = '01' AND NVL((SELECT SPP_AK_RCPDT   /*  이전 집하지시 중복체크  */
                                                                FROM TB_SVPD_SPP_AK_RS_IZ V1
                                                               WHERE V1.CNTR_NO = AC211.CNTR_NO
                                                                 AND V1.CNTR_SN = AC211.CNTR_SN
                                                                 AND V1.SPP_IVC_NO = VS106.SPP_IVC_NO
                                                                 AND V1.SPP_BZS_CST_ID = '30473216'
-                                                                AND V1.SPP_AK_RCPDT = #{reqdvCd}
+                                                                AND V1.SPP_AK_RS_CD = 'S'
+                                                                AND V1.SPP_RCP_DV_CD = '02'
                                                                 AND V1.SPP_AK_SN = (SELECT MAX(SPP_AK_SN)
                                                                                    FROM TB_SVPD_SPP_AK_RS_IZ T1
                                                                                   WHERE T1.SPP_BZS_CST_ID = '30473216'
                                                                                     AND T1.CNTR_NO  = #{custNo}
                                                                                     AND T1.CNTR_SN =  #{cntrSn}
                                                                                     AND T1.SPP_IVC_NO = VS106.SPP_IVC_NO
-                                                                                    AND T1.SPP_AK_RCPDT = #{reqdvCd}
-                                                                                    AND T1.SPP_RCP_DV_CD = '02' )
-                                                                ),'X') != 'S'  THEN 'Y'
-                                  WHEN #{reqdvCd} = '02' AND NVL((SELECT COUNT(1)
-                                                              FROM TB_SVPD_SPP_AK_RS_IZ T1
-                                                             WHERE T1.CNTR_NO = AC211.CNTR_NO
-                                                               AND T1.CNTR_SN = AC211.CNTR_SN
-                                                               AND T1.SPP_IVC_NO = VS106.SPP_IVC_NO
-                                                               AND T1.SPP_BZS_CST_ID = '30473216'
-                                                               AND T1.SPP_AK_RS_CD = 'S'
-                                                               AND T1.SPP_AK_RCPDT = '02'),0) > 0 THEN 'N'
-                                  WHEN #{reqdvCd} = '02' AND NVL((SELECT COUNT(1)
-                                                              FROM TB_SVPD_SPP_AK_RS_IZ T1
-                                                             WHERE T1.CNTR_NO = AC211.CNTR_NO
-                                                               AND T1.CNTR_SN = AC211.CNTR_SN
-                                                               AND T1.SPP_IVC_NO = VS106.SPP_IVC_NO
-                                                               AND T1.SPP_BZS_CST_ID = '30473216'
-                                                               AND T1.SPP_AK_RS_CD = 'S'
-                                                               AND T1.SPP_AK_RCPDT = '01'),0) > 0 THEN 'Y'
+                                                                                    AND T1.SPP_AK_RS_CD = 'S'
+                                                                                    AND T1.SPP_RCP_DV_CD = '02')
+                                                                AND NVL((SELECT NVL(SUM(CASE WHEN SPP_AK_RS_CD = 'S' THEN 1 END),0) AS U_CNT
+                                                                           FROM TB_SVPD_SPP_AK_RS_IZ T1
+                                                                          WHERE T1.SPP_BZS_CST_ID = '30473216'
+                                                                            AND T1.CNTR_NO  = #{custNo}
+                                                                            AND T1.CNTR_SN =  #{cntrSn}
+                                                                            AND T1.SPP_IVC_NO = VS106.SPP_IVC_NO
+                                                                            AND T1.SPP_RCP_DV_CD = '02'
+                                                                            AND T1.SPP_AK_RCPDT = '01'
+                                                                       )
+                                                                     , 0) -
+                                                                   NVL((SELECT NVL(SUM(CASE WHEN SPP_AK_RS_CD = 'S' THEN 1 END),0) AS R_CNT
+                                                                          FROM TB_SVPD_SPP_AK_RS_IZ T1
+                                                                          WHERE T1.SPP_BZS_CST_ID = '30473216'
+                                                                            AND T1.CNTR_NO  = #{custNo}
+                                                                            AND T1.CNTR_SN =  #{cntrSn}
+                                                                            AND T1.SPP_IVC_NO = VS106.SPP_IVC_NO
+                                                                            AND T1.SPP_RCP_DV_CD = '02'
+                                                                            AND T1.SPP_AK_RCPDT = '02'
+                                                                       )
+                                                                     , 0)
+                                                                    = 0
+                                                                ),'01') = '02'  THEN 'Y'
+
+                                      WHEN #{reqdvCd} = '02' AND NVL((SELECT SPP_AK_RCPDT   /*  이전 집하지시 중복체크  */
+                                                               FROM TB_SVPD_SPP_AK_RS_IZ V1
+                                                              WHERE V1.CNTR_NO = AC211.CNTR_NO
+                                                                AND V1.CNTR_SN = AC211.CNTR_SN
+                                                                AND V1.SPP_IVC_NO = VS106.SPP_IVC_NO
+                                                                AND V1.SPP_BZS_CST_ID = '30473216'
+                                                                AND V1.SPP_AK_RS_CD = 'S'
+                                                                AND V1.SPP_RCP_DV_CD = '02'
+                                                                AND V1.SPP_AK_SN = (SELECT MAX(SPP_AK_SN)
+                                                                                   FROM TB_SVPD_SPP_AK_RS_IZ T1
+                                                                                  WHERE T1.SPP_BZS_CST_ID = '30473216'
+                                                                                    AND T1.CNTR_NO  = #{custNo}
+                                                                                    AND T1.CNTR_SN =  #{cntrSn}
+                                                                                    AND T1.SPP_IVC_NO = VS106.SPP_IVC_NO
+                                                                                    AND T1.SPP_AK_RS_CD = 'S'
+                                                                                    AND T1.SPP_RCP_DV_CD = '02')
+                                                                AND NVL((SELECT NVL(SUM(CASE WHEN SPP_AK_RS_CD = 'S' THEN 1 END),0) AS U_CNT
+                                                                           FROM TB_SVPD_SPP_AK_RS_IZ T1
+                                                                          WHERE T1.SPP_BZS_CST_ID = '30473216'
+                                                                            AND T1.CNTR_NO  = #{custNo}
+                                                                            AND T1.CNTR_SN =  #{cntrSn}
+                                                                            AND T1.SPP_IVC_NO = VS106.SPP_IVC_NO
+                                                                            AND T1.SPP_RCP_DV_CD = '02'
+                                                                            AND T1.SPP_AK_RCPDT = '01'
+                                                                       )
+                                                                     , 0) -
+                                                                   NVL((SELECT NVL(SUM(CASE WHEN SPP_AK_RS_CD = 'S' THEN 1 END),0) AS R_CNT
+                                                                          FROM TB_SVPD_SPP_AK_RS_IZ T1
+                                                                          WHERE T1.SPP_BZS_CST_ID = '30473216'
+                                                                            AND T1.CNTR_NO  = #{custNo}
+                                                                            AND T1.CNTR_SN =  #{cntrSn}
+                                                                            AND T1.SPP_IVC_NO = VS106.SPP_IVC_NO
+                                                                            AND T1.SPP_RCP_DV_CD = '02'
+                                                                            AND T1.SPP_AK_RCPDT = '02'
+                                                                       )
+                                                                     , 0)
+                                                                    = 1
+                                                                ),'02') = '01'  THEN 'Y'
                                   ELSE 'N'
                                    END
                                  ) AS SEND_AVAIL_YN
