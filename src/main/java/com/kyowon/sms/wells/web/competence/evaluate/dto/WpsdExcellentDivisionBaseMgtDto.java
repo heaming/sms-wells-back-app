@@ -124,9 +124,9 @@ public class WpsdExcellentDivisionBaseMgtDto {
         String evlDvNm, /* 평가구분코드 */
         String evlAtcDvCd, /* 평가항목구분코드 */
         String evlPdDvCd, /* 평가상품구분코드 */
-        Integer evlBaseUnitN, /* 평가기준단위수 */
-        Long cvtBasePc, /* 환산기준점수 */
-        Long trgBasePc, /* 목표기준점수 */
+        double evlBaseUnitN, /* 평가기준단위수 */
+        double cvtBasePc, /* 환산기준점수 */
+        double trgBasePc, /* 목표기준점수 */
         String dtaDlYn /* 데이터삭제여부 */
     ) {}
 
@@ -142,8 +142,8 @@ public class WpsdExcellentDivisionBaseMgtDto {
         String evlAtcDvCd, /* 평가항목구분코드 */
         String evlPdDvCd, /* 평가상품구분코드 */
         double evlBaseUnitN, /* 평가기준단위수 */
-        Long cvtBasePc, /* 환산기준점수 */
-        Long trgBasePc, /* 목표기준점수 */
+        double cvtBasePc, /* 환산기준점수 */
+        double trgBasePc, /* 목표기준점수 */
         String dtaDlYn,
         String rowState
     ) {}
@@ -202,9 +202,9 @@ public class WpsdExcellentDivisionBaseMgtDto {
         String evlAtcDvCd,
         String evlAtcDvNm,
         String evlPdDvCd,
-        String evlBaseUnitN,
-        String cvtBasePc,
-        String trgBasePc,
+        double evlBaseUnitN,
+        double cvtBasePc,
+        double trgBasePc,
         String dtaDlYn
     ) {}
     // *********************************************************
@@ -221,9 +221,9 @@ public class WpsdExcellentDivisionBaseMgtDto {
         String evlAtcDvCd,
         String evlAtcDvNm,
         String evlPdDvCd,
-        String evlBaseUnitN,
-        String cvtBasePc,
-        String trgBasePc,
+        double evlBaseUnitN,
+        double cvtBasePc,
+        double trgBasePc,
         String ctstGrpCd,
         String dtaDlYn
     ) {}
