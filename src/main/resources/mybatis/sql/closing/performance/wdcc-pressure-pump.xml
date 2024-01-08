@@ -25,7 +25,10 @@
              , C1.BASE_PD_CD                                                                /* 기준상품코드 */
              , C1.PD_ABBR_NM                                                                /* 제품명 */
              , C1.PD_NM                                                                     /* 가압펌프자재 */
-             , C3.OG_NM                                                                     /* 센터 */
+             , (SELECT X1.OG_NM
+                  FROM TB_OGBS_PRTNR_BAS X1  /* 파트너기본 */
+                 WHERE X1.PRTNR_NO = C1.ICHR_PRTNR_NO
+                   AND ROWNUM = 1) AS OG_NM                                                 /* 센터 */
              , F_CMZ_CD_NM(#{session.tenantId}, 'SV_BIZ_DCLSF_CD', C1.SV_BIZ_DCLSF_CD) AS WRK_TYP_NM  /* 업무유형 */
              , C1.GUBN                                                                      /* 사용/회수 */
              , CASE WHEN C1.ADN_SV_CS_AMT IS NOT NULL THEN C1.ADN_SV_CS_AMT
@@ -39,13 +42,12 @@
              , C1.REQD_DT                                                                   /* 철거일자 */
              , C1.RSG_DT                                                                    /* 해약일자 */
              , C1.FNL_ITM_GD_CD                                                             /* 등급 */
-             , C1.USE_QTY --수량
+             , C1.USE_QTY                                                                   /* 수량 */
              , CASE WHEN C1.REFRI_DV_CD = '2' THEN '유상'
                     ELSE '무상' END AS CHAG_GB_NM                                            /* 구분 */
              , (SELECT X1.PRTNR_KNM
                   FROM TB_OGBS_PRTNR_BAS X1  /* 파트너기본 */
                  WHERE X1.PRTNR_NO = C1.ICHR_PRTNR_NO
-                   AND X1.OG_ID = C1.BRCH_OG_ID
                    AND ROWNUM = 1) AS PRTNR_KNM                                             /* 엔지니어 */
              , (SELECT SUM(CASE WHEN X2.SV_BIZ_HCLSF_CD = 6 THEN -1 ELSE 1 END)
                   FROM TB_SVST_SV_WK_OSTR_IZ X2  /* 서비스작업출고내역 */
@@ -189,8 +191,6 @@
                           </if>
                        ) B1
                ) C1
-          LEFT OUTER JOIN TB_OGBS_OG_BAS C3  /* 조직기본 */
-            ON C3.OG_ID = C1.BRCH_OG_ID
         <if test="@MybatisUtils@isNotEmpty(cnfmYn)">
          WHERE C1.CNFM_YN = #{cnfmYn}
         </if>
