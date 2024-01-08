@@ -77,7 +77,7 @@ public class WpdcAsPartDvo {
     private String cntrClsfCd; /* 계약분류코드 */
     private String dscTpCd; /* 할인유형코드 */
     private BigDecimal feeAmt; /* 수수료금액 */
-    private Integer ackmtCt; /* 인정건수 */
+    private BigDecimal ackmtCt; /* 인정건수 */
     private BigDecimal ackmtPerfRt; /* 인정실적율 */
     private String anaFactVal1; /* 분석팩터값1 */
     private String anaFactVal2; /* 분석팩터값2 */

@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.product.standard.dto;
 
+import java.math.BigDecimal;
+
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 
@@ -49,7 +51,7 @@ public class WpdyRestipulationMgtDto {
         Integer rstlDutyMcn, /* 재약정의무개월수 */
 
         String ackmtAmt, /* 인정금액 */
-        Integer ackmtCt, /* 인정건수 */
+        BigDecimal ackmtCt, /* 인정건수 */
         String feeAckmtBaseAmt, /* 수수료인정기준금액 */
         String feeFxamYn, /* 수수료정액여부 */
         String rid,
@@ -89,7 +91,7 @@ public class WpdyRestipulationMgtDto {
         Integer rstlDutyMcn, /* 재약정의무개월수 - 의무기간 */
 
         String ackmtAmt, /* 인정금액 */
-        Integer ackmtCt, /* 인정건수 */
+        BigDecimal ackmtCt, /* 인정건수 */
         String feeAckmtBaseAmt, /* 수수료인정기준금액 */
         String feeFxamYn, /* 수수료정액여부 */
         String rid,
