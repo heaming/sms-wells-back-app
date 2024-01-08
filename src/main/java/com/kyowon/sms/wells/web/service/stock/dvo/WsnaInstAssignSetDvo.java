@@ -23,6 +23,6 @@ public class WsnaInstAssignSetDvo {
 
     String rstrCndtVal2;
 
-    String rstrCndtSn;
+    int rstrCndtSn;
 
 }

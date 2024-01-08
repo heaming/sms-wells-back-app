@@ -48,8 +48,9 @@ public class WsnaInstAssignSetDto {
 
         String rstrCndtVal1,
 
-        String rstrCndtVal2
+        String rstrCndtVal2,
 
+        int rstrCndtSn
     ) {}
 
     @ApiModel("WsnaInstAssignSetDto-RemoveReq")

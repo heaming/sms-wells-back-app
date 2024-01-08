@@ -19,6 +19,11 @@
          ON T1.PD_CD = T3.PD_CD
         AND T3.PD_EXTS_PRP_GRP_CD = 'PART'
       WHERE RSTR_CNDT_ID = 'TC001'
+        AND V1.RSTR_CNDT_SN = (SELECT MAX(SUB1.RSTR_CNDT_SN)
+                                 FROM TB_SVPD_SV_RSTR_CNDT_BAS SUB1
+                                WHERE SUB1.RSTR_CNDT_VAL1 = T1.PD_CD
+                                  AND SUB1.RSTR_CNDT_ID = 'TC001'
+                                  )
         <if test='@MybatisUtils@isNotEmpty(pdGrp)'>
         AND T3.PD_PRP_VAL20 = #{pdGrp}
         </if>
@@ -28,25 +33,56 @@
      ORDER BY T1.PD_CD
     </select>
 
-    <insert id="insertInstAssignSet">
-         MERGE
-         INTO TB_SVPD_SV_RSTR_CNDT_BAS AA
-        USING (SELECT 'TC001' RSTR_CNDT_ID
-                         , #{rstrCndtSn}  RSTR_CNDT_SN
-                         , #{pdCd} RSTR_CNDT_VAL1
-                  FROM DUAL) BB
-           ON (    AA.RSTR_CNDT_ID = BB.RSTR_CNDT_ID
-          AND AA.RSTR_CNDT_SN = BB.RSTR_CNDT_SN
-          AND AA.RSTR_CNDT_VAL1 = BB.RSTR_CNDT_VAL1 )
-    WHEN MATCHED THEN
-         UPDATE
+    <select id="selectInstAssignCnt" resultType="Integer">
+        SELECT COUNT(1)
+          FROM TB_SVPD_SV_RSTR_CNDT_BAS
+         WHERE RSTR_CNDT_ID = 'TC001'
+           AND RSTR_CNDT_SN = #{rstrCndtSn}
+           AND RSTR_CNDT_VAL1 = #{pdCd}
+    </select>
+
+    <select id="selectInstAssignSeq" resultType="Integer">
+        SELECT LPAD(NVL(MAX(RSTR_CNDT_SN),'0') + 1, 3, '0') AS RSTR_CNDT_SN
+          FROM TB_SVPD_SV_RSTR_CNDT_BAS
+         WHERE RSTR_CNDT_ID = 'TC001'
+    </select>
+
+    <update id="updateInstAssignBaseSet">
+         UPDATE TB_SVPD_SV_RSTR_CNDT_BAS
             SET APY_STRTDT = TO_CHAR(SYSDATE, 'YYYYMMDD')
               , APY_ENDDT = TO_CHAR(TO_DATE(#{rstrCndtVal2},'YYYYMMDD')-1, 'YYYYMMDD')
               , RSTR_CNDT_SRN_MARK_CN = '해당 상품 배정은 '|| SUBSTR(#{rstrCndtVal2},5,2)||'/'||SUBSTR(#{rstrCndtVal2},7,2) ||'부터 접수 가능합니다.'
               , RSTR_CNDT_VAL2 = #{rstrCndtVal2}
               <include refid="COMMON.updateSystemField"/>
-    WHEN NOT MATCHED THEN
-         INSERT
+          WHERE RSTR_CNDT_ID = 'TC001'
+           AND RSTR_CNDT_SN = #{rstrCndtSn}
+           AND RSTR_CNDT_VAL1 = #{pdCd}
+    </update>
+
+    <insert id="insertInstAssignDtlSet">
+        INSERT INTO TB_SVPD_SV_RSTR_CNDT_DTL
+           (RSTR_CNDT_ID
+          , RSTR_CNDT_SN
+          , RSTR_CNDT_DTL_SN
+          , CHNL_APY_DV_VAL
+          , BIZ_APY_DV_VAL
+          , DTA_DL_YN
+          <include refid="COMMON.insertSystemField"/>
+        )
+        SELECT RSTR_CNDT_ID
+             , #{rstrCndtSn}
+             , RSTR_CNDT_DTL_SN
+             , CHNL_APY_DV_VAL
+             , BIZ_APY_DV_VAL
+             , DTA_DL_YN
+           <include refid="COMMON.insertSystemFieldValue"/>
+          FROM TB_SVPD_SV_RSTR_CNDT_DTL
+         WHERE RSTR_CNDT_ID = 'TC001'
+           AND RSTR_CNDT_SN = 4
+    </insert>
+
+    <insert id="insertInstAssignBaseSet">
+         INSERT INTO TB_SVPD_SV_RSTR_CNDT_BAS
               ( RSTR_CNDT_ID
                , RSTR_CNDT_SN
                , APY_STRTDT
@@ -62,9 +98,7 @@
               )
          VALUES
               ( 'TC001'
-              , (SELECT LPAD(NVL(MAX(RSTR_CNDT_SN),'0') + 1, 3, '0')
-                  FROM TB_SVPD_SV_RSTR_CNDT_BAS
-                 WHERE RSTR_CNDT_ID = 'TC001')
+              , #{rstrCndtSn}
               ,  TO_CHAR(SYSDATE, 'YYYYMMDD')
               , TO_CHAR(TO_DATE(#{rstrCndtVal2},'YYYYMMDD')-1, 'YYYYMMDD')
               , '상품접수 시작일'
@@ -81,7 +115,8 @@
     <delete id="deleteInstAssignSet">
         DELETE FROM TB_SVPD_SV_RSTR_CNDT_BAS
         WHERE RSTR_CNDT_ID = 'TC001'
-         AND  RSTR_CNDT_VAL1 =  #{pdCd}
+          AND RSTR_CNDT_VAL1 =  #{pdCd}
+          AND
     </delete>
 
 </mapper>
