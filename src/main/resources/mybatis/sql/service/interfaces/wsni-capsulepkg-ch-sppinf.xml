@@ -3,93 +3,115 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.interfaces.mapper.WsniCapsulepkgChSppinfMapper">
 
     <select id="selectCapsulepkgChSppinfs" resultType="com.kyowon.sms.wells.web.service.interfaces.dto.WsniCapsulepkgChSppinfDto$SearchRes">
-    SELECT SPP_DUEDT    /* 배송예정일자 */
-         , PD_CD        /* 상품코드 */
-         , PD_NM        /* 상품명 */
-         , AFCH_PD_CD   /* 변경후상품코드 */
-         , AFCH_PD_NM   /* 변경후상품명 */
-         , SUBSTR(DT_INFO, 4, LENGTH(DT_INFO)) AS DT_INFO /* 패키지구성정보 */
-         , SELL_AMT     /* 판매금액 */
-         , SPP_PRGS_STAT_CD /* 배송진행상태코드 */
-         , IST_ADDR     /* 설치주소 */
-    FROM (
-      SELECT VST_DT AS SPP_DUEDT /*배송예정일*/
-           , MAX(PDCT_PD_CD) AS PD_CD /*현재패키지CD*/
-           , MAX(PDCT_PD_NM) AS PD_NM /*현재패키지NM*/
-           , AFCH_PD_CD /*해당월패키지CD*/
-           , (SELECT T1.PD_NM
-                FROM TB_PDBS_PD_BAS T1
-               WHERE T1.PD_CD = AFCH_PD_CD) AS AFCH_PD_NM /*해당월패키지NM*/
-           , XMLAGG(XMLELEMENT(TAG, ' / ' || PART_NM) ORDER BY PART_NM).EXTRACT('//text()').getClobVal() AS DT_INFO /*패키지구성정보*/
-           , MAX(SELL_AMT) AS SELL_AMT /*패키지가격*/
-           , (CASE WHEN MAX(WK_DT) IS NOT NULL
-                   THEN '70' /* 70: 배송완료, 60: 배송진행, 50: 배송예정 */
-                   WHEN MAX(WK_DT) IS NULL AND SUBSTR(VST_DT, 1, 6) = TO_CHAR(ADD_MONTHS(SYSDATE, 0), 'YYYYMM')
-                   THEN '60'
-                   WHEN MAX(WK_DT) IS NULL AND SUBSTR(VST_DT, 1, 6) >= TO_CHAR(ADD_MONTHS(SYSDATE, 1), 'YYYYMM')
-                   THEN '50'
-              END) AS SPP_PRGS_STAT_CD /*배송상태*/
-           , MAX(ADDR) AS IST_ADDR /*배송주소*/
-        FROM (SELECT DISTINCT A.VST_DUEDT AS VST_DT /*배송예정일*/
-                            , C.PDCT_PD_CD
-                            , (SELECT T1.PD_NM
-                                 FROM TB_PDBS_PD_BAS T1
-                                WHERE T1.PD_CD = C.PDCT_PD_CD) AS PDCT_PD_NM /*패키지명*/
-                            , (SELECT T1.PD_CD
-                                 FROM TB_PDBS_PD_BAS T1
-                                WHERE T1.PD_CD = NVL((SELECT T2.OJ_PD_CD
-                                                        FROM TB_PDBS_PD_REL T2
-                                                       WHERE T2.PD_REL_TP_CD = '18' /*정기배송 제품명(BS)*/
-                                                         AND T2.DTA_DL_YN = 'N'
-                                                         AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T2.VL_STRT_DTM AND T2.VL_END_DTM
-                                                         AND T2.BASE_PD_CD = B.AFCH_PD_CD), C.PDCT_PD_CD)) AS AFCH_PD_CD /*변경후상품코드*/
-                            , (SELECT T1.PD_NM
-                                 FROM TB_PDBS_PD_BAS T1
-                                WHERE T1.PD_CD = A.PART_PD_CD) || ' ' || A.PART_USE_QTY || '건' AS PART_NM /*패키지구성정보*/
-                            , A.PART_USE_QTY
-                            , D.FNL_VAL AS SELL_AMT /*패키지가격*/
-                            , A.WK_DT /*배송상태*/
-                            , (SELECT (SELECT Z.RNADR || ' ' || Z.RDADR
-                                         FROM TB_GBCO_ADR_BAS Z
-                                        WHERE Z.ADR_ID = T2.ADR_ID)
-                                 FROM TB_SSCT_CNTR_ADR_REL T1, TB_SSCT_CNTR_ADRPC_BAS T2
-                                WHERE T1.CNTR_ADRPC_ID = T2.CNTR_ADRPC_ID
-                                  AND T1.ADRPC_TP_CD IN ('2', '3') /* 설치처 */
-                                  AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
-                                  AND T1.DTL_CNTR_NO = C.CNTR_NO
-                                  AND T1.DTL_CNTR_SN = C.CNTR_SN) AS ADDR
-                FROM TB_SVPD_CST_SV_RGBSPR_IZ A /* 고객서비스정기BS주기내역 */
-                LEFT OUTER JOIN TB_SVPD_HCF_AS_AK_IZ B /* 홈카페AS요청내역 */
-                  ON B.CNTR_NO = A.CNTR_NO
-                 AND B.CNTR_SN = A.CNTR_SN
-                 AND SUBSTR(B.AK_CHDT, 1, 6) = SUBSTR(A.VST_DUEDT, 1, 6)
-                LEFT OUTER JOIN TB_SVPD_CST_SV_EXCN_IZ C /* 고객서비스수행내역 */
-                  ON C.CNTR_NO = A.CNTR_NO
-                 AND C.CNTR_SN = A.CNTR_SN
-               INNER JOIN (SELECT T1.PD_CD
-                                , T1.PD_NM
-                                , T4.FNL_VAL
-                                , T4.VL_STRT_DTM
-                                , T4.VL_END_DTM
-                             FROM TB_PDBS_PD_BAS T1 /* 상품기본 */
-                            INNER JOIN TB_PDBS_PD_REL T2 /* 상품관계 */
-                               ON T1.PD_CD = T2.BASE_PD_CD AND T2.PD_REL_TP_CD = '05' /* 제품만 조회 */
-                              AND TO_CHAR(SYSDATE, 'YYYYYMM') BETWEEN T2.VL_STRT_DTM AND T2.VL_END_DTM
-                             LEFT OUTER JOIN TB_PDBS_PD_PRC_FNL_DTL T4 /* 상품가격최종상세 */
-                               ON T1.PD_CD = T4.PD_CD AND T4.HIST_END_DTM = '99991231235959' AND TO_CHAR(SYSDATE, 'YYYYYMM') BETWEEN T4.VL_STRT_DTM AND T4.VL_END_DTM
-                            WHERE T1.PD_TP_CD = 'P'
-                              AND T1.SELL_TP_CD = '6' /* 정기배송 상품 */) D
-                 ON D.PD_CD = B.AFCH_PD_CD
-                AND SUBSTR(A.VST_DUEDT, 1, 6) || '10' BETWEEN D.VL_STRT_DTM AND D.VL_END_DTM
-               WHERE A.VST_DUEDT <![CDATA[<]]> (CASE WHEN TO_CHAR(SYSDATE, 'DD') <![CDATA[<=]]> '20'
-                                         THEN TO_CHAR(ADD_MONTHS(SYSDATE, 1), 'YYYYMM') || '99'
-                                         ELSE TO_CHAR(ADD_MONTHS(SYSDATE, 2), 'YYYYMM') || '99'
-                                    END)
-                 AND A.CNTR_NO = #{cntrNo}
-                 AND A.CNTR_SN = #{cntrSn}) V1
-       GROUP BY VST_DT, AFCH_PD_CD
-    )
-     ORDER BY SPP_DUEDT DESC
+        SELECT T.VST_DT                                             AS SPP_DUEDT          /* 배송예정일자 */
+             , T.PD_CD                                                                    /* 상품코드 */
+             , T.PD_NM                                                                    /* 상품명 */
+             , T.AFCH_PD_CD                                                               /* 변경 후 상품코드 */
+             , T.AFCH_PD_NM                                                               /* 변경 후 상품명 */
+             , LISTAGG(PART_NM, '/') WITHIN GROUP(ORDER BY PART_NM) AS DT_INFO            /* 패키지구성정보 */
+             , T.SELL_AMT                                                                 /* 판매금액 */
+             , CASE WHEN T.WK_DT IS NOT NULL                                                             THEN '70'   /* 배송완료 */
+                    WHEN T.WK_DT IS NULL
+                     AND SUBSTR(T.VST_DT, 1, 6) = TO_CHAR(SYSDATE, 'YYYYMM')                             THEN '60'   /* 배송진행 */
+                    WHEN T.WK_DT IS NULL
+                     AND SUBSTR(T.VST_DT, 1, 6) <![CDATA[>=]]> TO_CHAR(ADD_MONTHS(SYSDATE, 1), 'YYYYMM') THEN '50'   /* 배송예정 */
+               END                                                  AS SPP_PRGS_STAT_CD   /* 배송진행상태코드 */
+             , T.IST_ADDR                                                                 /* 설치주소 */
+          FROM
+             (
+               SELECT ( SELECT MIN(BASE_Y || BASE_MM || BASE_D)
+                          FROM TB_SVPD_SV_CLND_BAS   /* 서비스달력기본 */
+                         WHERE DTA_DL_YN = 'N'
+                           AND ( PHLD_YN IS NULL OR PHLD_YN = 'N' )
+                           AND BASE_Y  = SUBSTR(D1.VST_DUEDT, 1, 4)
+                           AND BASE_MM = SUBSTR(D1.VST_DUEDT, 5, 2)
+                           AND BASE_D <![CDATA[>=]]> '10' )              AS VST_DT
+                    , D3.BASE_PD_CD                                      AS PD_CD
+                    , ( SELECT PD_NM
+                          FROM TB_PDBS_PD_BAS
+                         WHERE PD_CD = D3.BASE_PD_CD )                   AS PD_NM
+                    , NVL(D8.OJ_PD_CD, D9.PDCT_PD_CD)                    AS AFCH_PD_CD
+                    , ( SELECT PD_NM
+                          FROM TB_PDBS_PD_BAS
+                         WHERE PD_CD = NVL(D8.OJ_PD_CD, D9.PDCT_PD_CD) ) AS AFCH_PD_NM
+                    , D1.PART_PD_CD
+                    , D1.PART_USE_QTY
+                    , ( SELECT PD_NM || D1.PART_USE_QTY || '건'
+                          FROM TB_PDBS_PD_BAS
+                         WHERE PD_CD = D1.PART_PD_CD )                   AS PART_NM
+                    , D4.FNL_VAL                                         AS SELL_AMT
+                    , D1.WK_DT
+                    , D7.RNADR || ' ' || D7.RDADR                        AS IST_ADDR
+                 FROM TB_SVPD_CST_SV_RGBSPR_IZ D1            /* 고객서비스정기BS주기내역 */
+                 LEFT OUTER JOIN TB_SVPD_HCF_AS_AK_IZ D2     /* 홈카페AS요청내역 */
+                   ON D2.CNTR_NO               = D1.CNTR_NO
+                  AND D2.CNTR_SN               = D1.CNTR_SN
+                  AND SUBSTR(D2.AK_CHDT, 1, 6) = SUBSTR(D1.VST_DUEDT, 1, 6)
+                  AND D2.DTA_DL_YN             = 'N'
+                INNER JOIN TB_SSCT_CNTR_DTL D3               /* 계약상세 */
+                   ON D3.CNTR_NO = D1.CNTR_NO
+                  AND D3.CNTR_SN = D1.CNTR_SN
+                INNER JOIN
+                    (
+                      SELECT DISTINCT S1.PD_CD
+                           , S1.PD_NM
+                           , S1.SELL_STRTDT
+                           , S1.SELL_ENDDT
+                           , S4.FNL_VAL
+                        FROM TB_PDBS_PD_BAS S1                      /* 상품기본 */
+                       INNER JOIN TB_PDBS_PD_REL S2                 /* 상품관계 */
+                          ON S2.BASE_PD_CD = S1.PD_CD
+                        LEFT OUTER JOIN TB_PDBS_PD_PRC_BAS S3       /* 상품가격기본 */
+                          ON S3.PD_CD        = S1.PD_CD
+                         AND S3.DTA_DL_YN    = 'N'
+                         AND S3.HIST_END_DTM = '99991231235959'
+                         AND TO_CHAR(SYSDATE, 'YYYYYMMDDHH24MISS') BETWEEN S3.VL_STRT_DTM AND S3.VL_END_DTM
+                        LEFT OUTER JOIN TB_PDBS_PD_PRC_FNL_DTL S4   /* 상품가격최종상세 */
+                          ON S4.PD_PRC_ID = S3.PD_PRC_ID
+                         AND S4.VER_SN    = S3.VER_SN
+                         AND S4.DTA_DL_YN = 'N'
+                         AND TO_CHAR(SYSDATE, 'YYYYYMMDDHH24MISS') BETWEEN S4.VL_STRT_DTM AND S4.VL_END_DTM
+                       WHERE S1.DTA_DL_YN    = 'N'
+                         AND S1.PD_TP_CD     = 'P'
+                         AND S1.SELL_TP_CD   = '6'
+                         AND S2.DTA_DL_YN    = 'N'
+                         AND S2.PD_REL_TP_CD = '05'
+                         AND TO_CHAR(SYSDATE, 'YYYYYMMDDHH24MISS') BETWEEN S2.VL_STRT_DTM AND S2.VL_END_DTM
+                    ) D4                                     /* 정기배송 패키지 */
+                   ON D4.PD_CD = NVL(D2.AFCH_PD_CD, D3.BASE_PD_CD)
+                  AND SUBSTR(D1.VST_DUEDT, 1, 6) || '10' BETWEEN D4.SELL_STRTDT AND D4.SELL_ENDDT
+                 LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL D5     /* 계약주소관계 */
+                   ON D5.DTL_CNTR_NO = D1.CNTR_NO
+                  AND D5.DTL_CNTR_SN = D1.CNTR_SN
+                  AND D5.DTA_DL_YN   = 'N'
+                  AND D5.ADRPC_TP_CD IN ('2', '3')
+                  AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D5.VL_STRT_DTM AND D5.VL_END_DTM
+                 LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS D6   /* 계약주소지기본 */
+                   ON D6.CNTR_ADRPC_ID = D5.CNTR_ADRPC_ID
+                  AND D6.DTA_DL_YN     = 'N'
+                 LEFT OUTER JOIN TB_GBCO_ADR_BAS D7          /* 주소기본 */
+                   ON D7.ADR_ID    = D6.ADR_ID
+                  AND D7.DTA_DL_YN = 'N'
+                 LEFT OUTER JOIN TB_PDBS_PD_REL D8           /* 상품관계 */
+                   ON D8.BASE_PD_CD   = D2.AFCH_PD_CD
+                  AND D8.DTA_DL_YN    = 'N'
+                  AND D8.PD_REL_TP_CD = '18'   /* 정기배송 제품명(BS) */
+                  AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D8.VL_STRT_DTM AND D8.VL_END_DTM
+                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D9         /* 고객서비스수행내역 */
+                   ON D9.CNTR_NO = D1.CNTR_NO
+                  AND D9.CNTR_SN = D1.CNTR_SN
+                WHERE D1.DTA_DL_YN = 'N'
+                  AND D3.DTA_DL_YN = 'N'
+                  AND D9.DTA_DL_YN = 'N'
+                  AND D1.VST_DUEDT <![CDATA[<]]> CASE WHEN TO_CHAR(SYSDATE, 'DD') <![CDATA[<=]]> '20'
+                                                      THEN TO_CHAR(ADD_MONTHS(SYSDATE, 1), 'YYYYMM') || '99'
+                                                      ELSE TO_CHAR(ADD_MONTHS(SYSDATE, 2), 'YYYYMM') || '99'
+                                                 END
+                  AND D1.CNTR_NO   = #{cntrNo}
+                  AND D1.CNTR_SN   = #{cntrSn}
+               ) T
+         GROUP BY T.VST_DT, T.PD_CD, T.PD_NM, T.AFCH_PD_CD, T.AFCH_PD_NM, T.SELL_AMT, T.WK_DT, T.IST_ADDR
+         ORDER BY T.VST_DT
     </select>
 
 </mapper>

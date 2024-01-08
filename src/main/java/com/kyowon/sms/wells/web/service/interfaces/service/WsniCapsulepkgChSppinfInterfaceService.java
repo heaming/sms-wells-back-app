@@ -8,6 +8,7 @@ import com.kyowon.sms.wells.web.service.interfaces.dto.WsniCapsulepkgChSppinfDto
 import com.kyowon.sms.wells.web.service.interfaces.dto.WsniCapsulepkgChSppinfDto.SearchRes;
 import com.kyowon.sms.wells.web.service.interfaces.mapper.WsniCapsulepkgChSppinfMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +39,9 @@ public class WsniCapsulepkgChSppinfInterfaceService {
         pageinfo.setPageIndex(dto.pageIndex());
         pageinfo.setPageSize(dto.pageSize());
 
-        return mapper.selectCapsulepkgChSppinfs(dto, pageinfo);
+        PagingResult<SearchRes> result = this.mapper.selectCapsulepkgChSppinfs(dto, pageinfo);
+
+        return result.getList();
     }
 
 }
