@@ -41,7 +41,7 @@
      	     , T.PERF_VAL1
              , T.PERF_VAL2
  	     	 , T.SELL_DSC_DV_CD /*할인구분*/
- 	     	 , T.SELL_DSCR_CD /*판매할인율코드(할인유형)*/
+ 	     	 , NVL(T.SELL_DSCR_CD, DECODE(T.STPL_PTRM, '12', '1', '24', '2', '36', '3', '48', '4', '60', '5', '72', '6')) AS SELL_DSCR_CD /*판매할인율코드(할인유형)*/
  	     	 , T.SELL_DSC_TP_CD /*프로모션코드(할인제도)*/
  	     	 , T.PAK_SN
  	     	 , T.FEE_ACKMT_BASE_AMT /*수수료기준금액, WELLS-M 일 때*/
@@ -126,6 +126,7 @@
  	     	 , A.SELL_DSC_DV_CD /*할인구분*/
  	     	 , A.SELL_DSCR_CD /*판매할인율코드(할인유형)*/
  	     	 , A.SELL_DSC_TP_CD /*프로모션코드(할인제도)*/
+             , A.STPL_PTRM
  	     	 , '' AS PAK_SN
  	     	 /*TODO: 패키지 일련번호는 현재 TOBE에선 사용자에게 보여줄만한 데이터 값이 아니여서 잠시 보류중..추후 리뷰 후 협의해야할듯
              * 만약 정말로 보여줘야 한다면 계약상세의 상위상품코드를 패키지 코드인것을 보여줘야하는데 데이터 정합성이 맞는지도 의문*/
@@ -252,7 +253,10 @@
         /*수당(실적) 되물림 관리_WELLS 총판, B2B*/
         SELECT M.BASE_YM /*발생년월*/
              , M.PERF_YM AS SL_YM /*매출년월*/
-             , A.PRTNR_KNM AS OG_NM /*업체명*/
+             , (SELECT X.PRTNR_KNM
+             	  FROM TB_OGBS_PRTNR_BAS X
+             	 WHERE X.PRTNR_NO = M1.HOO_PRTNR_NO
+             	   AND X.OG_TP_CD = M1.OG_TP_CD) AS OG_NM
              , A.OG_CD /*소속코드*/
              , A.PRTNR_KNM /*판매자명*/
              , M.PRTNR_NO /*파트너번호*/
@@ -263,17 +267,15 @@
              , M.PD_CD /*제품코드(상품코드)*/
              , D.PD_CLSF_NM /*제품명(상품명)*/
              , D.MODEL_NO /*모델명*/
-             , D.SELL_DSC_DV_CD /*할인구분(ASIS: D-C), TODO: D는 데이터가 이행되어있으나 C는 안되어있음 문의예정*/
-             , D.SELL_DSC_DV_CD AS SELL_DSC_TP_CD /*할인유형(ASIS: P), D-C와 동일한 데이터를 뽑고있음*/
---             , (CASE WHEN D.SELL_DSC_DV_CD IS NOT NULL AND D.SELL_DSC_TP_CD IS NOT NULL THEN
---             			  D.SELL_DSC_DV_CD || '-' || D.SELL_DSC_TP_CD
---         			 ELSE ''
---         		  END)  AS SELL_DSC_DV_CD /*할인구분(ASIS: D-C)*/
---             , (CASE WHEN D.SELL_DSC_DV_CD IS NOT NULL AND D.SELL_DSC_TP_CD IS NOT NULL THEN
---             			  D.SELL_DSC_DV_CD || '-' || D.SELL_DSC_TP_CD
---     			     ELSE ''
---         		  END) AS SELL_DSC_TP_CD /*할인유형(ASIS: P)*/
-             , M.PMOT_USWY_DV_CD /*업소*/
+             , (CASE WHEN D.SELL_DSC_DV_CD IS NOT NULL THEN
+             			  D.SELL_DSC_DV_CD || '-' || DECODE(D.STPL_PTRM, '12', '1', '24', '2', '36', '3', '48', '4', '60', '5', '72', '6')
+         			 ELSE '0'
+         		  END)  AS SELL_DSC_DV_CD /*할인구분(ASIS: D-C)*/
+             , (CASE WHEN D.SELL_DSC_DV_CD IS NOT NULL THEN
+             			  D.SELL_DSC_DV_CD || '-' || DECODE(D.STPL_PTRM, '12', '1', '24', '2', '36', '3', '48', '4', '60', '5', '72', '6')
+     			     ELSE '0'
+         		  END) AS SELL_DSC_TP_CD /*할인유형(ASIS: P)*/
+             , D.SV_PD_TP_CD AS PMOT_USWY_DV_CD /*업소*/
              , M.BFSVC_PRD_CD /*주기*/
              , B1.MCHN_CH_TP_CD AS MCHN_CH1 /*기변영*/
              , B2.MCHN_CH_TP_CD AS MCHN_CH2 /*기변센*/
@@ -285,6 +287,11 @@
                      ELSE 0
                       END) AS REDF_AMT /*되물림 금액*/
           FROM TB_FEAM_WELS_NRCTR_MM_CL M /*웰스순주문계약월마감*/
+          LEFT OUTER JOIN TB_FEAM_MM_PRTNR_HOO_IZ M1
+            ON M.PRTNR_NO = M1.PRTNR_NO
+           AND M.PERF_YM = M1.BASE_YM
+           AND M.OG_TP_CD = M1.OG_TP_CD
+           AND M1.PERF_DV_CD = '2' /*총판의 경우, 15직급과 7직급(PERF_DV_CD = '2')만 존재, 판매자는 15, 업체는 7*/
          INNER JOIN TB_OGBS_PRTNR_BAS A /*파트너기본*/
             ON M.PRTNR_NO = A.PRTNR_NO
            AND M.OG_TP_CD = A.OG_TP_CD
@@ -309,7 +316,14 @@
                                   , D4.CST_BASE_PD_ABBR_NM AS PD_CLSF_NM /*제품명*/
                                   , D6.SELL_DSC_DV_CD
                                   , D6.SELL_DSC_TP_CD
+                                  , D6.STPL_PTRM
+                                  , P.SV_PD_TP_CD
                                FROM TB_FEAM_WELS_NRCTR_MM_CL D1 /*웰스순주문계약월마감*/
+                               LEFT OUTER JOIN TB_SVPD_CST_SV_EXCN_IZ S /* 고객서비스수행내역    */
+					             ON D1.CNTR_NO = S.CNTR_NO
+					            AND D1.CNTR_SN = S.CNTR_SN
+					           LEFT OUTER JOIN TB_PDBS_PD_BAS P /* 상품기본 - 서비스상품 */
+            					 ON S.SV_PD_CD = P.PD_CD
                               INNER JOIN TB_SSCT_CNTR_BAS D2 /*계약기본*/
                                  ON D1.CNTR_NO = D2.CNTR_NO
                               INNER JOIN TB_SSCT_CNTR_DTL D6
