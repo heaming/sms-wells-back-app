@@ -27,8 +27,8 @@ public class WpsbOnlineLinkCourseInqrService {
         List<WpsbOnlineLinkCourseDvo> list = new ArrayList<>();
         if ("127".equals(dvo.getEducCrseNo()) || "15".equals(dvo.getEducCrseNo())) {
             list = mapper.selectOnlineLinkCourseInqr127Pages(dvo, pageInfo);
-        } else if ("128".equals(dvo.getEducCrseNo())) {
-            list = mapper.selectOnlineLinkCourseInqr128Pages(dvo, pageInfo);
+        } else if ("126".equals(dvo.getEducCrseNo())) {
+            list = mapper.selectOnlineLinkCourseInqr126Pages(dvo, pageInfo);
         } else if ("135".equals(dvo.getEducCrseNo()) || "17".equals(dvo.getEducCrseNo())) {
             list = mapper.selectOnlineLinkCourseInqr135Pages(dvo, pageInfo);
         }
@@ -42,8 +42,8 @@ public class WpsbOnlineLinkCourseInqrService {
         List<WpsbOnlineLinkCourseDvo> list = new ArrayList<>();
         if ("127".equals(dvo.getEducCrseNo()) || "15".equals(dvo.getEducCrseNo())) {
             list = mapper.selectOnlineLinkCourseInqr127Pages(dvo);
-        } else if ("128".equals(dvo.getEducCrseNo())) {
-            list = mapper.selectOnlineLinkCourseInqr128Pages(dvo);
+        } else if ("126".equals(dvo.getEducCrseNo())) {
+            list = mapper.selectOnlineLinkCourseInqr126Pages(dvo);
         } else if ("135".equals(dvo.getEducCrseNo()) || "17".equals(dvo.getEducCrseNo())) {
             list = mapper.selectOnlineLinkCourseInqr135Pages(dvo);
         }
