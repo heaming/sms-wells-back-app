@@ -22,8 +22,9 @@ public class WsnaStockContinueMonthStateDto {
         String wareDtlDvCd,
         String itmKindCd,
         String useYn,
-        String itmGdCd
-
+        String itmGdCd,
+        String pdCdFrom,
+        String pdCdTo
     ) {}
 
     @ApiModel(value = "WsnaStocKContinueMonthStateDto-SearchRes")
