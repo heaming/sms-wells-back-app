@@ -283,6 +283,7 @@ public class WsnaPcsvReturningGoodsMgtDto {
         String logisticsPdCd,
         String logisticsPdNm,
         String logisticsPdQty,
+        String fnlItmGdCd,
         List<WsnaPcsvReturningGoodsSaveProductDvo> products //상품 목록
 
     ) {}
