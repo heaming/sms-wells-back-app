@@ -20,22 +20,22 @@
                A.PD_GRP_CD                                                                             AS PD_GRP_CD
              , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', A.PD_GRP_CD, 'ko') FROM DUAL)             AS PD_GRP_NM
              , A.PD_CD                                                                                 AS PD_CD
-             , (SELECT S1.PD_NM FROM TB_PDBS_PD_BAS S1 /*상품기본*/ WHERE S1.PD_CD = A.PD_CD)          AS PD_NM
+             , (SELECT S1.PD_ABBR_NM FROM TB_PDBS_PD_BAS S1 WHERE S1.PD_CD = A.PD_CD)                  AS PD_NM
              , A.SV_TP_CD                                                           				   AS SV_TP_CD        /*서비스유형코드*/
              , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'SV_DV_CD', A.SV_TP_CD, 'ko') FROM DUAL)               AS SV_TP_NM
              , A.AS_LCT_CD                                                          				   AS AS_LCT_CD       /*AS위치코드*/
-             , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'AS_LCT_CD', A.AS_LCT_CD, 'ko') FROM DUAL)             AS AS_LCT_NM       /*AS위치코드*/  	--★★★ SQL 수정!!!
+             , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'AS_LCT_CD', A.AS_LCT_CD, 'ko') FROM DUAL)             AS AS_LCT_NM       /*AS위치코드*/
              , A.AS_PHN_CD                                                          				   AS AS_PHN_CD       /*AS현상코드*/
-             , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'AS_PHN_CD', A.AS_PHN_CD, 'ko') FROM DUAL)             AS AS_PHN_NM       /*AS현상코드*/	--★★★ SQL 수정!!!
+             , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'AS_PHN_CD', A.AS_PHN_CD, 'ko') FROM DUAL)             AS AS_PHN_NM       /*AS현상코드*/
              , A.AS_CAUS_CD                                                         				   AS AS_CAUS_CD      /*AS원인코드*/
-             , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'AS_CAUS_CD', A.AS_CAUS_CD, 'ko') FROM DUAL)           AS AS_CAUS_NM      /*AS원인코드*/	--★★★ SQL 수정!!!
+             , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'AS_CAUS_CD', A.AS_CAUS_CD, 'ko') FROM DUAL)           AS AS_CAUS_NM      /*AS원인코드*/
              , A.SITE_AW_ATC_CD                                                     				   AS SITE_AW_ATC_CD  /*현장수당항목코드*/
-             , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'SITE_AW_ATC_CD', A.SITE_AW_ATC_CD, 'ko') FROM DUAL)   AS SITE_AW_ATC_NM  /*현장수당항목코드*/		--★★★ SQL 수정!!!
+             , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'SITE_AW_ATC_CD', A.SITE_AW_ATC_CD, 'ko') FROM DUAL)   AS SITE_AW_ATC_NM  /*현장수당항목코드*/
              , A.SV_ANA_HCLSF_CD                                                    				   AS SV_ANA_HCLSF_CD /*서비스분석대분류코드*/
-             , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', A.SV_ANA_HCLSF_CD, 'ko') FROM DUAL) AS SV_ANA_HCLSF_NM /*서비스분석대분류코드*/	--★★★ SQL 수정!!!
-             , B.FULEY_AW_AMT                                                       			       AS FULEY_AW_AMT    /*정직원수당금액*/
-             , TO_CHAR(TO_DATE(A.APY_STRTDT), 'YYYY-MM-DD')                                            AS APY_STRTDT
-             , TO_CHAR(TO_DATE(A.APY_ENDDT), 'YYYY-MM-DD')                                             AS APY_ENDDT
+             , (SELECT F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', A.SV_ANA_HCLSF_CD, 'ko') FROM DUAL) AS SV_ANA_HCLSF_NM /*서비스분석대분류코드*/
+             , NVL(B.FULEY_AW_AMT, 0)                                                   			   AS FULEY_AW_AMT    /*정직원수당금액*/
+             , A.APY_STRTDT
+             , A.APY_ENDDT
           FROM TB_SVPD_AS_TP_CD A
           LEFT OUTER JOIN TB_FEAM_SITE_AW_DSB_BASE_BAS B /*현장수당지급기준기본*/
             ON A.SITE_AW_ATC_CD = B.SITE_AW_ATC_CD
@@ -56,10 +56,18 @@
            <if test='@MybatisUtils@isNotEmpty(asLctCd)'>
            AND A.AS_LCT_CD = #{asLctCd}
            </if>
-           <if test='@MybatisUtils@isNotEmpty(apyChk) and apyChk != "0" '>
+           <if test='@MybatisUtils@isNotEmpty(applyDate) and @MybatisUtils@equals(apyChk, "1")'>
            AND #{applyDate} BETWEEN A.APY_STRTDT AND A.APY_ENDDT
            </if>
         ORDER BY SV_TP_CD , AS_LCT_CD , AS_PHN_CD , AS_CAUS_CD
+    </select>
+
+    <select id="selectPdCdValid" resultType="java.lang.String">
+        SELECT PD_CD
+          FROM TB_PDBS_PD_BAS
+         WHERE DTA_DL_YN = 'N'
+           AND PD_TP_CD  = 'M'
+           AND PD_CD     = #{pdCd}
     </select>
 
     <update id="saveAsCode">
