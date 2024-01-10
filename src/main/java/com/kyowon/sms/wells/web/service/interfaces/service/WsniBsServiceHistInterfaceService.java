@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.interfaces.service;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -25,7 +27,7 @@ public class WsniBsServiceHistInterfaceService {
     public List<WsniBsServiceHistInterfaceDto.SearchRes> getBsServiceHistories(
         WsniBsServiceHistInterfaceDto.SearchReq dto
     ) {
-        try{
+        try {
             /*
              * code review 가이드로 Optional 로 로직 변경
              * (추후 정상적으로 동작하지 않을 시, CollectionUtils.isEmpty() 로 체크로직 변경 필요)
@@ -36,11 +38,14 @@ public class WsniBsServiceHistInterfaceService {
             if(CollectionUtils.isEmpty(returnList)){
                 throw new BizException(messageService.getMessage("MSG_TXT_NOT_EXIST_QR")); //정보가 존재하지 않습니다
             }
-
             return returnList;
 
+        } catch(BizException e) {
+            throw e;
         } catch(Exception e) {
-            e.printStackTrace();
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            log.error(sw.getBuffer().toString());
             throw new BizException(messageService.getMessage("MSG_TXT_BS_HIST_SEARCH_ERROR")); //BS이력조회 오류
         }
     }
