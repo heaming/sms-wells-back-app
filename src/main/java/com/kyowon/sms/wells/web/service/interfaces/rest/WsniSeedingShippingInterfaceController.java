@@ -4,7 +4,6 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-import com.sds.sflex.system.config.webclient.ivo.Header;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,7 +23,6 @@ import lombok.RequiredArgsConstructor;
 @InterfaceController
 @Api(tags = SnServiceConst.REST_INTERFACE_DOC_V1 + ": wells홈페이지 모종배송내역 조회")
 @RequestMapping(SnServiceConst.REST_INTERFACE_URL_V1 + "/seeding-shipping")
-//@Api(tags = "[WSNB] wells홈페이지 모종배송내역 조회")
 @RequiredArgsConstructor
 @Validated
 public class WsniSeedingShippingInterfaceController {
