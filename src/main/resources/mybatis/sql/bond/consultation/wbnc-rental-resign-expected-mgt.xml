@@ -1607,21 +1607,21 @@
                                    AND Z1.CNTR_NO = T.CNTR_NO
                                    AND Z1.CNTR_SN = T.CNTR_SN
                               )
-                      /*렌탈이 존재하는 계약에 딸린 정기배송(모종)만 가져오도록...*/
-                      AND EXISTS (
-                                SELECT 1
-                                  FROM TB_CBBO_WELLS_AUTH_RSG_IZ Z1 /*T:WELLS직권해지내역*/
-                                 WHERE 1=1
-                                   AND Z1.BASE_YM = SUBSTR(#{baseDt},1,6)
-                                   AND Z1.SELL_TP_CD = '2' /*렌탈,리스*/
-                                   AND Z1.CNTR_NO = T.LK_CNTR_NO  /*LK_CNTR_NO:렌탈계약번호, CNTR_NO:모종계약번호*/
-                              <if test='@MybatisUtils@equals(confirmDvCd,"01")'>  <!--"예정확정" 버튼 클릭 시...-->
-                                   AND Z1.AUTH_RSG_EXP_YN = 'N'
-                              </if>
-                              <if test='@MybatisUtils@equals(confirmDvCd,"02")'>  <!--"최종확정" 버튼 클릭 시...-->
-                                   AND Z1.AUTH_RSG_EXP_YN = 'Y'
-                              </if>
-                          )
+                      /*렌탈이 제외이면 렌탈에 딸린 모종도 같이 제외*/
+                      AND NOT EXISTS (SELECT 1
+                                        FROM TB_CBBO_WELLS_AUTH_RSG_IZ Z2 /*T:WELLS직권해지내역*/
+                                      WHERE 1=1
+                                        AND Z2.BASE_YM = SUBSTR(#{baseDt},1,6)
+                                        AND Z2.CNTR_NO = T.CNTR_NO
+                                        AND Z2.CNTR_SN = T.CNTR_SN
+                                    <if test='@MybatisUtils@equals(confirmDvCd,"01")'>  <!--"예정확정" 버튼 클릭 시...-->
+                                        AND Z2.AUTH_RSG_EXP_YN = 'N'
+                                    </if>
+                                    <if test='@MybatisUtils@equals(confirmDvCd,"02")'>  <!--"최종확정" 버튼 클릭 시...-->
+                                        AND Z2.AUTH_RSG_EXP_YN = 'Y'
+                                    </if>
+                                        AND Z2.DTA_DL_YN = 'N'
+                                    )
                   ) X2
                ON (     X2.COL04 = X1.LK_CNTR_NO
                     AND X2.COL16 = X1.BASE_YM
