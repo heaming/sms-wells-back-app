@@ -10,10 +10,12 @@
     </select>
 
     <select id='selectManagerVisitFees' resultType="com.kyowon.sms.wells.web.fee.control.dto.WfedManagerVisitFeeDto$SearchRes">
-        <include refid="COMMON.dataAuthOrgWithClause">
-            <property name="paramOgTpCd" value="'W02'"/>
-            <property name="paramBaseYm" value="#{baseYm}"/>
-        </include>
+        <if test="!@MybatisUtils@equals(session.dataFullAuthYn,'Y')">
+            <include refid="COMMON.dataAuthOrgWithClause">
+                <property name="paramOgTpCd" value="'W02'"/>
+                <property name="paramBaseYm" value="#{baseYm}"/>
+            </include>
+        </if>
         SELECT /*+ USE_NL(T1 T2 T4) LEADING(T1 T2) USE_HASH(BAS) */
              OG.DGR1_LEVL_OG_ID	/*총괄단*/
              , OG.DGR2_LEVL_OG_ID	/*지역단*/
@@ -262,11 +264,13 @@
           <!--AND T1.OG_TP_CD IN ('W02', 'W03')	/*M조직, 홈마스터*/-->
           AND (T1.WK_EXCN_DT IS NOT NULL OR T1.WK_EXCN_DT != '0')	/*작업수행일자*/
           AND NVL(T4.COMBI_YN, ' ') != 'Y' /*모종이고 결합이면 제외, 기기이고 결합이 아니면 제외*/
+          <if test="!@MybatisUtils@equals(session.dataFullAuthYn,'Y')">
           /*로그인한 사용자의 권한에 따라 하위 조직만 조회*/
           AND EXISTS (SELECT 1
                         FROM OBJ_ORG X1
                        WHERE X1.OG_TP_CD = OG.OG_TP_CD
                          AND X1.OG_ID = OG.OG_ID)
+          </if>
         <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
           AND OG.DGR1_LEVL_OG_ID = #{ogLevlDvCd1}
         </if>
