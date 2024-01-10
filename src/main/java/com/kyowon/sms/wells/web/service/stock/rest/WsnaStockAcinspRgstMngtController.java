@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaStockAcinspRgstMngtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
-import com.sds.sflex.common.common.dto.ExcelBulkDownloadDto;
+import com.sds.sflex.common.common.dto.ExcelBulkDownloadDto.DownloadReq;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 import com.sds.sflex.system.config.response.SaveResponse;
@@ -86,7 +86,7 @@ public class WsnaStockAcinspRgstMngtController {
     @PostMapping("/bulk-excel-download")
     public void getStockAcinspRgstMngtsForExcelDownload(
         @RequestBody
-        ExcelBulkDownloadDto.DownloadReq req,
+        DownloadReq req,
         HttpServletResponse response
     ) throws IOException {
         service.getStockAcinspRgstMngtsForExcelDownload(req, response);
