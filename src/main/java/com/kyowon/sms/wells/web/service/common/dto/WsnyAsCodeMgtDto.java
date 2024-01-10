@@ -23,49 +23,6 @@ public class WsnyAsCodeMgtDto {
         String apyChk,
         String asPhnCd,
         String siteAwAtcCd
-    ) {
+    ) {}
 
-    }
-
-    @ApiModel(value = "WsnyAsCodeMgtDto-SearchRes")
-    public record SearchRes(
-
-        String pdGrpCd,
-        String pdCd,
-        String svDvCd,
-        String asLctCd,
-        String asPhnCd,
-        String asCausCd,
-        String siteAwAtcDsnDt,
-        String svAnaHclsfCd,
-        String siteAwAtcCd,
-        String svAnaMclsfCd,
-        String svAnaLclsfCd,
-        String svAnaDsnDt,
-        String apyStrtdt,
-        String apyEnddt,
-
-
-        String svTpCd,
-        String svTpNm,
-        String asLctNm,
-        String asPhnNm,
-        String asCausNm,
-        String siteAwAtcNm,
-        String svAnaHclsfNm,
-        String dtaDlYn,
-        String applyDate,
-        String chk,
-        String asCode,
-        String chkYn,
-        String fstRgstDtm,
-        String flag,
-        String cd,
-        String cdNm,
-        String pdNm,
-        String pdGrpNm,
-        String fuleyAwAmt
-    ) {
-
-    }
 }
