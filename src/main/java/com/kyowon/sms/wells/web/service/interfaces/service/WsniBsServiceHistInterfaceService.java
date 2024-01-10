@@ -32,7 +32,6 @@ public class WsniBsServiceHistInterfaceService {
              * code review 가이드로 Optional 로 로직 변경
              * (추후 정상적으로 동작하지 않을 시, CollectionUtils.isEmpty() 로 체크로직 변경 필요)
              */
-//            return mapper.selectBsServiceHistory(dto).orElseThrow(() -> new BizException(messageService.getMessage("MSG_TXT_NOT_EXIST_QR"))); //정보가 존재하지 않습니다
             List<WsniBsServiceHistInterfaceDto.SearchRes> returnList = mapper.selectBsServiceHistory(dto);
 
             if(CollectionUtils.isEmpty(returnList)){
