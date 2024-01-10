@@ -139,10 +139,47 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
         CreateSinglePaymentReq req = CreateSinglePaymentReq.builder()
             .inCls("5")
             .pdCd01("WP02110453")
-            .rcpChnlDtl("2050")
+            .rcpChnlDtl("1010")
             .dscDv("1")
             .uswy("0")
             .mngtPrd("3")
+            .build();
+        EaiWrapper<CreateSinglePaymentReq> dto = new EaiWrapper(req);
+
+        // when & then
+        MockHttpServletRequestBuilder request = post(BASE_URL + "/create-singlepayment-contract")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(dto));
+
+        mockMvc.perform(request)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.header.ERR_OC_YN").value("N"))
+            .andExpect(jsonPath("$.body.PRCS_RSLT").value("S"))
+        ;
+    }
+
+    @Test
+    @DisplayName("wells 일시불 생성 테스트")
+    void testCreateContractForSinglePayment() throws Exception {
+        // given
+        CreateSinglePaymentReq req = CreateSinglePaymentReq.builder()
+            .inCls("1")
+            .cntrCstNo("031542082")
+            .dcde("1738565")
+            .pdCd01("WP02110453")
+            .rcpChnlDtl("1010")
+            .dscDv("1")
+            .uswy("0")
+            .mngtPrd("3")
+            .dpDvCd1("97")
+            .subscAmt1("349000")
+            .istllKnm("수령자")
+            .istCstCralLocaraTno("010")
+            .istCstMexno("1234")
+            .istCstCralIdvTno("5678")
+            .istZip("13254")
+            .istBasAdr("경기 성남시 중원구 광명로 204")
+            .istDtlAdr("201동 303호 (중앙동,신흥역하늘채랜더스원아파트)")
             .build();
         EaiWrapper<CreateSinglePaymentReq> dto = new EaiWrapper(req);
 
