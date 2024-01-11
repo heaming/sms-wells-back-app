@@ -8,6 +8,7 @@ import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbInformationDto.Searc
 import com.kyowon.sms.wells.web.bond.credit.dvo.WbndRentalCbInformationDvo;
 import com.kyowon.sms.wells.web.bond.credit.ivo.ONIC2_CBNO1003.request.*;
 import com.kyowon.sms.wells.web.bond.credit.mapper.WbndRentalCbInformationMapper;
+import com.kyowon.sms.wells.web.bond.zcommon.constants.BnBondConst;
 import com.sds.sflex.common.common.service.CruzLinkInterfaceService;
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.exception.BizException;
@@ -107,21 +108,13 @@ public class WbndRentalCbInformationService {
                     String rst = "";
                     for (Map<String, Object> repeat5Map : ROWDATA_5_REPEAT) {
                         //렌탈 상품코드(소분류)
-                        params = new HashMap<>();
-                        //params.put("LCGROP", "1000000212");
-                        params.put("dangArbitCd", repeat5Map.get("rntlPrdtCdS5"));
-
-                        //                        rst = mapper.selectTransErrorCdMsg(params);
+                        rst = BnBondConst.RentalPdCd.getValue((String)repeat5Map.get("rntlPrdtCdS5"));
                         if (StringUtil.isNotBlank(rst)) {
                             repeat5Map.put("rntlPrdtNmS5", rst);
                         }
 
                         //연체구분코드
-                        params = new HashMap<String, Object>();
-                        //params.put("LCGROP", "1000000211");
-                        params.put("dangArbitCd", repeat5Map.get("delyDivCd5"));
-
-                        //                        rst = mapper.selectTransErrorCdMsg(params);
+                        rst = BnBondConst.RentalPdCd.getValue((String)repeat5Map.get("delyDivCd5"));
                         if (StringUtil.isNotBlank(rst)) {
                             repeat5Map.put("delyDivNm5", rst);
                         }
