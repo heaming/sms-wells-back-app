@@ -91,6 +91,8 @@ public class WsnaStockStateIndividualWareService {
         dvo.setStndUnuseYn(dto.stndUnuseYn());
         dvo.setFromSapCd(dto.fromSapCd());
         dvo.setToSapCd(dto.toSapCd());
+        dvo.setPdCdFrom(dto.pdCdFrom());
+        dvo.setPdCdTo(dto.pdCdTo());
 
         return dvo;
     }
