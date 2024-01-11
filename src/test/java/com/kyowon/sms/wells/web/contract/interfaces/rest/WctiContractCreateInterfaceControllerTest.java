@@ -139,7 +139,7 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
         CreateSinglePaymentReq req = CreateSinglePaymentReq.builder()
             .inCls("5")
             .pdCd01("WP02110453")
-            .rcpChnlDtl("1010")
+            .rcpChnlDtl("2050")
             .dscDv("1")
             .uswy("0")
             .mngtPrd("3")
@@ -165,9 +165,9 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
         CreateSinglePaymentReq req = CreateSinglePaymentReq.builder()
             .inCls("1")
             .cntrCstNo("031542082")
-            .dcde("1738565")
+            .dcde("1646422")
             .pdCd01("WP02110453")
-            .rcpChnlDtl("1010")
+            .rcpChnlDtl("2050")
             .dscDv("1")
             .uswy("0")
             .mngtPrd("3")
@@ -282,6 +282,51 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
             .uswyCd("0")
             .chgMcn1("60")
             .rgstCost("100000")
+            .build();
+
+        EaiWrapper<CreateRentalReq> dto = new EaiWrapper(req);
+
+        // when & then
+        MockHttpServletRequestBuilder request = post(BASE_URL + "/create-rental-contract")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(dto));
+
+        mockMvc.perform(request)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.header.ERR_OC_YN").value("N"))
+            .andExpect(jsonPath("$.body.RS_CD").value("S"))
+        ;
+    }
+
+    @Test
+    @DisplayName("wells 렌탈 생성 테스트")
+    void testCreateContractForRental() throws Exception {
+        // given
+        CreateRentalReq req = CreateRentalReq.builder()
+            .inDv("1")
+            .cstNo("031542082")
+            .prtnrNo("1653227")
+            .rcpChnlDtl("2010")
+            .pdCd("WP02120342")
+            .dscDvCd("8")
+            .dscTpCd("03")
+            .rtlfe1("24900")
+            .dutyUse("36")
+            .vstPrdCd("3")
+            .uswyCd("0")
+            .chgMcn1("60")
+            .rgstCost("100000")
+
+            .aftnDvCd("1")
+            .rtlfe1("349000")
+            .istCstNm("수령자")
+            .istCphonLocaraTno("010")
+            .istCphonExno("1234")
+            .istCphonIdvTno("5678")
+            .istZip("13254")
+            .istBasAdr("경기 성남시 중원구 광명로 204")
+            .istDtlAdr("201동 303호 (중앙동,신흥역하늘채랜더스원아파트)")
+
             .build();
 
         EaiWrapper<CreateRentalReq> dto = new EaiWrapper(req);
