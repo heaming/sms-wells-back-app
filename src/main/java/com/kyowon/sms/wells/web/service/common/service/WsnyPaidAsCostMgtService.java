@@ -1,7 +1,9 @@
 package com.kyowon.sms.wells.web.service.common.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,10 +52,13 @@ public class WsnyPaidAsCostMgtService {
             String apyStrtdt = dvo.getApyStrtdt();
 
             // 신규 데이터 생성
-            if (!orgApyStrtdt.equals(apyStrtdt)) {
+            if (StringUtils.isEmpty(orgApyStrtdt) || !orgApyStrtdt.equals(apyStrtdt)) {
                 proccessCount += mapper.insertPaidAsCostMgts(dvo);
-                // 이전 데이터 적용종료일자 변경
-                this.mapper.updateApyStrtdt(dvo);
+                BigDecimal izSn = dvo.getIzSn();
+                if (izSn != null) {
+                    // 이전 데이터 적용종료일자 변경
+                    this.mapper.updateApyStrtdt(dvo);
+                }
             } else {
                 proccessCount += mapper.updatePaidAsCostMgts(dvo);
             }
