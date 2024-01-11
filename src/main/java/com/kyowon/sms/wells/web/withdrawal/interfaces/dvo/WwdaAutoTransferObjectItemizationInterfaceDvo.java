@@ -10,6 +10,7 @@ public class WwdaAutoTransferObjectItemizationInterfaceDvo {
     private String cntrStlmId; /*계약결제ID*/
     private String cstNo; /*고객번호*/
     private String sellTpCd; /*판매유형코드*/
+    private String sellTpCdNm; /*판매유형코드*/
     private String cntrNo; /*계약번호*/
     private String cntrSn; /*계약일련번호*/
     private String cntrDtlStatCd; /*계약상세상태코드*/
