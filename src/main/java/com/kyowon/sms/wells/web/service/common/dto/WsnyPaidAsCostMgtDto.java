@@ -31,6 +31,7 @@ public class WsnyPaidAsCostMgtDto {
         String apyStrtdt, // 적용시작일자
         String orgApyStrtdt, // 변경전 적용시작일자
         String apyEnddt, // 적용종료일자
+        String orgApyEnddt, // 변경 전 적용종료일자
         BigDecimal csmrUprcAmt, // 소비자단가금액
         BigDecimal whlsUprcAmt, // 도매단가금액
         BigDecimal insiUprcAmt, // 내부단가금액
