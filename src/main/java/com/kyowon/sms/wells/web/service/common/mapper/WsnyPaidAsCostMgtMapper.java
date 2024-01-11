@@ -7,8 +7,6 @@ import org.apache.ibatis.annotations.Mapper;
 import com.kyowon.sms.wells.web.service.common.dto.WsnyPaidAsCostMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.common.dto.WsnyPaidAsCostMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.service.common.dvo.WsnyPaidAsCostMgtDvo;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 
 /**
  * <pre>
@@ -21,11 +19,11 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 @Mapper
 public interface WsnyPaidAsCostMgtMapper {
 
-    PagingResult<SearchRes> selectPaidAsCostMgts(SearchReq dto, PageInfo pageInfo);
-
-
     List<SearchRes> selectPaidAsCostMgts(SearchReq dto);
 
     int insertPaidAsCostMgts(WsnyPaidAsCostMgtDvo dvo);
+
+    int updateApyStrtdt(WsnyPaidAsCostMgtDvo dvo);
+
     int updatePaidAsCostMgts(WsnyPaidAsCostMgtDvo dvo);
 }

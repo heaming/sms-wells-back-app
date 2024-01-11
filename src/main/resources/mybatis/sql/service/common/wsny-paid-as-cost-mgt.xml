@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.common.mapper.WsnyPaidAsCostMgtMapper">
+
+    <select id="selectPaidAsCostMgts" resultType="com.kyowon.sms.wells.web.service.common.dto.WsnyPaidAsCostMgtDto$SearchRes">
+        SELECT DISTINCT TO_CHAR(TO_NUMBER(D2.SAP_MAT_CD))              AS SAP_MAT_CD       /* SAP코드 */
+             , D2.PD_CD                                                AS USE_MAT_PD_CD    /* 사용자재상품코드 */
+             , D2.PD_ABBR_NM                                           AS PD_NM            /* 품목명 */
+             , D4.APY_STRTDT                                                               /* 적용시작일자 */
+             , D4.APY_STRTDT                                           AS ORG_APY_STRTDT   /* 변경 전 적용시작일자 */
+             , D4.APY_ENDDT                                                                /* 적용종료일자 */
+             , NVL(D4.CSMR_UPRC_AMT, 0)                                AS CSMR_UPRC_AMT    /* 소비자단가금액 */
+             , NVL(D4.WHLS_UPRC_AMT, 0)                                AS WHLS_UPRC_AMT    /* 도매단가금액 */
+             , NVL(D4.INSI_UPRC_AMT, 0)                                AS INSI_UPRC_AMT    /* 내부단가금액 */
+             , NVL(D4.TCFEE_AMT, 0)                                    AS TCFEE_AMT        /* 기술료금액 */
+             , NVL(D4.CSMR_UPRC_AMT, 0) + NVL(D4.TCFEE_AMT, 0)         AS SUM_AMT          /* 합계 */
+             , NVL(D4.PDCT_PD_CD, #{pdCd})                             AS PDCT_PD_CD       /* 기준상품코드 */
+             , D4.IZ_SN                                                                    /* 내역일련번호 */
+             , ROW_NUMBER() OVER(PARTITION BY D2.PD_CD
+                                     ORDER BY D2.PD_CD, D4.IZ_SN DESC) AS RN               /* 순번 */
+          FROM TB_PDBS_PD_REL D1                 /* 상품관계 */
+         INNER JOIN TB_PDBS_PD_BAS D2
+            ON D2.PD_CD = D1.OJ_PD_CD
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D3         /* 상품각사속성상세 */
+            ON D3.PD_CD = D1.OJ_PD_CD
+          LEFT OUTER JOIN TB_SVPD_RCAS_ITM_PRC_IZ D4   /* 유상AS품목가격내역 */
+            ON D4.USE_MAT_PD_CD = D2.PD_CD
+           AND D4.DTA_DL_YN     = 'N'
+    <if test='@MybatisUtils@equals(apyMtrChk,"Y")'>
+           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN D4.APY_STRTDT AND D4.APY_ENDDT
+    </if>
+         WHERE D1.DTA_DL_YN          = 'N'
+           AND D1.PD_REL_TP_CD       = '14'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN D1.VL_STRT_DTM AND D1.VL_END_DTM
+           AND D2.DTA_DL_YN          = 'N'
+           AND D2.PD_TP_CD           = 'M'
+           AND D3.DTA_DL_YN          = 'N'
+           AND D3.PD_EXTS_PRP_GRP_CD = 'PART'
+    <choose>
+        <when test='@MybatisUtils@equals(cmnPartChk,"Y")'>
+           AND (    D3.PD_PRP_VAL21 IN ('00','01')
+                <if test="@MybatisUtils@isNotEmpty(pdGrpCd)">
+                 OR D3.PD_PRP_VAL21 = #{pdGrpCd} || '0'
+                </if>
+                <if test="@MybatisUtils@isNotEmpty(pdCd)">
+                 OR D1.BASE_PD_CD = #{pdCd}
+                </if>
+               )
+        </when>
+        <otherwise>
+           AND D1.BASE_PD_CD         = #{pdCd}
+        </otherwise>
+    </choose>
+         ORDER BY D2.PD_CD, D4.IZ_SN
+    </select>
+
+    <insert id="insertPaidAsCostMgts">
+        INSERT INTO TB_SVPD_RCAS_ITM_PRC_IZ (
+               PDCT_PD_CD
+             , USE_MAT_PD_CD
+             , CSMR_UPRC_AMT /* 소비자단가금액 */
+             , WHLS_UPRC_AMT /* 도매단가금액 */
+             , INSI_UPRC_AMT /* 내부단가금액*/
+             , TCFEE_AMT  /* 기술료금액 */
+             , APY_STRTDT /* 적용시작일 */
+             , APY_ENDDT  /* 적용종료일 */
+             , IZ_SN
+             , DTA_DL_YN
+               <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+                 #{pdctPdCd}
+               , #{useMatPdCd}
+               , #{csmrUprcAmt} /* 소비자단가금액 */
+               , #{whlsUprcAmt} /* 도매단가금액 */
+               , #{insiUprcAmt} /* 내부단가금액*/
+               , #{tcfeeAmt} /* 기술료금액 */
+               , #{apyStrtdt} /* 적용시작일 */
+               , #{apyEnddt} /* 적용종료일 */
+               , (SELECT MAX(IZ_SN) + 1
+                    FROM TB_SVPD_RCAS_ITM_PRC_IZ
+                   WHERE 1=1
+                     AND PDCT_PD_CD = #{pdctPdCd}
+                     AND USE_MAT_PD_CD = #{useMatPdCd}
+                  )
+               , 'N'
+              <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+
+    <update id="updateApyStrtdt">
+        UPDATE TB_SVPD_RCAS_ITM_PRC_IZ
+           SET APY_ENDDT = TO_CHAR(TO_DATE(#{apyStrtdt}, 'YYYYMMDD') - 1, 'YYYYMMDD')
+        <include refid="COMMON.updateSystemField"/>
+         WHERE PDCT_PD_CD    = #{pdctPdCd}
+           AND USE_MAT_PD_CD = #{useMatPdCd}
+           AND IZ_SN         = #{izSn}
+    </update>
+
+    <update id="updatePaidAsCostMgts">
+        UPDATE TB_SVPD_RCAS_ITM_PRC_IZ
+           SET CSMR_UPRC_AMT = #{csmrUprcAmt}
+             , WHLS_UPRC_AMT = #{whlsUprcAmt}
+             , INSI_UPRC_AMT = #{insiUprcAmt}
+             , TCFEE_AMT     = #{tcfeeAmt}
+        <include refid="COMMON.updateSystemField"/>
+         WHERE PDCT_PD_CD    = #{pdctPdCd}
+           AND USE_MAT_PD_CD = #{useMatPdCd}
+           AND IZ_SN         = #{izSn}
+    </update>
+
+</mapper>
