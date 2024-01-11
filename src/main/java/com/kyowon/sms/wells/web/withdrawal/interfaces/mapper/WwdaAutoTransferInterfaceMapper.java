@@ -2,13 +2,10 @@ package com.kyowon.sms.wells.web.withdrawal.interfaces.mapper;
 
 import java.util.List;
 
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferInfoEvidenceInfoInterfaceDvo;
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaBillingScheduleReceiveInterfaceDvo;
+import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.*;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdaAutoTransferInterfaceDto;
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferInfoInterfaceDvo;
-import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferObjectItemizationInterfaceDvo;
 
 @Mapper
 public interface WwdaAutoTransferInterfaceMapper {
@@ -33,11 +30,11 @@ public interface WwdaAutoTransferInterfaceMapper {
 
     /**
      * 자동이체 대상목록 조회
-     * @param dto
+     * @param dvo
      * @return
      */
     List<WwdaAutoTransferObjectItemizationInterfaceDvo> selectObjectItemizations(
-        WwdaAutoTransferInterfaceDto.SearchObjectReq dto
+        WwdaAutoTransferObjectItemizationInterfaceSearchDvo dvo
     );
 
     /**

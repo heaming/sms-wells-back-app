@@ -26,7 +26,7 @@ public interface WdcbSalesConfirmCreateMapper {
 
     WdcbSalesConfirmSapMatDvo selectSapMat(WdcbSalesConfirmCreateDvo dvo);
 
-    String selectCtrlOrdTpCd(String sapPdDvCd, String sellInflwChnlDtlCd, String ogTpCd);
+    String selectCtrlOrdTpCd(WdcbSalesConfirmCreateDvo dvo, String sapPdDvCd, String vatTpCd);
 
     String selectSapSlTpCd(
         String tempSellTpDtlCd, String tempSlRcogClsfCd, String clssVal, String slTpDvCd, String addCondition

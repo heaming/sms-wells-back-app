@@ -373,7 +373,28 @@
 
     <select id="selectObjectItemizations"
             resultType="com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferObjectItemizationInterfaceDvo">
-        SELECT *
+        SELECT DISTINCT
+               CNTR_STLM_ID /*계약결제ID*/
+             , CST_NO /*고객번호*/
+             , SELL_TP_CD /*판매유형코드*/
+             , SELL_TP_CD_NM /*판매유형코드명*/
+             , CNTR_NO /*계약번호*/
+             , CNTR_SN /*계약일련번호*/
+             , CNTRT_NM /*계약자명*/
+             , PD_NM /*상품명*/
+             , ISTLL_KNM /*설치자한글명*/
+             , FNT_DV_CD /*이체구분코드*/
+             , FNT_DV_CD_NM /*이체구분코드명*/
+             , FNIT_NM /*금융기관명*/
+             , ACNO_CDNO /*계좌카드번호*/
+             , OWR_KNM /*소유자한글명*/
+             , FNT_STPL_D /*이체약정일*/
+             , DG_YN /*대표여부*/
+             , BNDL_CNTR_YN /*묶음계약여부*/
+             , DG_CNTR_NO /*대표계약번호*/
+             , DG_CNTR_SN /*대표계약일련번호*/
+             , IST_DT /*설치일자*/
+             , IST_ADDR /*설치주소*/
           FROM (
                 SELECT D1.CNTR_STLM_ID AS CNTR_STLM_ID /*계약결제ID*/
                      , B1.CNTR_CST_NO AS CST_NO/*고객번호*/
@@ -486,6 +507,7 @@
                     ON C1.DTA_DL_YN = 'N'
                    AND C1.DTL_CNTR_NO = A1.CNTR_NO
                    AND C1.DTL_CNTR_SN = A1.CNTR_SN
+                   AND C1.VL_END_DTM = '99991231235959'
                   JOIN TB_SSCT_CNTR_STLM_BAS D1 /*계약결제기본*/
                     ON D1.DTA_DL_YN = 'N'
                    AND D1.CNTR_STLM_ID = C1.CNTR_STLM_ID
@@ -504,7 +526,7 @@
                 <if test='@MybatisUtils@isNotEmpty(sellTps)'>
                    AND A1.SELL_TP_CD IN
                         <foreach collection="sellTps" item="item" open='(' close=')' separator=', '>
-                            <if test='!@MybatisUtils@equals(item, "SELL_TP_CD")'>
+                            <if test='@MybatisUtils@isNotEmpty(item)'>
                              #{item}
                             </if>
                         </foreach> /*판매유형코드*/
@@ -637,8 +659,8 @@
                                        FROM TB_RVDW_FNIT_FEE_BAS LT
                                       WHERE LT.FNIT_CD        = MT.FNIT_CD
                                         AND LT.DTA_DL_YN      = 'N'
-                                        AND LT.FNIT_FEE_TP_CD = '1' <!-- 금융기관수수료유형코드(1 - 가상계좌, 2 - 신용카드, 3 - 카드자동이체, 4 - 현금자동이체) -->
-                                        AND LT.VNCO_DV_CD     = '002' <!-- VAN사구분코드(002 - 세틀뱅크, 003 - KICC, 001 - 금결원) -->
+                                        AND LT.FNIT_FEE_TP_CD = '4' /* 금융기관수수료유형코드(1 - 가상계좌, 2 - 신용카드, 3 - 카드자동이체, 4 - 현금자동이체) */
+                                        AND LT.VNCO_DV_CD     IN ('002', '003') /* VAN사구분코드(002 - 세틀뱅크, 003 - KICC, 001 - 금결원) */
                                         AND LT.VL_STRTDT <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
                                         AND LT.VL_ENDDT  <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDD') )
         <if test="@MybatisUtils@isNotEmpty(fnitCd)">
@@ -728,7 +750,7 @@
                        ON D3.CNTR_STLM_ID = D2.CNTR_STLM_ID
                       AND D3.DTA_DL_YN = 'N'
                     WHERE D2.DTA_DL_YN = 'N'
-                      AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN D2.VL_STRT_DTM AND D2.VL_END_DTM
+                      AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D2.VL_STRT_DTM AND D2.VL_END_DTM
                       AND D2.VL_END_DTM = '99991231235959'
                  ) D1  /*계약결제기본*/
               ON D1.RN = 1
@@ -738,7 +760,7 @@
              AND A1.CNTR_CAN_DTM IS NULL
              AND A1.CNTR_CST_NO = #{cstNo}
              AND D1.DP_TP_CD = CASE WHEN #{fntDvCd} = '01' THEN '0102'
-                                     WHEN #{fntDvCd} = '02' THEN '0203'
+                                    WHEN #{fntDvCd} = '02' THEN '0203'
                                 END
     </select>
 
@@ -807,7 +829,7 @@
                      JOIN TB_RVDW_FNIT_CD C2
                        ON C2.FNIT_CD = B2.BNK_CD
                     WHERE A2.CNTR_STLM_ID = D1.CNTR_STLM_ID
-                      AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN A2.VL_STRT_DTM AND A2.VL_END_DTM
+                      AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN A2.VL_STRT_DTM AND A2.VL_END_DTM
                       AND A2.VL_END_DTM = '99991231235959'
                       AND C2.FNIT_CD = CASE WHEN B2.DP_TP_CD = '0102' THEN LPAD(B2.BNK_CD, 3, 0)
                                             WHEN B2.DP_TP_CD = '0203' THEN LPAD(B2.CDCO_CD, 3, 0)
@@ -833,7 +855,7 @@
                      JOIN TB_RVDW_FNIT_CD C2
                        ON C2.FNIT_CD = B2.BNK_CD
                     WHERE A2.CNTR_STLM_ID = D1.CNTR_STLM_ID
-                      AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN A2.VL_STRT_DTM AND A2.VL_END_DTM
+                      AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN A2.VL_STRT_DTM AND A2.VL_END_DTM
                       AND A2.VL_END_DTM = '99991231235959'
                   ) AA1
                   WHERE AA1.RN = 1
@@ -850,7 +872,7 @@
                      JOIN TB_RVDW_FNIT_CD C2
                        ON C2.FNIT_CD = B2.BNK_CD
                     WHERE A2.CNTR_STLM_ID = D1.CNTR_STLM_ID
-                      AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN A2.VL_STRT_DTM AND A2.VL_END_DTM
+                      AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN A2.VL_STRT_DTM AND A2.VL_END_DTM
                       AND A2.VL_END_DTM = '99991231235959'
                   )AA1
                   WHERE AA1.RN = 1

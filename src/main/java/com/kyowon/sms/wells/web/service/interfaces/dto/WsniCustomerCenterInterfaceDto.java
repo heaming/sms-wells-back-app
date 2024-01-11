@@ -431,6 +431,7 @@ public class WsniCustomerCenterInterfaceDto {
         @JsonProperty("LOCARA_TNO")
         String locaraTno,
         @JsonProperty("EXNO_ENCR")
+        @DBDecField
         String exnoEncr,
         @JsonProperty("IDV_TNO")
         String idvTno,
@@ -453,7 +454,13 @@ public class WsniCustomerCenterInterfaceDto {
         @JsonProperty("USE_YN")
         String useYn,
         @JsonProperty("POPUP_YN")
-        String popupYn
+        String popupYn,
+
+        @JsonProperty("RGST_USR_ID")
+        String rgstUsrId,
+
+        @JsonProperty("RGST_DTM")
+        String rgstDtm
     ) {
         public SearchFiltShpadrRes {
             mexnoEncr = DbEncUtil.dec(mexnoEncr);

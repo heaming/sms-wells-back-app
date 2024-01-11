@@ -1,11 +1,11 @@
 package com.kyowon.sms.wells.web.service.common.mapper;
 
-import com.kyowon.sms.wells.web.service.common.dto.WsnyAsCodeMgtDto.*;
-import com.kyowon.sms.wells.web.service.common.dvo.WsnyAsCodeMgtDvo;
-import com.sds.sflex.system.config.datasource.PageInfo;
 import org.apache.ibatis.annotations.Mapper;
 
-import java.util.List;
+import com.kyowon.sms.wells.web.service.common.dto.WsnyAsCodeMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.service.common.dvo.WsnyAsCodeMgtDvo;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 /**
  *
@@ -19,9 +19,9 @@ import java.util.List;
 @Mapper
 public interface WsnyAsCodeMgtMapper {
 
-    List<WsnyAsCodeMgtDvo> selectAsCodes(SearchReq dto, PageInfo pageInfo);
+    PagingResult<WsnyAsCodeMgtDvo> selectAsCodes(SearchReq dto, PageInfo pageInfo);
 
-    List<WsnyAsCodeMgtDvo> selectAsCodes(SearchReq dto);
+    String selectPdCdValid(String pdCd);
 
     int saveAsCode(WsnyAsCodeMgtDvo dvo);
 

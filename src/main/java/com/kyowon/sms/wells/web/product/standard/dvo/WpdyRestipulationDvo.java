@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.product.standard.dvo;
 
+import java.math.BigDecimal;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -28,7 +30,7 @@ public class WpdyRestipulationDvo {
     private Integer rstlDutyMcn; /* 재약정의무개월수 */
 
     private String ackmtAmt; /* 인정금액 */
-    private Integer ackmtCt; /* 인정건수 */
+    private BigDecimal ackmtCt; /* 인정건수 */
     private String feeAckmtBaseAmt; /* 수수료인정기준금액 */
     private String feeFxamYn; /* 수수료정액여부 */
     private String rid;

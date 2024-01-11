@@ -73,7 +73,7 @@ public class WbndRentalCbMgtObjectService {
             // processCount += resultYn;
 
             int resultHist = this.mapper.insertMessageObjectHist(dvo);
-            BizAssert.isTrue(resultHist > 0, "MSG_ALT_SVE_ERR");
+            // BizAssert.isTrue(resultHist > 0, "MSG_ALT_SVE_ERR");
             processCount += resultHist;
         }
 

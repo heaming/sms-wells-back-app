@@ -111,6 +111,8 @@
              , TG1.RNADR AS RNADR
              , TG1.RDADR AS RDADR
              , (CASE WHEN TS1.MTR_STAT_CD = '3' THEN 'Y' ELSE 'N' END) AS DEL_YN
+             , TF9.SPP_AK_RS_CN AS SPP_AK_RS_CN /* 2024.01.06 홍세기 고객센터 요청 반품집하지시 상태값 표시 */
+             , TF9.SPP_BZS_MB_NO
           FROM TB_SVPD_CST_SVAS_IST_OJ_IZ TS1
           LEFT OUTER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ TS2
             ON TS2.CST_SV_ASN_NO = TS1.CST_SV_ASN_NO
@@ -334,6 +336,37 @@
                                ON Y.SVPD_PD_CD = X.ITM_PD_CD
                             WHERE X.RN = 3) TF9
             ON TF9.CST_SV_ASN_NO = TS1.CST_SV_ASN_NO
+        LEFT OUTER JOIN (SELECT SPP_AK_RS_CN
+                                , SPP_BZS_MB_NO
+                                , SPP_IVC_NO
+                                , SPP_AK_RCPDT
+                                , CNTR_NO
+                                , CNTR_SN
+                  FROM TB_SVPD_SPP_AK_RS_IZ V2
+                 WHERE V2.CNTR_NO = #{cntrNo}
+                   AND V2.CNTR_SN = #{cntrSn}
+                   AND V2.SPP_IVC_NO = (SELECT VS106.SPP_IVC_NO
+                                          FROM TB_SVPD_CST_SV_WK_RS_IZ VS106
+                                         WHERE VS106.CNTR_NO = V2.CNTR_NO
+                                           AND VS106.CNTR_SN = V2.CNTR_SN
+                                           AND SUBSTR(VS106.SV_BIZ_DCLSF_CD,1,1) = '1'
+                                           )
+                   AND V2.SPP_BZS_CST_ID = '30473216'
+                   AND V2.SPP_AK_SN = (SELECT MAX(SUB1.SPP_AK_SN)
+                                      FROM TB_SVPD_SPP_AK_RS_IZ SUB1
+                                     WHERE SUB1.SPP_BZS_CST_ID = '30473216'
+                                       AND SUB1.CNTR_NO = V2.CNTR_NO
+                                       AND SUB1.CNTR_SN = V2.CNTR_SN
+                                       AND SUB1.SPP_IVC_NO = (SELECT SUB2.SPP_IVC_NO
+                                                              FROM TB_SVPD_CST_SV_WK_RS_IZ SUB2
+                                                             WHERE SUB2.CNTR_NO = #{cntrNo}
+                                                               AND SUB2.CNTR_SN = #{cntrSn}
+                                                               AND SUBSTR(SUB2.SV_BIZ_DCLSF_CD,1,1) = '1'
+                                                               )
+                                       AND SUB1.SPP_AK_RCPDT = V2.SPP_AK_RCPDT ) ) TF9
+            ON TF9.CNTR_NO = TS1.CNTR_NO
+           AND TF9.CNTR_SN = TS1.CNTR_SN
+           AND TF9.SPP_AK_RCPDT = DECODE(TS1.MTR_STAT_CD, '1', '01', '2','01','3','03')
          WHERE 1=1
            AND TS1.CNTR_NO = #{cntrNo}
            AND TS1.CNTR_SN = #{cntrSn}
@@ -456,6 +489,8 @@
              , TG1.RNADR AS RNADR
              , TG1.RDADR AS RDADR
              , 'N' AS DEL_YN
+             , '' AS SPP_AK_RS_CN   /* 2024.01.06 홍세기 고객센터 요청 반품집하지시 상태값 표시 */
+             , '' AS SPP_BZS_MB_NO
           FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ TS1
          INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ TS2
             ON TS2.CST_SV_ASN_NO = TS1.CST_SV_ASN_NO
@@ -948,6 +983,8 @@
              , TG1.RNADR AS RNADR
              , TG1.RDADR AS RDADR
              , 'N' AS DEL_YN
+             , '' AS SPP_AK_RS_CN /* 2024.01.06 홍세기 고객센터 요청 반품집하지시 상태값 표시 */
+             , '' AS SPP_BZS_MB_NO
           FROM (
                 SELECT V1.CNTR_NO AS CNTR_NO
                      , V1.CNTR_SN AS CNTR_SN

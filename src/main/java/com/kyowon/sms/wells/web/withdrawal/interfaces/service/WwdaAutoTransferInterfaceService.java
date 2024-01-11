@@ -7,12 +7,13 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
-import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.dvo.*;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.mapper.ZwdaBundleWithdrawalMgtMapper;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.service.ZwdaAutoTransferRealTimeAccountService;
 import com.kyowon.sms.common.web.withdrawal.bilfnt.service.ZwdaKiccReceiveProcessService;
+import com.kyowon.sms.common.web.withdrawal.common.dto.ZwwdbFinanceCodesDto;
+import com.kyowon.sms.common.web.withdrawal.common.mapper.ZwwdbFinanceCodesMapper;
 import com.kyowon.sms.common.web.withdrawal.idvrve.dto.ZwdbCreditcardDto;
 import com.kyowon.sms.common.web.withdrawal.idvrve.mapper.ZwdbCreditcardMapper;
 import com.kyowon.sms.common.web.withdrawal.interfaces.dvo.ZwdaBillingDelegateSubordinationContractInfoInterfaceDvo;
@@ -20,7 +21,6 @@ import com.kyowon.sms.wells.web.withdrawal.interfaces.converter.WwdaAutoTransfer
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dto.WwdaAutoTransferInterfaceDto;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.*;
 import com.kyowon.sms.wells.web.withdrawal.interfaces.mapper.WwdaAutoTransferInterfaceMapper;
-import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
 
 import lombok.RequiredArgsConstructor;
@@ -32,6 +32,7 @@ public class WwdaAutoTransferInterfaceService {
     private final WwdaAutoTransferInterfaceMapper mapper;
     private final ZwdaBundleWithdrawalMgtMapper zwdaBundleMapper;
     private final ZwdbCreditcardMapper zwdbCreditcardMapper;
+    private final ZwwdbFinanceCodesMapper financeCodesMapper;
     private final MessageResourceService messageResourceService;
     private final KakaoMessageService kakaoMessageService;
     private final WwdaAutoTransferConverter converter;
@@ -71,8 +72,15 @@ public class WwdaAutoTransferInterfaceService {
     public List<WwdaAutoTransferInterfaceDto.SearchObjectRes> getObjectItemizations(
         WwdaAutoTransferInterfaceDto.SearchObjectReq dto
     ) {
+        WwdaAutoTransferObjectItemizationInterfaceSearchDvo searchDvo = converter
+            .mapAutoTransferObjectItemizationInterfaceSearch(dto);
+        searchDvo.setSellTps(
+            dto.sellTps().stream()
+                .filter((item) -> !StringUtils.isEmpty(item) && !item.equals("SELL_TP_CD"))
+                .collect(Collectors.toList())
+        );
         return converter
-            .mapWwdaAutoTransferDvoToSearchObjectRes(mapper.selectObjectItemizations(dto));
+            .mapWwdaAutoTransferDvoToSearchObjectRes(mapper.selectObjectItemizations(searchDvo));
     }
 
     /**
@@ -113,7 +121,18 @@ public class WwdaAutoTransferInterfaceService {
     public List<WwdaAutoTransferInterfaceDto.SearchFinancialInstitutionCodeRes> getFinancialInstitutionCodes(
         WwdaAutoTransferInterfaceDto.SearchReq dto
     ) {
-        return mapper.selectFinancialInstitutionCodes(dto);
+        List<WwdaAutoTransferInterfaceDto.SearchFinancialInstitutionCodeRes> returnInfos = new ArrayList<>();
+        ZwwdbFinanceCodesDto.SearchReq searchReq = new ZwwdbFinanceCodesDto.SearchReq("4", null);
+        List<ZwwdbFinanceCodesDto.SearchRes> searchRes = financeCodesMapper.selectBankCodes(searchReq);
+        for (ZwwdbFinanceCodesDto.SearchRes res : searchRes) {
+            WwdaAutoTransferInterfaceDto.SearchFinancialInstitutionCodeRes returnInfo = new WwdaAutoTransferInterfaceDto.SearchFinancialInstitutionCodeRes(
+                res.codeId(),
+                res.codeName()
+            );
+            returnInfos.add(returnInfo);
+        }
+
+        return returnInfos;
     }
 
     /**

@@ -2,584 +2,544 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaChangeOfRentalStatusMapper">
 
 
-<select id="selectChangeOfRentalStatusPages" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaChangeOfRentalStatusDto$SearchRes">
+    <select id="selectChangeOfRentalStatusPages" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaChangeOfRentalStatusDto$SearchRes">
+        SELECT ( CASE WHEN T2.RENTAL_ASSET_STAT = '0017' AND ( SELECT COUNT(1)
+                                                                 FROM TB_IFIN_SAP_RTAS_STAT_CHR_ETXT H1 /* SAP렌탈자산상태변경수신전문 */
+                                                                WHERE H1.RENTAL_ASSET_STAT = '0018'
+                                                                  AND H1.ORDER_NO          = X1.SAP_ASSET_NO ) <![CDATA[>]]> 0
+                      THEN '0019'
+                      ELSE T2.RENTAL_ASSET_STAT
+                 END ) AS RENTAL_ASSET_STAT   /* 랜탈관련상태값 */
+               , T2.SVPD_SAP_CD               /* SAP코드 */
+               , T2.SVPD_PD_CD                /* 품목코드 */
+               , T2.SVPD_NM_ABBR1             /* 품목명 */
+               , T2.IST_DT                    /* 설치일자 */
+               , T2.FNL_VST_FSH_DT            /* 작업일자 */
+               , T2.REQD_DT                   /* 철거요청일자 */
+               , T2.FNL_ITM_GD_CD             /* 등급 */
+               , T2.DEPT_NM                   /* 담당센터 */
+               , T2.USE_QTY                   /* 사용수량 */
+               , T2.CNTR_DTL_NO               /* 고객번호 */
+               , T2.RCGVP_KNM                 /* 고객명 */
+               , T2.OSTR_CONF_DT              /* 확인일자 */
+               , T2.OSTR_DT                   /* 전산반품일자 */
+               , T2.RTNGD_PROCS_TP_CD         /* 반품처리유형 */
+               , T2.RMK_CN                    /* 특이사항 */
+               , T2.CNTR_NO                   /* 고객번호 */
+               , T2.CNTR_SN                   /* 고객일련번호*/
+               , T2.RTNGD_RVPY_PROCS_YN       /* 반품수불처리여부 */
+               , T2.HGR_WARE_NO               /* 상위창고번호 */
+               , T2.FACTORY_DISPOSAL_GB       /* 물류폐기, 공장폐기 임시구분 */
+               , T2.SVPD_ITEM_GR              /* 품목상품구분 */
+          FROM
+             (
+               SELECT T1.*
+                    , ( SELECT MAX(S1.CNTR_SN)
+                          FROM TB_SSCT_RTAS_STAT_IZ S1
+                         WHERE S1.DTA_DL_YN = 'N'
+                           AND S1.CNTR_NO   = T1.CNTR_NO
+                           AND S1.CNTR_SN <![CDATA[<=]]> T1.RN
+                           AND NOT EXISTS ( SELECT 1
+                                             FROM TB_IFIN_SAP_RTAS_STAT_CHR_ETXT S2
+                                            WHERE S2.RENTAL_ASSET_STAT = '0015'
+                                              AND S2.ORDER_NO          = S1.SAP_ASSET_NO
+                                              AND S2.UPD_ACT_DT <![CDATA[<]]> #{inqrYm} || '00' ) ) AS KIWI_LCICSQ
+                 FROM
+                    (
+                      /* 0015 */
+                      SELECT /*+ LEADING(D1) */
+                             TO_CHAR(TO_NUMBER(D4.SAP_MAT_CD))                                              AS SVPD_SAP_CD
+                           , D1.ITM_PD_CD                                                                   AS SVPD_PD_CD
+                           , D4.PD_ABBR_NM                                                                  AS SVPD_NM_ABBR1
+                           , D3.IST_DT
+                           , CASE WHEN D1.SV_BIZ_DCLSF_CD LIKE '32%' THEN D1.FNL_VST_FSH_DT
+                                  ELSE ( SELECT RSG_APLC_DT
+                                           FROM TB_SSCT_CNTR_RSG_PROCS_IZ   /* 계약해지처리내역 */
+                                          WHERE CNTR_NO = D1.CNTR_NO
+                                            AND CNTR_SN = D1.CNTR_SN )
+                             END                                                                            AS REQD_DT
+                           , D1.FNL_VST_FSH_DT
+                           , D1.FNL_ITM_GD_CD
+                           , D7.OG_NM                                                                       AS DEPT_NM
+                           , D1.USE_QTY
+                           , D1.CNTR_NO || '-' || D1.CNTR_SN                                                AS CNTR_DTL_NO
+                           , D9.RCGVP_KNM
+                           , D1.OSTR_CONF_DT
+                           , D1.OSTR_DT
+                           , D1.RTNGD_PROCS_TP_CD
+                           , F_CMZ_CD_NM('TNT_WELLS', 'RTNGD_PROCS_TP_CD', D1.RTNGD_PROCS_TP_CD)            AS RTNGD_PROCS_TP_NM
+                           , D1.RMK_CN
+                           , ROW_NUMBER() OVER(PARTITION BY D1.CNTR_NO ORDER BY D1.FNL_VST_FSH_DT DESC)     AS RN
+                           , ( SELECT MAX(S1.CNTR_SN)
+                                 FROM TB_SSCT_RTAS_STAT_IZ S1
+                                WHERE S1.DTA_DL_YN = 'N'
+                                  AND S1.CNTR_NO   = D1.CNTR_NO
+                                  AND NOT EXISTS ( SELECT 1
+                                                     FROM TB_IFIN_SAP_RTAS_STAT_CHR_ETXT S2 /* SAP렌탈자산상태변경수신전문 */
+                                                    WHERE S2.RENTAL_ASSET_STAT = '0015'
+                                                      AND S2.ORDER_NO          = S1.SAP_ASSET_NO
+                                                      AND S2.UPD_ACT_DT <![CDATA[<]]> #{inqrYm} || '00' ) ) AS MAX_LCICSQ
+                           , D1.CNTR_NO
+                           , D1.CNTR_SN
+                           , D1.RTNGD_RVPY_PROCS_YN
+                           , D1.ITM_PD_CD
+                           , D2.HGR_WARE_NO
+                           , '0015'                                                                         AS RENTAL_ASSET_STAT
+                           , '1'                                                                            AS FACTORY_DISPOSAL_GB /* 물류폐기 공장폐기 구분 임시컬럼 - 물류폐기 */
+                           , D5.PD_PRP_VAL20                                                                AS SVPD_ITEM_GR
+                        FROM TB_SVST_SV_WK_OSTR_IZ D1               /* 서비스작업출고내역 */
+                       INNER JOIN TB_SVST_MCBY_WARE_IZ D2           /* 월별창고내역 */
+                          ON D2.APY_YM  = SUBSTR(D1.FNL_VST_FSH_DT, 1, 6)
+                         AND D2.WARE_NO = D1.WK_WARE_NO
+                       INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D3         /* 고객서비스수행내역 */
+                          ON D3.CNTR_NO = D1.CNTR_NO
+                         AND D3.CNTR_SN = D1.CNTR_SN
+                       INNER JOIN TB_PDBS_PD_BAS D4                 /* 상품기본 */
+                          ON D4.PD_CD = D1.ITM_PD_CD
+                       INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D5        /* 상품각사속성상세 */
+                          ON D5.PD_CD = D4.PD_CD
+                       INNER JOIN TB_SSCT_CNTR_DTL D6               /* 계약상세 */
+                          ON D6.CNTR_NO = D1.CNTR_NO
+                         AND D6.CNTR_SN = D1.CNTR_SN
+                        LEFT OUTER JOIN TB_OGBS_MM_OG_IZ D7         /* 월조직내역 */
+                          ON D7.BASE_YM  = SUBSTR(D1.FNL_VST_FSH_DT, 1, 6)
+                         AND D7.OG_TP_CD = D1.OG_TP_CD
+                         AND D7.OG_ID    = D1.DGR1_LEVL_OG_ID
+                        LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL D8     /* 계약주소관계 */
+                          ON D8.DTL_CNTR_NO = D1.CNTR_NO
+                         AND D8.DTL_CNTR_SN = D1.CNTR_SN
+                         AND D8.DTA_DL_YN   = 'N'
+                         AND D8.ADRPC_TP_CD IN ('2', '3')
+                         AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D8.VL_STRT_DTM AND D8.VL_END_DTM
+                        LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS D9   /* 계약주소지기본 */
+                          ON D9.CNTR_ADRPC_ID = D8.CNTR_ADRPC_ID
+                         AND D9.DTA_DL_YN     = 'N'
+                       WHERE D1.DTA_DL_YN          = 'N'
+                         AND D1.SV_BIZ_HCLSF_CD    = '6'
+                         AND D1.FNL_ITM_GD_CD      = 'R'
+                         AND D1.RTNGD_PROCS_TP_CD  = '10'
+                         AND D1.FNL_SELL_TP_CD <![CDATA[<>]]> '4'
+                         AND D1.CNTR_NO NOT LIKE 'W8888%'
+                         AND D1.OSTR_DT IS NOT NULL
+                         AND D1.USE_QTY <![CDATA[<>]]> 0
+                         AND D2.DTA_DL_YN          = 'N'
+                         AND D2.WARE_DV_CD         = '2'
+                         AND D2.WARE_NO LIKE '2%'
+                         AND D3.DTA_DL_YN          = 'N'
+                         AND D4.DTA_DL_YN          = 'N'
+                         AND D4.PD_TP_CD           = 'M'
+                         AND D5.DTA_DL_YN          = 'N'
+                         AND D5.PD_EXTS_PRP_GRP_CD = 'PART'
+                         AND D5.PD_PRP_VAL19       = '4'
+                         AND D6.DTA_DL_YN          = 'N'
+                         AND D6.SELL_TP_CD <![CDATA[<>]]> '1'
+                         AND ( D6.SELL_TP_DTL_CD IS NULL OR D6.SELL_TP_DTL_CD NOT IN ('22', '24', '25') ) /* 리스구분이 코드값이 변경됨에 따라 22, 24, 25로 처리 */
+                         AND ( CASE WHEN ( SELECT COUNT(1)
+                                             FROM TB_SVST_SV_WK_OSTR_IZ S1 /* 고객서비스작업출고내역 */
+                                            WHERE S1.DTA_DL_YN     = 'N'
+                                              AND S1.FNL_ITM_GD_CD = 'R'
+                                              AND S1.USE_QTY <![CDATA[<>]]> 0
+                                              AND S1.CNTR_NO       = D1.CNTR_NO
+                                              AND S1.ITM_PD_CD     = D1.ITM_PD_CD
+                                              AND S1.OSTR_CONF_DT LIKE SUBSTR(D1.OSTR_CONF_DT, 1, 6) || '%' ) <![CDATA[>]]> 1
+                                    THEN SUBSTR(SV_BIZ_DCLSF_CD, 1, 2)
+                                    ELSE '34'
+                               END )               = '34'
+                         AND D1.OSTR_CONF_DT LIKE #{inqrYm} || '%'
+                       UNION ALL
+                      /* 0015 공장폐기건 */
+                      SELECT TO_CHAR(TO_NUMBER(D3.SAP_MAT_CD))                                              AS SVPD_SAP_CD
+                           , D3.PD_CD                                                                       AS SVPD_PD_CD
+                           , D3.PD_ABBR_NM                                                                  AS SVPD_NM_ABBR1
+                           , D2.IST_DT
+                           , CASE WHEN D6.SV_BIZ_DCLSF_CD LIKE '32%' THEN D6.FNL_VST_FSH_DT
+                                  ELSE ( SELECT RSG_APLC_DT
+                                           FROM TB_SSCT_CNTR_RSG_PROCS_IZ   /* 계약해지처리내역 */
+                                          WHERE CNTR_NO = D2.CNTR_NO
+                                            AND CNTR_SN = D2.CNTR_SN )
+                             END                                                                            AS REQD_DT
+                           , D6.FNL_VST_FSH_DT
+                           , D6.FNL_ITM_GD_CD
+                           , D7.OG_NM                                                                       AS DEPT_NM
+                           , D6.USE_QTY
+                           , D2.CNTR_NO || '-' || D2.CNTR_SN                                                AS CNTR_DTL_NO
+                           , D9.RCGVP_KNM
+                           , D6.OSTR_CONF_DT
+                           , D6.OSTR_DT
+                           , D6.RTNGD_PROCS_TP_CD
+                           , F_CMZ_CD_NM('TNT_WELLS', 'RTNGD_PROCS_TP_CD', D6.RTNGD_PROCS_TP_CD)            AS RTNGD_PROCS_TP_NM
+                           , D6.RMK_CN
+                           , ( SELECT MAX(S1.CNTR_SN)
+                                 FROM TB_SSCT_RTAS_STAT_IZ S1
+                                WHERE S1.DTA_DL_YN = 'N'
+                                  AND S1.CNTR_NO   = D2.CNTR_NO
+                                  AND NOT EXISTS ( SELECT 1
+                                                     FROM TB_IFIN_SAP_RTAS_STAT_CHR_ETXT S2 /* SAP렌탈자산상태변경수신전문 */
+                                                    WHERE S2.RENTAL_ASSET_STAT = '0015'
+                                                      AND S2.ORDER_NO          = S1.SAP_ASSET_NO
+                                                      AND S2.UPD_ACT_DT <![CDATA[<]]> #{inqrYm} || '00' ) ) AS RN
+                           , ( SELECT MAX(S1.CNTR_SN)
+                                 FROM TB_SSCT_RTAS_STAT_IZ S1
+                                WHERE S1.DTA_DL_YN = 'N'
+                                  AND S1.CNTR_NO   = D1.CNTR_NO
+                                  AND NOT EXISTS ( SELECT 1
+                                                     FROM TB_IFIN_SAP_RTAS_STAT_CHR_ETXT S2 /* SAP렌탈자산상태변경수신전문 */
+                                                    WHERE S2.RENTAL_ASSET_STAT = '0015'
+                                                      AND S2.ORDER_NO          = S1.SAP_ASSET_NO
+                                                      AND S2.UPD_ACT_DT <![CDATA[<]]> #{inqrYm} || '00' ) ) AS MAX_LCICSQ
+                           , D2.CNTR_NO
+                           , D2.CNTR_SN
+                           , ''                                                                             AS ST163_IN_RET_YN
+                           , D1.ORD_NO_VAL                                                                  AS ITM_PD_CD
+                           , ''                                                                             AS HGR_WARE_NO
+                           , '0015'                                                                         AS RENTAL_ASSET_STAT
+                           , '2'                                                                            AS FACTORY_DISPOSAL_GB /* 물류폐기 공장폐기 구분 임시컬럼 - 공장폐기 */
+                           , D4.PD_PRP_VAL20                                                                AS SVPD_ITEM_GR
+                        FROM TB_SVST_FCTY_PD_DSU_OSTR_IZ D1        /* 공장상품폐기출고내역 */
+                       INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2        /* 고객서비스수행내역 */
+                          ON D2.CNTR_NO = D1.CNTR_NO
+                       INNER JOIN TB_PDBS_PD_BAS D3                /* 상품기본 */
+                          ON D3.PD_CD = D2.PDCT_PD_CD
+                       INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D4       /* 상품각사속성상세 */
+                          ON D4.PD_CD = D3.PD_CD
+                       INNER JOIN TB_SSCT_CNTR_DTL D5              /* 계약상세 */
+                          ON D5.CNTR_NO = D2.CNTR_NO
+                         AND D5.CNTR_SN = D2.CNTR_SN
+                        LEFT OUTER JOIN
+                           (
+                             SELECT /*+ LEADING(S2) */
+                                    S1.CNTR_NO
+                                  , S1.SV_BIZ_DCLSF_CD
+                                  , S1.FNL_VST_FSH_DT
+                                  , S1.FNL_ITM_GD_CD
+                                  , S1.USE_QTY
+                                  , S1.OSTR_CONF_DT
+                                  , S1.OSTR_DT
+                                  , S1.RTNGD_PROCS_TP_CD
+                                  , S1.OG_TP_CD
+                                  , S1.DGR1_LEVL_OG_ID
+                                  , S1.RMK_CN
+                                  , ROW_NUMBER() OVER(PARTITION BY S1.CNTR_NO ORDER BY S1.FNL_VST_FSH_DT DESC) AS RN
+                               FROM TB_SVST_SV_WK_OSTR_IZ S1
+                              INNER JOIN TB_SVST_FCTY_PD_DSU_OSTR_IZ S2
+                                 ON S2.CNTR_NO = S1.CNTR_NO
+                              INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S3
+                                 ON S3.PD_CD = S1.ITM_PD_CD
+                              WHERE S1.DTA_DL_YN          = 'N'
+                                AND S1.SV_BIZ_HCLSF_CD    = '6'
+                                AND S1.RTNGD_PROCS_TP_CD LIKE '2%'
+                                AND S3.DTA_DL_YN          = 'N'
+                                AND S3.PD_EXTS_PRP_GRP_CD = 'PART'
+                                AND S3.PD_PRP_VAL19       = '4'
+                                AND S2.DSU_YM_VAL         = #{inqrYm}
+                                AND S1.FNL_VST_FSH_DT LIKE #{inqrYm} || '%'
+                           ) D6
+                          ON D6.CNTR_NO = D1.CNTR_NO
+                         AND D6.RN      = 1
+                        LEFT OUTER JOIN TB_OGBS_MM_OG_IZ D7         /* 월조직내역 */
+                          ON D7.BASE_YM  = SUBSTR(D6.FNL_VST_FSH_DT, 1, 6)
+                         AND D7.OG_TP_CD = D6.OG_TP_CD
+                         AND D7.OG_ID    = D6.DGR1_LEVL_OG_ID
+                        LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL D8     /* 계약주소관계 */
+                          ON D8.DTL_CNTR_NO = D2.CNTR_NO
+                         AND D8.DTL_CNTR_SN = D2.CNTR_SN
+                         AND D8.DTA_DL_YN   = 'N'
+                         AND D8.ADRPC_TP_CD IN ('2', '3')
+                         AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D8.VL_STRT_DTM AND D8.VL_END_DTM
+                        LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS D9   /* 계약주소지기본 */
+                          ON D9.CNTR_ADRPC_ID = D8.CNTR_ADRPC_ID
+                         AND D9.DTA_DL_YN     = 'N'
+                       WHERE D2.DTA_DL_YN          = 'N'
+                         AND D3.DTA_DL_YN          = 'N'
+                         AND D3.PD_TP_CD           = 'M'
+                         AND D4.DTA_DL_YN          = 'N'
+                         AND D4.PD_EXTS_PRP_GRP_CD = 'PART'
+                         AND D5.DTA_DL_YN          = 'N'
+                         AND ( D5.SELL_TP_DTL_CD IS NULL OR D5.SELL_TP_DTL_CD NOT IN ('22', '24', '25') ) /* 리스구분이 코드값이 변경됨에 따라 22, 24, 25로 처리 */
+                         AND D1.DSU_YM_VAL         = #{inqrYm}
+                       UNION ALL
+                      /* 웰스팜 리퍼 완료 건 0017 */
+                      SELECT TO_CHAR(TO_NUMBER(D4.SAP_MAT_CD))                                              AS SVPD_SAP_CD
+                           , D1.ITM_PD_CD                                                                   AS SVPD_PD_CD
+                           , D4.PD_ABBR_NM                                                                  AS SVPD_NM_ABBR1
+                           , D3.IST_DT
+                           , CASE WHEN D1.SV_BIZ_DCLSF_CD LIKE '32%' THEN D1.FNL_VST_FSH_DT
+                                  ELSE ( SELECT RSG_APLC_DT
+                                           FROM TB_SSCT_CNTR_RSG_PROCS_IZ   /* 계약해지처리내역 */
+                                          WHERE CNTR_NO = D1.CNTR_NO
+                                            AND CNTR_SN = D1.CNTR_SN )
+                             END                                                                            AS REQD_DT
+                           , D1.FNL_VST_FSH_DT
+                           , D1.FNL_ITM_GD_CD
+                           , D7.OG_NM                                                                       AS DEPT_NM
+                           , D1.USE_QTY
+                           , D1.CNTR_NO || '-' || D1.CNTR_SN                                                AS CNTR_DTL_NO
+                           , D9.RCGVP_KNM
+                           , D1.OSTR_CONF_DT
+                           , D1.OSTR_DT
+                           , D1.RTNGD_PROCS_TP_CD
+                           , F_CMZ_CD_NM('TNT_WELLS', 'RTNGD_PROCS_TP_CD', D1.RTNGD_PROCS_TP_CD)            AS RTNGD_PROCS_TP_NM
+                           , D1.RMK_CN
+                           , ( SELECT T1.RN
+                                 FROM
+                                    (
+                                      SELECT S1.CNTR_NO
+                                           , S1.CNTR_SN
+                                           , ROW_NUMBER() OVER(PARTITION BY S1.CNTR_NO ORDER BY S1.FNL_VST_FSH_DT) AS RN
+                                        FROM TB_SVST_SV_WK_OSTR_IZ S1
+                                       INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2
+                                          ON S2.PD_CD = S1.ITM_PD_CD
+                                       WHERE S1.DTA_DL_YN          = 'N'
+                                         AND S1.SV_BIZ_HCLSF_CD    = '6'
+                                         AND S1.FNL_ITM_GD_CD      = 'R'
+                                         AND S2.DTA_DL_YN          = 'N'
+                                         AND S2.PD_EXTS_PRP_GRP_CD = 'PART'
+                                         AND S2.PD_PRP_VAL19       = '4'
+                                         AND S1.CNTR_NO            = D1.CNTR_NO
+                                    ) T1
+                                WHERE T1.CNTR_NO = D1.CNTR_NO
+                                  AND T1.CNTR_SN = D1.CNTR_SN )                                             AS RN
+                           , ( SELECT MAX(S1.CNTR_SN)
+                                 FROM TB_SSCT_RTAS_STAT_IZ S1
+                                WHERE S1.DTA_DL_YN = 'N'
+                                  AND S1.CNTR_NO   = D1.CNTR_NO
+                                  AND NOT EXISTS ( SELECT 1
+                                                     FROM TB_IFIN_SAP_RTAS_STAT_CHR_ETXT S2 /* SAP렌탈자산상태변경수신전문 */
+                                                    WHERE S2.RENTAL_ASSET_STAT = '0015'
+                                                      AND S2.ORDER_NO          = S1.SAP_ASSET_NO
+                                                      AND S2.UPD_ACT_DT <![CDATA[<]]> #{inqrYm} || '00' ) ) AS MAX_LCICSQ
+                           , D1.CNTR_NO
+                           , D1.CNTR_SN
+                           , D1.RTNGD_RVPY_PROCS_YN
+                           , D1.ITM_PD_CD
+                           , D2.HGR_WARE_NO
+                           , '0017'                                                                         AS RENTAL_ASSET_STAT
+                           , '3'                                                                            AS FACTORY_DISPOSAL_GB /* 물류폐기 공장폐기 구분 임시컬럼 - 그 외 */
+                           , D5.PD_PRP_VAL20                                                                AS SVPD_ITEM_GR
+                        FROM TB_SVST_SV_WK_OSTR_IZ D1               /* 서비스작업출고내역 */
+                       INNER JOIN TB_SVST_MCBY_WARE_IZ D2           /* 월별창고내역 */
+                          ON D2.APY_YM  = SUBSTR(D1.FNL_VST_FSH_DT, 1, 6)
+                         AND D2.WARE_NO = D1.WK_WARE_NO
+                       INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D3         /* 고객서비스수행내역 */
+                          ON D3.CNTR_NO = D1.CNTR_NO
+                         AND D3.CNTR_SN = D1.CNTR_SN
+                       INNER JOIN TB_PDBS_PD_BAS D4                 /* 상품기본 */
+                          ON D4.PD_CD = D1.ITM_PD_CD
+                       INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D5        /* 상품각사속성상세 */
+                          ON D5.PD_CD = D4.PD_CD
+                       INNER JOIN TB_SSCT_CNTR_DTL D6               /* 계약상세 */
+                          ON D6.CNTR_NO = D1.CNTR_NO
+                         AND D6.CNTR_SN = D1.CNTR_SN
+                        LEFT OUTER JOIN TB_OGBS_MM_OG_IZ D7         /* 월조직내역 */
+                          ON D7.BASE_YM  = SUBSTR(D1.FNL_VST_FSH_DT, 1, 6)
+                         AND D7.OG_TP_CD = D1.OG_TP_CD
+                         AND D7.OG_ID    = D1.DGR1_LEVL_OG_ID
+                        LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL D8     /* 계약주소관계 */
+                          ON D8.DTL_CNTR_NO = D1.CNTR_NO
+                         AND D8.DTL_CNTR_SN = D1.CNTR_SN
+                         AND D8.DTA_DL_YN   = 'N'
+                         AND D8.ADRPC_TP_CD IN ('2', '3')
+                         AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D8.VL_STRT_DTM AND D8.VL_END_DTM
+                        LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS D9   /* 계약주소지기본 */
+                          ON D9.CNTR_ADRPC_ID = D8.CNTR_ADRPC_ID
+                         AND D9.DTA_DL_YN     = 'N'
+                       WHERE D1.DTA_DL_YN          = 'N'
+                         AND D1.SV_BIZ_HCLSF_CD    = '6'
+                         AND D1.FNL_ITM_GD_CD      = 'R'
+                         AND D1.RTNGD_PROCS_TP_CD IN ('80', '81', '82')
+                         AND D1.FNL_SELL_TP_CD <![CDATA[<>]]> '4'
+                         AND D1.CNTR_NO NOT LIKE 'W8888%'
+                         AND D2.DTA_DL_YN          = 'N'
+                         AND D2.WARE_DV_CD         = '2'
+                         AND D2.WARE_NO LIKE '2%'
+                         AND D3.DTA_DL_YN          = 'N'
+                         AND D4.DTA_DL_YN          = 'N'
+                         AND D4.PD_TP_CD           = 'M'
+                         AND D5.DTA_DL_YN          = 'N'
+                         AND D5.PD_EXTS_PRP_GRP_CD = 'PART'
+                         AND D5.PD_PRP_VAL19       = '4'
+                         AND D6.DTA_DL_YN          = 'N'
+                         AND ( D6.SELL_TP_DTL_CD IS NULL OR D6.SELL_TP_DTL_CD NOT IN ('22', '24', '25') ) /* 리스구분이 코드값이 변경됨에 따라 22, 24, 25로 처리 */
+                         AND D1.OSTR_DT LIKE #{inqrYm} || '%'
+                       UNION ALL
+                      /* 0018 리퍼대기건 */
+                      SELECT TO_CHAR(TO_NUMBER(D4.SAP_MAT_CD))                                              AS SVPD_SAP_CD
+                           , D1.ITM_PD_CD                                                                   AS SVPD_PD_CD
+                           , D4.PD_ABBR_NM                                                                  AS SVPD_NM_ABBR1
+                           , D3.IST_DT
+                           , CASE WHEN D1.SV_BIZ_DCLSF_CD LIKE '32%' THEN D1.FNL_VST_FSH_DT
+                                  ELSE ( SELECT RSG_APLC_DT
+                                           FROM TB_SSCT_CNTR_RSG_PROCS_IZ   /* 계약해지처리내역 */
+                                          WHERE CNTR_NO = D1.CNTR_NO
+                                            AND CNTR_SN = D1.CNTR_SN )
+                             END                                                                            AS REQD_DT
+                           , D1.FNL_VST_FSH_DT
+                           , D1.FNL_ITM_GD_CD
+                           , D7.OG_NM                                                                       AS DEPT_NM
+                           , D1.USE_QTY
+                           , D1.CNTR_NO || '-' || D1.CNTR_SN                                                AS CNTR_DTL_NO
+                           , D9.RCGVP_KNM
+                           , D1.OSTR_CONF_DT
+                           , D1.OSTR_DT
+                           , D1.RTNGD_PROCS_TP_CD
+                           , F_CMZ_CD_NM('TNT_WELLS', 'RTNGD_PROCS_TP_CD', D1.RTNGD_PROCS_TP_CD)            AS RTNGD_PROCS_TP_NM
+                           , D1.RMK_CN
+                           , ( SELECT T1.RN
+                                 FROM
+                                    (
+                                      SELECT S1.CNTR_NO
+                                           , S1.CNTR_SN
+                                           , ROW_NUMBER() OVER(PARTITION BY S1.CNTR_NO ORDER BY S1.FNL_VST_FSH_DT) AS RN
+                                        FROM TB_SVST_SV_WK_OSTR_IZ S1
+                                       INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2
+                                          ON S2.PD_CD = S1.ITM_PD_CD
+                                       WHERE S1.DTA_DL_YN          = 'N'
+                                         AND S1.SV_BIZ_HCLSF_CD    = '6'
+                                         AND S1.FNL_ITM_GD_CD      = 'R'
+                                         AND S2.DTA_DL_YN          = 'N'
+                                         AND S2.PD_EXTS_PRP_GRP_CD = 'PART'
+                                         AND S2.PD_PRP_VAL19       = '4'
+                                         AND S1.CNTR_NO            = D1.CNTR_NO
+                                    ) T1
+                                WHERE T1.CNTR_NO = D1.CNTR_NO
+                                  AND T1.CNTR_SN = D1.CNTR_SN
+                                  AND ROWNUM     = 1 )                                                      AS RN
+                           , ( SELECT MAX(S1.CNTR_SN)
+                                 FROM TB_SSCT_RTAS_STAT_IZ S1
+                                WHERE S1.DTA_DL_YN = 'N'
+                                  AND S1.CNTR_NO   = D1.CNTR_NO
+                                  AND NOT EXISTS ( SELECT 1
+                                                     FROM TB_IFIN_SAP_RTAS_STAT_CHR_ETXT S2 /* SAP렌탈자산상태변경수신전문 */
+                                                    WHERE S2.RENTAL_ASSET_STAT = '0015'
+                                                      AND S2.ORDER_NO          = S1.SAP_ASSET_NO
+                                                      AND S2.UPD_ACT_DT <![CDATA[<]]> #{inqrYm} || '00' ) ) AS MAX_LCICSQ
+                           , D1.CNTR_NO
+                           , D1.CNTR_SN
+                           , D1.RTNGD_RVPY_PROCS_YN
+                           , D1.ITM_PD_CD
+                           , D2.HGR_WARE_NO
+                           , '0018'                                                                         AS RENTAL_ASSET_STAT
+                           , '3'                                                                            AS FACTORY_DISPOSAL_GB /* 물류폐기 공장폐기 구분 임시컬럼 - 그 외 */
+                           , D5.PD_PRP_VAL20                                                                AS SVPD_ITEM_GR
+                        FROM TB_SVST_SV_WK_OSTR_IZ D1               /* 서비스작업출고내역 */
+                       INNER JOIN TB_SVST_MCBY_WARE_IZ D2           /* 월별창고내역 */
+                          ON D2.APY_YM  = SUBSTR(D1.FNL_VST_FSH_DT, 1, 6)
+                         AND D2.WARE_NO = D1.WK_WARE_NO
+                       INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D3         /* 고객서비스수행내역 */
+                          ON D3.CNTR_NO = D1.CNTR_NO
+                         AND D3.CNTR_SN = D1.CNTR_SN
+                       INNER JOIN TB_PDBS_PD_BAS D4                 /* 상품기본 */
+                          ON D4.PD_CD = D1.ITM_PD_CD
+                       INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D5        /* 상품각사속성상세 */
+                          ON D5.PD_CD = D4.PD_CD
+                       INNER JOIN TB_SSCT_CNTR_DTL D6               /* 계약상세 */
+                          ON D6.CNTR_NO = D1.CNTR_NO
+                         AND D6.CNTR_SN = D1.CNTR_SN
+                        LEFT OUTER JOIN TB_OGBS_MM_OG_IZ D7         /* 월조직내역 */
+                          ON D7.BASE_YM  = SUBSTR(D1.FNL_VST_FSH_DT, 1, 6)
+                         AND D7.OG_TP_CD = D1.OG_TP_CD
+                         AND D7.OG_ID    = D1.DGR1_LEVL_OG_ID
+                        LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL D8     /* 계약주소관계 */
+                          ON D8.DTL_CNTR_NO = D1.CNTR_NO
+                         AND D8.DTL_CNTR_SN = D1.CNTR_SN
+                         AND D8.DTA_DL_YN   = 'N'
+                         AND D8.ADRPC_TP_CD IN ('2', '3')
+                         AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D8.VL_STRT_DTM AND D8.VL_END_DTM
+                        LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS D9   /* 계약주소지기본 */
+                          ON D9.CNTR_ADRPC_ID = D8.CNTR_ADRPC_ID
+                         AND D9.DTA_DL_YN     = 'N'
+                       WHERE D1.DTA_DL_YN          = 'N'
+                         AND D1.SV_BIZ_HCLSF_CD    = '6'
+                         AND D1.FNL_ITM_GD_CD      = 'R'
+                         AND D1.FNL_SELL_TP_CD <![CDATA[<>]]> '4'
+                         AND D1.CNTR_NO NOT LIKE 'W8888%'
+                         AND D1.USE_QTY <![CDATA[<>]]> 0
+                         AND ( D1.RTNGD_PROCS_TP_CD <![CDATA[<>]]> '90' OR D1.RTNGD_PROCS_TP_CD IS NULL )
+                         AND NOT( D1.SV_BIZ_DCLSF_CD LIKE '32%' AND SUBSTR(D1.FNL_VST_FSH_DT, 1, 6) = SUBSTR(D3.IST_DT, 1, 6) )
+                         AND D2.DTA_DL_YN          = 'N'
+                         AND D2.WARE_DV_CD         = '2'
+                         AND D2.WARE_NO LIKE '2%'
+                         AND D3.DTA_DL_YN          = 'N'
+                         AND D4.DTA_DL_YN          = 'N'
+                         AND D4.PD_TP_CD           = 'M'
+                         AND D4.PD_NM LIKE '%웰스팜%'
+                         AND D5.DTA_DL_YN          = 'N'
+                         AND D5.PD_EXTS_PRP_GRP_CD = 'PART'
+                         AND D5.PD_PRP_VAL19       = '4'
+                         AND D6.DTA_DL_YN          = 'N'
+                         AND ( D6.SELL_TP_DTL_CD IS NULL OR D6.SELL_TP_DTL_CD NOT IN ('22', '24', '25') ) /* 리스구분이 코드값이 변경됨에 따라 22, 24, 25로 처리 */
+                         AND D1.FNL_VST_FSH_DT LIKE #{inqrYm} || '%'
+                         AND (    D1.RTNGD_PROCS_TP_CD IN ('70', '71', '72', '73')
+                               OR D1.RTNGD_PROCS_TP_CD IS NULL
+                               OR (     D1.RTNGD_PROCS_TP_CD IN ('10', '20', '21', '80', '81', '82', '90')
+                                    AND SUBSTR(D1.OSTR_DT, 1, 6) <![CDATA[>]]> SUBSTR(D1.FNL_VST_FSH_DT, 1, 6)
+                                    AND D1.OSTR_DT NOT LIKE #{inqrYm} || '%'
+                                  )
+                             )
+                    ) T1
+             ) T2
+          LEFT OUTER JOIN TB_SSCT_RTAS_STAT_IZ X1   /* 렌탈자산상태내역 */
+            ON X1.CNTR_NO   = T2.CNTR_NO
+           AND X1.CNTR_SN   = T2.KIWI_LCICSQ
+           AND X1.DTA_DL_YN = 'N'
+         WHERE NOT EXISTS ( SELECT 1
+                              FROM TB_IFIN_SAP_RTAS_STAT_CHR_ETXT H1 /* SAP렌탈자산상태변경수신전문 */
+                             WHERE H1.RENTAL_ASSET_STAT = '0015'
+                               AND H1.ORDER_NO = X1.SAP_ASSET_NO
+                               AND H1.UPD_ACT_DT <![CDATA[<]]> #{inqrYm} || '00' )
+           AND ( CASE WHEN T2.RENTAL_ASSET_STAT = '0018' THEN ( SELECT COUNT (1)
+                                                                  FROM TB_IFIN_SAP_RTAS_STAT_CHR_ETXT H2
+                                                                 WHERE H2.RENTAL_ASSET_STAT IN ('0015', '0018')
+                                                                   AND H2.ORDER_NO = X1.SAP_ASSET_NO
+                                                                   AND H2.UPD_ACT_DT <![CDATA[<]]> #{inqrYm} || '00' )
+                      ELSE 0
+                 END ) = 0
+    <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+           AND T2.SVPD_PD_CD    = #{itmPdCd}
+    </if>
+    <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+           AND T2.FNL_ITM_GD_CD = #{itmGdCd}
+    </if>
+    <if test="@MybatisUtils@isNotEmpty(svnCd)">
+           AND T2.HGR_WARE_NO = #{svnCd}
+    </if>
+    <if test="@MybatisUtils@isNotEmpty(rentalRtngdProcsTp)">
+    <choose>
+        <when test='@MybatisUtils@equals(rentalRtngdProcsTp, "0018") or @MybatisUtils@equals(rentalRtngdProcsTp, "0017") or @MybatisUtils@equals(rentalRtngdProcsTp, "0015") or @MybatisUtils@equals(rentalRtngdProcsTp, "0019")'>
+           AND ( CASE WHEN T2.RENTAL_ASSET_STAT = '0017' AND ( SELECT COUNT(1)
+                                                                 FROM TB_IFIN_SAP_RTAS_STAT_CHR_ETXT H1 /* SAP렌탈자산상태변경수신전문 */
+                                                                WHERE H1.RENTAL_ASSET_STAT = '0018'
+                                                                  AND H1.ORDER_NO          = X1.SAP_ASSET_NO ) <![CDATA[>]]> 0
+                      THEN '0019'
+                      ELSE T2.RENTAL_ASSET_STAT
+                 END ) = #{rentalRtngdProcsTp}
+        </when>
+        <when test='@MybatisUtils@equals(rentalRtngdProcsTp, "1") or @MybatisUtils@equals(rentalRtngdProcsTp, "2")'>
+           AND T2.RENTAL_ASSET_STAT   = '0015'
+           AND T2.FACTORY_DISPOSAL_GB = #{rentalRtngdProcsTp}
+        </when>
+        <when test='@MybatisUtils@equals(rentalRtngdProcsTp, "3")'>
+           AND ( CASE WHEN T2.RENTAL_ASSET_STAT = '0017' AND ( SELECT COUNT(1)
+                                                                 FROM TB_IFIN_SAP_RTAS_STAT_CHR_ETXT H1 /* SAP렌탈자산상태변경수신전문 */
+                                                                WHERE H1.RENTAL_ASSET_STAT = '0018'
+                                                                  AND H1.ORDER_NO          = X1.SAP_ASSET_NO ) <![CDATA[>]]> 0
+                      THEN '0019'
+                      ELSE T2.RENTAL_ASSET_STAT
+                 END ) IN ('0017', '0018', '0019')
+        </when>
+    </choose>
+    </if>
+         ORDER BY T2.SVPD_PD_CD
+    </select>
 
-    SELECT T3.RENTAL_ASSET_STAT     /* 랜탈상태 */
-         , T3.SVPD_SAP_CD          /* SAP코드 */
-         , T3.SVPD_PD_CD           /* 품목코드 */
-         , T3.SVPD_NM_ABBR1        /* 품목명 */
-         , T3.IST_DT               /* 설치일자 */
-         , T3.FNL_VST_FSH_DT       /* 작업일자 */
-         , T3.REQD_DT              /* 철거요청일자 */
-         , T3.FNL_ITM_GD_CD        /* 등급 */
-         , T3.DEPT_NM              /* 담당센터 */
-         , T3.USE_QTY              /* 사용수량 */
-         , T3.CNTR_DTL_NO          /* 고객번호 */
-         , T3.RCGVP_KNM            /* 고객명 */
-         , T3.OSTR_CONF_DT         /* 확인일자 */
-         , T3.OSTR_DT              /* 전산반품일자 */
-         , T3.RTNGD_PROCS_TP_CD    /* 반품처리유형 */
-         , T3.RMK_CN               /* 특이사항 */
-         , T3.CNTR_NO              /* 고객번호 */
-         , T3.CNTR_SN              /* 고객일련번호*/
-         , T3.RTNGD_RVPY_PROCS_YN  /* 반품수불처리여부 */
-         , T3.HGR_WARE_NO          /* 상위창고번호 */
-         , T3.FACTORY_DISPOSAL_GB  /* 물류폐기, 공장폐기 임시구분 */
-         , T3.SVPD_ITEM_GR         /* 품목상품구분 */
-     FROM ( SELECT (CASE WHEN T2.RENTAL_ASSET_STAT = '0017' AND (SELECT COUNT(1)
-                                                                   FROM TB_IFIN_SAP_RTAS_STAT_CHR_ETXT H1 /* SAP렌탈자산상태변경수신전문 */
-                                                                  WHERE 1 = 1
-                                                                    AND H1.ORDER_NO = X1.SAP_ASSET_NO
-                                                                    AND H1.RENTAL_ASSET_STAT = '0018') <![CDATA[ > ]]> 0 THEN '0019'
-                          ELSE T2.RENTAL_ASSET_STAT
-                      END ) AS RENTAL_ASSET_STAT
-                  , T2.SVPD_SAP_CD          /* SAP코드 */
-                  , T2.SVPD_PD_CD           /* 품목코드 */
-                  , T2.SVPD_NM_ABBR1        /* 품목명 */
-                  , T2.IST_DT               /* 설치일자 */
-                  , T2.FNL_VST_FSH_DT       /* 작업일자 */
-                  , T2.REQD_DT              /* 철거요청일자 */
-                  , T2.FNL_ITM_GD_CD        /* 등급 */
-                  , T2.DEPT_NM              /* 담당센터 */
-                  , T2.USE_QTY              /* 사용수량 */
-                  , T2.CNTR_DTL_NO          /* 고객번호 */
-                  , T2.RCGVP_KNM            /* 고객명 */
-                  , T2.OSTR_CONF_DT         /* 확인일자 */
-                  , T2.OSTR_DT              /* 전산반품일자 */
-                  , T2.RTNGD_PROCS_TP_CD    /* 반품처리유형 */
-                  , T2.RMK_CN               /* 특이사항 */
-                  , T2.CNTR_NO              /* 고객번호 */
-                  , T2.CNTR_SN              /* 고객일련번호*/
-                  , T2.RTNGD_RVPY_PROCS_YN  /* 반품수불처리여부 */
-                  , T2.HGR_WARE_NO          /* 상위창고번호 */
-                  , T2.FACTORY_DISPOSAL_GB  /* 물류폐기, 공장폐기 임시구분 */
-                  , T2.SVPD_ITEM_GR         /* 품목상품구분 */
-                  , T2.KIWI_LCICSQ
-               FROM  (SELECT T1.*
-                           , (SELECT MAX(A.CNTR_SN)
-                                FROM TB_SSCT_RTAS_STAT_IZ A
-                               WHERE 1 = 1
-                                 AND A.CNTR_NO = T1.CNTR_NO
-                                 AND NOT EXISTS (SELECT 1
-                                                   FROM TB_IFIN_SAP_RTAS_STAT_CHR_ETXT H1
-                                                  WHERE 1 = 1
-                                                    AND H1.UPD_ACT_DT <![CDATA[ < ]]>#{inqrYm}||'00'
-                                                    AND H1.RENTAL_ASSET_STAT = '0015'
-                                                    AND H1.ORDER_NO          = A.SAP_ASSET_NO)
-                                 AND A.CNTR_SN <![CDATA[ <= ]]>T1.RN
-                               ) AS KIWI_LCICSQ
-                        FROM (
-                                /*0015 and 0017*/
-                                SELECT /*+ leading(D1) */
-                                       TO_CHAR(TO_NUMBER(D7.SAP_MAT_CD)) AS SVPD_SAP_CD
-                                     , D7.PD_CD                          AS SVPD_PD_CD
-                                     , D7.PD_ABBR_NM                     AS SVPD_NM_ABBR1
-                                     , D3.IST_DT
-                                     , (CASE WHEN D1.SV_BIZ_DCLSF_CD LIKE '32%' THEN D1.FNL_VST_FSH_DT
-                                             ELSE (SELECT B1.REQD_DT
-                                                     FROM TB_SVPD_CST_SV_EXCN_IZ A1           /* 고객서비스수행내역 */
-                                                    LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL B1 /* 계약WELLS상세 */
-                                                       ON B1.CNTR_NO   = A1.CNTR_NO
-                                                      AND B1.CNTR_SN   = A1.CNTR_SN
-                                                      AND B1.DTA_DL_YN = 'N'
-                                                    WHERE ROWNUM = 1 )
-                                         END ) AS REQD_DT
-                                     , D1.FNL_VST_FSH_DT
-                                     , D1.FNL_ITM_GD_CD
-                                     , D9.OG_NM AS DEPT_NM
-                                     , D1.USE_QTY
-                                     , D3.CNTR_NO || '-' || D3.CNTR_SN AS CNTR_DTL_NO
-                                     , D6.CST_KNM   AS RCGVP_KNM  /* 고객명 */
-                                     , D1.OSTR_CONF_DT
-                                     , D1.OSTR_DT
-                                     , D1.RTNGD_PROCS_TP_CD
-                                     , F_CMZ_CD_NM('TNT_WELLS', 'RTNGD_PROCS_TP_CD', D1.RTNGD_PROCS_TP_CD, 'ko') AS RTNGD_PROCS_TP_NM
-                                     , D1.RMK_CN
-                                     , ROW_NUMBER() OVER(PARTITION BY D1.CNTR_NO ORDER BY D1.FNL_VST_FSH_DT DESC ) AS RN
-                                     , (SELECT MAX(A.CNTR_SN)
-                                          FROM TB_SSCT_RTAS_STAT_IZ A
-                                         WHERE 1 = 1
-                                           AND A.CNTR_NO = D1.CNTR_NO
-                                           AND NOT EXISTS (SELECT 1
-                                                             FROM TB_IFIN_SAP_RTAS_STAT_CHR_ETXT H1 /* SAP렌탈자산상태변경수신전문 */
-                                                            WHERE 1 = 1
-                                                              AND H1.UPD_ACT_DT<![CDATA[ < ]]>#{inqrYm}||'00'
-                                                              AND H1.RENTAL_ASSET_STAT = '0015'
-                                                              AND H1.ORDER_NO = A.SAP_ASSET_NO)
-                                        ) AS MAX_LCICSQ
-                                     , D1.CNTR_NO
-                                     , D1.CNTR_SN
-                                     , D1.RTNGD_RVPY_PROCS_YN
-                                     , D1.ITM_PD_CD
-                                     , D2.HGR_WARE_NO
-                                     , (CASE WHEN D1.RTNGD_PROCS_TP_CD = '10' THEN '0015'
-                                             WHEN D1.RTNGD_PROCS_TP_CD IN ('80', '81', '82') THEN '0017'
-                                             ELSE ''
-                                         END ) AS RENTAL_ASSET_STAT
-                                     , '1' AS FACTORY_DISPOSAL_GB /*물류폐기 공장폐기 구분 임시컬럼 ,1물류폐기 , 2 공장폐기 ,  3 그 외 */
-                                     , D8.PD_PRP_VAL20  AS SVPD_ITEM_GR
-                                  FROM TB_SVST_SV_WK_OSTR_IZ D1       /* 서비스작업출고내역 */
-                                 INNER JOIN TB_SVST_MCBY_WARE_IZ D2   /* 월별창고내역 */
-                                    ON D1.WK_WARE_NO = D2.WARE_NO
-                                   AND D2.APY_YM     = SUBSTR(D1.FNL_VST_FSH_DT, 1, 6)
-                                 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D3  /* 고객서비스수행내역 */
-                                    ON D1.CNTR_NO    = D3.CNTR_NO
-                                   AND D1.CNTR_SN    = D3.CNTR_SN
-                                 INNER JOIN TB_SSCT_CNTR_DTL D4        /* 계약상세 */
-                                    ON D4.CNTR_NO    = D3.CNTR_NO
-                                   AND D4.CNTR_SN    = D3.CNTR_SN
-                                 INNER JOIN TB_SSCT_CNTR_BAS D5        /* 계약기본 - 멤버십 */
-                                    ON D5.CNTR_NO    = D4.CNTR_NO
-                                 LEFT OUTER JOIN TB_CUBS_CST_BAS D6    /* 고객기본 */
-                                    ON D6.CST_NO     = D5.CNTR_CST_NO
-                                   AND D6.DTA_DL_YN  = 'N'
-                                 INNER JOIN TB_PDBS_PD_BAS D7          /* 상품기본 */
-                                    ON D1.ITM_PD_CD  = D7.PD_CD
-                                 INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D8 /* 상품각사속성상세 */
-                                    ON D7.PD_CD      = D8.PD_CD
-                                   AND D8.PD_EXTS_PRP_GRP_CD = 'PART'
-                                 LEFT OUTER JOIN TB_OGBS_OG_BAS D9     /* 조직기본 */
-                                    ON D9.OG_TP_CD   = D1.OG_TP_CD
-                                   AND D9.OG_ID      = D1.DGR3_LEVL_OG_ID
-                                   AND D9.DTA_DL_YN  = 'N'
-                                 WHERE 1 = 1
-                                   AND D1.DTA_DL_YN         = 'N'
-                                   AND D2.DTA_DL_YN         = 'N'
-                                   AND D3.DTA_DL_YN         = 'N'
-                                   AND D4.DTA_DL_YN         = 'N'
-                                   AND D5.DTA_DL_YN         = 'N'
-                                   AND D7.DTA_DL_YN         = 'N'
-                                   AND D8.DTA_DL_YN         = 'N'
-                                   AND D1.OSTR_CONF_DT LIKE #{inqrYm}||'%'
-                                   AND D1.SV_BIZ_HCLSF_CD   = '6'
-                                   AND D1.RTNGD_PROCS_TP_CD = '10'
-                                   AND D1.FNL_ITM_GD_CD     = 'R'
-                                   AND D1.OSTR_CONF_DT IS NOT NULL
-                                   AND D1.OSTR_DT IS NOT NULL
-                                   AND D1.USE_QTY <![CDATA[ <> ]]> 0
-                                   AND D8.PD_PRP_VAL19      = '4'
-                                   AND (D1.FNL_SELL_TP_CD<![CDATA[ <> ]]>'4' AND D1.CNTR_NO NOT LIKE 'W8888%')
-                                   AND D4.SELL_TP_CD<![CDATA[ <> ]]> '1'
-                                   AND D4.SELL_TP_DTL_CD<![CDATA[ <> ]]>'22' /*리스구분이 코드값이 변경됨에 따라 22로 처리 */
-                                   AND (CASE WHEN ( SELECT COUNT(1)
-                                                      FROM TB_SVST_SV_WK_OSTR_IZ X1 /* 고객서비스작업출고내역 */
-                                                     WHERE 1 = 1
-                                                       AND X1.DTA_DL_YN     = 'N'
-                                                       AND X1.FNL_ITM_GD_CD = 'R'
-                                                       AND X1.USE_QTY<![CDATA[ <> ]]> 0
-                                                       AND X1.CNTR_NO       = D1.CNTR_NO
-                                                       AND X1.CNTR_SN       = D1.CNTR_SN
-                                                       AND X1.ITM_PD_CD     = D1.ITM_PD_CD
-                                                       AND X1.OSTR_CONF_DT LIKE SUBSTR(D1.OSTR_CONF_DT, 1, 6)||'%')<![CDATA[ > ]]> 1 THEN SUBSTR(SV_BIZ_DCLSF_CD, 1, 2)
-                                              ELSE '34'
-                                          END) = '34'
-
-                                UNION ALL
-
-                                /* 0015 공장폐기건*/
-                                SELECT TO_CHAR(TO_NUMBER(D7.SAP_MAT_CD)) AS SVPD_SAP_CD
-                                     , D7.PD_CD                          AS SVPD_PD_CD
-                                     , D7.PD_ABBR_NM                     AS SVPD_NM_ABBR1
-                                     , D2.IST_DT
-                                     , (CASE WHEN D6.SV_BIZ_DCLSF_CD LIKE '32%' THEN D6.FNL_VST_FSH_DT
-                                             ELSE (SELECT B1.REQD_DT
-                                                     FROM TB_SVPD_CST_SV_EXCN_IZ A1
-                                                    LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL B1
-                                                       ON B1.CNTR_NO = A1.CNTR_NO
-                                                      AND B1.CNTR_SN = A1.CNTR_SN
-                                                      AND B1.DTA_DL_YN = 'N'
-                                                    WHERE ROWNUM = 1 )
-                                         END ) AS REQD_DT
-                                     , D6.FNL_VST_FSH_DT
-                                     , D6.FNL_ITM_GD_CD
-                                     , D9.OG_NM AS DEPT_NM
-                                     , D6.USE_QTY
-                                     , D2.CNTR_NO || '-' || D2.CNTR_SN AS CNTR_DTL_NO
-                                     , D5.CST_KNM   AS RCGVP_KNM  /* 고객명 */
-                                     , D6.OSTR_CONF_DT
-                                     , D6.OSTR_DT
-                                     , D6.RTNGD_PROCS_TP_CD
-                                     , F_CMZ_CD_NM('TNT_WELLS', 'RTNGD_PROCS_TP_CD', D6.RTNGD_PROCS_TP_CD, 'ko') AS RTNGD_PROCS_TP_NM
-                                     , D6.RMK_CN
-                                     , (SELECT MAX(A.CNTR_SN)
-                                          FROM TB_SSCT_RTAS_STAT_IZ A
-                                         WHERE 1 = 1
-                                           AND A.CNTR_NO = D2.CNTR_NO
-                                           AND NOT EXISTS (SELECT 1
-                                                     FROM TB_IFIN_SAP_RTAS_STAT_CHR_ETXT H1 /* SAP렌탈자산상태변경수신전문 */
-                                                    WHERE 1 = 1
-                                                      AND H1.UPD_ACT_DT<![CDATA[ < ]]>#{inqrYm}||'00'
-                                                      AND H1.RENTAL_ASSET_STAT = '0015'
-                                                      AND H1.ORDER_NO = A.SAP_ASSET_NO)
-                                         ) AS RN
-                                      , (SELECT MAX(A.CNTR_SN)
-                                           FROM TB_SSCT_RTAS_STAT_IZ A
-                                          WHERE 1 = 1
-                                            AND A.CNTR_NO = D1.CNTR_NO
-                                            AND NOT EXISTS (SELECT 1
-                                                              FROM TB_IFIN_SAP_RTAS_STAT_CHR_ETXT H1
-                                                             WHERE 1 = 1
-                                                               AND H1.UPD_ACT_DT<![CDATA[ < ]]>#{inqrYm}||'00'
-                                                               AND H1.RENTAL_ASSET_STAT = '0015'
-                                                               AND H1.ORDER_NO = A.SAP_ASSET_NO)
-                                          ) AS MAX_LCICSQ
-                                      , D1.CNTR_NO
-                                      , NULL AS CNTR_SN
-                                      , '' AS RTNGD_RVPY_PROCS_YN
-                                      , D1.ORD_NO_VAL
-                                      , '' AS HGR_WARE_NO
-                                      , '0015' AS RENTAL_ASSET_STAT
-                                      , '2' AS FACTORY_DISPOSAL_GB /*물류폐기 공장폐기 구분 임시컬럼 ,1물류폐기 , 2 공장폐기 ,  3 그 외 */
-                                      , D8.PD_PRP_VAL20  AS SVPD_ITEM_GR
-                                   FROM TB_SVST_FCTY_PD_DSU_OSTR_IZ D1 /* 공장상품폐기출고내역 */
-                                  INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2 /* 고객서비스수행내역 */
-                                     ON D1.CNTR_NO = D2.CNTR_NO
-                                  INNER JOIN TB_SSCT_CNTR_DTL D3          /* 계약상세 */
-                                     ON D3.CNTR_NO    = D2.CNTR_NO
-                                    AND D3.CNTR_SN    = D2.CNTR_SN
-                                  INNER JOIN TB_SSCT_CNTR_BAS D4          /* 계약기본 - 멤버십 */
-                                     ON D4.CNTR_NO    = D3.CNTR_NO
-                                  LEFT OUTER JOIN TB_CUBS_CST_BAS D5     /* 고객기본 */
-                                     ON D5.CST_NO     = D4.CNTR_CST_NO
-                                    AND D5.DTA_DL_YN  = 'N'
-                                  LEFT OUTER JOIN (SELECT *
-                                                     FROM (SELECT /*+ leading(X2) */
-                                                                 X1.*
-                                                                , RANK() OVER (PARTITION BY X1.CNTR_NO , X1.CNTR_SN ORDER BY FNL_VST_FSH_DT DESC) AS REQ
-                                                             FROM TB_SVST_SV_WK_OSTR_IZ X1
-                                                            INNER JOIN TB_SVST_FCTY_PD_DSU_OSTR_IZ X2
-                                                               ON X2.CNTR_NO = X1.CNTR_NO
-                                                            INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL X3
-                                                               ON X3.PD_CD = X1.ITM_PD_CD
-                                                            WHERE 1 = 1
-                                                              AND X1.DTA_DL_YN       = 'N'
-                                                              AND X3.DTA_DL_YN       = 'N'
-                                                              AND X2.DSU_YM_VAL      = #{inqrYm}
-                                                              AND X1.SV_BIZ_HCLSF_CD = '6'
-                                                              AND X1.RTNGD_PROCS_TP_CD LIKE '2%'
-                                                              AND X3.PD_PRP_VAL19 = '4'
-                                                              /* AND X3.PD_PRP_VAL31    = '000000' */
-                                                              AND X1.FNL_VST_FSH_DT  <![CDATA[ <= ]]>#{inqrYm}|| '99'
-                                                           )
-                                                    WHERE 1 = 1
-                                                      AND REQ = 1
-                                                   ) D6
-                                     ON D6.CNTR_NO = D2.CNTR_NO
-                                    AND D6.DTA_DL_YN = 'N'
-                                  INNER JOIN TB_PDBS_PD_BAS D7               /* 상품기본 */
-                                     ON D2.PDCT_PD_CD  = D7.PD_CD
-                                  INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D8      /* 상품각사속성상세 */
-                                     ON D7.PD_CD      = D8.PD_CD
-                                    AND D8.PD_EXTS_PRP_GRP_CD = 'PART'
-                                   LEFT OUTER JOIN TB_OGBS_OG_BAS D9         /* 조직기본 */
-                                     ON D9.OG_TP_CD   = D6.OG_TP_CD
-                                    AND D9.OG_ID      = D6.DGR3_LEVL_OG_ID
-                                    AND D9.DTA_DL_YN  = 'N'
-                                  WHERE D2.DTA_DL_YN  = 'N'
-                                    AND D3.DTA_DL_YN  = 'N'
-                                    AND D4.DTA_DL_YN  = 'N'
-                                    AND D7.DTA_DL_YN  = 'N'
-                                    AND D1.DSU_YM_VAL = #{inqrYm}
-
-                                UNION ALL
-
-                                 /*웰스팜 리퍼 완료 건 0017*/
-                                SELECT TO_CHAR(TO_NUMBER(D7.SAP_MAT_CD)) AS SVPD_SAP_CD
-                                     , D7.PD_CD                          AS SVPD_PD_CD
-                                     , D7.PD_ABBR_NM                     AS SVPD_NM_ABBR1
-                                     , D3.IST_DT
-                                     , (CASE WHEN D1.SV_BIZ_DCLSF_CD LIKE '32%' THEN D1.FNL_VST_FSH_DT
-                                                              ELSE (SELECT B1.REQD_DT
-                                                                      FROM TB_SVPD_CST_SV_EXCN_IZ A1
-                                                                      LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL B1
-                                                                        ON B1.CNTR_NO = A1.CNTR_NO
-                                                                       AND B1.CNTR_SN = A1.CNTR_SN
-                                                                       AND B1.DTA_DL_YN = 'N'
-                                                                     WHERE ROWNUM = 1 )
-                                         END ) AS REQD_DT
-                                     , D1.FNL_VST_FSH_DT
-                                     , D1.FNL_ITM_GD_CD
-                                     , D9.OG_NM AS DEPT_NM
-                                     , D1.USE_QTY
-                                     , D3.CNTR_NO || '-' || D3.CNTR_SN AS CNTR_DTL_NO
-                                     , D6.CST_KNM   AS RCGVP_KNM  /* 고객명 */
-                                     , D1.OSTR_CONF_DT
-                                     , D1.OSTR_DT
-                                     , D1.RTNGD_PROCS_TP_CD
-                                     , F_CMZ_CD_NM('TNT_WELLS', 'RTNGD_PROCS_TP_CD', D1.RTNGD_PROCS_TP_CD, 'ko') AS RTNGD_PROCS_TP_NM
-                                     , D1.RMK_CN
-                                     , (SELECT S.RN
-                                          FROM (
-                                                 SELECT S1.CNTR_NO
-                                                      , S1.CNTR_SN
-                                                      , ROW_NUMBER() OVER(PARTITION BY S1.CNTR_NO ORDER BY S1.FNL_VST_FSH_DT ASC) AS RN
-                                                   FROM TB_SVST_SV_WK_OSTR_IZ S1        /* 서비스작업출고내역 */
-                                                  INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2 /* 상품각사속성상세 */
-                                                     ON S2.PD_CD = S1.ITM_PD_CD
-                                                  WHERE S1.DTA_DL_YN          = 'N'
-                                                    AND S2.DTA_DL_YN          = 'N'
-                                                    AND S2.PD_EXTS_PRP_GRP_CD = 'PART'
-                                                    AND S2.PD_PRP_VAL19       = '4'
-                                                    AND S1.SV_BIZ_HCLSF_CD    = '6'
-                                                    AND S1.FNL_ITM_GD_CD      = 'R'
-                                                    AND S1.CNTR_NO            = D1.CNTR_NO
-                                                 ) S
-                                         WHERE S.CNTR_NO = D1.CNTR_NO
-                                           AND S.CNTR_SN = D1.CNTR_SN
-                                           AND ROWNUM = 1) AS RN
-                                     , (SELECT MAX(A.CNTR_SN)
-                                          FROM TB_SSCT_RTAS_STAT_IZ A
-                                         WHERE 1 = 1
-                                           AND A.CNTR_NO = D1.CNTR_NO
-                                           AND NOT EXISTS (SELECT 1
-                                                             FROM TB_IFIN_SAP_RTAS_STAT_CHR_ETXT H1
-                                                            WHERE 1 = 1
-                                                              AND H1.UPD_ACT_DT<![CDATA[ < ]]>#{inqrYm}||'00'
-                                                              AND H1.RENTAL_ASSET_STAT = '0015'
-                                                              AND H1.ORDER_NO = A.SAP_ASSET_NO)
-                                         ) AS MAX_LCICSQ
-                                     , D1.CNTR_NO
-                                     , D1.CNTR_SN
-                                     , D1.RTNGD_RVPY_PROCS_YN
-                                     , D1.ITM_PD_CD
-                                     , D2.HGR_WARE_NO
-                                     , '0017' AS RENTAL_ASSET_STAT
-                                     , '3' AS FACTORY_DISPOSAL_GB /* 물류폐기 공장폐기 구분 임시컬럼 ,1물류폐기 , 2 공장폐기 ,  3 그 외 */
-                                     , D8.PD_PRP_VAL20  AS SVPD_ITEM_GR
-                                 FROM TB_SVST_SV_WK_OSTR_IZ D1        /* 서비스작업출고내역 */
-                                INNER JOIN TB_SVST_MCBY_WARE_IZ D2    /* 월별창고내역 */
-                                   ON D1.WK_WARE_NO = D2.WARE_NO
-                                  AND D2.APY_YM     = SUBSTR(D1.FNL_VST_FSH_DT, 1, 6)
-                                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D3  /* 고객서비스수행내역 */
-                                   ON D1.CNTR_NO    = D3.CNTR_NO
-                                  AND D1.CNTR_SN    = D3.CNTR_SN
-                                INNER JOIN TB_SSCT_CNTR_DTL D4        /* 계약상세 */
-                                   ON D4.CNTR_NO    = D3.CNTR_NO
-                                  AND D4.CNTR_SN    = D3.CNTR_SN
-                                INNER JOIN TB_SSCT_CNTR_BAS D5        /* 계약기본 - 멤버십 */
-                                   ON D5.CNTR_NO    = D4.CNTR_NO
-                                LEFT OUTER JOIN TB_CUBS_CST_BAS D6    /* 고객기본 */
-                                   ON D6.CST_NO     = D5.CNTR_CST_NO
-                                  AND D6.DTA_DL_YN  = 'N'
-                                INNER JOIN TB_PDBS_PD_BAS D7          /* 상품기본 */
-                                   ON D1.ITM_PD_CD  = D7.PD_CD
-                                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D8 /* 상품각사속성상세 */
-                                   ON D7.PD_CD      = D8.PD_CD
-                                  AND D8.PD_EXTS_PRP_GRP_CD = 'PART'
-                                LEFT OUTER JOIN TB_OGBS_OG_BAS D9     /* 조직기본 */
-                                   ON D9.OG_TP_CD   = D1.OG_TP_CD
-                                  AND D9.OG_ID      = D1.DGR3_LEVL_OG_ID
-                                  AND D9.DTA_DL_YN  = 'N'
-                                WHERE 1 = 1
-                                  AND D1.DTA_DL_YN         = 'N'
-                                  AND D2.DTA_DL_YN         = 'N'
-                                  AND D3.DTA_DL_YN         = 'N'
-                                  AND D4.DTA_DL_YN         = 'N'
-                                  AND D5.DTA_DL_YN         = 'N'
-                                  AND D7.DTA_DL_YN         = 'N'
-                                  AND D8.DTA_DL_YN         = 'N'
-                                  AND D1.OSTR_CONF_DT LIKE#{inqrYm}||'%'
-                                  AND D1.SV_BIZ_HCLSF_CD   = '6'
-                                  AND D8.PD_PRP_VAL19      = '4'
-                                  AND D1.RTNGD_PROCS_TP_CD IN ('80', '81', '82')
-                                  AND D1.FNL_ITM_GD_CD     = 'R'
-                                  AND D1.OSTR_DT IS NOT NULL
-                                  AND (D1.FNL_SELL_TP_CD <![CDATA[ <> ]]> '4' AND D1.CNTR_NO NOT LIKE 'W8888%')
-                                  AND D4.SELL_TP_DTL_CD<![CDATA[ <> ]]>'22'
-
-                                UNION ALL
-                                /* 0018 리퍼대기건 */
-                                SELECT TO_CHAR(TO_NUMBER(D7.SAP_MAT_CD))  AS SVPD_SAP_CD
-                                      , D7.PD_CD                          AS SVPD_PD_CD
-                                      , D7.PD_ABBR_NM                     AS SVPD_NM_ABBR1
-                                      , D3.IST_DT
-                                      , (CASE WHEN D1.SV_BIZ_DCLSF_CD LIKE '32%' THEN D1.FNL_VST_FSH_DT
-                                               ELSE (SELECT B1.REQD_DT
-                                                       FROM TB_SVPD_CST_SV_EXCN_IZ A1
-                                                       LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL B1
-                                                         ON B1.CNTR_NO = A1.CNTR_NO
-                                                        AND B1.CNTR_SN = A1.CNTR_SN
-                                                      WHERE ROWNUM = 1 )
-                                          END ) AS REQD_DT
-                                      , D1.FNL_VST_FSH_DT
-                                      , D1.FNL_ITM_GD_CD
-                                      , D9.OG_NM AS DEPT_NM
-                                      , D1.USE_QTY
-                                      , D3.CNTR_NO || '-' || D3.CNTR_SN AS CNTR_DTL_NO
-                                      , D6.CST_KNM   AS RCGVP_KNM  /* 고객명 */
-                                      , D1.OSTR_CONF_DT
-                                      , D1.OSTR_DT
-                                      , D1.RTNGD_PROCS_TP_CD
-                                      , F_CMZ_CD_NM('TNT_WELLS', 'RTNGD_PROCS_TP_CD', D1.RTNGD_PROCS_TP_CD, 'ko') AS RTNGD_PROCS_TP_NM
-                                      , D1.RMK_CN
-                                      , (SELECT S.RN
-                                           FROM (
-                                                  SELECT S1.CNTR_NO
-                                                       , S1.CNTR_SN
-                                                       , ROW_NUMBER() OVER(PARTITION BY S1.CNTR_NO ORDER BY S1.FNL_VST_FSH_DT ASC ) AS RN
-                                                    FROM TB_SVST_SV_WK_OSTR_IZ S1
-                                                   INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2
-                                                      ON S2.PD_CD = S1.ITM_PD_CD
-                                                   WHERE S1.DTA_DL_YN          = 'N'
-                                                     AND S2.DTA_DL_YN          = 'N'
-                                                     AND S2.PD_EXTS_PRP_GRP_CD = 'PART'
-                                                     AND S2.PD_PRP_VAL19       = '4'
-                                                     AND S1.SV_BIZ_HCLSF_CD    = '6'
-                                                     AND S1.FNL_ITM_GD_CD      = 'R'
-                                                     AND S1.CNTR_NO            = D1.CNTR_NO
-                                                  ) S
-                                           WHERE S.CNTR_NO = D1.CNTR_NO
-                                             AND S.CNTR_SN = D1.CNTR_SN
-                                             AND ROWNUM = 1
-                                         ) AS RN
-                                      , (SELECT MAX(A.CNTR_SN)
-                                           FROM TB_SSCT_RTAS_STAT_IZ A
-                                          WHERE 1 = 1
-                                            AND A.CNTR_NO = D1.CNTR_NO
-                                            AND NOT EXISTS (SELECT 1
-                                                              FROM TB_IFIN_SAP_RTAS_STAT_CHR_ETXT H1
-                                                             WHERE 1 = 1
-                                                               AND H1.UPD_ACT_DT<![CDATA[ < ]]>#{inqrYm}||'00'
-                                                               AND H1.RENTAL_ASSET_STAT = '0015'
-                                                               AND H1.ORDER_NO = A.SAP_ASSET_NO)
-                                         ) AS MAX_LCICSQ
-                                      , D1.CNTR_NO
-                                      , D1.CNTR_SN
-                                      , D1.RTNGD_RVPY_PROCS_YN
-                                      , D1.ITM_PD_CD
-                                      , D2.HGR_WARE_NO
-                                      , '0018' AS RENTAL_ASSET_STAT
-                                      , '3' AS FACTORY_DISPOSAL_GB /* 물류폐기 공장폐기 구분 임시컬럼 ,1물류폐기 , 2 공장폐기 ,  3 그 외 */
-                                      , D8.PD_PRP_VAL20  AS SVPD_ITEM_GR
-                                  FROM TB_SVST_SV_WK_OSTR_IZ D1        /* 서비스작업출고내역 */
-                                 INNER JOIN TB_SVST_MCBY_WARE_IZ D2    /* 월별창고내역 */
-                                    ON D1.WK_WARE_NO = D2.WARE_NO
-                                   AND D2.APY_YM     = SUBSTR(D1.FNL_VST_FSH_DT, 1, 6)
-                                 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D3  /* 고객서비스수행내역 */
-                                    ON D1.CNTR_NO    = D3.CNTR_NO
-                                   AND D1.CNTR_SN    = D3.CNTR_SN
-                                 INNER JOIN TB_SSCT_CNTR_DTL D4        /* 계약상세 */
-                                    ON D4.CNTR_NO    = D3.CNTR_NO
-                                   AND D4.CNTR_SN    = D3.CNTR_SN
-                                 INNER JOIN TB_SSCT_CNTR_BAS D5        /* 계약기본 - 멤버십 */
-                                    ON D5.CNTR_NO    = D4.CNTR_NO
-                                 LEFT OUTER JOIN TB_CUBS_CST_BAS D6    /* 고객기본 */
-                                    ON D6.CST_NO     = D5.CNTR_CST_NO
-                                   AND D6.DTA_DL_YN  = 'N'
-                                 INNER JOIN TB_PDBS_PD_BAS D7        /* 상품기본 */
-                                    ON D1.ITM_PD_CD  = D7.PD_CD
-                                 INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D8 /* 상품각사속성상세 */
-                                    ON D7.PD_CD      = D8.PD_CD
-                                   AND D8.PD_EXTS_PRP_GRP_CD = 'PART'
-                                 LEFT OUTER JOIN TB_OGBS_OG_BAS D9     /* 조직기본 */
-                                    ON D9.OG_TP_CD   = D1.OG_TP_CD
-                                   AND D9.OG_ID      = D1.DGR3_LEVL_OG_ID
-                                   AND D9.DTA_DL_YN  = 'N'
-                                 WHERE 1 = 1
-                                   AND D1.DTA_DL_YN         = 'N'
-                                   AND D2.DTA_DL_YN         = 'N'
-                                   AND D3.DTA_DL_YN         = 'N'
-                                   AND D4.DTA_DL_YN         = 'N'
-                                   AND D5.DTA_DL_YN         = 'N'
-                                   AND D7.DTA_DL_YN         = 'N'
-                                   AND D8.DTA_DL_YN         = 'N'
-                                   AND D8.PD_PRP_VAL19      = '4'
-                                   AND NOT( SUBSTR(D1.SV_BIZ_DCLSF_CD, 0, 2) = '32' AND SUBSTR(D1.FNL_VST_FSH_DT, 1, 6) = SUBSTR(D3.IST_DT, 1, 6))
-                                   AND D1.SV_BIZ_HCLSF_CD   = '6'
-                                   AND D1.FNL_ITM_GD_CD     = 'R'
-                                   AND (SELECT /*+ no_unnest leading(T1) use_nl(T1 T2 D1) */
-                                              (CASE WHEN COUNT(1) > 0 THEN 'Y' ELSE 'N' END)
-                                          FROM TB_SVST_SV_WK_OSTR_IZ D1
-                                         INNER JOIN TB_PDBS_PD_BAS T1
-                                            ON D1.ITM_PD_CD = T1.PD_CD
-                                         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
-                                            ON T1.PD_CD     = T2.PD_CD
-                                           AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
-                                           AND T2.DTA_DL_YN          = 'N'
-                                         WHERE T1.PD_CD     = D1.ITM_PD_CD
-                                           AND T1.PD_NM LIKE '%'|| '웰스팜' ||'%' ) = 'Y'
-                                   AND ( D1.FNL_SELL_TP_CD<![CDATA[ <> ]]>'4' AND D1.CNTR_NO NOT LIKE 'W8888%')
-                                   AND ( D1.RTNGD_PROCS_TP_CD<![CDATA[ <> ]]>'90' OR D1.RTNGD_PROCS_TP_CD IS NULL)
-                                   AND D1.FNL_VST_FSH_DT BETWEEN #{inqrYm} || '01' AND #{inqrYm}|| '99'
-                                   AND ( D1.RTNGD_PROCS_TP_CD IN ('70', '71', '72', '73')
-                                          OR D1.RTNGD_PROCS_TP_CD IS NULL
-                                          OR (D1.RTNGD_PROCS_TP_CD IN ('10', '20', '21', '80', '81', '82', '90')
-                                         AND SUBSTR(D1.OSTR_DT, 1, 6)<![CDATA[ > ]]> SUBSTR(D1.FNL_VST_FSH_DT, 1, 6)
-                                         AND SUBSTR(D1.OSTR_DT, 1, 6) NOT LIKE #{inqrYm}))
-                                   AND D1.USE_QTY<![CDATA[ <> ]]> 0
-                                   AND D4.SELL_TP_DTL_CD<![CDATA[ <> ]]> '22'
-                              ) T1
-                            WHERE 1 = 1
-                     ) T2
-                   LEFT OUTER JOIN TB_SSCT_RTAS_STAT_IZ X1 /* 렌탈자산상태내역 */
-                     ON X1.CNTR_NO = T2.CNTR_NO
-                    AND X1.CNTR_SN = T2.KIWI_LCICSQ
-                  WHERE 1 = 1
-                    AND NOT EXISTS (SELECT 1
-                                      FROM TB_IFIN_SAP_RTAS_STAT_CHR_ETXT H1 /* SAP렌탈자산상태변경수신전문 */
-                                    WHERE 1 = 1
-                                      AND H1.UPD_ACT_DT <![CDATA[ < ]]> #{inqrYm}||'00'
-                                      AND H1.RENTAL_ASSET_STAT = '0015'
-                                      AND H1.ORDER_NO = X1.SAP_ASSET_NO)
-                    AND (CASE WHEN T2.RENTAL_ASSET_STAT = '0018' THEN (SELECT COUNT (1)
-                                                                         FROM TB_IFIN_SAP_RTAS_STAT_CHR_ETXT H2
-                                                                        WHERE 1 = 1
-                                                                          AND H2.UPD_ACT_DT<![CDATA[ < ]]>#{inqrYm}||'00'
-                                                                          AND H2.RENTAL_ASSET_STAT IN('0015', '0018')
-                                                                          AND T2.RENTAL_ASSET_STAT = '0018'
-                                                                          AND H2.ORDER_NO = X1.SAP_ASSET_NO)
-                              ELSE 0
-                          END ) = 0
-           ) T3
-      WHERE 1 = 1
-      <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
-        AND T3.SVPD_PD_CD    = #{itmPdCd}
-      </if>
-      <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
-        AND T3.FNL_ITM_GD_CD = #{itmGdCd}
-      </if>
-      <if test="@MybatisUtils@isNotEmpty(rentalRtngdProcsTp)">
-               <choose>
-                   <when test='@MybatisUtils@equals(rentalRtngdProcsTp, "0018")'>
-                      AND T3.RENTAL_ASSET_STAT = '0018'
-                   </when>
-                   <when test='@MybatisUtils@equals(rentalRtngdProcsTp, "0017")'>
-                      AND T3.RENTAL_ASSET_STAT = '0017'
-                   </when>
-                   <when test='@MybatisUtils@equals(rentalRtngdProcsTp, "1")'>
-                      AND T3.RENTAL_ASSET_STAT = '0015'
-                      AND T3.FACTORY_DISPOSAL_GB = '1'
-                   </when>
-                   <when test='@MybatisUtils@equals(rentalRtngdProcsTp, "2")'>
-                      AND T3.RENTAL_ASSET_STAT = '0015'
-                      AND T3.FACTORY_DISPOSAL_GB = '2'
-                   </when>
-                   <when test='@MybatisUtils@equals(rentalRtngdProcsTp, "3")'>
-                      AND T3.RENTAL_ASSET_STAT IN ('0017','0018', '0019')
-                   </when>
-                   <when test='@MybatisUtils@equals(rentalRtngdProcsTp, "0015")'>
-                      AND T3.RENTAL_ASSET_STAT = '0015'
-                   </when>
-                   <when test='@MybatisUtils@equals(rentalRtngdProcsTp, "0019")'>
-                      AND T3.RENTAL_ASSET_STAT = '0019'
-                   </when>
-               </choose>
-      </if>
-      <if test="@MybatisUtils@isNotEmpty(svnCd)">
-        AND T3.HGR_WARE_NO = #{svnCd}
-      </if>
-</select>
-
-<select id="selectChangeOfRentalStatusItmPdCd" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaChangeOfRentalStatusDto$SearchItmPdCdRes">
-    SELECT T1.SVPD_PD_CD AS CODE_ID
-         , T1.SVPD_NM_ABBR1 AS CODE_NAME
-         , T1.SVPD_ITEM_KND AS ITM_KND
-      FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T1
-     WHERE 1 = 1
-       AND T1.SVPD_USE_YN = 'Y'
-       AND T1.SVPD_ITEM_GR LIKE '92'||'%'
-     ORDER BY T1.SVPD_ITEM_CD, T1.SVPD_PART_CD
-</select>
+    <select id="selectChangeOfRentalStatusItmPdCd" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaChangeOfRentalStatusDto$SearchItmPdCdRes">
+        SELECT T1.SVPD_PD_CD AS CODE_ID
+             , T1.SVPD_NM_ABBR1 AS CODE_NAME
+             , T1.SVPD_ITEM_KND AS ITM_KND
+          FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T1
+         WHERE T1.SVPD_ITEM_GR LIKE '92%'
+         ORDER BY T1.SVPD_PD_CD
+    </select>
 
     <select id="selectChangeOfRentalStatusWarehouse" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaChangeOfRentalStatusDto$SearchWarehouseRes">
         SELECT T1.WARE_NO        AS CODE_ID /* 창고번호 */

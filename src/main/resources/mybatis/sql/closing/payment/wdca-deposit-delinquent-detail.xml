@@ -31,12 +31,12 @@
                         , CASE WHEN LEAST(FLOOR(CASE WHEN NVL(SUM(UCAM_TAM - DLQ_AMT), 0) = 0 THEN 0 ELSE SUM(DP - DLQ_DP_AMT) / SUM(UCAM_TAM - DLQ_AMT) END * 1000) / 10, 100)  <![CDATA[<]]>  0 THEN 100
                                 ELSE LEAST(FLOOR(CASE WHEN NVL(SUM(UCAM_TAM - DLQ_AMT), 0) = 0 THEN 0 ELSE SUM(DP - DLQ_DP_AMT) / SUM(UCAM_TAM - DLQ_AMT) END * 1000) / 10, 100) END AS NOM_DP_RT
                         , SUM(DLQ_AMT) AS DLQ_AMT
-                        , SUM(CASE WHEN DLQ_AMT2 > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N	/*연체계정수*/ --수정!!
+                        , SUM(CASE WHEN (CASE WHEN T.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN DLQ_AMT ELSE DLQ_AMT2 END) > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N	/*연체계정수*/ --수정!!
                         , SUM(DLQ_DP_AMT) AS DLQ_DP_AMT
                         /*------연체율-----*/
                         , CASE WHEN T.SELL_TP_CD = '6' THEN CASE WHEN SUM(OVRT_BAS1) = 0 OR SUM(OVRT_VAL2) = 0 THEN 0 ELSE FLOOR(SUM(CASE WHEN OVRT_BAS2 <![CDATA[<]]>  0 THEN 0 ELSE OVRT_VAL1 END)/SUM(OVRT_VAL2) * 1000) / 10 END
                           WHEN T.SELL_TP_CD = '3' THEN CASE WHEN SUM(AM16 + OVRT_BAS1)=0 THEN 0 ELSE TRUNC(SUM(CASE WHEN OVRT_BAS1  <![CDATA[<]]>   DP THEN 0 ELSE (OVRT_BAS1 - DP) END) * 100.0 / SUM(AM16 + OVRT_BAS1), 1) END
-                          ELSE CASE WHEN SUM(UCAM_TAM)=0 THEN 0 ELSE FLOOR((SUM(DP - DLQ_DP_AMT) * 100.0 / SUM(UCAM_TAM)) * 1000) / 10 END
+                          ELSE CASE WHEN NVL(SUM(UCAM_TAM), 0) = 0 THEN 0 ELSE TRUNC((SUM(DLQ_AMT) - SUM(DLQ_DP_AMT)) / SUM(UCAM_TAM) * 1000) / 10 END
                            END AS UC_CPR_DLQ_RT
                         , SUM(DP) AS TOT_DP_AMT
                         /*-----입금율계-----*/
@@ -87,7 +87,7 @@
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G3.THM_ATAM_DP_AMT, 0)
                                             ELSE NVL(G3.THM_ISTM_TOT_DP_AMT, 0)
                                             END AS THM_NW_DP_AMT  /*당월신규입금금액*/
-                                    , CASE WHEN A.SELL_TP_CD = '2' THEN NVL(G.EOT_BIL_UC_AMT,0) + NVL(D.EOT_DLQ_ADD_AMT,0)
+                                    , CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN A.SELL_TP_DTL_CD IN ('21', '23') THEN NVL(G.EOT_UC_AMT, 0) ELSE NVL(G.EOT_BIL_UC_AMT,0) END)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.EOT_BIL_UC_AMT,0)
                                             WHEN A.SELL_TP_CD = '3' THEN (
                                                 CASE WHEN A.SELL_TP_DTL_CD = '33' THEN NVL(G.EOT_UC_AMT,0) + NVL(D.EOT_DLQ_ADD_AMT,0)
@@ -105,7 +105,8 @@
                                            WHEN A.SELL_TP_CD = '3' AND A.SELL_TP_DTL_CD = '33' THEN NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0)
                                            ELSE NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
                                            END AS DLQ_AMT2	/*당월연체금액*/
-                                    , CASE WHEN A.SELL_TP_CD = '2' THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                    , CASE WHEN A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                           WHEN A.SELL_TP_DTL_CD IN ('21', '23') THEN NVL(G2.THM_ISTM_TOT_DP_AMT, 0)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '1' THEN NVL(G2.THM_INTAM_DP_AMT, 0)
@@ -118,7 +119,9 @@
                                                     ELSE LEAST(NVL(G2.SL_BND_ALRPY_AMT, 0), NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0)) END
                                             ELSE (CASE WHEN NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0 THEN 0
                                                         ELSE LEAST(NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
-                                                                ,CASE WHEN A.SELL_TP_CD = '3' THEN NVL(G2.THM_ATAM_DP_AMT, 0) ELSE GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0) END
+                                                                ,CASE WHEN A.SELL_TP_CD = '3' THEN NVL(G2.THM_ATAM_DP_AMT, 0)
+                                                                      WHEN A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                                                      ELSE NVL(G2.THM_ISTM_TOT_DP_AMT, 0) END
                                                                 ) END)
                                             END AS DLQ_DP_AMT	/*연체입금금액*/
                                     /*-----정상계정수-----*/
@@ -255,12 +258,12 @@
                         , CASE WHEN LEAST(FLOOR(CASE WHEN NVL(SUM(UCAM_TAM - DLQ_AMT), 0) = 0 THEN 0 ELSE SUM(DP - DLQ_DP_AMT) / SUM(UCAM_TAM - DLQ_AMT) END * 1000) / 10, 100) <![CDATA[<]]> 0 THEN 100
                                 ELSE LEAST(FLOOR(CASE WHEN NVL(SUM(UCAM_TAM - DLQ_AMT), 0) = 0 THEN 0 ELSE SUM(DP - DLQ_DP_AMT) / SUM(UCAM_TAM - DLQ_AMT) END * 1000) / 10, 100) END AS NOM_DP_RT
                         , SUM(DLQ_AMT) AS DLQ_AMT
-                        , SUM(CASE WHEN DLQ_AMT2 > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N	/*연체계정수*/
+                        , SUM(CASE WHEN (CASE WHEN T.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN DLQ_AMT ELSE DLQ_AMT2 END) > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N	/*연체계정수*/
                         , SUM(DLQ_DP_AMT) AS DLQ_DP_AMT
                         /*------연체율-----*/
                         , CASE WHEN T.SELL_TP_CD = '6' THEN CASE WHEN SUM(OVRT_BAS1) = 0 OR SUM(OVRT_VAL2) = 0 THEN 0 ELSE FLOOR(SUM(CASE WHEN OVRT_BAS2 <![CDATA[<]]>  0 THEN 0 ELSE OVRT_VAL1 END)/SUM(OVRT_VAL2) * 1000) / 10 END
                           WHEN T.SELL_TP_CD = '3' THEN CASE WHEN SUM(AM16 + OVRT_BAS1)=0 THEN 0 ELSE TRUNC(SUM(CASE WHEN OVRT_BAS1  <![CDATA[<]]>   DP THEN 0 ELSE (OVRT_BAS1 - DP) END) * 100.0 / SUM(AM16 + OVRT_BAS1), 1) END
-                          ELSE CASE WHEN SUM(UCAM_TAM)=0 THEN 0 ELSE FLOOR((SUM(DP - DLQ_DP_AMT) * 100.0 / SUM(UCAM_TAM)) * 1000) / 10 END
+                          ELSE CASE WHEN NVL(SUM(UCAM_TAM), 0) = 0 THEN 0 ELSE TRUNC((SUM(DLQ_AMT) - SUM(DLQ_DP_AMT)) / SUM(UCAM_TAM) * 1000) / 10 END
                            END AS UC_CPR_DLQ_RT
                         , SUM(DP) AS TOT_DP_AMT
                         /*-----입금율계-----*/
@@ -317,7 +320,7 @@
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G3.THM_ATAM_DP_AMT, 0)
                                             ELSE NVL(G3.THM_ISTM_TOT_DP_AMT, 0)
                                             END AS THM_NW_DP_AMT  /*당월신규입금금액*/
-                                    , CASE WHEN A.SELL_TP_CD = '2' THEN NVL(G.EOT_BIL_UC_AMT,0) + NVL(D.EOT_DLQ_ADD_AMT,0)
+                                    , CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN A.SELL_TP_DTL_CD IN ('21', '23') THEN NVL(G.EOT_UC_AMT, 0) ELSE NVL(G.EOT_BIL_UC_AMT,0) END)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.EOT_BIL_UC_AMT,0)
                                             WHEN A.SELL_TP_CD = '3' THEN (
                                                 CASE WHEN A.SELL_TP_DTL_CD = '33' THEN NVL(G.EOT_UC_AMT,0) + NVL(D.EOT_DLQ_ADD_AMT,0)
@@ -335,7 +338,8 @@
                                            WHEN A.SELL_TP_CD = '3' AND A.SELL_TP_DTL_CD = '33' THEN NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0)
                                            ELSE NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
                                            END AS DLQ_AMT2	/*당월연체금액*/
-                                    , CASE WHEN A.SELL_TP_CD = '2' THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                    , CASE WHEN A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                           WHEN A.SELL_TP_DTL_CD IN ('21', '23') THEN NVL(G2.THM_ISTM_TOT_DP_AMT, 0)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '1' THEN NVL(G2.THM_INTAM_DP_AMT, 0)
@@ -348,7 +352,9 @@
                                                     ELSE LEAST(NVL(G2.SL_BND_ALRPY_AMT, 0), NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0)) END
                                             ELSE (CASE WHEN NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0 THEN 0
                                                         ELSE LEAST(NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
-                                                                ,CASE WHEN A.SELL_TP_CD = '3' THEN NVL(G2.THM_ATAM_DP_AMT, 0) ELSE GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0) END
+                                                                ,CASE WHEN A.SELL_TP_CD = '3' THEN NVL(G2.THM_ATAM_DP_AMT, 0)
+                                                                      WHEN A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                                                      ELSE NVL(G2.THM_ISTM_TOT_DP_AMT, 0) END
                                                                 ) END)
                                             END AS DLQ_DP_AMT	/*연체입금금액*/
                                     /*-----정상계정수-----*/
@@ -485,12 +491,12 @@
                         , CASE WHEN LEAST(FLOOR(CASE WHEN NVL(SUM(UCAM_TAM - DLQ_AMT), 0) = 0 THEN 0 ELSE SUM(DP - DLQ_DP_AMT) / SUM(UCAM_TAM - DLQ_AMT) END * 1000) / 10, 100) <![CDATA[<]]> 0 THEN 100
                                 ELSE LEAST(FLOOR(CASE WHEN NVL(SUM(UCAM_TAM - DLQ_AMT), 0) = 0 THEN 0 ELSE SUM(DP - DLQ_DP_AMT) / SUM(UCAM_TAM - DLQ_AMT) END * 1000) / 10, 100) END AS NOM_DP_RT
                         , SUM(DLQ_AMT) AS DLQ_AMT
-                        , SUM(CASE WHEN DLQ_AMT2 > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N	/*연체계정수*/
+                        , SUM(CASE WHEN (CASE WHEN T.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN DLQ_AMT ELSE DLQ_AMT2 END) > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N	/*연체계정수*/
                         , SUM(DLQ_DP_AMT) AS DLQ_DP_AMT
                         /*------연체율-----*/
                         , CASE WHEN T.SELL_TP_CD = '6' THEN CASE WHEN SUM(OVRT_BAS1) = 0 OR SUM(OVRT_VAL2) = 0 THEN 0 ELSE FLOOR(SUM(CASE WHEN OVRT_BAS2 <![CDATA[<]]>  0 THEN 0 ELSE OVRT_VAL1 END)/SUM(OVRT_VAL2) * 1000) / 10 END
                           WHEN T.SELL_TP_CD = '3' THEN CASE WHEN SUM(AM16 + OVRT_BAS1)=0 THEN 0 ELSE TRUNC(SUM(CASE WHEN OVRT_BAS1  <![CDATA[<]]>   DP THEN 0 ELSE (OVRT_BAS1 - DP) END) * 100.0 / SUM(AM16 + OVRT_BAS1), 1) END
-                          ELSE CASE WHEN SUM(UCAM_TAM)=0 THEN 0 ELSE FLOOR((SUM(DP - DLQ_DP_AMT) * 100.0 / SUM(UCAM_TAM)) * 1000) / 10 END
+                          ELSE CASE WHEN NVL(SUM(UCAM_TAM), 0) = 0 THEN 0 ELSE TRUNC((SUM(DLQ_AMT) - SUM(DLQ_DP_AMT)) / SUM(UCAM_TAM) * 1000) / 10 END
                            END AS UC_CPR_DLQ_RT
                         , SUM(DP) AS TOT_DP_AMT
                         /*-----입금율계-----*/
@@ -552,7 +558,7 @@
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G3.THM_ATAM_DP_AMT, 0)
                                             ELSE NVL(G3.THM_ISTM_TOT_DP_AMT, 0)
                                             END AS THM_NW_DP_AMT  /*당월신규입금금액*/
-                                    , CASE WHEN A.SELL_TP_CD = '2' THEN NVL(G.EOT_BIL_UC_AMT,0) + NVL(D.EOT_DLQ_ADD_AMT,0)
+                                    , CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN A.SELL_TP_DTL_CD IN ('21', '23') THEN NVL(G.EOT_UC_AMT, 0) ELSE NVL(G.EOT_BIL_UC_AMT,0) END)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.EOT_BIL_UC_AMT,0)
                                             WHEN A.SELL_TP_CD = '3' THEN (
                                                 CASE WHEN A.SELL_TP_DTL_CD = '33' THEN NVL(G.EOT_UC_AMT,0) + NVL(D.EOT_DLQ_ADD_AMT,0)
@@ -570,7 +576,8 @@
                                            WHEN A.SELL_TP_CD = '3' AND A.SELL_TP_DTL_CD = '33' THEN NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0)
                                            ELSE NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
                                            END AS DLQ_AMT2	/*당월연체금액*/
-                                    , CASE WHEN A.SELL_TP_CD = '2' THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                    , CASE WHEN A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                           WHEN A.SELL_TP_DTL_CD IN ('21', '23') THEN NVL(G2.THM_ISTM_TOT_DP_AMT, 0)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '1' THEN NVL(G2.THM_INTAM_DP_AMT, 0)
@@ -583,7 +590,9 @@
                                                     ELSE LEAST(NVL(G2.SL_BND_ALRPY_AMT, 0), NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0)) END
                                             ELSE (CASE WHEN NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0 THEN 0
                                                         ELSE LEAST(NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
-                                                                ,CASE WHEN A.SELL_TP_CD = '3' THEN NVL(G2.THM_ATAM_DP_AMT, 0) ELSE GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0) END
+                                                                ,CASE WHEN A.SELL_TP_CD = '3' THEN NVL(G2.THM_ATAM_DP_AMT, 0)
+                                                                      WHEN A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                                                      ELSE NVL(G2.THM_ISTM_TOT_DP_AMT, 0) END
                                                                 ) END)
                                             END AS DLQ_DP_AMT	/*연체입금금액*/
                                     /*-----정상계정수-----*/
@@ -773,7 +782,7 @@
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G3.THM_ATAM_DP_AMT, 0)
                                             ELSE NVL(G3.THM_ISTM_TOT_DP_AMT, 0)
                                             END AS THM_NW_DP_AMT  /*당월신규입금금액*/
-                                    , CASE WHEN A.SELL_TP_CD = '2' THEN NVL(G.EOT_BIL_UC_AMT,0) + NVL(D.EOT_DLQ_ADD_AMT,0)
+                                    , CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN A.SELL_TP_DTL_CD IN ('21', '23') THEN NVL(G.EOT_UC_AMT, 0) ELSE NVL(G.EOT_BIL_UC_AMT,0) END)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.EOT_BIL_UC_AMT,0)
                                             WHEN A.SELL_TP_CD = '3' THEN (
                                                 CASE WHEN A.SELL_TP_DTL_CD = '33' THEN NVL(G.EOT_UC_AMT,0) + NVL(D.EOT_DLQ_ADD_AMT,0)
@@ -791,7 +800,8 @@
                                            WHEN A.SELL_TP_CD = '3' AND A.SELL_TP_DTL_CD = '33' THEN NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0)
                                            ELSE NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
                                            END AS DLQ_AMT2	/*당월연체금액*/
-                                    , CASE WHEN A.SELL_TP_CD = '2' THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                    , CASE WHEN A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                           WHEN A.SELL_TP_DTL_CD IN ('21', '23') THEN NVL(G2.THM_ISTM_TOT_DP_AMT, 0)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '1' THEN NVL(G2.THM_INTAM_DP_AMT, 0)
@@ -804,7 +814,9 @@
                                                     ELSE LEAST(NVL(G2.SL_BND_ALRPY_AMT, 0), NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0)) END
                                             ELSE (CASE WHEN NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0 THEN 0
                                                         ELSE LEAST(NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
-                                                                ,CASE WHEN A.SELL_TP_CD = '3' THEN NVL(G2.THM_ATAM_DP_AMT, 0) ELSE GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0) END
+                                                                ,CASE WHEN A.SELL_TP_CD = '3' THEN NVL(G2.THM_ATAM_DP_AMT, 0)
+                                                                      WHEN A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                                                      ELSE NVL(G2.THM_ISTM_TOT_DP_AMT, 0) END
                                                                 ) END)
                                             END AS DLQ_DP_AMT	/*연체입금금액*/
                                     /*-----정상계정수-----*/
@@ -995,7 +1007,7 @@
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G3.THM_ATAM_DP_AMT, 0)
                                             ELSE NVL(G3.THM_ISTM_TOT_DP_AMT, 0)
                                             END AS THM_NW_DP_AMT  /*당월신규입금금액*/
-                                    , CASE WHEN A.SELL_TP_CD = '2' THEN NVL(G.EOT_BIL_UC_AMT,0) + NVL(D.EOT_DLQ_ADD_AMT,0)
+                                    , CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN A.SELL_TP_DTL_CD IN ('21', '23') THEN NVL(G.EOT_UC_AMT, 0) ELSE NVL(G.EOT_BIL_UC_AMT,0) END)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.EOT_BIL_UC_AMT,0)
                                             WHEN A.SELL_TP_CD = '3' THEN (
                                                 CASE WHEN A.SELL_TP_DTL_CD = '33' THEN NVL(G.EOT_UC_AMT,0) + NVL(D.EOT_DLQ_ADD_AMT,0)
@@ -1008,7 +1020,8 @@
                                                     NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0)
                                             ELSE NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
                                             END AS DLQ_AMT	/*연체금액*/
-                                    , CASE WHEN A.SELL_TP_CD = '2' THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                    , CASE WHEN A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                           WHEN A.SELL_TP_DTL_CD IN ('21', '23') THEN NVL(G2.THM_ISTM_TOT_DP_AMT, 0)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '1' THEN NVL(G2.THM_INTAM_DP_AMT, 0)
@@ -1021,7 +1034,9 @@
                                                     ELSE LEAST(NVL(G2.SL_BND_ALRPY_AMT, 0), NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0)) END
                                             ELSE (CASE WHEN NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0 THEN 0
                                                         ELSE LEAST(NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
-                                                                ,CASE WHEN A.SELL_TP_CD = '3' THEN NVL(G2.THM_ATAM_DP_AMT, 0) ELSE GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0) END
+                                                                ,CASE WHEN A.SELL_TP_CD = '3' THEN NVL(G2.THM_ATAM_DP_AMT, 0)
+                                                                      WHEN A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                                                      ELSE NVL(G2.THM_ISTM_TOT_DP_AMT, 0) END
                                                                 ) END)
                                             END AS DLQ_DP_AMT	/*연체입금금액*/
                                     /*-----정상계정수-----*/
@@ -1214,7 +1229,7 @@
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G3.THM_ATAM_DP_AMT, 0)
                                             ELSE NVL(G3.THM_ISTM_TOT_DP_AMT, 0)
                                             END AS THM_NW_DP_AMT  /*당월신규입금금액*/
-                                    , CASE WHEN A.SELL_TP_CD = '2' THEN NVL(G.EOT_BIL_UC_AMT,0) + NVL(D.EOT_DLQ_ADD_AMT,0)
+                                    , CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN A.SELL_TP_DTL_CD IN ('21', '23') THEN NVL(G.EOT_UC_AMT, 0) ELSE NVL(G.EOT_BIL_UC_AMT,0) END)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.EOT_BIL_UC_AMT,0)
                                             WHEN A.SELL_TP_CD = '3' THEN (
                                                 CASE WHEN A.SELL_TP_DTL_CD = '33' THEN NVL(G.EOT_UC_AMT,0) + NVL(D.EOT_DLQ_ADD_AMT,0)
@@ -1232,7 +1247,8 @@
                                            WHEN A.SELL_TP_CD = '3' AND A.SELL_TP_DTL_CD = '33' THEN NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0)
                                            ELSE NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
                                            END AS DLQ_AMT2	/*당월연체금액*/
-                                    , CASE WHEN A.SELL_TP_CD = '2' THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                    , CASE WHEN A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                           WHEN A.SELL_TP_DTL_CD IN ('21', '23') THEN NVL(G2.THM_ISTM_TOT_DP_AMT, 0)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '1' THEN NVL(G2.THM_INTAM_DP_AMT, 0)
@@ -1245,7 +1261,9 @@
                                                     ELSE LEAST(NVL(G2.SL_BND_ALRPY_AMT, 0), NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0)) END
                                             ELSE (CASE WHEN NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0 THEN 0
                                                         ELSE LEAST(NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
-                                                                ,CASE WHEN A.SELL_TP_CD = '3' THEN NVL(G2.THM_ATAM_DP_AMT, 0) ELSE GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0) END
+                                                                ,CASE WHEN A.SELL_TP_CD = '3' THEN NVL(G2.THM_ATAM_DP_AMT, 0)
+                                                                      WHEN A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                                                      ELSE NVL(G2.THM_ISTM_TOT_DP_AMT, 0) END
                                                                 ) END)
                                             END AS DLQ_DP_AMT	/*연체입금금액*/
                                     /*-----정상계정수-----*/
@@ -1383,12 +1401,12 @@
                         , 0 AS NOM_DP_AMT
                         , 0 AS NOM_DP_RT
                         , SUM(DLQ_AMT) AS DLQ_AMT
-                        , SUM(CASE WHEN DLQ_AMT2 > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N	/*연체계정수*/
+                        , SUM(CASE WHEN (CASE WHEN T.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN DLQ_AMT ELSE DLQ_AMT2 END) > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N	/*연체계정수*/
                         , SUM(DLQ_DP_AMT) AS DLQ_DP_AMT
                         /*------연체율-----*/
                         , CASE WHEN T.SELL_TP_CD = '6' THEN CASE WHEN SUM(OVRT_BAS1) = 0 OR SUM(OVRT_VAL2) = 0 THEN 0 ELSE FLOOR(SUM(CASE WHEN OVRT_BAS2 <![CDATA[<]]>  0 THEN 0 ELSE OVRT_VAL1 END)/SUM(OVRT_VAL2) * 1000) / 10 END
                                WHEN T.SELL_TP_CD = '3' THEN CASE WHEN SUM(AM16 + OVRT_BAS1)=0 THEN 0 ELSE TRUNC(SUM(CASE WHEN OVRT_BAS1  <![CDATA[<]]>   DP THEN 0 ELSE (OVRT_BAS1 - DP) END) * 100.0 / SUM(AM16 + OVRT_BAS1), 1) END
-                               ELSE CASE WHEN SUM(UCAM_TAM)=0 THEN 0 ELSE FLOOR((SUM(DP - DLQ_DP_AMT) * 100.0 / SUM(UCAM_TAM)) * 1000) / 10 END
+                               ELSE CASE WHEN NVL(SUM(UCAM_TAM), 0) = 0 THEN 0 ELSE TRUNC((SUM(DLQ_AMT) - SUM(DLQ_DP_AMT)) / SUM(UCAM_TAM) * 1000) / 10 END
                                END AS UC_CPR_DLQ_RT
                         , SUM(DP) AS TOT_DP_AMT
                         /*-----입금율계-----*/
@@ -1438,7 +1456,7 @@
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G3.THM_ATAM_DP_AMT, 0)
                                             ELSE NVL(G3.THM_ISTM_TOT_DP_AMT, 0)
                                             END AS THM_NW_DP_AMT  /*당월신규입금금액*/
-                                    , CASE WHEN A.SELL_TP_CD = '2' THEN NVL(G.EOT_BIL_UC_AMT,0) + NVL(D.EOT_DLQ_ADD_AMT,0)
+                                    , CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN A.SELL_TP_DTL_CD IN ('21', '23') THEN NVL(G.EOT_UC_AMT, 0) ELSE NVL(G.EOT_BIL_UC_AMT,0) END)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.EOT_BIL_UC_AMT,0)
                                             WHEN A.SELL_TP_CD = '3' THEN (
                                                 CASE WHEN A.SELL_TP_DTL_CD = '33' THEN NVL(G.EOT_UC_AMT,0) + NVL(D.EOT_DLQ_ADD_AMT,0)
@@ -1456,7 +1474,8 @@
                                            WHEN A.SELL_TP_CD = '3' AND A.SELL_TP_DTL_CD = '33' THEN NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0)
                                            ELSE NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
                                            END AS DLQ_AMT2	/*당월연체금액*/
-                                    , CASE WHEN A.SELL_TP_CD = '2' THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                    , CASE WHEN A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                           WHEN A.SELL_TP_DTL_CD IN ('21', '23') THEN NVL(G2.THM_ISTM_TOT_DP_AMT, 0)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '1' THEN NVL(G2.THM_INTAM_DP_AMT, 0)
@@ -1469,7 +1488,9 @@
                                                     ELSE LEAST(NVL(G2.SL_BND_ALRPY_AMT, 0), NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0)) END
                                             ELSE (CASE WHEN NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0 THEN 0
                                                         ELSE LEAST(NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
-                                                                ,CASE WHEN A.SELL_TP_CD = '3' THEN NVL(G2.THM_ATAM_DP_AMT, 0) ELSE GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0) END
+                                                                ,CASE WHEN A.SELL_TP_CD = '3' THEN NVL(G2.THM_ATAM_DP_AMT, 0)
+                                                                      WHEN A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                                                      ELSE NVL(G2.THM_ISTM_TOT_DP_AMT, 0) END
                                                                 ) END)
                                             END AS DLQ_DP_AMT	/*연체입금금액*/
                                     /*-----정상계정수-----*/
@@ -1618,12 +1639,12 @@
                         , 0 AS NOM_DP_AMT
                         , 0 AS NOM_DP_RT
                         , SUM(DLQ_AMT) AS DLQ_AMT
-                        , SUM(CASE WHEN DLQ_AMT2 > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N	/*연체계정수*/
+                        , SUM(CASE WHEN (CASE WHEN T.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN DLQ_AMT ELSE DLQ_AMT2 END) > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N	/*연체계정수*/
                         , SUM(DLQ_DP_AMT) AS DLQ_DP_AMT
                         /*------연체율-----*/
                         , CASE WHEN T.SELL_TP_CD = '6' THEN CASE WHEN SUM(OVRT_BAS1) = 0 OR SUM(OVRT_VAL2) = 0 THEN 0 ELSE FLOOR(SUM(CASE WHEN OVRT_BAS2 <![CDATA[<]]>  0 THEN 0 ELSE OVRT_VAL1 END)/SUM(OVRT_VAL2) * 1000) / 10 END
                                WHEN T.SELL_TP_CD = '3' THEN CASE WHEN SUM(AM16 + OVRT_BAS1)=0 THEN 0 ELSE TRUNC(SUM(CASE WHEN OVRT_BAS1  <![CDATA[<]]>   DP THEN 0 ELSE (OVRT_BAS1 - DP) END) * 100.0 / SUM(AM16 + OVRT_BAS1), 1) END
-                               ELSE CASE WHEN SUM(UCAM_TAM)=0 THEN 0 ELSE FLOOR((SUM(DP - DLQ_DP_AMT) * 100.0 / SUM(UCAM_TAM)) * 1000) / 10 END
+                               ELSE CASE WHEN NVL(SUM(UCAM_TAM), 0) = 0 THEN 0 ELSE TRUNC((SUM(DLQ_AMT) - SUM(DLQ_DP_AMT)) / SUM(UCAM_TAM) * 1000) / 10 END
                                END AS UC_CPR_DLQ_RT
                         , SUM(DP) AS TOT_DP_AMT
                         /*-----입금율계-----*/
@@ -1679,7 +1700,7 @@
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G3.THM_ATAM_DP_AMT, 0)
                                             ELSE NVL(G3.THM_ISTM_TOT_DP_AMT, 0)
                                             END AS THM_NW_DP_AMT  /*당월신규입금금액*/
-                                    , CASE WHEN A.SELL_TP_CD = '2' THEN NVL(G.EOT_BIL_UC_AMT,0) + NVL(D.EOT_DLQ_ADD_AMT,0)
+                                    , CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN A.SELL_TP_DTL_CD IN ('21', '23') THEN NVL(G.EOT_UC_AMT, 0) ELSE NVL(G.EOT_BIL_UC_AMT,0) END)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.EOT_BIL_UC_AMT,0)
                                             WHEN A.SELL_TP_CD = '3' THEN (
                                                 CASE WHEN A.SELL_TP_DTL_CD = '33' THEN NVL(G.EOT_UC_AMT,0) + NVL(D.EOT_DLQ_ADD_AMT,0)
@@ -1697,7 +1718,8 @@
                                            WHEN A.SELL_TP_CD = '3' AND A.SELL_TP_DTL_CD = '33' THEN NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0)
                                            ELSE NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
                                            END AS DLQ_AMT2	/*당월연체금액*/
-                                    , CASE WHEN A.SELL_TP_CD = '2' THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                    , CASE WHEN A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                           WHEN A.SELL_TP_DTL_CD IN ('21', '23') THEN NVL(G2.THM_ISTM_TOT_DP_AMT, 0)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '1' THEN NVL(G2.THM_INTAM_DP_AMT, 0)
@@ -1710,7 +1732,9 @@
                                                     ELSE LEAST(NVL(G2.SL_BND_ALRPY_AMT, 0), NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0)) END
                                             ELSE (CASE WHEN NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0 THEN 0
                                                         ELSE LEAST(NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
-                                                                ,CASE WHEN A.SELL_TP_CD = '3' THEN NVL(G2.THM_ATAM_DP_AMT, 0) ELSE GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0) END
+                                                                ,CASE WHEN A.SELL_TP_CD = '3' THEN NVL(G2.THM_ATAM_DP_AMT, 0)
+                                                                      WHEN A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                                                      ELSE NVL(G2.THM_ISTM_TOT_DP_AMT, 0) END
                                                                 ) END)
                                             END AS DLQ_DP_AMT	/*연체입금금액*/
                                     /*-----정상계정수-----*/
@@ -1859,12 +1883,12 @@
                         , 0 AS NOM_DP_AMT
                         , 0 AS NOM_DP_RT
                         , SUM(DLQ_AMT) AS DLQ_AMT
-                        , SUM(CASE WHEN DLQ_AMT2 > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N	/*연체계정수*/
+                        , SUM(CASE WHEN (CASE WHEN T.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN DLQ_AMT ELSE DLQ_AMT2 END) > 0 THEN 1 ELSE 0 END) AS DLQ_ACC_N	/*연체계정수*/
                         , SUM(DLQ_DP_AMT) AS DLQ_DP_AMT
                         /*------연체율-----*/
                         , CASE WHEN T.SELL_TP_CD = '6' THEN CASE WHEN SUM(OVRT_BAS1) = 0 OR SUM(OVRT_VAL2) = 0 THEN 0 ELSE FLOOR(SUM(CASE WHEN OVRT_BAS2 <![CDATA[<]]>  0 THEN 0 ELSE OVRT_VAL1 END)/SUM(OVRT_VAL2) * 1000) / 10 END
                                WHEN T.SELL_TP_CD = '3' THEN CASE WHEN SUM(AM16 + OVRT_BAS1)=0 THEN 0 ELSE TRUNC(SUM(CASE WHEN OVRT_BAS1  <![CDATA[<]]>   DP THEN 0 ELSE (OVRT_BAS1 - DP) END) * 100.0 / SUM(AM16 + OVRT_BAS1), 1) END
-                               ELSE CASE WHEN SUM(UCAM_TAM)=0 THEN 0 ELSE FLOOR((SUM(DP - DLQ_DP_AMT) * 100.0 / SUM(UCAM_TAM)) * 1000) / 10 END
+                               ELSE CASE WHEN NVL(SUM(UCAM_TAM), 0) = 0 THEN 0 ELSE TRUNC((SUM(DLQ_AMT) - SUM(DLQ_DP_AMT)) / SUM(UCAM_TAM) * 1000) / 10 END
                                END AS UC_CPR_DLQ_RT
                         , SUM(DP) AS TOT_DP_AMT
                         /*-----입금율계-----*/
@@ -1926,7 +1950,7 @@
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G3.THM_ATAM_DP_AMT, 0)
                                             ELSE NVL(G3.THM_ISTM_TOT_DP_AMT, 0)
                                             END AS THM_NW_DP_AMT  /*당월신규입금금액*/
-                                    , CASE WHEN A.SELL_TP_CD = '2' THEN NVL(G.EOT_BIL_UC_AMT,0) + NVL(D.EOT_DLQ_ADD_AMT,0)
+                                    , CASE WHEN A.SELL_TP_CD = '2' THEN (CASE WHEN A.SELL_TP_DTL_CD IN ('21', '23') THEN NVL(G.EOT_UC_AMT, 0) ELSE NVL(G.EOT_BIL_UC_AMT,0) END)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.EOT_BIL_UC_AMT,0)
                                             WHEN A.SELL_TP_CD = '3' THEN (
                                                 CASE WHEN A.SELL_TP_DTL_CD = '33' THEN NVL(G.EOT_UC_AMT,0) + NVL(D.EOT_DLQ_ADD_AMT,0)
@@ -1944,7 +1968,8 @@
                                            WHEN A.SELL_TP_CD = '3' AND A.SELL_TP_DTL_CD = '33' THEN NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0)
                                            ELSE NVL(D2.EOT_DLQ_AMT + D2.BTD_DLQ_ADD_AMT - D2.THM_DLQ_ADD_DP_SUM_AMT - D2.THM_CTR_DLQ_ADD_AMT + D2.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
                                            END AS DLQ_AMT2	/*당월연체금액*/
-                                    , CASE WHEN A.SELL_TP_CD = '2' THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                    , CASE WHEN A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                           WHEN A.SELL_TP_DTL_CD IN ('21', '23') THEN NVL(G2.THM_ISTM_TOT_DP_AMT, 0)
                                             WHEN A.SELL_TP_CD = '6' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '3' THEN NVL(G2.SL_BND_ALRPY_AMT, 0)
                                             WHEN A.SELL_TP_CD = '1' THEN NVL(G2.THM_INTAM_DP_AMT, 0)
@@ -1957,7 +1982,9 @@
                                                     ELSE LEAST(NVL(G2.SL_BND_ALRPY_AMT, 0), NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0)) END
                                             ELSE (CASE WHEN NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0) = 0 THEN 0
                                                         ELSE LEAST(NVL(D.EOT_DLQ_AMT + D.BTD_DLQ_ADD_AMT - D.THM_DLQ_ADD_DP_SUM_AMT - D.THM_CTR_DLQ_ADD_AMT + D.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(F.EOT_BOR_AMT,0)
-                                                                ,CASE WHEN A.SELL_TP_CD = '3' THEN NVL(G2.THM_ATAM_DP_AMT, 0) ELSE GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0) END
+                                                                ,CASE WHEN A.SELL_TP_CD = '3' THEN NVL(G2.THM_ATAM_DP_AMT, 0)
+                                                                      WHEN A.SELL_TP_DTL_CD IN ('22', '24', '25', '26') THEN GREATEST(NVL(G2.THM_BIL_DP_AMT - G2.SV_DP_AMT, 0), 0)
+                                                                      ELSE NVL(G2.THM_ISTM_TOT_DP_AMT, 0) END
                                                                 ) END)
                                             END AS DLQ_DP_AMT	/*연체입금금액*/
                                     /*-----정상계정수-----*/
@@ -2096,16 +2123,20 @@
              , A1.BASE_PD_CD                                                         AS BASE_PD_CD           /*기준상품코드*/
              , A4.PD_NM                                                              AS PD_NM             /*상품명*/
              , NVL(A9.DLQ_MCN, 0)                                                    AS DLQ_MCN           /*연체개월수*/
-             , NVL(A9.EOT_DLQ_AMT + A9.BTD_DLQ_ADD_AMT - A9.THM_DLQ_ADD_DP_SUM_AMT - A9.THM_CTR_DLQ_ADD_AMT + A9.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(A12.EOT_BOR_AMT,0)  EOT_DLQ_AMT           /*기말연체금액*/
-             , A6.BND_ALRPY_AGG_AMT                                                  AS BILLING_AMOUNT         /*매출누계금액*/
-             , A6.RVE_AMT                                                            AS DEPOSIT_AMOUNT      /*입금금액*/
-             , A6.UC_AMT                                                             AS UNCOLLECTED_AMOUNT  /*미수금액*/
+             , NVL(A9.EOT_DLQ_AMT + A9.BTD_DLQ_ADD_AMT - A9.THM_DLQ_ADD_DP_SUM_AMT - A9.THM_CTR_DLQ_ADD_AMT + A9.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(A12.EOT_BOR_AMT,0) AS EOT_DLQ_AMT           /*기말연체금액*/
+             , NVL(A9.EOT_DLQ_AMT + A9.BTD_DLQ_ADD_AMT - A9.THM_DLQ_ADD_DP_SUM_AMT - A9.THM_CTR_DLQ_ADD_AMT + A9.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(A12.EOT_BOR_AMT,0) AS BILLING_AMOUNT         /*매출누계금액*/
+             , CASE WHEN A1.SELL_TP_CD = '2' THEN GREATEST(NVL(B6.THM_BIL_DP_AMT - B6.SV_DP_AMT, 0), 0)
+                    WHEN A1.SELL_TP_CD = '6' THEN NVL(B6.SL_BND_ALRPY_AMT, 0)
+                    WHEN A1.SELL_TP_CD = '3' THEN NVL(B6.SL_BND_ALRPY_AMT, 0)
+                    WHEN A1.SELL_TP_CD = '1' THEN NVL(B6.THM_INTAM_DP_AMT, 0)
+                    ELSE 0 END                                                       AS DEPOSIT_AMOUNT      /*입금금액*/
+             , NVL(B9.EOT_DLQ_AMT + B9.BTD_DLQ_ADD_AMT - B9.THM_DLQ_ADD_DP_SUM_AMT - B9.THM_CTR_DLQ_ADD_AMT + B9.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(A12.EOT_BOR_AMT,0) AS UNCOLLECTED_AMOUNT  /*미수금액*/
              , F_CMZ_CD_NM(#{session.tenantId}, 'DP_TP_CD', A5.DP_TP_CD)             AS DP_TP_CD           /*입금유형코드*/
              , A5.MPY_BSDT                                                           AS MPY_BSDT         /*납부기준일자*/
              , ''                                                                    AS APPROVE_CODE           /*입/출금에 문의*/
              , ''                                                                    AS NON_PAYMENT_REASON         /*입/출금에 문의*/
-             , A6.BND_ALRPY_AGG_AMT                                                  AS SL_AGG_AMT           /*매출누계금액*/
-             , A6.DP_ACU_AMT                                                         AS DEPOSIT_AGGREGATE    /*입금누계액*/
+             , A6.SL_AGG_AMT                                                         AS SL_AGG_AMT           /*매출누계금액*/
+             , A6.SL_DP_AGG_AMT                                                      AS DEPOSIT_AGGREGATE    /*입금누계액*/
              , A7.PRTNR_KNM                                                          AS PRTNR_KNM           /*파트너한글명*/
              , A7.PRTNR_NO                                                           AS PRTNR_NO         /*파트너번호*/
              , A7.FST_CNTR_DT                                                        AS FST_CNTR_DT   /*최초계약일자*/
@@ -2153,11 +2184,16 @@
                                          AND TO_CHAR(#{perfYm}) BETWEEN SUBSTR(B2.VL_STRT_DTM, 1, 6) AND SUBSTR(B2.VL_END_DTM, 1, 6)
                                          AND B1.DTA_DL_YN = 'N'
                                          AND B2.DTA_DL_YN = 'N')
-         INNER JOIN TB_CBCL_SL_BND_ALRPY_BAS A6 /*WELLS매출월마감내역*/
+         INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ A6 /*WELLS매출월마감내역*/
             ON A6.DTA_DL_YN = 'N' /*데이터삭제여부*/
            AND A6.CNTR_NO = A1.CNTR_NO
            AND A6.CNTR_SN = A1.CNTR_SN
-           AND A6.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM')
+           AND A6.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM')
+          INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ B6 /*WELLS매출월마감내역*/
+            ON B6.DTA_DL_YN = 'N' /*데이터삭제여부*/
+           AND B6.CNTR_NO = A1.CNTR_NO
+           AND B6.CNTR_SN = A1.CNTR_SN
+           AND B6.SL_CL_YM = #{perfYm}
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ A7 /*월파트너내역*/
             ON A7.DTA_DL_YN = 'N' /*데이터삭제여부*/
            AND A7.BASE_YM   = #{perfYm}
@@ -2167,12 +2203,16 @@
             ON A8.DTA_DL_YN = 'N' /*데이터삭제여부*/
            AND A8.OG_ID = A7.OG_ID
            AND A8.BASE_YM = #{perfYm}
-          LEFT OUTER JOIN TB_CBCL_DLQ_BAS_HIST A9 /*연체기본이력*/
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS_HIST A9 /*연체기본*/
             ON A9.DTA_DL_YN = 'N' /*데이터삭제여부*/
-           AND A9.PERF_YM = #{perfYm}
+           AND A9.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{perfYm}, 'YYYYMM'), -1), 'YYYYMM')
            AND A9.CNTR_NO = A1.CNTR_NO
            AND A9.CNTR_SN = A1.CNTR_SN
-           AND A9.DLQ_SN = 1 /*해당월의 연체책정된 값 출력*/
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS_HIST B9 /*연체기본*/
+            ON B9.DTA_DL_YN = 'N' /*데이터삭제여부*/
+           AND B9.PERF_YM = #{perfYm}
+           AND B9.CNTR_NO = A1.CNTR_NO
+           AND B9.CNTR_SN = A1.CNTR_SN
           LEFT OUTER JOIN TB_CBBO_BND_CNTR_BAS A10 /*채권계약기본*/
             ON A10.DTA_DL_YN = 'N' /*데이터삭제여부*/
            AND A10.BASE_YM = #{perfYm}

@@ -2,51 +2,53 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.closing.sales.mapper.WdcbSalesDetailMapper">
     <select id="selectSalesDetailRental" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto$SearchRentalRes">
-        SELECT T1.RENTAL_RGST_COST --등록비용
-             , T1.DSC_AMT --등록비할인
-             , T1.CNTR_TAM  --렌탈총액
-             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', T1.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD --리스구분
-             , T3.OJ_DTL_CNTR_NO||'-'||T3.OJ_DTL_CNTR_SN AS OJ_DTL_CNTR1 --1+1연계계약
-             , T4.OJ_DTL_CNTR_NO||'-'||T4.OJ_DTL_CNTR_SN AS OJ_DTL_CNTR2 --제휴연계계약
-             , T1.RENTAL_AMT --렌탈료1월요금
-             , T1.RENTAL_DSC_AMT  --렌탈료1할인
-             , T1.CNTR_PTRM  --렌탈료1개월
-             , T1.RENTAL_AMT2  --렌탈료2월요금
-             , T1.RENTAL_DSC_AMT2  --렌탈료2할인
-             , T1.RENTAL_PTRM2  --렌탈료2개월
-             , T5.DUTY_USE_MCN  --의무기간(일)
-             , F_CMZ_CD_NM('TNT_WELLS', 'RENTAL_DSC_DV_CD', T2.SELL_DSC_DV_CD) AS SELL_DSC_DV_CD --할인구분
-             , F_CMZ_CD_NM('TNT_WELLS', 'RENTAL_DSC_TP_CD ', T2.SELL_DSC_TP_CD) AS SELL_DSC_TP_CD --할인유형
-             , T2.SV_PRD --관리주기(개월)
-             , T6.OJ_DTL_CNTR_NO||'-'||T6.OJ_DTL_CNTR_SN AS OJ_DTL_CNTR3 --모종계약
-             , T1.SL_RCOG_DT --매출일자
-             , T1.REQD_DTM --철거요청일자
-             , T1.CAN_DT --취소일자
-          FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1
-         INNER JOIN TB_SSCT_CNTR_DTL T2 --계약상세
+        SELECT CASE WHEN T1.RENTAL_TN = '0' THEN T1.RENTAL_RGST_COST
+                    ELSE 0 END AS RENTAL_RGST_COST                                                 /* 등록비용 */
+             , CASE WHEN T1.RENTAL_TN = '0' THEN T2.CNTRAM_DSC_AMT
+                    ELSE 0 END AS DSC_AMT                                                          /* 등록비할인 */
+             , T1.CNTR_TAM                                                                         /* 렌탈총액 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', T1.SELL_TP_DTL_CD) AS SELL_TP_DTL_CD     /* 리스구분 */
+             , T3.OJ_DTL_CNTR_NO||'-'||T3.OJ_DTL_CNTR_SN AS OJ_DTL_CNTR1                           /* 1+1연계계약 */
+             , T4.OJ_DTL_CNTR_NO||'-'||T4.OJ_DTL_CNTR_SN AS OJ_DTL_CNTR2                           /* 제휴연계계약 */
+             , T1.RENTAL_AMT                                                                       /* 렌탈료1월요금 */
+             , T1.RENTAL_DSC_AMT                                                                   /* 렌탈료1할인 */
+             , T1.CNTR_PTRM                                                                        /* 렌탈료1개월 */
+             , T1.RENTAL_AMT2                                                                      /* 렌탈료2월요금 */
+             , T1.RENTAL_DSC_AMT2                                                                  /* 렌탈료2할인 */
+             , T1.RENTAL_PTRM2                                                                     /* 렌탈료2개월 */
+             , T5.DUTY_USE_MCN                                                                     /* 의무기간(일) */
+             , F_CMZ_CD_NM('TNT_WELLS', 'RENTAL_DSC_DV_CD', T2.SELL_DSC_DV_CD) AS SELL_DSC_DV_CD   /* 할인구분 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'RENTAL_DSC_TP_CD ', T2.SELL_DSC_TP_CD) AS SELL_DSC_TP_CD  /* 할인유형 */
+             , T2.SV_PRD                                                                           /* 관리주기(개월) */
+             , T6.OJ_DTL_CNTR_NO||'-'||T6.OJ_DTL_CNTR_SN AS OJ_DTL_CNTR3                           /* 모종계약 */
+             , T2.CNTR_PD_STRTDT AS SL_RCOG_DT                                                     /* 매출일자 */
+             , T1.REQD_DTM                                                                         /* 철거요청일자 */
+             , T1.CAN_DT                                                                           /* 취소일자 */
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1  /* WELLS매출월마감내역 */
+         INNER JOIN TB_SSCT_CNTR_DTL T2  /* 계약상세 */
             ON T1.CNTR_NO = T2.CNTR_NO
            AND T1.CNTR_SN = T2.CNTR_SN
-          LEFT JOIN TB_SSCT_CNTR_REL T3  --계약관계
+          LEFT JOIN TB_SSCT_CNTR_REL T3  /* 계약관계 */
             ON T3.BASE_DTL_CNTR_NO = T1.CNTR_NO
            AND T3.BASE_DTL_CNTR_SN = T1.CNTR_SN
-           AND T3.CNTR_UNIT_TP_CD = '020' /*계약단위 - 계약상세*/
-           AND T3.CNTR_REL_DTL_CD = '215' /*계약관계 - 1+1연계*/
-          LEFT JOIN TB_SSCT_CNTR_REL T4  --계약관계
+           AND T3.CNTR_UNIT_TP_CD = '020' /*계약단위-계약상세*/
+           AND T3.CNTR_REL_DTL_CD = '215' /*계약관계-1+1연계*/
+          LEFT JOIN TB_SSCT_CNTR_REL T4  /* 계약관계 */
             ON T4.BASE_DTL_CNTR_NO = T1.CNTR_NO
            AND T4.BASE_DTL_CNTR_SN = T1.CNTR_SN
-           AND T4.CNTR_UNIT_TP_CD = '020' /*계약단위 - 계약상세*/
-           AND T4.CNTR_REL_DTL_CD = '22L' /*계약관계 - 플래너상조제휴*/
-          LEFT JOIN TB_SSCT_RENTAL_ADN_SV_IZ T5 --렌탈부가서비스내역
+           AND T4.CNTR_UNIT_TP_CD = '020' /*계약단위-계약상세*/
+           AND T4.CNTR_REL_DTL_CD = '22L' /*계약관계-플래너상조제휴*/
+          LEFT JOIN TB_SSCT_RENTAL_ADN_SV_IZ T5 /* 렌탈부가서비스내역 */
             ON T5.CNTR_NO = T1.CNTR_NO
            AND T5.CNTR_SN = T1.CNTR_SN
-          LEFT JOIN TB_SSCT_CNTR_REL T6  --계약관계
+          LEFT JOIN TB_SSCT_CNTR_REL T6  /* 계약관계 */
             ON T6.BASE_DTL_CNTR_NO = T1.CNTR_NO
            AND T6.BASE_DTL_CNTR_SN = T1.CNTR_SN
-           AND T6.CNTR_UNIT_TP_CD = '020' /*계약단위 - 계약상세*/
-           AND T6.CNTR_REL_DTL_CD = '216' /*계약관계 - 모종결합*/
-         WHERE T1.CNTR_NO = #{cntrNo}
-           AND T1.CNTR_SN = #{cntrSn}
-           AND T1.SL_CL_YM = SUBSTR(#{slRcogDt},1,6)
+           AND T6.CNTR_UNIT_TP_CD = '020' /*계약단위-계약상세*/
+           AND T6.CNTR_REL_DTL_CD = '216' /*계약관계-모종결합*/
+         WHERE T1.CNTR_NO = #{cntrNo}  /* 필수변수-계약번호 */
+           AND T1.CNTR_SN = #{cntrSn}  /* 필수변수-계약일련번호 */
+           AND T1.SL_CL_YM = SUBSTR(#{slRcogDt}, 1, 6)  /* 필수변수-매출인식일자 */
     </select>
 
     <select id="selectSalesDetailMembership" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbSalesDetailDto$SearchMembershipRes">
