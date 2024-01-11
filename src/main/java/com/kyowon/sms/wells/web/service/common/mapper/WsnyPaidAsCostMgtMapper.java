@@ -21,8 +21,6 @@ public interface WsnyPaidAsCostMgtMapper {
 
     List<SearchRes> selectPaidAsCostMgts(SearchReq dto);
 
-    String selectMatPdCdValidCheck(WsnyPaidAsCostMgtDvo dvo);
-
     int insertPaidAsCostMgts(WsnyPaidAsCostMgtDvo dvo);
 
     int updateApyStrtdt(WsnyPaidAsCostMgtDvo dvo);
