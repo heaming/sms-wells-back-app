@@ -181,7 +181,7 @@ public class WsnaPcsvOutOfStorageSaveService {
         // 물류요청번호 생성
         String lgstOstrAkNo = mapper.selectNewLgstOstrAkNo();
         for (WsnaPcsvOutOfStorageSaveDvo dvo : dvos) {
-            if ("1112".equals(dvo.getSvBizDclsfCd())) {
+            if ("1112".equals(dvo.getSvBizDclsfCd())) { // 1112 : 제품배송
                 dvo.setLgstOstrAkNo(lgstOstrAkNo); // 물류요청번호
                 String idvTno = dvo.getIdvTno();
                 String cralIdvTno = dvo.getCralIdvTno();

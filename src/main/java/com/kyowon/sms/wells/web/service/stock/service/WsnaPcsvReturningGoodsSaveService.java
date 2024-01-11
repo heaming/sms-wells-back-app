@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.service.stock.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +39,7 @@ public class WsnaPcsvReturningGoodsSaveService {
     private final ZsnaWellsCounselSevice counselService;
     private final WctaInstallationReqdDtInService reqdDtService;
     private final WsnaLogisticsInStorageAskService logisticsService;
+    private final WsnaItemStockItemizationService stockService;
 
     @Transactional
     public int savePcsvReturningGoods(List<SaveReq> dtos) {
@@ -53,6 +55,8 @@ public class WsnaPcsvReturningGoodsSaveService {
             */
             if ("10".equals(dvo.getWkPrgsStatCd()) && ("301".equals(dvo.getCntrDtlStatCd())
                 || "302".equals(dvo.getCntrDtlStatCd()) || "303".equals(dvo.getCntrDtlStatCd()))) {
+                // 취소완료 상태에서 저장시 반품완료 코드 '6' 으로 변경
+                dvo.setSvBizHclsfCd("6");
                 // 1. 동일 키값으로 작업결과 조회
                 selectExistSvpdCstSvWkRsIz(dvo);
                 // 2. 고객서비스설치배정내역 업데이트
@@ -109,6 +113,7 @@ public class WsnaPcsvReturningGoodsSaveService {
         // 상품정보세팅 필요
         List<WsnaPcsvReturningGoodsSaveProductDvo> products = dvo.getProducts();
         log.info("[상품 세부 종류] => {}", products.size());
+        List<WsnaPcsvReturningGoodsSaveDvo> logisticsVo = new ArrayList<WsnaPcsvReturningGoodsSaveDvo>();
         for (WsnaPcsvReturningGoodsSaveProductDvo productsVo : products) {
             dvo.setOstrTpCd(RETURN_INSIDE);
             dvo.setOstrDt(ostrDt);
@@ -119,14 +124,38 @@ public class WsnaPcsvReturningGoodsSaveService {
             dvo.setLogisticsPdQty(productsVo.getUseQty());
             // 9. 서비스작업출고내역 저장
             saveMapper.insertSvstSvWkOstrIz(dvo);
+
+            /**===================================
+             * 10. 재고
+             * 20240110 추가
+            **===================================*/
+            WsnaItemStockItemizationReqDvo itemReqDvl = new WsnaItemStockItemizationReqDvo();
+            /**------------------------------
+             * 1: 물류센터
+             * 2: 서비스센터
+             * 3: 영업센터
+            **------------------------------*/
+            itemReqDvl.setWareDv(dvo.getWkWareNo().substring(0, 1));
+            itemReqDvl.setWareNo(dvo.getWkWareNo());
+            itemReqDvl.setWareMngtPrtnrNo(dvo.getWareMngtPrtnrNo());
+            itemReqDvl.setIostTp("162");
+            itemReqDvl.setWorkDiv("A");
+            itemReqDvl.setItmPdCd(productsVo.getPdCd());
+            itemReqDvl.setItemGd(dvo.getFnlItmGdCd());
+            itemReqDvl.setQty(String.valueOf(productsVo.getUseQty()));
+
+            itemReqDvl.setProcsYm(ostrDt.substring(0, 6));
+            itemReqDvl.setProcsDt(ostrDt);
+            this.stockService.createStock(itemReqDvl);
+
             // 반품요청 연계(물류서비스) DVO 세팅
-            List<WsnaPcsvReturningGoodsSaveDvo> logisticsVo = new ArrayList<WsnaPcsvReturningGoodsSaveDvo>();
             logisticsVo.add(dvo);
-            // 10. 반품요청 연계(물류서비스) DVO 변환 및 호출
-            logisticsService.createInStorageAsks(setLogisticsInStorageAskReqDvo(logisticsVo));
+
             // 11. 품목 재고 변경 내용 저장 => 물류 연계 배치 처리 후, 품목 재고 변경
             ostrSn += 1;
         }
+        // 10. 반품요청 연계(물류서비스) DVO 변환 및 호출
+            logisticsService.createInStorageAsks(setLogisticsInStorageAskReqDvo(logisticsVo));
         return 1;
     }
 
