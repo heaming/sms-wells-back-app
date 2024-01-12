@@ -133,7 +133,7 @@ public class WdccProductAccountController {
         HttpServletResponse response
     ) throws Exception {
         String fileName = service.getDownloadFileName(dto.baseYm());
-        if (MakeFileStatus.PROCESSING.getCode().equals(fileName)) {
+        if (MakeFileStatus.PROCESSING.getName().equals(fileName)) {
             return fileName;
         } else {
             log.info("fileName:" + fileName);
