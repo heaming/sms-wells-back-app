@@ -8,4 +8,8 @@ import lombok.Setter;
 public class WsncRegularBfsvcOjDvo {
     String asnOjYm; /* 배정년월 */
     String createTarget; /* 생성대상 */
+
+    String statusA;
+    String statusB;
+    String statusH;
 }
