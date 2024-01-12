@@ -18,6 +18,8 @@ public interface WsncRegularBfsvcOjConverter {
 
     WsncRegularBfsvcOjDvo mapSaveProcessReqToDvo(WsncRegularBfsvcOjDto.CreateReq dto) throws Exception;
 
+    WsncRegularBfsvcOjDvo mapSearchProcessReqToDvo(WsncRegularBfsvcOjDto.SearchReq dto) throws Exception;
+
     WsncSpecCustAsnDvo mapDvoToSpecCustAsnDvo(WsncRegularBfsvcOjDvo dto) throws Exception;
 
     WsncSpecCustPlanMatDvo mapDvoToSpecCustPlanMatDvo(WsncRegularBfsvcOjDvo dto) throws Exception;

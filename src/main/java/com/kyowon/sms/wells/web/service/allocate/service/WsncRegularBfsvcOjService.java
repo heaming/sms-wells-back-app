@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sflex.common.common.dvo.BatchCallReqDvo;
+import com.kyowon.sflex.common.common.dvo.BatchStatusDvo;
 import com.kyowon.sflex.common.common.service.BatchCallService;
 import com.kyowon.sms.wells.web.service.allocate.converter.WsncRegularBfsvcOjConverter;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRegularBfsvcOjDto;
@@ -91,5 +92,44 @@ public class WsncRegularBfsvcOjService {
         log.info("[WsncRegularBfsvcOjService.createRegularBfsvcOj] CreateTarget ::: " + dvo.getCreateTarget());
 
         return createRegularBfsvcOj(dvo);
+    }
+
+    public WsncRegularBfsvcOjDvo getRegularBfsvcOjs(WsncRegularBfsvcOjDto.SearchReq dto) throws Exception {
+        WsncRegularBfsvcOjDvo dvo = converter.mapSearchProcessReqToDvo(dto);
+        BatchStatusDvo batchDvo = new BatchStatusDvo();
+        Map<String, String> params = new HashMap<String, String>();
+
+        //배치 기본 Parameter setting
+        params.put("asnOjYm", dvo.getAsnOjYm());
+//        params.put("prtnrNo", "");  //현재는 필요없는 parameter
+
+        //상태확인을 위한 DVO 기본 setting
+        batchDvo.setFolderId("WSM_SN_B01");
+        batchDvo.setJobName("WsncRegularBfsvcOjBatchJob");
+        batchDvo.setJobId("ST_OAWSMSN0043_01");
+
+        //배정고객 생성 Batch Status (createTarget : A)
+        params.put("createTarget", "A");
+        batchDvo.setParams(params);
+        String statusA = batchCallService.getLastestJobStatusByQuery(batchDvo);
+        dvo.setStatusA(statusA);
+
+        //투입자재 생성 Batch Status (createTarget : B)
+        params.put("createTarget", "B");
+        batchDvo.setParams(params);
+        String statusB = batchCallService.getLastestJobStatusByQuery(batchDvo);
+        dvo.setStatusB(statusB);
+
+        //배정생성 Batch Status (createTarget : H)
+        params.put("createTarget", "H");
+        batchDvo.setParams(params);
+        String statusH = batchCallService.getLastestJobStatusByQuery(batchDvo);
+        dvo.setStatusH(statusH);
+
+        log.info("[WsncRegularBfsvcOjService] getRegularBfsvcOjs ::: createTarget A Job Status is ::: " + statusA);
+        log.info("[WsncRegularBfsvcOjService] getRegularBfsvcOjs ::: createTarget B Job Status is ::: " + statusB);
+        log.info("[WsncRegularBfsvcOjService] getRegularBfsvcOjs ::: createTarget H Job Status is ::: " + statusH);
+
+        return dvo;
     }
 }
