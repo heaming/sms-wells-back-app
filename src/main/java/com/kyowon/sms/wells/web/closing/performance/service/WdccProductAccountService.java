@@ -132,7 +132,7 @@ public class WdccProductAccountService {
         return runId;
     }
 
-    private Optional<SearchStatusRes> checkFileStatus(Integer baseY, Integer baseM) {
+    public Optional<SearchStatusRes> checkFileStatus(Integer baseY, Integer baseM) {
         return mapper.selectProductAccountDetailFileStatus(baseY, baseM);
     }
 
@@ -143,14 +143,6 @@ public class WdccProductAccountService {
      * @return filename
      */
     public String getDownloadFileName(String baseYm) {
-        var baseY = Integer.parseInt(baseYm.substring(0, 4));
-        var baseM = Integer.parseInt(baseYm.substring(4, 6));
-
-        var fileStatus = checkFileStatus(baseY, baseM);
-
-        if (fileStatus.isPresent() && MakeFileStatus.PROCESSING.getCode().equals(fileStatus.get().zfcseq())) {
-            return MakeFileStatus.PROCESSING.getName();
-        }
         return Paths.get(this.filePathShare, "WdccSalesInfobyProductExcelJob", "W_AccountByProd_" + baseYm + ".csv").toString();
     }
 }
