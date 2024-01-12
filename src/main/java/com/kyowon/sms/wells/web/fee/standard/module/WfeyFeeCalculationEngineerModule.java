@@ -61,6 +61,21 @@ public class WfeyFeeCalculationEngineerModule extends ZfeyFeeCalculationCommonMo
     }
 
     /**
+     * 생성자
+     *
+     * @param tenantId
+     * @param baseYm
+     * @param mmAcuPerfAgrgCrtDvCd
+     * @param prtnrNo
+     */
+    public WfeyFeeCalculationEngineerModule(
+        ZfeyFeeStandardDto.SearchFeeStandardDetailRes feeStandardDetail, String tenantId, String baseYm, String mmAcuPerfAgrgCrtDvCd, String prtnrNo
+    ) {
+        super(feeStandardDetail, tenantId, baseYm, mmAcuPerfAgrgCrtDvCd, prtnrNo);
+        engineerCalculationMapper = ApplicationContextHolder.getBean(WfeyEngineerCalculationMapper.class);
+    }
+
+    /**
      * 수당일괄계산 사용자정의 처리 메소드
      * W060001, W060002, W060003, W060004, W060005, W060006, W060007, W060008, W060010, W060011, W060012 수수료 삭제
      *
