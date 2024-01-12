@@ -107,10 +107,6 @@ public class WsnyAsVisitCostMgtService {
 
             // 신규일 경우
             if (CommConst.ROW_STATE_CREATED.equals(rowState)) {
-                // 유효성 체크
-                String validPdCd = this.mapper.selectPdCdValid(pdCd, apyStrtdt, apyEnddt);
-                // 해당 적용일자에 등록된 데이터가 있습니다. [품목코드 : {0}]
-                BizAssert.isNull(validPdCd, "MSG_ALT_APY_DT_IS_EXISTS", new String[] {pdCd});
 
                 // 일련번호 생성
                 int newIzSn = this.mapper.selectMaxIzSn(pdCd);
@@ -119,6 +115,11 @@ public class WsnyAsVisitCostMgtService {
                 if (newIzSn > 1) {
                     this.mapper.updateAsVisitCostEnddt(pdCd, apyStrtdt);
                 }
+
+                // 유효성 체크
+                String validPdCd = this.mapper.selectPdCdValid(pdCd, apyStrtdt, apyEnddt);
+                // 해당 적용일자에 등록된 데이터가 있습니다. [품목코드 : {0}]
+                BizAssert.isNull(validPdCd, "MSG_ALT_APY_DT_IS_EXISTS", new String[] {pdCd});
 
                 count += this.mapper.insertRecapAsBstrCost(dvo);
 
