@@ -40,7 +40,7 @@ public class WsnbPersonInChargeVisitAgrgController {
         @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query"),
         @ApiImplicitParam(name = "ogId", value = "서비스센터", paramType = "query"),
         @ApiImplicitParam(name = "bldCd", value = "빌딩코드", paramType = "query"),
-        @ApiImplicitParam(name = "exceptWellsManagerYn", value = "웰스매니저 미관리 제외", paramType = "query"),
+    //        @ApiImplicitParam(name = "exceptWellsManagerYn", value = "웰스매니저 미관리 제외", paramType = "query"),  // 미사용
     })
     @GetMapping
     public List<SearchRes> getPersonInChargeVisitAgrgs(
