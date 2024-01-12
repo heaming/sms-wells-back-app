@@ -15,4 +15,10 @@ public class WsncRegularBfsvcOjDto {
         @NotBlank
         String createTarget /* 생성대상 */
     ) {}
+
+    @ApiModel(value = "WsncRegularBfsvcOjDto-SearchReq")
+    public record SearchReq(
+        @NotBlank
+        String asnOjYm /* 배정년월 */
+    ) {}
 }
