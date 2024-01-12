@@ -1,3 +1,4 @@
+
 package com.kyowon.sms.wells.web.service.visit.dto;
 
 import io.swagger.annotations.ApiModel;
@@ -14,17 +15,17 @@ public class WsnbPersonInChargeVisitAgrgDto {
 
     @ApiModel(value = "WsnbPersonInChargeVisitAgrgDto-SearchReq")
     public record SearchReq(
-        String startDt,
-        String endDt,
-        String asnOjYm,
-        String mngrDvCd,
-        String dgr1LevlOgId,
-        String dgr2LevlOgId,
-        String dgr3LevlOgId,
-        String prtnrNo,
-        String ogId,
-        String bldCd,
-        String exceptWellsManagerYn
+        String startDt, /* 처리실작일자 */
+        String endDt, /* 처리종료일자 */
+        String asnOjYm, /* 배정년월 */
+        String mngrDvCd, /* 관리구분 */
+        String dgr1LevlOgId, /* 총괄단 */
+        String dgr2LevlOgId, /* 지역단 */
+        String dgr3LevlOgId, /* 지점 */
+        String prtnrNo, /* 파트너번호 */
+        String ogId, /* 서비스센터 */
+        String bldCd /* 빌딩코드 */
+        //        String exceptWellsManagerYn /* 웰스매니저 미관리 제외 */  // 미사용
     ) {}
 
     @ApiModel(value = "WsnbPersonInChargeVisitAgrgDto-SearchRes")
