@@ -5,6 +5,7 @@ import com.kyowon.sms.wells.web.closing.performance.dto.WdccProductAccountDto.Se
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccProductAccountDto.SearchTotalRes;
 import com.kyowon.sms.wells.web.closing.performance.service.WdccProductAccountService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
+import com.kyowon.sms.wells.web.closing.zcommon.constants.MakeFileStatus;
 import com.sds.sflex.common.common.dto.ExcelBulkDownloadDto;
 import com.sds.sflex.system.config.validation.BizAssert;
 import io.swagger.annotations.Api;
@@ -126,36 +127,38 @@ public class WdccProductAccountController {
     }
 
     @PostMapping("/download")
-    public void getDownload(
+    public String getDownload(
         @RequestBody
         SearchReq dto,
         HttpServletResponse response
     ) throws Exception {
         String fileName = service.getDownloadFileName(dto.baseYm());
+        if (MakeFileStatus.PROCESSING.getCode().equals(fileName)) {
+            return fileName;
+        } else {
+            log.info("fileName:" + fileName);
+            // wsmwlp_sdata/tnt_wells/prd/share/WdccSalesInfobyProductExcelJob/W_AccountByProd_202311.csv
+            File file = new File(fileName);
+            BizAssert.isTrue(file.isFile(), "MSG_ALT_FILE_NOT_FOUND");
 
-        log.info("fileName:" + fileName);
-        // wsmwlp_sdata/tnt_wells/prd/share/WdccSalesInfobyProductExcelJob/W_AccountByProd_202311.csv
-        File file = new File(fileName);
-        BizAssert.isTrue(file.isFile(), "MSG_ALT_FILE_NOT_FOUND");
+            String encodeName = "";
+            try {
+                encodeName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                log.debug(e.getMessage());
+            }
 
-        String encodeName = "";
-        try {
-            encodeName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            log.debug(e.getMessage());
+            response.setHeader("Content-Disposition", "attachment;filename=" + encodeName);
+            ServletOutputStream output = response.getOutputStream();
+
+            try (FileInputStream fis = new FileInputStream(file)) {
+                FileCopyUtils.copy(fis, output);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            output.flush();
+            output.close();
+            return fileName;
         }
-
-        response.setHeader("Content-Disposition", "attachment;filename=" + encodeName);
-        ServletOutputStream output = response.getOutputStream();
-
-        try (FileInputStream fis = new FileInputStream(file)) {
-            FileCopyUtils.copy(fis, output);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        output.flush();
-        output.close();
     }
-
 }
