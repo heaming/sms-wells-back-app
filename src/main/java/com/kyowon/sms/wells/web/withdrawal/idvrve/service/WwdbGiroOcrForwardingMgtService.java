@@ -158,8 +158,8 @@ public class WwdbGiroOcrForwardingMgtService {
     @Transactional
     public int saveGiroOcrForwardingPrints(SavePrintReq dtos, HttpServletResponse response) throws Exception {
         int processCount = 0;
-        int giroOcrForwardingDetailCount = 0;
-        StringBuffer retStr = new StringBuffer();
+        int giroOcrForwardingDetailCount;
+        StringBuilder retStr = new StringBuilder();
 
         WwdbGiroOcrForwardingPrintDvo dvo = convert.mapSaveGiroOcrForwardingPrintDvo(dtos);
         if (CommConst.ROW_STATE_CREATED.equals(dtos.state())) {
@@ -171,13 +171,12 @@ public class WwdbGiroOcrForwardingMgtService {
             dvo.setGiroRglrDvCd(dtos.giroRglrDvCd());
             giroOcrForwardingDetailCount = mapper.insertGiroOcrForwardingDetailPrints(dvo);
 
-            BizAssert.isTrue(giroOcrForwardingDetailCount == 0, "생성할 자료가 없습니다. 작업일을 확인하세요.");
+            BizAssert.isFalse(giroOcrForwardingDetailCount == 0, "생성할 자료가 없습니다. 작업일을 확인하세요.");
 
             dvo.setGiroOcrPblTotQty(giroOcrForwardingDetailCount);
             processCount += mapper.insertGiroOcrForwardingPrints(dvo);
 
-            List<SearchPrintCreateRes> searchPrintCreateRes = mapper
-                .selectGiroPrintCreate(dvo);
+            List<SearchPrintCreateRes> searchPrintCreateRes = mapper.selectGiroPrintCreate(dvo);
 
             int selCnt = searchPrintCreateRes.size() - 1;
 
