@@ -24,5 +24,5 @@ public interface WdccProductAccountMapper {
 
    Optional<SearchStatusRes> selectProductAccountDetailFileStatus(Integer baseY, Integer baseM);
 
-   SearchStatusRes updateProductAccountDetailFileStatus(Integer baseY, Integer baseM, Integer status);
+   int updateProductAccountDetailFileStatus(Integer baseY, Integer baseM, Integer status);
 }
