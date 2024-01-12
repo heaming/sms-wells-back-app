@@ -62,6 +62,10 @@ public class WsnaPcsvReturningGoodsSaveService {
                 // 2. 고객서비스설치배정내역 업데이트
                 saveMapper.updateSvpdCstSvasIstAsnIz(dvo);
                 // 3. 작업결과 저장
+                dvo.setOgId("W06-99992");
+                dvo.setOgTpCd("W06");
+                dvo.setPrtnrNo("99992");
+                log.info("zippo0209 dvo.getAsnDt() >>>>> {}", dvo.getAsnDt());
                 saveMapper.insertSvpdCstSvWkRsIz(dvo);
                 // 4. 철거일자 업데이트(고객서비스수행내역)
                 saveMapper.updateSvpdCstSvExcnIz(dvo);

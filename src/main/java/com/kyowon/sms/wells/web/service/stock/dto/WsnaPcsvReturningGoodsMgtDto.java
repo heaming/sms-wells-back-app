@@ -154,8 +154,8 @@ public class WsnaPcsvReturningGoodsMgtDto {
         String rmkCn,
         String logisticsPdCd,
         String logisticsPdNm,
-        String logisticsPdQty
-
+        String logisticsPdQty,
+        String asnDt
     ) {
         public SearchRes {
             exnoEncr = DbEncUtil.dec(exnoEncr);
@@ -284,6 +284,7 @@ public class WsnaPcsvReturningGoodsMgtDto {
         String logisticsPdNm,
         String logisticsPdQty,
         String fnlItmGdCd,
+        String asnDt,
         List<WsnaPcsvReturningGoodsSaveProductDvo> products //상품 목록
 
     ) {}
