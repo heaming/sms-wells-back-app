@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.common.dvo;
 
+import java.math.BigDecimal;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,25 +17,14 @@ import lombok.Setter;
 @Setter
 @Getter
 public class WsnyAsVisitCostMgtDvo {
-    public WsnyAsVisitCostMgtDvo() {}
-
-    public WsnyAsVisitCostMgtDvo(String pdCd, String izSn, String apyStrtdt, String apyEnddt) {
-        this.pdCd = pdCd;
-        this.izSn = izSn;
-        this.apyStrtdt = apyStrtdt;
-        this.apyEnddt = apyEnddt;
-    }
 
     String pdCd;
-    String izSn;
-    String bstrCsAmt;
+    Integer izSn;
+    BigDecimal bstrCsAmt;
     String apyStrtdt;
     String apyEnddt;
     String rmkCn;
-    String prevIzSn;
-    String nextIzSn;
     String sapMatCd;
     String pdNm;
     String isLast;
-
 }
