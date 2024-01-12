@@ -4,9 +4,10 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.common.dto.WsnyAsVisitCostMgtDto;
+import com.kyowon.sms.wells.web.service.common.dto.WsnyAsVisitCostMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.common.dvo.WsnyAsVisitCostMgtDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 /**
  *
@@ -25,65 +26,23 @@ public interface WsnyAsVisitCostMgtMapper {
      * @param pageInfo : 페이징정보
      * @return 조회결과
      */
-    List<WsnyAsVisitCostMgtDvo> selectAsVisitCostPages(WsnyAsVisitCostMgtDto.SearchReq searchReq, PageInfo pageInfo);
+    PagingResult<WsnyAsVisitCostMgtDvo> selectAsVisitCostPages(SearchReq searchReq, PageInfo pageInfo);
 
     /**
      * 유상 AS 출장비 관리 조회(엑셀 다운로드)
      * @param searchReq 조회조건
      * @return 조회결과
      */
-    List<WsnyAsVisitCostMgtDvo> selectAsVisitCostPages(WsnyAsVisitCostMgtDto.SearchReq searchReq);
+    List<WsnyAsVisitCostMgtDvo> selectAsVisitCostPages(SearchReq searchReq);
 
-    /**
-     * 유상 AS 출장비 관리 중복 검증
-     *
-     * @param searchReq 조회조건
-     * @return 조회결과
-     */
-    WsnyAsVisitCostMgtDvo selectTarget(WsnyAsVisitCostMgtDto.SaveReq searchReq);
+    int updateAsVisitCostForRemove(String pdCd, int izSn);
 
-    WsnyAsVisitCostMgtDvo selectMaxIzSn(WsnyAsVisitCostMgtDvo dvo);
+    int updateAsVisitCostEnddt(String pdCd, String apyStrtdt);
 
-    /**
-     * 유상 AS 출장비 관리 삭제
-     *
-     * @param saveReq 저장데이터
-     * @return 처리수
-     */
-    int deleteRecapAsBstrCost(WsnyAsVisitCostMgtDto.SaveReq saveReq);
+    int selectMaxIzSn(String pdCd);
 
-    /**
-     * 유상 AS 출장비 관리 수정
-     *
-     * @param dvo 저장데이터
-     * @return 처리수
-     */
-    int updateNextIsZnStrtDtm(WsnyAsVisitCostMgtDvo dvo);
-
-    /**
-     * 유상 AS 출장비 관리 수정
-     *
-     * @param dvo 저장데이터
-     * @return 처리수
-     */
-    int updatePrevIsZnEndDtm(WsnyAsVisitCostMgtDvo dvo);
-
-    /**
-     * 유상 AS 출장비 관리 수정
-     *
-     * @param dvo 저장데이터
-     * @return 처리수
-     */
-    int updateRecapAsBstrCost(WsnyAsVisitCostMgtDvo dvo);
-
-    /**
-     * 유상 AS 출장비 관리 등록
-     *
-     * @param dvo 저장데이터
-     * @return 처리수
-     */
     int insertRecapAsBstrCost(WsnyAsVisitCostMgtDvo dvo);
 
-    String selectCurrentMaxIzSn(String pdCd);
+    int updateRecapAsBstrCost(WsnyAsVisitCostMgtDvo dvo);
 
 }
