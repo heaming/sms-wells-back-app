@@ -134,7 +134,7 @@ public class WdccProductAccountController {
         var baseY = Integer.parseInt(baseYm.substring(0, 4));
         var baseM = Integer.parseInt(baseYm.substring(4, 6));
         var status = service.checkFileStatus(baseY, baseM);
-        if (status.isPresent() && MakeFileStatus.PROCESSING.getCode().equals(status.get().zfcseq())) {
+        if (status.isPresent() && MakeFileStatus.PROCESSING.getCode().equals(String.valueOf(status.get().zfcseq()))) {
             return MakeFileStatus.PROCESSING.getName();
         } else {
             return MakeFileStatus.DONE.getName();
