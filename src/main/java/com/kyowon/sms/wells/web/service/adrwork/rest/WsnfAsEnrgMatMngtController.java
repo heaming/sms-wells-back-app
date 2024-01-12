@@ -1,32 +1,32 @@
 package com.kyowon.sms.wells.web.service.adrwork.rest;
 
-import com.kyowon.sms.wells.web.service.adrwork.dto.WsnfAsEnrgMatMngtDto.*;
-import com.kyowon.sms.wells.web.service.adrwork.dvo.WsnfAsEnrgMatMngtDvo;
-import com.kyowon.sms.wells.web.service.adrwork.service.WsnfAsEnrgMatMngtService;
-import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
-import com.sds.sflex.system.config.constant.CommConst;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
-
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import javax.validation.Valid;
+
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.Valid;
+import com.kyowon.sms.wells.web.service.adrwork.dto.WsnfAsEnrgMatMngtDto.SearchReq;
+import com.kyowon.sms.wells.web.service.adrwork.dvo.WsnfAsEnrgMatMngtDvo;
+import com.kyowon.sms.wells.web.service.adrwork.service.WsnfAsEnrgMatMngtService;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import lombok.RequiredArgsConstructor;
 
 @Api(tags = "[WSNF] W-SV-U-0198M01 AS유형별 필요자재 관리")
-@RequiredArgsConstructor
+@Validated
 @RestController
+@RequiredArgsConstructor
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/as-encourage-materials-mngt")
-@Slf4j
 public class WsnfAsEnrgMatMngtController {
 
     private final WsnfAsEnrgMatMngtService service;
@@ -44,7 +44,7 @@ public class WsnfAsEnrgMatMngtController {
         @ApiImplicitParam(name = "itmRcmdQty", value = "수량", paramType = "query"),
     })
     @GetMapping
-    public PagingResult<SearchRes> getAsEncourageMaterials(
+    public PagingResult<WsnfAsEnrgMatMngtDvo> getAsEncourageMaterials(
         SearchReq dto, @Valid
         PageInfo pageInfo
     ) {
