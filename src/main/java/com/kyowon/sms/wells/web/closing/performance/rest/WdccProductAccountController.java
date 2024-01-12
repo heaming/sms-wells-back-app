@@ -8,10 +8,7 @@ import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.MakeFileStatus;
 import com.sds.sflex.common.common.dto.ExcelBulkDownloadDto;
 import com.sds.sflex.system.config.validation.BizAssert;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.FileCopyUtils;
@@ -129,10 +126,10 @@ public class WdccProductAccountController {
     @GetMapping("/check-downloadable")
     public String checkDownloadable(
         @RequestParam
-        SearchReq dto
+        String baseYm
     ) {
-        var baseY = Integer.parseInt(dto.baseYm().substring(0, 4));
-        var baseM = Integer.parseInt(dto.baseYm().substring(4, 6));
+        var baseY = Integer.parseInt(baseYm.substring(0, 4));
+        var baseM = Integer.parseInt(baseYm.substring(4, 6));
         var status = service.checkFileStatus(baseY, baseM);
         if (status.isPresent() && MakeFileStatus.PROCESSING.getCode().equals(String.valueOf(status.get().zfcseq()))) {
             return MakeFileStatus.PROCESSING.getName();
