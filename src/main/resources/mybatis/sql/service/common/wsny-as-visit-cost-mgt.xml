@@ -2,181 +2,123 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.common.mapper.WsnyAsVisitCostMgtMapper">
 
-    <!--유상 AS 출장비 관리 조회(페이징)-->
     <select id="selectAsVisitCostPages" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnyAsVisitCostMgtDvo">
-    <![CDATA[
-    SELECT T1.PD_CD /* 상품코드 */
-         , IZ_SN
-         , BSTR_CS_AMT
-         , APY_STRTDT
-         , APY_ENDDT
-         , RMK_CN
-         , '' AS FLAG
-         , P1.SAP_MAT_CD /* SAP자재코드 */
-         , P1.PD_ABBR_NM AS PD_NM /* 상품명 */
-         , CASE WHEN (SELECT IZ_SN
-                        FROM TB_SVPD_RCAS_BSTR_COST_BASE_IZ T
-                       WHERE T.DTA_DL_YN = 'N'
-                         AND T.PD_CD = T1.PD_CD
-                         AND TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN T.APY_STRTDT AND T.APY_ENDDT) = T1.IZ_SN
-                THEN 'Y'
-                ELSE 'N'
-           END AS IS_LAST
-     ]]>
-      FROM TB_SVPD_RCAS_BSTR_COST_BASE_IZ T1 /* 유상AS출장비기준내역 */
-     INNER JOIN TB_PDBS_PD_BAS P1 /* 상품기본 */
-        ON P1.PD_CD = T1.PD_CD
-       AND P1.DTA_DL_YN = 'N'
-     INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P2 /* 상품각사속성상세 */
-        ON P2.PD_CD = T1.PD_CD
-       AND P2.PD_EXTS_PRP_GRP_CD = 'PART'
-       AND P2.DTA_DL_YN = 'N'
-     WHERE T1.DTA_DL_YN = 'N'
-       <if test='@MybatisUtils@isNotEmpty(pdGrpCd)'>
-       AND P2.PD_PRP_VAL20 = #{pdGrpCd}
-       </if>
-       <if test='@MybatisUtils@isNotEmpty(pdCd)'>
-       AND P1.PD_CD = #{pdCd}
-       </if>
-       <if test='@MybatisUtils@isNotEmpty(apyMtrChk) and @MybatisUtils@equals(apyMtrChk,"Y")'>
-       AND TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN T1.APY_STRTDT AND T1.APY_ENDDT
-       </if>
-       ORDER BY T1.PD_CD, IZ_SN DESC
+        SELECT TO_CHAR(TO_NUMBER(D2.SAP_MAT_CD)) AS SAP_MAT_CD   /* SAP코드 */
+             , D1.PD_CD                                          /* 품목코드 */
+             , D2.PD_ABBR_NM                     AS PD_NM        /* 품목명 */
+             , D1.APY_STRTDT                                     /* 적용시작일자 */
+             , D1.APY_ENDDT                                      /* 적용종료일자 */
+             , D1.BSTR_CS_AMT                                    /* 출장비용금액S */
+             , D1.IZ_SN                                          /* 내역순번 */
+             , D1.RMK_CN                                         /* 비고 */
+             , CASE WHEN D1.IZ_SN = D4.MAX_IZ_SN THEN 'Y'   /* 현재적용자재를 체크할 경우 미래일자의 데이터가 나오지 않기 때문 */
+                    ELSE 'N'
+               END                               AS IS_LAST      /* 마지막데이터여부 */
+          FROM TB_SVPD_RCAS_BSTR_COST_BASE_IZ D1   /* 유상AS출장비기준내역 */
+         INNER JOIN TB_PDBS_PD_BAS D2              /* 상품기본 */
+            ON D2.PD_CD = D1.PD_CD
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D3     /* 상품각사속성상세 */
+            ON D3.PD_CD = D2.PD_CD
+         INNER JOIN
+             (
+               SELECT PD_CD
+                    , MAX(IZ_SN) AS MAX_IZ_SN
+                 FROM TB_SVPD_RCAS_BSTR_COST_BASE_IZ
+                WHERE DTA_DL_YN = 'N'
+                GROUP BY PD_CD
+             ) D4
+            ON D4.PD_CD = D1.PD_CD
+         WHERE D1.DTA_DL_YN          = 'N'
+           AND D2.DTA_DL_YN          = 'N'
+           AND D2.PD_TP_CD           = 'M'
+           AND D3.DTA_DL_YN          = 'N'
+           AND D3.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND D3.PD_PRP_VAL19       = '4'
+        <if test='@MybatisUtils@isNotEmpty(pdGrpCd)'>
+           AND D3.PD_PRP_VAL20       = #{pdGrpCd}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(pdCd)'>
+           AND D1.PD_CD              = #{pdCd}
+        </if>
+        <if test='@MybatisUtils@equals(apyMtrChk,"Y")'>
+           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN D1.APY_STRTDT AND D1.APY_ENDDT
+        </if>
+         ORDER BY D1.PD_CD, D1.IZ_SN
     </select>
 
-    <!--삭제-->
-    <delete id="deleteRecapAsBstrCost">
-    UPDATE TB_SVPD_RCAS_BSTR_COST_BASE_IZ SET
-           DTA_DL_YN = 'Y'
-           <include refid="COMMON.updateSystemField"/>
-     WHERE PD_CD = #{pdCd}
-       AND IZ_SN = #{izSn}
-    </delete>
-
-    <!--변경 대상 조회-->
-    <select id="selectTarget" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnyAsVisitCostMgtDvo">
-    SELECT PREV_IZ_SN
-         , NEXT_IZ_SN
-         , PD_CD
-         , IZ_SN
-         , APY_STRTDT
-         , APY_ENDDT
-      FROM
-         (
-           SELECT LAG(IZ_SN) OVER (ORDER BY IZ_SN) AS PREV_IZ_SN
-                , LEAD(IZ_SN) OVER (ORDER BY IZ_SN) AS NEXT_IZ_SN
-                , PD_CD
-                , IZ_SN
-                , APY_STRTDT
-                , APY_ENDDT
-             FROM TB_SVPD_RCAS_BSTR_COST_BASE_IZ
-            WHERE PD_CD = #{pdCd}
-              AND DTA_DL_YN = 'N'
-            ORDER BY IZ_SN
-         )
-     WHERE IZ_SN = #{izSn}
-    </select>
-
-    <!--다음 적용일자 조정-->
-    <update id="updateNextIsZnStrtDtm">
-    UPDATE TB_SVPD_RCAS_BSTR_COST_BASE_IZ
-       SET APY_STRTDT = #{apyStrtdt}
-           <include refid="COMMON.updateSystemField"/>
-     WHERE PD_CD = #{pdCd}
-       AND IZ_SN = #{izSn}
-       AND DTA_DL_YN = 'N'
+    <update id="updateAsVisitCostForRemove">
+        UPDATE TB_SVPD_RCAS_BSTR_COST_BASE_IZ
+           SET DTA_DL_YN = 'Y'
+        <include refid="COMMON.updateSystemField"/>
+         WHERE PD_CD = #{pdCd}
+           AND IZ_SN = #{izSn}
     </update>
 
-    <!--이전 적용일자 조정-->
-    <update id="updatePrevIsZnEndDtm">
-    UPDATE TB_SVPD_RCAS_BSTR_COST_BASE_IZ
-       SET APY_ENDDT = #{apyEnddt}
-           <include refid="COMMON.updateSystemField"/>
-     WHERE PD_CD = #{pdCd}
-       AND IZ_SN = #{izSn}
-       AND DTA_DL_YN = 'N'
+    <update id="updateAsVisitCostEnddt">
+        UPDATE TB_SVPD_RCAS_BSTR_COST_BASE_IZ
+           SET APY_ENDDT = CASE WHEN #{apyStrtdt} IS NOT NULL THEN TO_CHAR(TO_DATE(#{apyStrtdt}, 'YYYYMMDD') - 1, 'YYYYMMDD')
+                                ELSE '99991231'
+                           END
+        <include refid="COMMON.updateSystemField"/>
+         WHERE PD_CD = #{pdCd}
+           AND IZ_SN = ( SELECT MAX(D1.IZ_SN)
+                           FROM TB_SVPD_RCAS_BSTR_COST_BASE_IZ D1
+                          WHERE DTA_DL_YN = 'N'
+                            AND PD_CD     = #{pdCd} )
+           AND APY_STRTDT <![CDATA[<=]]> CASE WHEN #{apyStrtdt} IS NOT NULL THEN TO_CHAR(TO_DATE(#{apyStrtdt}, 'YYYYMMDD') - 1, 'YYYYMMDD')
+                                              ELSE '99991231'
+                                         END
     </update>
 
-    <!--현재 출장비용, 적용일자 조정-->
-    <update id="updateRecapAsBstrCost">
-    UPDATE TB_SVPD_RCAS_BSTR_COST_BASE_IZ
-       SET BSTR_CS_AMT = #{bstrCsAmt}
-         , APY_STRTDT = #{apyStrtdt}
-         , APY_ENDDT = #{apyEnddt}
-         , RMK_CN = #{rmkCn}
-           <include refid="COMMON.updateSystemField"/>
-     WHERE PD_CD = #{pdCd}
-       AND IZ_SN = #{izSn}
-       AND DTA_DL_YN = 'N'
-    </update>
-
-    <!-- 신규 등록 후 이전 적용일자를 조정하기 위해서 max izSn을 별도로 조회 -->
-    <select id="selectMaxIzSn" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnyAsVisitCostMgtDvo">
-    SELECT NVL(MAX(IZ_SN),0) + 1 AS IZ_SN
-      FROM TB_SVPD_RCAS_BSTR_COST_BASE_IZ
-     WHERE PD_CD = #{pdCd}
+    <select id="selectPdCdValid" resultType="java.lang.String">
+        SELECT PD_CD
+          FROM TB_SVPD_RCAS_BSTR_COST_BASE_IZ
+         WHERE DTA_DL_YN = 'N'
+           AND PD_CD     = #{pdCd}
+           AND (    #{apyStrtdt} BETWEEN APY_STRTDT AND APY_ENDDT
+                 OR #{apyEnddt} BETWEEN APY_STRTDT AND APY_ENDDT
+               )
+           AND ROWNUM    = 1
     </select>
 
-    <select id="selectCurrentMaxIzSn" resultType="java.lang.String">
-    SELECT TO_CHAR(MAX(IZ_SN))
-      FROM TB_SVPD_RCAS_BSTR_COST_BASE_IZ T
-     WHERE T.DTA_DL_YN = 'N'
-       AND T.PD_CD = #{pdCd}
+    <select id="selectMaxIzSn" resultType="java.lang.Integer">
+        SELECT NVL(MAX(IZ_SN), 0) + 1
+          FROM TB_SVPD_RCAS_BSTR_COST_BASE_IZ
+         WHERE PD_CD = #{pdCd}
     </select>
 
-    <!-- 신규 출장비 등록 -->
     <insert id="insertRecapAsBstrCost">
-    INSERT INTO TB_SVPD_RCAS_BSTR_COST_BASE_IZ (
-           PD_CD
-         , IZ_SN
-         , BSTR_CS_AMT
-         , APY_STRTDT
-         , APY_ENDDT
-         , RMK_CN
-         , DTA_DL_YN
+        INSERT INTO TB_SVPD_RCAS_BSTR_COST_BASE_IZ
+             (
+               PD_CD
+             , IZ_SN
+             , BSTR_CS_AMT
+             , APY_STRTDT
+             , APY_ENDDT
+             , RMK_CN
+             , DTA_DL_YN
          <include refid="COMMON.insertSystemField"/>
-    ) VALUES (
-           #{pdCd}
-         , #{izSn}
-         , #{bstrCsAmt}
-         , #{apyStrtdt}
-         , #{apyEnddt}
-         , #{rmkCn}
-         , 'N'
-         <include refid="COMMON.insertSystemFieldValue" />
-    )
+             )
+        VALUES
+             (
+               #{pdCd}
+             , #{izSn}
+             , #{bstrCsAmt}
+             , #{apyStrtdt}
+             , #{apyEnddt}
+             , #{rmkCn}
+             , 'N'
+        <include refid="COMMON.insertSystemFieldValue" />
+             )
     </insert>
 
-    <!--<update id="mergeRecapAsBstrCost">
-        MERGE INTO TB_SVPD_RCAS_BSTR_COST_BASE_IZ
-        USING TB_SVPD_RCAS_BSTR_COST_BASE_IZ TBL
-           ON (PD_CD = #{pdCd} AND IZ_SN = #{izSn})
-        WHEN MATCHED THEN
-          UPDATE SET
-                 BSTR_CS_AMT = #{bstrCsAmt}
-               , APY_STRTDT = #{apyStrtdt}
-               , APY_ENDDT = #{apyEnddt}
-               , RMK_CN = #{rmkCn}
-               <include refid="COMMON.updateSystemField"/>
-        WHEN NOT MATCHED THEN
-          INSERT (
-                 PD_CD
-               , IZ_SN
-               , BSTR_CS_AMT
-               , APY_STRTDT
-               , APY_ENDDT
-               , RMK_CN
-               , DTA_DL_YN
-               <include refid="COMMON.insertSystemField" /> )
-          ) VALUES (
-                 #{pdCd}
-               , #{izSn}
-               , #{bstrCsAmt}
-               , #{apyStrtdt}
-               , #{apyEnddt}
-               , #{rmkCn}
-               , 'N'
-               <include refid="COMMON.insertSystemFieldValue" />
-          )
-    </update>-->
+    <update id="updateRecapAsBstrCost">
+        UPDATE TB_SVPD_RCAS_BSTR_COST_BASE_IZ
+           SET BSTR_CS_AMT = #{bstrCsAmt}
+             , RMK_CN      = #{rmkCn}
+        <include refid="COMMON.updateSystemField"/>
+         WHERE PD_CD = #{pdCd}
+           AND IZ_SN = #{izSn}
+    </update>
+
 </mapper>
