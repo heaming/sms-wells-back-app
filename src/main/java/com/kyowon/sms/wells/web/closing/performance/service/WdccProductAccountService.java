@@ -89,7 +89,7 @@ public class WdccProductAccountService {
         var fileStatus = checkFileStatus(baseY, baseM);
 
         if (fileStatus.isPresent()) { // 1. TB_IFIN_DP_SLIP_TRS_IDK_GN 에 ('WA', YYYY, MM) 존재하면
-            if (MakeFileStatus.DONE.getCode().equals(fileStatus.get().zfcseq())) { // 2. seq = 1 (완료) 이면
+            if (MakeFileStatus.DONE.getCode().equals(String.valueOf(fileStatus.get().zfcseq()))) { // 2. seq = 1 (완료) 이면
                 // 3. TB_IFIN_DP_SLIP_TRS_IDK_GN seq = 0 (진행 중) 으로 update
                 mapper.updateProductAccountDetailFileStatus(baseY, baseM, 0);
                 // 3-2. 배치 시작
