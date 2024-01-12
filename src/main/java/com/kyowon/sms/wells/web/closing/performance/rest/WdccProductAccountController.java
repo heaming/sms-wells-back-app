@@ -126,6 +126,21 @@ public class WdccProductAccountController {
         return service.createdetailItemizationFile(dto);
     }
 
+    @GetMapping("/check-downloadable")
+    public String checkDownloadable(
+        @RequestParam
+        String baseYm
+    ) {
+        var baseY = Integer.parseInt(baseYm.substring(0, 4));
+        var baseM = Integer.parseInt(baseYm.substring(4, 6));
+        var status = service.checkFileStatus(baseY, baseM);
+        if (status.isPresent() && MakeFileStatus.PROCESSING.getCode().equals(status.get().zfcseq())) {
+            return MakeFileStatus.PROCESSING.getName();
+        } else {
+            return MakeFileStatus.DONE.getName();
+        }
+    }
+
     @PostMapping("/download")
     public String getDownload(
         @RequestBody
@@ -133,32 +148,28 @@ public class WdccProductAccountController {
         HttpServletResponse response
     ) throws Exception {
         String fileName = service.getDownloadFileName(dto.baseYm());
-        if (MakeFileStatus.PROCESSING.getName().equals(fileName)) {
-            return fileName;
-        } else {
-            log.info("fileName:" + fileName);
-            // wsmwlp_sdata/tnt_wells/prd/share/WdccSalesInfobyProductExcelJob/W_AccountByProd_202311.csv
-            File file = new File(fileName);
-            BizAssert.isTrue(file.isFile(), "MSG_ALT_FILE_NOT_FOUND");
+        log.info("fileName:" + fileName);
+        // wsmwlp_sdata/tnt_wells/prd/share/WdccSalesInfobyProductExcelJob/W_AccountByProd_202311.csv
+        File file = new File(fileName);
+        BizAssert.isTrue(file.isFile(), "MSG_ALT_FILE_NOT_FOUND");
 
-            String encodeName = "";
-            try {
-                encodeName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
-            } catch (Exception e) {
-                log.debug(e.getMessage());
-            }
-
-            response.setHeader("Content-Disposition", "attachment;filename=" + encodeName);
-            ServletOutputStream output = response.getOutputStream();
-
-            try (FileInputStream fis = new FileInputStream(file)) {
-                FileCopyUtils.copy(fis, output);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            output.flush();
-            output.close();
-            return fileName;
+        String encodeName = "";
+        try {
+            encodeName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            log.debug(e.getMessage());
         }
+
+        response.setHeader("Content-Disposition", "attachment;filename=" + encodeName);
+        ServletOutputStream output = response.getOutputStream();
+
+        try (FileInputStream fis = new FileInputStream(file)) {
+            FileCopyUtils.copy(fis, output);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        output.flush();
+        output.close();
+        return fileName;
     }
 }
