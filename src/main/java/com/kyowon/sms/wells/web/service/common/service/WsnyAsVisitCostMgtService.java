@@ -14,6 +14,7 @@ import com.kyowon.sms.wells.web.service.common.mapper.WsnyAsVisitCostMgtMapper;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -99,11 +100,18 @@ public class WsnyAsVisitCostMgtService {
             String pdCd = dto.pdCd();
             // 적용시작일자
             String apyStrtdt = dto.apyStrtdt();
+            // 적용종료일자
+            String apyEnddt = dto.apyEnddt();
 
             WsnyAsVisitCostMgtDvo dvo = this.converter.mapSaveReqToWsnyAsVisitCostMgtDvo(dto);
 
             // 신규일 경우
             if (CommConst.ROW_STATE_CREATED.equals(rowState)) {
+                // 유효성 체크
+                String validPdCd = this.mapper.selectPdCdValid(pdCd, apyStrtdt, apyEnddt);
+                // 해당 적용일자에 등록된 데이터가 있습니다. [품목코드 : {0}]
+                BizAssert.isNull(validPdCd, "MSG_ALT_APY_DT_IS_EXISTS", new String[] {pdCd});
+
                 // 일련번호 생성
                 int newIzSn = this.mapper.selectMaxIzSn(pdCd);
                 dvo.setIzSn(newIzSn);

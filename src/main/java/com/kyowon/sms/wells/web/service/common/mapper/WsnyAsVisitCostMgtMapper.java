@@ -39,6 +39,8 @@ public interface WsnyAsVisitCostMgtMapper {
 
     int updateAsVisitCostEnddt(String pdCd, String apyStrtdt);
 
+    String selectPdCdValid(String pdCd, String apyStrtdt, String apyEnddt);
+
     int selectMaxIzSn(String pdCd);
 
     int insertRecapAsBstrCost(WsnyAsVisitCostMgtDvo dvo);
