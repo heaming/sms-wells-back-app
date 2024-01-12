@@ -141,7 +141,7 @@ public class WsnaPcsvReturningGoodsSaveService {
             itemReqDvl.setIostTp("162");
             itemReqDvl.setWorkDiv("A");
             itemReqDvl.setItmPdCd(productsVo.getPdCd());
-            itemReqDvl.setItemGd(dvo.getFnlItmGdCd());
+            itemReqDvl.setItemGd(dvo.getFnlGb());
             itemReqDvl.setQty(String.valueOf(productsVo.getUseQty()));
 
             itemReqDvl.setProcsYm(ostrDt.substring(0, 6));
