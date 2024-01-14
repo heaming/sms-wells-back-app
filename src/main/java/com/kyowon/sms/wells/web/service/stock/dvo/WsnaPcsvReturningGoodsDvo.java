@@ -132,4 +132,5 @@ public class WsnaPcsvReturningGoodsDvo {
     String logisticsPdNm;
     String logisticsPdQty;
     String fnlItmGdCd;
+    String asnDt;
 }

@@ -179,7 +179,7 @@ public class WsnaReturningGoodsOstrService {
         }
 
         //09.06 물류요청일 경우에는 Transaction 이슈로 저장한 데이터 한번에 넘겨줘야 함
-        if (dvos.size() > 0 && CollectionUtils.isNotEmpty(dvos)) {
+        if (CollectionUtils.isNotEmpty(dvos)) {
             if (isReturnToLogistics(dvos.get(0).getOstrTpCd(), dvos.get(0).getStrWareDvCd())) {
                 List<String> sortOstrSns = dvos.stream().map(WsnaReturningGoodsDvo::getOstrSn).distinct()
                     .toList();

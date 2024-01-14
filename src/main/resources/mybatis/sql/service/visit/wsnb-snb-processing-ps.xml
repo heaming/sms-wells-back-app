@@ -5,171 +5,161 @@
     </resultMap>
 
     <select id="selectSnProcessingPsCntrs" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbSnProcessingPsDto$SearchCntrs">
-        WITH PD_INF AS ( SELECT T1.PD_CD
-                              , T1.PD_NM
-                              , T2.PD_PRP_VAL19 AS ITM_KND_CD
-                              , T2.PD_PRP_VAL20 AS PD_GRP_CD
-                              , T2.PD_PRP_VAL04	AS LP_USE_YN
-                              /* , T2.PD_PRP_VAL17 AS MAT_MNGT_DV_CD */
-                              , F_CMZ_CD_NM('TNT_WELLS', 'MAT_MNGT_DV_CD', T2.PD_PRP_VAL17, 'ko') AS MAT_MNGT_DV_CD
-                              , T1.PDCT_UPRC
-                              , T1.SAP_MAT_CD
-                              , T2.PD_PRP_VAL30 AS TRNOVR_RT_OJ_YN
-                              , T2.PD_PRP_VAL21 AS CMN_PART_DV_CD /* 중수리 01 */
-                              , T2.PD_PRP_VAL15 AS ORDNY_HV_MAT_YN /* 기초자재 Y 상시보유 */
-                           FROM WSMDBS.TB_PDBS_PD_BAS T1                    /*상품기본*/
-                LEFT OUTER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL T2  /*상품각사속성상세*/
-                             ON T1.PD_CD = T2.PD_CD
-                         /* AND T2.PD_EXTS_PRP_GRP_CD IN ('SPP', 'SCHD', 'PDCT') */    /*상품확장속성그룹코드 CMN 공통, AFS AS, PRC 가격, STLM 결제, CNTR 계약, EXCH 교환/반품, ETC 기타, SL 매출, GO 발주, SPP 배송, ANA 분석, FEE 영업수수료, HIST 이력, SCHD 일정관리, COCN 전집, LRNN 학습/외국어, LV 학습단계, PART AS부품, FINC 재무, PDCT 판매제품*/
-                          WHERE 1=1
-                            AND T2.PD_PRP_VAL19 = '4'
-                            <if test="@MybatisUtils@isNotEmpty(pdGrpCd)">
-                            AND T2.PD_PRP_VAL20 = #{pdGrpCd} /* 상품그룹 */
-                            </if>
-        )
-        SELECT /*+ INDEX(S2 PK_SVPD_CST_SV_EXCN_IZ) INDEX(S1 IX_SVPD_CST_SV_BFSVC_ASN_HIST_03)  */
-               (CASE WHEN B1.CNTR_NO IS NOT NULL THEN '재발행' ELSE '' END) AS RE_YN
-             , (CASE WHEN (S3.BC_NO IS NOT NULL AND S3.BC_IN_MTHD_CD = 'S') THEN '스캔'
-                     WHEN S3.BC_NO IS NOT NULL AND (S3.BC_IN_MTHD_CD IS NULL OR S3.BC_IN_MTHD_CD != 'S') THEN '수기'
-                     WHEN S3.VST_FSH_DT IS NOT NULL AND S3.BC_NO IS NULL AND (S3.BC_IN_MTHD_CD != 'S' OR S3.BC_IN_MTHD_CD IS NULL) THEN '신청'
-                     WHEN (S3.VST_FSH_DT IS NULL AND S3.BC_NO IS NULL) THEN '미처리'
-                     ELSE ''
-            END) AS BC_IN_MTHD_CD
-            , F_CMZ_CD_NM('TNT_WELLS', 'EGER_HDWR_IN_RSON_CD', S3.HDWR_IN_RSON_CD, 'ko') AS HDWR_IN_RSON_CD
-            , NVL2(B1.CNTR_NO, B1.PBL_TMS||'회차', '') AS PBL_TMS
-            , S1.CNTR_NO
-            , S1.CNTR_SN
-            , T4.RCGVP_KNM
-            , T4.CRAL_LOCARA_TNO
-            , T4.MEXNO_ENCR
-            , T4.CRAL_IDV_TNO
-            , T4.LOCARA_TNO
-            , T4.EXNO_ENCR
-            , T4.IDV_TNO
-            , PD_INF.SAP_MAT_CD
-            , PD_INF.PD_CD
-            , PD_INF.PD_NM
-            , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', B2.SELL_TP_CD, 'ko') AS SELL_TP_CD
-            , A1.NEW_ADR_ZIP
-            , A1.RNADR||' '||A1.RDADR AS ADDR
-            , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', S1.SV_BIZ_DCLSF_CD, 'ko') AS SV_BIZ_DCLSF_CD
-            , S1.LSTMM_VST_CNFMDT /* 전월방문일자 */
-            , S1.VST_CNFMDT
-            , S1.VST_DUEDT /* 방문예정일자 */
-            , S1.VST_EXP_HH
-            , P1.OG_CD
-            , P1.OG_NM
-            , P1.PRTNR_NO
-            , P1.PRTNR_KNM
-            , F_CMZ_CD_NM('TNT_WELLS', 'WK_PRGS_STAT_CD', S1.VST_PRGS_STAT_CD  , 'ko') AS VST_PRGS_STAT_CD
-            , S3.SV_PROCS_CN
-            , (CASE WHEN S2.CNTR_DTL_STAT_CD NOT IN ('101') AND TO_CHAR(ADD_MONTHS(TO_DATE(S2.IST_DT, 'YYYYMMDD'), S4.FRISU_BFSVC_PTRM_N), 'YYYYMM') &lt; TO_CHAR(SYSDATE, 'YYYYMM') THEN '취소'
-                    WHEN S2.REQD_DT IS NOT NULL THEN '취소'
-                    ELSE ''
-            END ) AS CANC_YN
-            , F_CMZ_CD_NM('TNT_WELLS', 'ITG_QRS_OJ_DV_CD',  B2.BC_PBL_DV_CD  , 'ko') AS BC_PBL_DV_CD
-            , S1.CST_SV_ASN_NO
-            , S3.CST_SIGN_CN
-        FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ S1 /* 고객서비스BS배정내역 ac261 */
-  INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S2
-          ON S1.CNTR_NO  = S2.CNTR_NO
-         AND S1.CNTR_SN = S2.CNTR_SN
-  INNER JOIN TB_SSCT_CNTR_ADR_REL T3 /*계약주소관계*/
-          ON S1.CNTR_NO = T3.DTL_CNTR_NO
-         AND S1.CNTR_SN = T3.DTL_CNTR_SN
-         AND T3.ADRPC_TP_CD IN ('2','3')    /*1 계약주소, 2 배달주소, 3 설치주소*/
-         AND S1.ASN_OJ_YM BETWEEN T3.VL_STRT_DTM AND T3.VL_END_DTM
-  INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T4 /*계약주소지기본*/
-          ON T3.CNTR_ADRPC_ID = T4.CNTR_ADRPC_ID /*계약주소지ID*/
-     --  AND C2.ADR_ID = T4.ADR_ID
-         AND T4.DTA_DL_YN = 'N'
-LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS A1
-          ON T4.ADR_ID = A1.ADR_ID   /*이해욱이사님,이진성프로님과 협의 설치, AS는 배정시에 주소를 사용 해야 하기 때문에 TB_SVPD_CST_SVAS_IST_OJ_IZ 에 ADR_ID 를 추가 하기로 함. 테이블이 변경 되면, T4.ADR_ID 를 T1.ADR_ID 으로 수정 해야 함*/
-         AND A1.DTA_DL_YN = 'N'
-  INNER JOIN PD_INF
-          ON S2.PDCT_PD_CD = PD_INF.PD_CD
-  INNER JOIN TB_OGBS_MM_PRTNR_IZ P1
-          ON S1.CNFM_PSIC_PRTNR_NO = P1.PRTNR_NO
-         AND S1.ASN_OJ_YM = P1.BASE_YM
-         AND S1.CNFM_PSIC_PRTNR_OG_TP_CD = P1.OG_TP_CD
-         AND P1.OG_ID != '71322'
-LEFT OUTER JOIN TB_SVPD_BC_RPBL_AK_CST_IZ B1 /* 바코드재발행요청고객내역  */
-          ON S2.CNTR_NO = B1.CNTR_NO
-         AND S2.CNTR_SN = B1.CNTR_SN
-         AND (B1.FST_PBL_DT LIKE SUBSTR(#{startDt},1,6)||'%' OR B1.FNL_PBL_DT LIKE SUBSTR(#{startDt},1,6)||'%')
-         AND B1.BC_NO = S2.BC_NO
-LEFT OUTER JOIN TB_SVPD_PD_BC_RPBL_CST_IZ B2
-          ON S2.BC_NO = B2.BC_NO
-         AND PD_INF.ITM_KND_CD = B2.ITM_KND_CD
-LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S3 /* 고객서비스작업결과내역 VS106 */
-          ON S1.CST_SV_ASN_NO = S3.CST_SV_ASN_NO
-         /* AND B1.CST_SV_ASN_NO = S3.CST_SV_ASN_NO */
-  INNER JOIN WSMDBS.TB_SSCT_CNTR_WELLS_DTL S4 /*계약상세*/
-          ON S1.CNTR_NO = S4.CNTR_NO
-         AND S1.CNTR_SN = S4.CNTR_SN
-         AND S4.DTA_DL_YN = 'N'
-       WHERE S1.VST_PRGS_STAT_CD != '73'
-         AND S1.SV_BIZ_MCLSF_CD LIKE '2%'
-         AND S1.CNFM_PSIC_DV_CD = #{mngrDvCd}
-         AND S1.CNFM_PSIC_PRTNR_NO IS NOT NULL
-         AND S1.ASN_OJ_YM BETWEEN SUBSTR(#{startDt},1,6) AND SUBSTR(#{endDt},1,6)
-         AND S3.VST_FSH_DT BETWEEN #{startDt} AND #{endDt}
-        <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId) or @MybatisUtils@isNotEmpty(dgr3LevlOgId) or @MybatisUtils@isNotEmpty(prtnrNo) or @MybatisUtils@isNotEmpty(ogId)">
-        AND P1.OG_ID IN (SELECT OG_ID
-                           FROM ( SELECT T1.BASE_YM
-                                       , T1.PRTNR_NO
-                                       , T1.OG_TP_CD
-                                       , T1.PRTNR_KNM
-                                       , T1.OG_ID
-                                       , T1.OG_CD
-                                       , T1.OG_NM
-                                       , T1.HMNRSC_DEPT_CD   /*인사부서코드*/
-                                       , T3.HGR_OG_ID
-                                       /* , T4.OG_NM AS HGR_OG_NM */
-                                       , RANK() OVER(PARTITION BY T1.PRTNR_NO ORDER BY T1.OG_TP_CD DESC) AS RN
-                                    FROM WSMDBS.TB_OGBS_MM_PRTNR_IZ T1 /*월파트너내역*/
-                              INNER JOIN WSMDBS.TB_OGBS_PRTNR_BAS T2 /*파트너기본*/
-                                      ON T1.PRTNR_NO = T2.PRTNR_NO
-                                     AND T1.OG_TP_CD = T2.OG_TP_CD
-                                     AND T2.DTA_DL_YN = 'N'
-                              INNER JOIN WSMDBS.TB_OGBS_MM_OG_IZ T3   /*월조직내역*/
-                                      ON T1.OG_ID = T3.OG_ID
-                                     AND T1.BASE_YM = T3.BASE_YM
-                                     AND T3.DTA_DL_YN = 'N'
-                                   WHERE 1=1
-                                     AND T1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
-                                     /* AND (T1.PRTNR_NO IN (SELECT ICHR_PRTNR_NO FROM TEMP1) OR T1.PRTNR_NO IN (SELECT PRTNR_NO FROM TEMP1) OR T1.PRTNR_NO IN (SELECT FST_RGST_USR_ID FROM TEMP1)) */
-                                     AND T1.OG_TP_CD IN ('HR1', 'W02', 'W03','W06') /*조직유형코드 W01 P추진, W02 M추진, W03 홈마스터, W04 B2B, W05 온라인총판, W06 엔지니어, ALC 제휴채널, HR1 임직원, BND 채권, L01 라이프, X01 KLC, X02 LC전문강사*/
-                                     /* AND T1.BZ_STAT_CD IN ('1','2','3') */  /*1 사업, 2 해약, 3 휴업*/
-                                     AND T1.DTA_DL_YN = 'N'
-                                     <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
-                                     AND T3.HGR_OG_ID = #{dgr2LevlOgId}
-                                     </if>
-                                     <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
-                                     AND T1.OG_ID = #{dgr3LevlOgId}
-                                     </if>
-                                     <if test="@MybatisUtils@isNotEmpty(ogId)">
-                                     AND T1.OG_ID = #{ogId}
-                                     </if>
-                                     <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
-                                     AND T1.PRTNR_NO = #{prtnrNo}
-                                     </if>
-                         )
-
-
-                        WHERE RN=1 )
-        </if>
-        <!--<if test="@MybatisUtils@isNotEmpty(vstFshStDt)">-->
-        <!--AND (S3.VST_FSH_DT BETWEEN #{vstFshStDt} AND #{vstFshEndDt} OR  S3.VST_FSH_DT IS NULL)-->
-        <!--</if>-->
-        <!--<if test="@MybatisUtils@isNotEmpty(svBizMclsfCd)">-->
-        <!--AND S1.SV_BIZ_MCLSF_CD = #{svBizMclsfCd} /* 정기bs 21 비정기bs 26 */-->
-        <!--</if>-->
-        <!--<if test="@MybatisUtils@isNotEmpty(vstPrgsStatCd)">-->
-        <!--AND S1.VST_PRGS_STAT_CD = #{vstPrgsStatCd}-->
-        <!--</if>-->
-        ORDER BY P1.OG_CD
-        </select>
+        SELECT CASE WHEN D4.CNTR_NO IS NOT NULL THEN '재발행' END                    AS RE_YN
+             , CASE WHEN D3.BC_NO IS NOT NULL THEN CASE WHEN D3.BC_IN_MTHD_CD = 'S' THEN '스캔'
+                                                        ELSE '수기'
+                                                   END
+                    WHEN D3.VST_FSH_DT IS NOT NULL
+                     AND D3.BC_NO IS NULL
+                     AND ( NVL(D3.BC_IN_MTHD_CD, 'A') <![CDATA[<>]]> 'S' )          THEN '신청'
+                    WHEN D3.VST_FSH_DT IS NULL
+                     AND D3.BC_NO IS NULL                                           THEN '미처리'
+               END                                                                  AS BC_IN_MTHD_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'EGER_HDWR_IN_RSON_CD', D3.HDWR_IN_RSON_CD) AS HDWR_IN_RSON_CD
+             , CASE WHEN D4.CNTR_NO IS NOT NULL THEN D4.PBL_TMS || '회차' END        AS PBL_TMS
+             , D1.CNTR_NO
+             , D1.CNTR_SN
+             , D13.RCGVP_KNM
+             , D13.CRAL_LOCARA_TNO
+             , D13.MEXNO_ENCR
+             , D13.CRAL_IDV_TNO
+             , D13.LOCARA_TNO
+             , D13.EXNO_ENCR
+             , D13.IDV_TNO
+             , TO_CHAR(TO_NUMBER(D5.SAP_MAT_CD))                                    AS SAP_MAT_CD
+             , D5.PD_CD
+             , D5.PD_ABBR_NM                                                        AS PD_NM
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', D10.SELL_TP_CD)               AS SELL_TP_CD
+             , D14.NEW_ADR_ZIP
+             , D14.RNADR || ' ' || D14.RDADR                                        AS ADDR
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', D1.SV_BIZ_DCLSF_CD)      AS SV_BIZ_DCLSF_CD
+             , D1.LSTMM_VST_CNFMDT /* 전월방문일자 */
+             , D1.VST_CNFMDT
+             , D1.VST_DUEDT /* 방문예정일자 */
+             , D1.VST_EXP_HH
+             , NVL(D8.OG_CD, D9.OG_CD)                                              AS OG_CD
+             , NVL(D8.OG_NM, D9.OG_NM)                                              AS OG_NM
+             , D1.CNFM_PSIC_PRTNR_NO                                                AS PRTNR_NO
+             , NVL(D8.PRTNR_KNM, D9.PRTNR_KNM)                                      AS PRTNR_KNM
+             , F_CMZ_CD_NM('TNT_WELLS', 'WK_PRGS_STAT_CD', D1.VST_PRGS_STAT_CD)     AS VST_PRGS_STAT_CD
+             , D3.SV_PROCS_CN
+             , CASE WHEN D10.CNTR_DTL_STAT_CD <![CDATA[<>]]> '101'
+                     AND TO_CHAR(ADD_MONTHS(TO_DATE(D2.IST_DT, 'YYYYMMDD'), D15.FRISU_BFSVC_PTRM_N), 'YYYYMM') <![CDATA[<]]> TO_CHAR(SYSDATE, 'YYYYMM')
+                    THEN '취소'
+                    WHEN D2.REQD_DT IS NOT NULL THEN '취소'
+               END                                                                   AS CANC_YN
+             , F_CMZ_CD_NM('TNT_WELLS', 'ITG_QRS_OJ_DV_CD', D11.BC_PBL_DV_CD)        AS BC_PBL_DV_CD
+             , D1.CST_SV_ASN_NO
+             , D3.CST_SIGN_CN
+          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ D1            /* 고객서비스BS배정내역 */
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D2            /* 고객서비스수행내역 */
+            ON D2.CNTR_NO = D1.CNTR_NO
+           AND D2.CNTR_SN = D1.CNTR_SN
+          LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ D3     /* 고객서비스작업결과내역 */
+            ON D3.CST_SV_ASN_NO = D1.CST_SV_ASN_NO
+           AND D3.DTA_DL_YN     = 'N'
+          LEFT OUTER JOIN TB_SVPD_BC_RPBL_AK_CST_IZ D4   /* 바코드재발행요청고객내역 */
+            ON D4.CNTR_NO   = D2.CNTR_NO
+           AND D4.CNTR_SN   = D2.CNTR_SN
+           AND D4.BC_NO     = D2.BC_NO
+           AND D4.DTA_DL_YN = 'N'
+           AND (    D4.FST_PBL_DT LIKE SUBSTR(#{startDt}, 1, 6) || '%'
+                 OR D4.FNL_PBL_DT LIKE SUBSTR(#{startDt}, 1, 6) || '%'
+               )
+         INNER JOIN TB_PDBS_PD_BAS D5                    /* 상품기본 */
+            ON D5.PD_CD = D2.PDCT_PD_CD
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D6           /* 상품각사속성상세 */
+            ON D6.PD_CD = D5.PD_CD
+         INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D7        /* 고객서비스BS대상내역 */
+            ON D7.ASN_OJ_YM     = D1.ASN_OJ_YM
+           AND D7.CST_SV_ASN_NO = D1.CST_SV_ASN_NO
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ D8         /* 월파트너내역 */
+            ON D8.BASE_YM   = D1.ASN_OJ_YM
+           AND D8.OG_TP_CD  = D1.CNFM_PSIC_PRTNR_OG_TP_CD
+           AND D8.PRTNR_NO  = D1.CNFM_PSIC_PRTNR_NO
+           AND D8.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS D9           /* 파트너기본 */
+            ON D9.OG_TP_CD  = D1.CNFM_PSIC_PRTNR_OG_TP_CD
+           AND D9.PRTNR_NO  = D1.CNFM_PSIC_PRTNR_NO
+           AND D9.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_DTL D10                 /* 계약상세 */
+            ON D10.CNTR_NO = D1.CNTR_NO
+           AND D10.CNTR_SN = D1.CNTR_SN
+          LEFT OUTER JOIN TB_SVPD_PD_BC_RPBL_CST_IZ D11  /* 상품바코드재발행고객내역 */
+            ON D11.BC_NO     = D2.BC_NO
+           AND D11.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL D12       /* 계약주소관계 */
+            ON D12.DTL_CNTR_NO = D1.CNTR_NO
+           AND D12.DTL_CNTR_SN = D1.CNTR_SN
+           AND D12.DTA_DL_YN   = 'N'
+           AND D12.ADRPC_TP_CD IN ('2', '3')
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D12.VL_STRT_DTM AND D12.VL_END_DTM
+          LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS D13     /* 계약주소지기본 */
+            ON D13.CNTR_ADRPC_ID = D12.CNTR_ADRPC_ID
+           AND D13.DTA_DL_YN     = 'N'
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS D14            /* 주소기본 */
+            ON D14.ADR_ID    = D13.ADR_ID
+           AND D14.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL D15           /* 계약WELLS상세 */
+            ON D15.CNTR_NO = D1.CNTR_NO
+           AND D15.CNTR_SN = D1.CNTR_SN
+         WHERE D1.DTA_DL_YN          = 'N'
+           AND D1.CST_SV_ASN_NO LIKE '2%'
+           AND D1.VST_PRGS_STAT_CD <![CDATA[<>]]> '73'   /* 방문중지 제외 */
+           AND D1.CNFM_PSIC_PRTNR_NO IS NOT NULL
+           AND D2.DTA_DL_YN          = 'N'
+           AND D5.DTA_DL_YN          = 'N'
+           AND D5.PD_TP_CD           = 'M'
+           AND D6.DTA_DL_YN          = 'N'
+           AND D6.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND D6.PD_PRP_VAL19       = '4'
+           AND D7.DTA_DL_YN          = 'N'
+           AND D7.CST_SV_ASN_NO LIKE '2%'
+           AND D7.VST_DV_CD LIKE '1%'   /* 방문 */
+           AND NVL(D8.OG_ID, D9.OG_ID) <![CDATA[<>]]> '71322'   /* Wells SCM팀안성파트 제외 */
+           AND D10.DTA_DL_YN         = 'N'
+           AND D15.DTA_DL_YN         = 'N'
+           AND D1.CNFM_PSIC_DV_CD    = #{mngrDvCd}
+           AND D1.ASN_OJ_YM BETWEEN SUBSTR(#{startDt}, 1, 6) AND SUBSTR(#{endDt}, 1, 6)
+           AND D7.ASN_OJ_YM BETWEEN SUBSTR(#{startDt}, 1, 6) AND SUBSTR(#{endDt}, 1, 6)
+           AND ( D3.VST_FSH_DT IS NULL OR D3.VST_FSH_DT BETWEEN #{startDt} AND #{endDt} )
+    <if test="@MybatisUtils@isNotEmpty(pdGrpCd)">
+           AND D6.PD_PRP_VAL20 = #{pdGrpCd} /* 상품그룹 */
+    </if>
+    <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId) or @MybatisUtils@isNotEmpty(dgr3LevlOgId) or @MybatisUtils@isNotEmpty(prtnrNo) or @MybatisUtils@isNotEmpty(ogId)">
+           AND NVL(D8.OG_ID, D9.OG_ID) IN ( SELECT OG_ID
+                                              FROM
+                                                 ( SELECT T1.OG_ID
+                                                        , RANK() OVER(PARTITION BY T1.PRTNR_NO ORDER BY T1.OG_TP_CD DESC) AS RN
+                                                     FROM TB_OGBS_MM_PRTNR_IZ T1 /*월파트너내역*/
+                                                    INNER JOIN TB_OGBS_PRTNR_BAS T2 /*파트너기본*/
+                                                       ON T1.PRTNR_NO = T2.PRTNR_NO
+                                                      AND T1.OG_TP_CD = T2.OG_TP_CD
+                                                      AND T2.DTA_DL_YN = 'N'
+                                                    INNER JOIN TB_OGBS_MM_OG_IZ T3   /*월조직내역*/
+                                                       ON T1.OG_ID = T3.OG_ID
+                                                      AND T1.BASE_YM = T3.BASE_YM
+                                                      AND T3.DTA_DL_YN = 'N'
+                                                    WHERE T1.DTA_DL_YN = 'N'
+                                                      AND T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                                                      AND T1.OG_TP_CD IN ('HR1', 'W02', 'W03', 'W06') /*조직유형코드 W01 P추진, W02 M추진, W03 홈마스터, W04 B2B, W05 온라인총판, W06 엔지니어, ALC 제휴채널, HR1 임직원, BND 채권, L01 라이프, X01 KLC, X02 LC전문강사*/
+                                                <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
+                                                      AND T3.HGR_OG_ID = #{dgr2LevlOgId}
+                                                </if>
+                                                <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
+                                                      AND T1.OG_ID = #{dgr3LevlOgId}
+                                                </if>
+                                                <if test="@MybatisUtils@isNotEmpty(ogId)">
+                                                      AND T1.OG_ID = #{ogId}
+                                                </if>
+                                                <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+                                                      AND T1.PRTNR_NO = #{prtnrNo}
+                                                </if>
+                                                 )
+                                           WHERE RN = 1 )
+    </if>
+         ORDER BY NVL(D8.OG_ID, D9.OG_ID)
+    </select>
 
     <select id="selectSnProcessingPsRatio" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbSnProcessingPsDto$SearchRatio">
         WITH PD_INF AS ( SELECT T1.PD_CD
@@ -307,21 +297,15 @@ LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S3 /* 고객서비스작업결과내역 
     </select>
 
     <select id="selectSnProcessingPsPuPartPds" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbSnProcessingPsDto$SearchPuPartPdRes">
-        SELECT P1.PD_CD
-             , P1.PD_NM
-          FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ S1 /* 고객서비스BS대상내역 AC251 */
-    INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ S2 /* 정기BS투입품목내역 AC252 */
-            ON S1.ASN_OJ_YM = S2.ASN_OJ_YM
-           AND S1.CNTR_NO = S2.CNTR_NO
-           AND S1.CNTR_SN = S2.CNTR_SN
-           AND S1.SV_BIZ_MCLSF_CD = S2.SV_BIZ_MCLSF_CD
-           AND S1.SV_BIZ_DCLSF_CD = S2.SV_BIZ_DCLSF_CD
-           AND S1.WK_SN = S2.WK_SN
-           AND S1.PDCT_PD_CD = S2.PDCT_PD_CD
-           AND S1.IST_NMN_N = S2.IST_NMN_N
-    INNER JOIN TB_PDBS_PD_BAS P1
-            ON P1.PD_CD = S2.PU_PART_PD_CD
-         WHERE 1=1
-           AND S1.CST_SV_ASN_NO = #{cstSvAsnNo}
+        SELECT D2.PD_CD
+             , D2.PD_ABBR_NM AS PD_NM
+          FROM TB_SVPD_RGBS_PU_ITM_IZ D1
+         INNER JOIN TB_PDBS_PD_BAS D2
+            ON D2.PD_CD = D1.PU_PART_PD_CD
+         WHERE D1.DTA_DL_YN     = 'N'
+           AND D2.DTA_DL_YN     = 'N'
+           AND D2.PD_TP_CD      = 'M'
+           AND D1.CST_SV_ASN_NO = #{cstSvAsnNo}
+         ORDER BY PD_NM
     </select>
 </mapper>

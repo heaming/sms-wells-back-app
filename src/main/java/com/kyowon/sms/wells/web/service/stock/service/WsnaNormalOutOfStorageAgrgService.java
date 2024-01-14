@@ -1,5 +1,8 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
+import com.sds.sflex.system.config.validation.BizAssert;
+import org.apache.commons.lang3.ObjectUtils;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -54,6 +57,9 @@ public class WsnaNormalOutOfStorageAgrgService {
         //피벗된 창고 (합계)
         String wareNoFieldsSumStr = wares.stream().map(item -> " NVL(WARE_" + item.getWareNo() + ",0) ")
             .collect(Collectors.joining("+"));
+
+        BizAssert.isTrue(!"".equals(wareNoFields), "MSG_ALT_ERR_CONTACT_ADMIN"); // 오류가 발생하였습니다. 관리자에게 문의하세요.
+        BizAssert.isTrue(!"".equals(wareNoFieldsSumStr), "MSG_ALT_ERR_CONTACT_ADMIN"); // 오류가 발생하였습니다. 관리자에게 문의하세요.
 
         dvo.setWareNoInStr(wareNoInStr);
         dvo.setWareNoFields(wareNoFields);
