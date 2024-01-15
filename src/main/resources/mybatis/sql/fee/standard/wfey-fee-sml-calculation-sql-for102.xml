@@ -1,0 +1,151 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.fee.standard.mapper.WfeyFeeSmlCalculationSqlFor102Mapper">
+    <insert id="insertSettlementFeesForBrmgr">
+        /** P 조직 정착수수료(정착수수료(지점장)) : W010105 */
+        INSERT INTO TB_FEAM_FEE_CALC_BAS (  /* 수수료계산계약상세내역 */
+                                                  BASE_YM            /* 기준년월 */
+                                                , PERF_YM            /* 실적년월 */
+                                                , OJ_DSB_YM          /* 대상지급년월 */
+                                                , CO_CD              /* 회사코드 */
+                                                , OG_TP_CD           /* 조직유형코드 */
+                                                , PRTNR_NO           /* 파트너번호 */
+                                                , FEE_CD             /* 수수료코드 */
+                                                , DTA_CRT_FEE_CD     /* 데이터생성수수료코드 */
+                                                , FEE_TCNT_DV_CD     /* 수수료차수구분코드 */
+                                                , SPMT_DSB_DV_CD     /* 추가지급구분코드 */
+                                                , FEE_CALC_TP_CD     /* 수수료계산유형코드 */
+                                                , FEE_CALC_AMT       /* 수수료계산금액 */
+                                                , FEE_CTR_CNFM_AMT   /* 수수료조정확정금액 */
+                                                , FNL_FEE_YN         /* 최종수수료여부 */
+                                                <include refid="COMMON.insertSystemField" />
+        )
+        SELECT SRC.BASE_YM
+             , SRC.BASE_YM  AS PERF_YM
+             , SRC.BASE_YM  AS OJ_DSB_YM
+             , #{coCd}       AS CO_CD          -- 고정
+             , SRC.OG_TP_CD
+             , SRC.PRTNR_NO
+             , #{feeCd}    AS FEE_CD
+             , #{dtaCrtFeeCd}    AS DTA_CRT_FEE_CD
+             , #{feeTcntDvCd}         AS FEE_TCNT_DV_CD -- 수수료차수(변수)
+             , '01'         AS SPMT_DSB_DV_CD -- 추후 확인 필요 01/정상지급, 02/추가지급
+             , '01'         AS FEE_CALC_TP_CD -- 01 / 수수료계산
+             , SRC.CALC_AMT AS FEE_CALC_AMT
+             , SRC.CALC_AMT AS FEE_CTR_CNFM_AMT
+             , #{fnlFeeYn} AS FNL_FEE_YN
+        <include refid="COMMON.insertSystemFieldValue" />
+          FROM (SELECT AA.BASE_YM
+                     , AA.OG_TP_CD
+                     , AA.PRTNR_NO
+                     , AA.VAL_W01P00009
+                     , AA.VAL_W01P00018
+                     , AA.VAL_W01P00047
+                     , AA.UPGR_YM
+                     , AA.UPGR_MCN
+                     , CASE
+                           WHEN AA.VAL_W01P00009 >= 5000000 AND AA.VAL_W01P00018 > 0 AND AA.VAL_W01P00047 = 'Y' THEN
+                               CASE
+                                   WHEN AA.UPGR_YM <![CDATA[<=]]> '202301' THEN
+                                       CASE
+                                           WHEN AA.UPGR_MCN BETWEEN 1 AND 4 THEN 300000
+                                           WHEN AA.UPGR_MCN BETWEEN 5 AND 8 THEN 250000
+                                           WHEN AA.UPGR_MCN BETWEEN 9 AND 12 THEN 200000
+                                           ELSE 0 END
+                                   WHEN AA.UPGR_YM > '202301' THEN
+                                       CASE
+                                           WHEN AA.UPGR_MCN BETWEEN 1 AND 6 THEN 300000
+                                           ELSE 0 END
+                                   ELSE 0 END
+                           ELSE 0 END AS CALC_AMT
+                  FROM (SELECT A.BASE_YM
+                             , A.OG_TP_CD
+                             , A.PRTNR_NO
+                             , NVL(B.PERF_VAL, 0)           AS VAL_W01P00009 -- 실적금액
+                             , NVL(C.PERF_VAL, 0)           AS VAL_W01P00018 -- BS판매건수
+                             , NVL(D.FEE_PERF_ATC_VAL, 'N') AS VAL_W01P00047 -- 교육수료
+                             , NVL(E.UPGR_YM, '199901')     AS UPGR_YM       -- 진급일자
+                             , NVL(E.UPGR_MCN, 0)           AS UPGR_MCN      -- 진급차월
+                          FROM TB_OGBS_MM_PRTNR_IZ A
+                               LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL B
+                                               ON A.BASE_YM = B.BASE_YM
+                                                   AND A.BASE_YM = B.PERF_YM
+                                                   AND '02' = B.FEE_TCNT_DV_CD -- 변수(차수)
+                                                   AND A.OG_TP_CD = B.OG_TP_CD
+                                                   AND A.PRTNR_NO = B.PRTNR_NO
+                                                   AND 'W01P00009' = B.PERF_ATC_CD -- 순주문실적금액
+                                                   AND '0' = B.PERF_DV_CD -- 고정 개인실적
+                               LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL C
+                                               ON A.BASE_YM = C.BASE_YM
+                                                   AND A.BASE_YM = C.PERF_YM
+                                                   AND '02' = C.FEE_TCNT_DV_CD -- 변수(차수)
+                                                   AND A.OG_TP_CD = C.OG_TP_CD
+                                                   AND A.PRTNR_NO = C.PRTNR_NO
+                                                   AND 'W01P00018' = C.PERF_ATC_CD -- BS관리상품 판매수
+                                                   AND '0' = C.PERF_DV_CD -- 고정 개인실적
+                               LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL D
+                                               ON A.BASE_YM = D.BASE_YM
+                                                   AND A.BASE_YM = D.PERF_YM
+                                                   AND '02' = D.FEE_TCNT_DV_CD -- 변수(차수)
+                                                   AND A.OG_TP_CD = D.OG_TP_CD
+                                                   AND A.PRTNR_NO = D.PRTNR_NO
+                                                   AND 'W01P00047' = D.PERF_ATC_CD -- 교육수료여부
+                               LEFT OUTER JOIN (SELECT E01.MNGT_YM
+                                                     , E01.OG_TP_CD
+                                                     , E01.PRTNR_NO
+                                                     , E01.UPGR_YM
+                                                     , E01.UPGR_MCN
+                                                  FROM TB_OGPS_TOPMR_PLAR_APLC_IZ E01
+                                                       JOIN (SELECT E00.MNGT_YM
+                                                                  , E00.OG_TP_CD
+                                                                  , E00.PRTNR_NO
+                                                                  , MAX(E00.APLC_SN) AS APLC_SN
+                                                               FROM TB_OGPS_TOPMR_PLAR_APLC_IZ E00
+                                                              WHERE 1 = 1
+                                                                AND E00.MNGT_YM = #{baseYm}    --  변수
+                                                                AND E00.DTA_DL_YN = 'N'
+                                                                AND E00.UPGR_DMTN_DV_CD = '1' -- 승급
+                                                                AND E00.QLF_DV_CD = '1'       -- P 조직  수석플래너
+                                                              GROUP BY E00.MNGT_YM
+                                                                     , E00.OG_TP_CD
+                                                                     , E00.PRTNR_NO) E00
+                                                            ON E01.MNGT_YM = E00.MNGT_YM
+                                                                AND E01.APLC_SN = E00.APLC_SN
+                                                                AND E01.OG_TP_CD = E00.OG_TP_CD
+                                                                AND E01.PRTNR_NO = E00.PRTNR_NO
+                                                 WHERE 1 = 1) E
+                                               ON A.BASE_YM = E.MNGT_YM
+                                                   AND A.OG_TP_CD = E.OG_TP_CD
+                                                   AND A.PRTNR_NO = E.PRTNR_NO
+                         WHERE 1 = 1
+                           AND A.BASE_YM = #{baseYm} --  변수
+                           AND A.OG_TP_CD = #{ogTpCd}   --  고정
+                           AND A.PSTN_DV_CD = '7'   -- 지점장
+                           AND A.CLTN_DT IS NULL --  당월 해약 안하시는 분
+                  ) AA
+                 WHERE 1 = 1
+                   AND NOT EXISTS(SELECT 1 -- M,P조직 정착 수수료 받은 이력
+                                    FROM TB_FEAM_FEE_CALC_BAS Z02
+                                   WHERE 1 = 1
+                                     AND Z02.BASE_YM = Z02.PERF_YM      -- 수수료
+                                     AND Z02.OG_TP_CD IN ('W02', 'W01') -- 고정
+                                     AND Z02.PRTNR_NO = AA.PRTNR_NO
+                                     AND Z02.FEE_CD IN ('W020081', 'W010005', 'W020080')
+                                     AND Z02.FEE_CTR_CNFM_AMT > 0
+                                     AND Z02.PERF_YM <![CDATA[<]]> AA.UPGR_YM       -- 과거에 받은 이력
+                                     AND Z02.PERF_YM >= '201904'        -- 고정
+                                     AND Z02.DTA_DL_YN = 'N'
+                     )
+                   AND NOT EXISTS(SELECT 1 -- wells M조직 매니저 이력
+                                    FROM TB_OGPS_PLAR_QLF_CH_IZ Z01 -- M조직 자격
+                                   WHERE 1 = 1
+                                     AND Z01.QLF_DV_CD = '3'
+                                     AND NVL(Z01.QLF_APLC_DV_CD, '0') IN ('1', '2') -- 승격,자격해제(과거)  3 : 보류 는 제외
+                                     AND Z01.DTA_DL_YN = 'N'
+                                     AND Z01.STRTDT <![CDATA[<]]> AA.UPGR_YM || '01'            -- 수석플래너 과거
+                                     AND Z01.OG_TP_CD = 'W02'                       -- 고정
+                                     AND Z01.PRTNR_NO = AA.PRTNR_NO
+                     )) SRC
+         WHERE 1 = 1
+           AND SRC.CALC_AMT > 0
+    </insert>
+</mapper>
