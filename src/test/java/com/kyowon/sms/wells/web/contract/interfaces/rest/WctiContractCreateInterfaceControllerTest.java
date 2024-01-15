@@ -1,10 +1,8 @@
 package com.kyowon.sms.wells.web.contract.interfaces.rest;
 
-import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateRegularShippingReq;
 import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateRentalReq;
 import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateSinglePaymentReq;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
-import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.test.SpringTestSupport;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
 import org.junit.jupiter.api.DisplayName;
@@ -66,80 +64,13 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
      */
 
     @Test
-    @DisplayName("wells 일시불 계약생성")
-    void createContractForSinglePayment() throws Exception {
-        // given
-        /*CreateSinglePaymentReq req = CreateSinglePaymentReq.builder()
-            .cntrNo("W2022538820A")
-            .cntrSn("1")
-            .rcpChnlDtl("2010")
-            .cstKnm("조순옥")
-            .cntrtAdrDvCd("1")
-            .cntrtCralLocaraTno("010")
-            .cntrtMexno("2222")
-            .cntrtCralIdvTno("3333")
-            .cntrtZip("16332")
-            .cntrtBasAdr("경기 수원시 장안구 천천로22번길 34")
-            .cntrtDtlAdr("528동 2003호 (정자동,백설마을삼환나우빌아파트)")
-            //.cntrCstNo("031095096")
-            .cstKnm("조순옥")
-            .istllKnm("조순옥")
-            .istAdrDvCd("1")
-            .istCstCralLocaraTno("010")
-            .istCstMexno("2222")
-            .istCstCralIdvTno("3333")
-            .istZip("16332")
-            .istBasAdr("경기 수원시 장안구 천천로22번길 34")
-            .istDtlAdr("528동 2003호 (정자동,백설마을삼환나우빌아파트)")
-            .pdCd01("WP05120580")
-            .pdQty01("1")
-            .subscAmt1("1000")
-            .dpDvCd1("01")
-            .cdno1("11122233334444")
-            .crdcdIstmMcn1("1")
-            .cdonrNm1("조순옥")
-            .ag1("Y")
-            .ag2("Y")
-            .ag3("Y")
-            .ag4("Y")
-            .ag5("Y")
-            .dscDv("2")
-            .dscTp("1")
-            .uswy("0")
-            .mngtPrd("6")
-            .inCls("5")
-            .build();*/
-        CreateSinglePaymentReq req = CreateSinglePaymentReq.builder()
-            .inCls("5")
-            .pdCd01("WP01110188")
-            .rcpChnlDtl("1010")
-            .dscDv("1")
-            .uswy("1")
-            .mngtPrd("3")
-            .build();
-        EaiWrapper<CreateSinglePaymentReq> dto = new EaiWrapper(req);
-
-        // when & then
-        MockHttpServletRequestBuilder request = post(BASE_URL + "/create-singlepayment-contract")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(dto));
-
-        mockMvc.perform(request)
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.header.ERR_OC_YN").value("N"))
-            .andExpect(jsonPath("$.body.PRCS_RSLT").value("F"))
-            .andExpect(jsonPath("$.body.MSG").value("F"))
-        ;
-    }
-
-    @Test
     @DisplayName("wells 일시불 사전점검 테스트")
-    void testPrescreeningContractForSinglePayment() throws Exception {
+    void testForPrescreeningContractForSinglePayment() throws Exception {
         // given
         CreateSinglePaymentReq req = CreateSinglePaymentReq.builder()
             .inCls("5")
             .pdCd01("WP02110453")
-            .rcpChnlDtl("2050")
+            .rcpChnlDtl("2010")
             .dscDv("1")
             .uswy("0")
             .mngtPrd("3")
@@ -159,11 +90,54 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
     }
 
     @Test
+    @DisplayName("wells 일시불 생성 테스트 (계약번호 자동 생성)")
+    void testForCreateContractForSinglePaymentWithoutCntrNo() throws Exception {
+        // given
+        CreateSinglePaymentReq req = CreateSinglePaymentReq.builder()
+            .inCls("1")
+//            .cntrNo("W20244903253")
+//            .cntrSn("1")
+            .cntrCstNo("031542082")
+//            .dcde("1646422")
+//            .rcpChnlDtl("2050")
+            .dcde("1653227")
+            .rcpChnlDtl("2010")
+            .pdCd01("WP02110453")
+            .dscDv("1")
+            .uswy("0")
+            .mngtPrd("3")
+            .dpDvCd1("97")
+            .subscAmt1("349000")
+            .istllKnm("수령자")
+            .istCstCralLocaraTno("010")
+            .istCstMexno("1234")
+            .istCstCralIdvTno("5678")
+            .istZip("13254")
+            .istBasAdr("경기 성남시 중원구 광명로 204")
+            .istDtlAdr("201동 303호 (중앙동,신흥역하늘채랜더스원아파트)")
+            .build();
+        EaiWrapper<CreateSinglePaymentReq> dto = new EaiWrapper(req);
+        // when & then
+        MockHttpServletRequestBuilder request = post(BASE_URL + "/create-singlepayment-contract")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(dto))
+            ;
+
+        mockMvc.perform(request)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.header.ERR_OC_YN").value("N"))
+            .andExpect(jsonPath("$.body.PRCS_RSLT").value("S"))
+        ;
+    }
+
+    @Test
     @DisplayName("wells 일시불 생성 테스트")
     void testCreateContractForSinglePayment() throws Exception {
         // given
         CreateSinglePaymentReq req = CreateSinglePaymentReq.builder()
             .inCls("1")
+            .cntrNo("W20244903293")
+            .cntrSn("1")
             .cntrCstNo("031542082")
             .dcde("1646422")
             .pdCd01("WP02110453")
@@ -182,7 +156,123 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
             .istDtlAdr("201동 303호 (중앙동,신흥역하늘채랜더스원아파트)")
             .build();
         EaiWrapper<CreateSinglePaymentReq> dto = new EaiWrapper(req);
+        // when & then
+        MockHttpServletRequestBuilder request = post(BASE_URL + "/create-singlepayment-contract")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(dto))
+            ;
 
+        /*"ERR_OC_YN":"X","RSP_MSG":"이미 존재하는 계약상세번호입니다."*/
+
+        mockMvc.perform(request)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.header.ERR_OC_YN").value("N"))
+            .andExpect(jsonPath("$.body.PRCS_RSLT").value("S"))
+        ;
+    }
+
+    @Test
+    @DisplayName("wells 일시불 생성 실패 테스트 - 파트너 다름")
+    void failTestForCreateContractForSinglePayment() throws Exception {
+        // given
+        CreateSinglePaymentReq req = CreateSinglePaymentReq.builder()
+            .inCls("1")
+            .cntrNo("W20230510674")
+            .cntrSn("5")
+            .cntrCstNo("031542082")
+            .dcde("1653227")
+            .rcpChnlDtl("2010")
+            .pdCd01("WP02110453")
+            .dscDv("1")
+            .uswy("0")
+            .mngtPrd("3")
+            .dpDvCd1("97")
+            .subscAmt1("349000")
+            .istllKnm("수령자")
+            .istCstCralLocaraTno("010")
+            .istCstMexno("1234")
+            .istCstCralIdvTno("5678")
+            .istZip("13254")
+            .istBasAdr("경기 성남시 중원구 광명로 204")
+            .istDtlAdr("201동 303호 (중앙동,신흥역하늘채랜더스원아파트)")
+            .build();
+        EaiWrapper<CreateSinglePaymentReq> dto = new EaiWrapper(req);
+        // when & then
+        MockHttpServletRequestBuilder request = post(BASE_URL + "/create-singlepayment-contract")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(dto));
+
+        mockMvc.perform(request)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.header.ERR_OC_YN").value("X"))
+            .andExpect(jsonPath("$.header.RSP_MSG").value("해당 계약은 해당 파트너의 계약이 아닙니다."))
+        ;
+    }
+
+    @Test
+    @DisplayName("wells 일시불 생성 실패 테스트 - 기계약")
+    void failTestForCreateContractForSinglePayment2() throws Exception {
+        // given
+        CreateSinglePaymentReq req = CreateSinglePaymentReq.builder()
+            .inCls("1")
+            .cntrNo("W20234902675")
+            .cntrSn("1")
+            .cntrCstNo("031542082")
+            .dcde("1653227")
+            .rcpChnlDtl("2010")
+            .pdCd01("WP02110453")
+            .dscDv("1")
+            .uswy("0")
+            .mngtPrd("3")
+            .dpDvCd1("97")
+            .subscAmt1("349000")
+            .istllKnm("수령자")
+            .istCstCralLocaraTno("010")
+            .istCstMexno("1234")
+            .istCstCralIdvTno("5678")
+            .istZip("13254")
+            .istBasAdr("경기 성남시 중원구 광명로 204")
+            .istDtlAdr("201동 303호 (중앙동,신흥역하늘채랜더스원아파트)")
+            .build();
+        EaiWrapper<CreateSinglePaymentReq> dto = new EaiWrapper(req);
+        // when & then
+        MockHttpServletRequestBuilder request = post(BASE_URL + "/create-singlepayment-contract")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(dto));
+
+        mockMvc.perform(request)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.header.ERR_OC_YN").value("X"))
+            .andExpect(jsonPath("$.header.RSP_MSG").value("이미 존재하는 계약상세번호입니다."))
+        ;
+    }
+
+    @Test
+    @DisplayName("wells 일시불 생성 테스트 - 계약 상세만 추가")
+    void testForCreateContractForSinglePaymentWithExistCntrNo() throws Exception {
+        // given
+        CreateSinglePaymentReq req = CreateSinglePaymentReq.builder()
+            .inCls("1")
+            .cntrNo("W20234902675")
+            .cntrSn("2")
+            .cntrCstNo("031542082")
+            .dcde("1653227")
+            .rcpChnlDtl("2010")
+            .pdCd01("WP02110453")
+            .dscDv("1")
+            .uswy("0")
+            .mngtPrd("3")
+            .dpDvCd1("97")
+            .subscAmt1("349000")
+            .istllKnm("수령자")
+            .istCstCralLocaraTno("010")
+            .istCstMexno("1234")
+            .istCstCralIdvTno("5678")
+            .istZip("13254")
+            .istBasAdr("경기 성남시 중원구 광명로 204")
+            .istDtlAdr("201동 303호 (중앙동,신흥역하늘채랜더스원아파트)")
+            .build();
+        EaiWrapper<CreateSinglePaymentReq> dto = new EaiWrapper(req);
         // when & then
         MockHttpServletRequestBuilder request = post(BASE_URL + "/create-singlepayment-contract")
             .contentType(MediaType.APPLICATION_JSON)
@@ -196,62 +286,58 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
     }
 
     @Test
-    @DisplayName("wells 렌털 계약생성")
-    void createContractForRental() throws Exception {
+    @DisplayName("wells 렌탈 사전점검 테스트")
+    void testForPrescreeningContractForRental() throws Exception {
         // given
-        String nowString = DateUtil.getNowString();
-        /*CreateRentalReq req = CreateRentalReq.builder()
-            .cntrNo("W2022538820A")
-            .cntrSn("1")
+        CreateRentalReq req2 = CreateRentalReq.builder()
+            .inDv("5")
+            .prtnrNo("1653227")
             .rcpChnlDtl("2010")
-            .rcpdt(nowString.substring(0, 7))
-            .rcptm(nowString.substring(8, 13))
-            .cstNm("조순옥")
-            .adrDvCd("1")
-            .cphonLocaraTno("010")
-            .cphonExno("2222")
-            .cphonIdvTno("3333")
-            .zip("16332")
-            .basAdr("경기 수원시 장안구 천천로22번길 34")
-            .dtlAdr("528동 2003호 (정자동,백설마을삼환나우빌아파트)")
-            .cstNo("031095096")
-            .istCstNm("조순옥")
-            .istAdrDvCd("1")
-            .istCphonLocaraTno("010")
-            .istCphonExno("2222")
-            .istCphonIdvTno("3333")
-            .istZip("16332")
-            .istBasAdr("경기 수원시 장안구 천천로22번길 34")
-            .istDtlAdr("528동 2003호 (정자동,백설마을삼환나우빌아파트)")
-            .pdCd("WP05120580")
-            .pdQty("1")
-            .rtlfe1("12000")
-            .cardAmt1("12000")
-            .crcdno1("11122233334444")
-            .cardIstmMcn1("1")
-            .cdonrNm1("조순옥")
-            .dscDvCd("2")
-            .dscTpCd("1")
-            .vstPrdCd("6")
+            .pdCd("WP02120342")
+            .dscDvCd("8")
+//            .dscTpCd("03")
+            .rtlfe1("24900")
+            .dutyUse("36")
+            .vstPrdCd("3")
             .uswyCd("0")
-            .prtnrNo("1650501")
-            .pifClcnUAgYn("Y")
-            .pifThpOfrAgYn("Y")
-            .mrktUtlzAgYn("Y")
-            .fstrAgYn("Y")
-            .pifBizFstrAgYn("Y")
-            .cntrtRel("01")
-            .txinvPblOjYn("Y")
-            .txinvBzrno("1018139767")
-            .txinvCphonLocaraTno("010")
-            .txinvCphonExno("2222")
-            .txinvCphonIdvTno("3333")
-            .txinvEmadr("a@kyowon.co.kr")
-            .build();*/
+            .chgMcn1("60")
+            .rgstCost("100000")
+            .build();
 
         CreateRentalReq req = CreateRentalReq.builder()
-            .pdCd("WP01110188")
+            .inDv("5")
+            .prtnrNo("1653227")
+            .rcpChnlDtl("2010")
+            .pdCd("WP02120319")
+            .dscDvCd("8")
+            .dscTpCd("03")
+            .rtlfe1("24900")
+            .dutyUse("60")
+            .vstPrdCd("3")
+            .uswyCd("0")
+            .chgMcn1("60")
+            .rgstCost("100000")
             .build();
+
+        /*
+        * JOB_PSIC_EMPNO=1229,
+SELL_DV_CD=07,
+PRTNR_NO=1653227,
+PD_CD=WP02120319,
+DSC_DV_CD=8,
+DSC_TP_CD=05,
+RTLFE1=38900,
+DUTY_USE=60,
+VST_PRD_CD=3,
+RENTAL_DSC_AMT5=0,
+USWY_CD=0,
+ISTM_PCAM_AMT=,
+VAT=,
+CHG_MCN1=60,
+RGST_COST=100000,
+SV_CHRAM=,
+LEASE_TAM=2334000,
+RCP_CHNL_DTL=2010*/
 
         EaiWrapper<CreateRentalReq> dto = new EaiWrapper(req);
 
@@ -262,15 +348,18 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
 
         mockMvc.perform(request)
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.header.ERR_OC_YN").value("N"));
+            .andExpect(jsonPath("$.header.ERR_OC_YN").value("N"))
+            .andExpect(jsonPath("$.body.RS_CD").value("S"))
+        ;
     }
 
     @Test
-    @DisplayName("wells 렌탈 사전점검 테스트")
-    void testPrescreeningContractForRental() throws Exception {
+    @DisplayName("wells 렌탈 생성 테스트")
+    void testCreateContractForRentalWithoutCntrNoSn() throws Exception {
         // given
         CreateRentalReq req = CreateRentalReq.builder()
-            .inDv("5")
+            .inDv("1")
+            .cstNo("031542082")
             .prtnrNo("1653227")
             .rcpChnlDtl("2010")
             .pdCd("WP02120342")
@@ -282,6 +371,17 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
             .uswyCd("0")
             .chgMcn1("60")
             .rgstCost("100000")
+
+            .aftnDvCd("1")
+            .rtlfe1("349000")
+            .istCstNm("수령자")
+            .istCphonLocaraTno("010")
+            .istCphonExno("1234")
+            .istCphonIdvTno("5678")
+            .istZip("13254")
+            .istBasAdr("경기 성남시 중원구 광명로 204")
+            .istDtlAdr("201동 303호 (중앙동,신흥역하늘채랜더스원아파트)")
+
             .build();
 
         EaiWrapper<CreateRentalReq> dto = new EaiWrapper(req);
@@ -341,78 +441,5 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
             .andExpect(jsonPath("$.header.ERR_OC_YN").value("N"))
             .andExpect(jsonPath("$.body.RS_CD").value("S"))
         ;
-    }
-
-    @Test
-    @DisplayName("wells 정기배송 계약생성")
-    void createContractForRegularShipping() throws Exception {
-        String nowString = DateUtil.getNowString();
-        CreateRegularShippingReq req = CreateRegularShippingReq.builder()
-            .cntrNo("W2022538820A")
-            .cntrSn("1")
-            .rcpdt(nowString.substring(0, 7))
-            .rcptm(nowString.substring(8, 13))
-            .cstNm("조순옥")
-            .cphonLocaraTno("010")
-            .cphonExno("2222")
-            .cphonIdvTno("3333")
-            .adrDvCd("1")
-            .zip("16332")
-            .basAdr("경기 수원시 장안구 천천로22번길 34")
-            .dtlAdr("528동 2003호 (정자동,백설마을삼환나우빌아파트)")
-            .cstNo("031095096")
-            .cstEmadr("test@kyowon.com")
-            .sppCstNm("조순옥")
-            .sppCphonLocaraTno("010")
-            .sppCphonExno("2222")
-            .sppCphonIdvTno("3333")
-            .sppAdrDvCd("1")
-            .sppZip("16332")
-            .sppBasAdr("경기 수원시 장안구 천천로22번길 34")
-            .sppDtlAdr("528동 2003호 (정자동,백설마을삼환나우빌아파트)")
-            .pdCd01("WP05120580")
-            .pdQty01("1")
-            .pdAmt01("10000")
-            .pdVat01("1000")
-            .pdDscAmt01("0")
-            .cntrTam("10000")
-            .sellAmt("10000")
-            .cardAmt("10000")
-            .cdcoDv("1")
-            .crcdno1("11122233334444")
-            .cardIstmMcn("1")
-            .cdonrNm("조순옥")
-            .dcsDv("2")
-            .dcsTp("1")
-            .sppPrd("3")
-            .prtnrNo("1650501")
-            .pifClcnUAgYn("Y")
-            .pifThpOfrAgYn("Y")
-            .mrktUtlzAgYn("Y")
-            .pifTfYn("Y")
-            .fstrAgYn("Y")
-            .sellDvCd("EVXXX01")
-            .cstClsCd("1")
-            .txinvPblOjYn("Y")
-            .txinvBzrno("1018139767")
-            .txinvCphonLocaraTno("010")
-            .txinvCphonExno("2222")
-            .txinvCphonIdvTno("3333")
-            .txinvEmadr("test@kyowon.co.kr")
-            .lkCntrNo("W20221251542")
-            .lkCntrSn("1")
-            .rcpChnlDtl("2050")
-            .build();
-
-        EaiWrapper<CreateRegularShippingReq> dto = new EaiWrapper(req);
-
-        // when & then
-        MockHttpServletRequestBuilder request = post(BASE_URL + "/create-regular-shipping-contract")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(dto));
-
-        mockMvc.perform(request)
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.header.ERR_OC_YN").value("N"));
     }
 }
