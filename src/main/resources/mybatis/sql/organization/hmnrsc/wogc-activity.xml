@@ -662,7 +662,7 @@
              , '' RGR_PRTNR_NO                                                             /* 수석플래너 신청자 - 번호      */
              , '' RGR_PRTNR_NM                                                             /* 수석플래너 신청자 - 성명      */
              , T3.TOT_SUM                                                                  /* 환경가전 실적 - 누적건수        */
-             , TRUNC(T3.M03_SUM / 3, 0) M03_AVG                                            /* 환경가전 실적 - 직전3개월(평균) */
+             , ROUND(T3.M03_SUM / 3, 0) M03_AVG                                            /* 환경가전 실적 - 직전3개월(평균) */
              , T3.M03_SUM                                                                  /* 환경가전 실적 - 직전3개월       */
              , T3.CUR_SUM                                                                  /* 환경가전 실적 - 당월            */
              , TX.LCCNT1 + TX.LCCNT2 + TX.LCCNT3 ABL_SUM                                   /* 환경가전 실적 - 승급건수        */
@@ -711,8 +711,8 @@
                                  , SUM(CASE WHEN X1.BASE_YM >= (CASE WHEN SUBSTR(X1.RCNTR_DT, 1, 6) >= '201703' THEN SUBSTR(X1.RCNTR_DT, 1, 6) ELSE '201703' END)
                                              AND X1.BASE_YM <![CDATA[<=]]> TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM') THEN X1.PERF_VAL ELSE 0 END) TOT_SUM /* 관리년월 - 파라미터 #############################  */
                                  , SUM(CASE WHEN X1.BASE_YM  = #{baseYm} THEN X1.PERF_VAL ELSE 0 END) CUR_SUM /* 관리년월 - 파라미터 #############################  */
-                                 , SUM(CASE WHEN X1.BASE_YM <![CDATA[<=]]> TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM')
-                                             AND X1.BASE_YM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -3), 'YYYYMM') THEN X1.PERF_VAL ELSE 0 END) M03_SUM /* 관리년월 - 파라미터 #############################  */
+                                 , SUM(CASE WHEN X1.BASE_YM <![CDATA[<=]]> TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), 0), 'YYYYMM')
+                                             AND X1.BASE_YM >= TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -2), 'YYYYMM') THEN X1.PERF_VAL ELSE 0 END) M03_SUM /* 관리년월 - 파라미터 #############################  */
                                  , SUM(CASE WHEN X1.BASE_YM  = #{baseYm}
                                             THEN (
                                                     CASE WHEN #{ogTpCd} = 'W01' /* P조직:W01 - 파라미터 #############################  */
@@ -784,7 +784,6 @@
                                          FROM TB_OGBS_MM_PRTNR_IZ  T1 /* 월파트너내역 */
                                         WHERE 1 = 1
                                           AND T1.BASE_YM        = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM') /* 관리년월 - 파라미터 #############################  */
-                                          AND T1.RCMDR_OG_TP_CD = #{ogTpCd}    /* 조직유형 - 파라미터 #############################  */ --P조직:W01. M조직:W02
                                           AND T1.DTA_DL_YN      = 'N'
                                           AND T1.RCMDR_PRTNR_NO IS NOT NULL /* 추천인 */
                                     ) A /* 월파트너내역 */
@@ -796,10 +795,10 @@
                                                   /********** 검색조건에 따라 선택 적용 **********/
                                                 <choose>
                                                     <when test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W01")'>
-                                                        AND X1.PERF_ATC_CD         = 'W01P00050'  --실적항목코드 - P조직
+                                                        AND X1.PERF_ATC_CD         IN ('W01P00030', 'W01P00031')  --실적항목코드 - P조직
                                                     </when>
                                                     <otherwise>
-                                                        AND X1.PERF_ATC_CD         = 'W00P00036'  --실적항목코드 - M조직
+                                                        AND X1.PERF_ATC_CD         IN ('W00P00012', 'W00P00013', 'W00P00016', 'W00P00017', 'W00P00018', 'W00P00019', 'W00P00014', 'W00P00015')  --실적항목코드 - M조직
                                                     </otherwise>
                                                 </choose>
                                                   /***********************************************/
@@ -821,7 +820,6 @@
                                         FROM TB_OGBS_MM_PRTNR_IZ  T1 /* 월파트너내역 */
                                        WHERE 1 = 1
                                          AND T1.BASE_YM        = #{baseYm}  /* 관리년월 - 파라미터 #############################  */
-                                         AND T1.RCMDR_OG_TP_CD = #{ogTpCd}     /* 조직유형 - 파라미터 #############################  */ --P조직:W01. M조직:W02
                                          AND T1.DTA_DL_YN      = 'N'
                                          AND T1.RCMDR_PRTNR_NO IS NOT NULL /* 추천인 */
                                     ) T1 /* 월파트너내역 */
