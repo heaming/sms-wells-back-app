@@ -217,10 +217,10 @@
                  , NVL(S6.ETC_CS, 0) ETC_CS /* 수납(기타비용) */
                  , NVL(S6.RVE_CS_TOT, 0) RVE_CS_TOT /* 수납(전체) */
                  , B2.CS_BIL_NO /* 비용청구번호 */
-                 , (CASE WHEN B3.STLM_DV_CD = '01' THEN NVL(B3.DP_SUM_AMT, 0) ELSE NULL END) AS ADP_BIL_AMT /* 합산청구금액 */
-                 , (CASE WHEN B3.STLM_DV_CD = '02' THEN NVL(B3.DP_SUM_AMT, 0) ELSE NULL END) AS CARD_STLM_AMT /* 카드결제금액 */
-                 , (CASE WHEN B3.STLM_DV_CD = '03' THEN NVL(B3.DP_SUM_AMT, 0) ELSE NULL END) AS VAC_STLM_AMT /* 가상계좌결제금액 */
-                 , (CASE WHEN B3.STLM_DV_CD = '04' THEN NVL(B3.DP_SUM_AMT, 0) ELSE NULL END) AS CASH_STLM_AMT /* 현금 결제금액 */
+                 , B3.ADP_BIL_AMT AS ADP_BIL_AMT /* 합산청구금액 */
+                 , B3.CARD_STLM_AMT AS CARD_STLM_AMT /* 카드결제금액 */
+                 , B3.VAC_STLM_AMT AS VAC_STLM_AMT /* 가상계좌결제금액 */
+                 , B3.CASH_STLM_AMT AS CASH_STLM_AMT /* 현금 결제금액 */
                  , S4.CST_SIGN_CN AS CST_SIGN_CN_BYTE /* 고객서명 */
                  , S4.IST_ENVR_PHO_PH_DOC_ID /* 설치환경사진 */
                  , S4.IST_KIT_PHO_PH_DOC_ID /* 설치키트사진 */
@@ -334,11 +334,15 @@
               LEFT OUTER JOIN TB_SVPD_SV_CS_BIL_BAS B2 /* 서비스비용청구기본 */
                 ON B2.CS_BIL_NO = B1.CS_BIL_NO
                AND B2.DTA_DL_YN = 'N'
-              LEFT OUTER JOIN (SELECT CS_BIL_NO, CNTR_NO, CNTR_SN, CST_SV_ASN_NO, STLM_DV_CD, SUM(NVL(DP_SUM_AMT, 0)) AS DP_SUM_AMT
+              LEFT OUTER JOIN (SELECT CS_BIL_NO, CNTR_NO, CNTR_SN, CST_SV_ASN_NO
+                                      ,SUM(CASE WHEN STLM_DV_CD = '01' THEN NVL(DP_SUM_AMT, 0) ELSE 0 END) AS ADP_BIL_AMT /* 합산청구금액 */
+                                      ,SUM(CASE WHEN STLM_DV_CD = '02' THEN NVL(DP_SUM_AMT, 0) ELSE 0 END) AS CARD_STLM_AMT /* 카드결제금액 */
+                                      ,SUM(CASE WHEN STLM_DV_CD = '03' THEN NVL(DP_SUM_AMT, 0) ELSE 0 END) AS VAC_STLM_AMT /* 가상계좌결제금액 */
+                                      ,SUM(CASE WHEN STLM_DV_CD = '04' THEN NVL(DP_SUM_AMT, 0) ELSE 0 END) AS CASH_STLM_AMT /* 현금 결제금액 */
                                  FROM TB_SVPD_SV_CS_DP_IZ /* 서비스비용입금내역 */
                                 WHERE DTA_DL_YN = 'N'
                                   AND CAN_DV_CD IS NULL
-                                GROUP BY CS_BIL_NO, CNTR_NO, CNTR_SN, CST_SV_ASN_NO, STLM_DV_CD) B3
+                                GROUP BY CS_BIL_NO, CNTR_NO, CNTR_SN, CST_SV_ASN_NO) B3
                 ON B3.CS_BIL_NO = B1.CS_BIL_NO
                AND B3.CNTR_NO = B1.CNTR_NO
                AND B3.CNTR_SN = B1.CNTR_SN
@@ -378,7 +382,7 @@
                AND S1.SV_CNR_OG_ID = #{ogId} /* 서비스센터 */
             </if>
             <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-               AND S1.ICHR_PRTNR_NO = #{prtnrNo} /* 엔지니어 */
+               AND NVL(S1.WK_PRTNR_NO, S1.ICHR_PRTNR_NO) = #{prtnrNo} /* 엔지니어 */
             </if>
             <if test='@MybatisUtils@isNotEmpty(refriType)'>
                AND S4.REFRI_DV_CD = CASE WHEN #{refriType} IN ('2', '3', '4') THEN '2' ELSE '1' END /* 유/무상구분 */
@@ -620,10 +624,10 @@
                   , NVL(S6.ETC_CS, 0) ETC_CS /* 수납(기타비용) */
                   , NVL(S6.RVE_CS_TOT, 0) RVE_CS_TOT /* 수납(전체) */
                   , B2.CS_BIL_NO /* 비용청구번호 */
-                  , (CASE WHEN B3.STLM_DV_CD = '01' THEN NVL(B3.DP_SUM_AMT, 0) ELSE NULL END) AS ADP_BIL_AMT /* 합산청구금액 */
-                  , (CASE WHEN B3.STLM_DV_CD = '02' THEN NVL(B3.DP_SUM_AMT, 0) ELSE NULL END) AS CARD_STLM_AMT /* 카드결제금액 */
-                  , (CASE WHEN B3.STLM_DV_CD = '03' THEN NVL(B3.DP_SUM_AMT, 0) ELSE NULL END) AS VAC_STLM_AMT /* 가상계좌결제금액 */
-                  , (CASE WHEN B3.STLM_DV_CD = '04' THEN NVL(B3.DP_SUM_AMT, 0) ELSE NULL END) AS CASH_STLM_AMT /* 현금 결제금액 */
+                  , B3.ADP_BIL_AMT AS ADP_BIL_AMT /* 합산청구금액 */
+                  , B3.CARD_STLM_AMT AS CARD_STLM_AMT /* 카드결제금액 */
+                  , B3.VAC_STLM_AMT AS VAC_STLM_AMT /* 가상계좌결제금액 */
+                  , B3.CASH_STLM_AMT AS CASH_STLM_AMT /* 현금 결제금액 */
                   , S4.CST_SIGN_CN AS CST_SIGN_CN_BYTE /* 고객서명 */
                   , S4.IST_ENVR_PHO_PH_DOC_ID /* 설치환경사진 */
                   , S4.IST_KIT_PHO_PH_DOC_ID /* 설치키트사진 */
@@ -737,11 +741,15 @@
                LEFT OUTER JOIN TB_SVPD_SV_CS_BIL_BAS B2 /* 서비스비용청구기본 */
                  ON B2.CS_BIL_NO = B1.CS_BIL_NO
                 AND B2.DTA_DL_YN = 'N'
-               LEFT OUTER JOIN (SELECT CS_BIL_NO, CNTR_NO, CNTR_SN, CST_SV_ASN_NO, STLM_DV_CD, SUM(NVL(DP_SUM_AMT, 0)) AS DP_SUM_AMT
+               LEFT OUTER JOIN (SELECT CS_BIL_NO, CNTR_NO, CNTR_SN, CST_SV_ASN_NO
+                                       ,SUM(CASE WHEN STLM_DV_CD = '01' THEN NVL(DP_SUM_AMT, 0) ELSE 0 END) AS ADP_BIL_AMT /* 합산청구금액 */
+                                       ,SUM(CASE WHEN STLM_DV_CD = '02' THEN NVL(DP_SUM_AMT, 0) ELSE 0 END) AS CARD_STLM_AMT /* 카드결제금액 */
+                                       ,SUM(CASE WHEN STLM_DV_CD = '03' THEN NVL(DP_SUM_AMT, 0) ELSE 0 END) AS VAC_STLM_AMT /* 가상계좌결제금액 */
+                                       ,SUM(CASE WHEN STLM_DV_CD = '04' THEN NVL(DP_SUM_AMT, 0) ELSE 0 END) AS CASH_STLM_AMT /* 현금 결제금액 */
                                   FROM TB_SVPD_SV_CS_DP_IZ /* 서비스비용입금내역 */
                                  WHERE DTA_DL_YN = 'N'
                                    AND CAN_DV_CD IS NULL
-                                 GROUP BY CS_BIL_NO, CNTR_NO, CNTR_SN, CST_SV_ASN_NO, STLM_DV_CD) B3
+                                 GROUP BY CS_BIL_NO, CNTR_NO, CNTR_SN, CST_SV_ASN_NO) B3
                  ON B3.CS_BIL_NO = B1.CS_BIL_NO
                 AND B3.CNTR_NO = B1.CNTR_NO
                 AND B3.CNTR_SN = B1.CNTR_SN
@@ -781,7 +789,7 @@
                 AND S1.SV_CNR_OG_ID = #{ogId} /* 서비스센터 */
              </if>
              <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                AND S1.ICHR_PRTNR_NO = #{prtnrNo} /* 엔지니어 */
+                AND NVL(S1.WK_PRTNR_NO, S1.ICHR_PRTNR_NO) = #{prtnrNo} /* 엔지니어 */
              </if>
              <if test='@MybatisUtils@isNotEmpty(refriType)'>
                 AND S4.REFRI_DV_CD = CASE WHEN #{refriType} IN ('2', '3', '4') THEN '2' ELSE '1' END /* 유/무상구분 */
@@ -1015,10 +1023,10 @@
                   , NVL(S6.ETC_CS, 0) ETC_CS /* 수납(기타비용) */
                   , NVL(S6.RVE_CS_TOT, 0) RVE_CS_TOT /* 수납(전체) */
                   , B1.CS_BIL_NO /* 비용청구번호 */
-                  , (CASE WHEN B3.STLM_DV_CD = '01' THEN NVL(B3.DP_SUM_AMT, 0) ELSE NULL END) AS ADP_BIL_AMT /* 합산청구 결제금액 */
-                  , (CASE WHEN B3.STLM_DV_CD = '02' THEN NVL(B3.DP_SUM_AMT, 0) ELSE NULL END) AS CARD_STLM_AMT /* 신용카드 결제금액 */
-                  , (CASE WHEN B3.STLM_DV_CD = '03' THEN NVL(B3.DP_SUM_AMT, 0) ELSE NULL END) AS VAC_STLM_AMT /* 가상계좌 결제금액 */
-                  , (CASE WHEN B3.STLM_DV_CD = '04' THEN NVL(B3.DP_SUM_AMT, 0) ELSE NULL END) AS CASH_STLM_AMT /* 현금 결제금액 */
+                  , B3.ADP_BIL_AMT AS ADP_BIL_AMT /* 합산청구금액 */
+                  , B3.CARD_STLM_AMT AS CARD_STLM_AMT /* 카드결제금액 */
+                  , B3.VAC_STLM_AMT AS VAC_STLM_AMT /* 가상계좌결제금액 */
+                  , B3.CASH_STLM_AMT AS CASH_STLM_AMT /* 현금 결제금액 */
                   , S4.CST_SIGN_CN AS CST_SIGN_CN_BYTE /* 고객서명 */
                   , S4.IST_ENVR_PHO_PH_DOC_ID /* 설치환경사진 */
                   , S4.IST_KIT_PHO_PH_DOC_ID /* 설치키트사진 */
@@ -1150,11 +1158,15 @@
                LEFT OUTER JOIN TB_SVPD_SV_CS_BIL_BAS B2 /* 서비스비용청구기본 */
                  ON B2.CS_BIL_NO = B1.CS_BIL_NO
                 AND B2.DTA_DL_YN = 'N'
-               LEFT OUTER JOIN (SELECT CS_BIL_NO, CNTR_NO, CNTR_SN, CST_SV_ASN_NO, STLM_DV_CD, SUM(NVL(DP_SUM_AMT, 0)) AS DP_SUM_AMT
+               LEFT OUTER JOIN (SELECT CS_BIL_NO, CNTR_NO, CNTR_SN, CST_SV_ASN_NO
+                                       ,SUM(CASE WHEN STLM_DV_CD = '01' THEN NVL(DP_SUM_AMT, 0) ELSE 0 END) AS ADP_BIL_AMT /* 합산청구금액 */
+                                       ,SUM(CASE WHEN STLM_DV_CD = '02' THEN NVL(DP_SUM_AMT, 0) ELSE 0 END) AS CARD_STLM_AMT /* 카드결제금액 */
+                                       ,SUM(CASE WHEN STLM_DV_CD = '03' THEN NVL(DP_SUM_AMT, 0) ELSE 0 END) AS VAC_STLM_AMT /* 가상계좌결제금액 */
+                                       ,SUM(CASE WHEN STLM_DV_CD = '04' THEN NVL(DP_SUM_AMT, 0) ELSE 0 END) AS CASH_STLM_AMT /* 현금 결제금액 */
                                   FROM TB_SVPD_SV_CS_DP_IZ /* 서비스비용입금내역 */
                                  WHERE DTA_DL_YN = 'N'
                                    AND CAN_DV_CD IS NULL
-                                 GROUP BY CS_BIL_NO, CNTR_NO, CNTR_SN, CST_SV_ASN_NO, STLM_DV_CD) B3
+                                 GROUP BY CS_BIL_NO, CNTR_NO, CNTR_SN, CST_SV_ASN_NO) B3
                  ON B3.CS_BIL_NO = B1.CS_BIL_NO
                 AND B3.CNTR_NO = B1.CNTR_NO
                 AND B3.CNTR_SN = B1.CNTR_SN
