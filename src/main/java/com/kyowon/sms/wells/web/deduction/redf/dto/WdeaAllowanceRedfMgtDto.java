@@ -348,16 +348,17 @@ public class WdeaAllowanceRedfMgtDto {
         String wpLif0203RedfAmt, /*상조되물림 연체*/
 
         /*되물림 합계금액(그리드별)*/
-        String sumPerfLast201903RedfDstrc, /*2019.03 이전 + 지구장이하 그리드 되물림 합계금액*/
-        String sumPerf201904Between202012RedfDstrc, /*2019.04 ~ 2020.12 + 지구장이하 그리드 되물림 합계금액*/
-        String sumPerf202101RedfDstrc, /*2021.01 이후 + 지구장이하 그리드 되물림 합계금액*/
-        String sumPerfAllRedfDstrc, /*실적년월 전기간 + 지구장이하 그리드 되물림 합계금액*/
-        String sumPerfLast201903RedfBrch, /* 2019.03 이전 + 지점장 이상 그리드 되물림 합계금액*/
-        String sumPerf201904Between202012RedfBrch, /* 2019.04 ~ 2020.12 + 지점장 이상 그리드 되물림 합계금액*/
-        String sumPerf202101RedfBrch, /* 2021.01 이후 + 지점장 이상 그리드 되물림 합계 금액*/
-        String sumPerfAllRedfBrch, /*실적년월 전기간 + 지점장 이상 그리드 되물림 합계금액*/
-        String sumWpRedfDstrc, /*WELLS-P + 지구장 이하 되물림 합계금액*/
-        String sumWpRedfBrch, /*WELLS-P + 지점장 이상 되물림 합계 금액*/
+        String canRedfAmt, /*되물림 취소 전체합계*/
+        //        String sumPerfLast201903RedfDstrc, /*2019.03 이전 + 지구장이하 그리드 되물림 합계금액*/
+        //        String sumPerf201904Between202012RedfDstrc, /*2019.04 ~ 2020.12 + 지구장이하 그리드 되물림 합계금액*/
+        //        String sumPerf202101RedfDstrc, /*2021.01 이후 + 지구장이하 그리드 되물림 합계금액*/
+        //        String sumPerfAllRedfDstrc, /*실적년월 전기간 + 지구장이하 그리드 되물림 합계금액*/
+        //        String sumPerfLast201903RedfBrch, /* 2019.03 이전 + 지점장 이상 그리드 되물림 합계금액*/
+        //        String sumPerf201904Between202012RedfBrch, /* 2019.04 ~ 2020.12 + 지점장 이상 그리드 되물림 합계금액*/
+        //        String sumPerf202101RedfBrch, /* 2021.01 이후 + 지점장 이상 그리드 되물림 합계 금액*/
+        //        String sumPerfAllRedfBrch, /*실적년월 전기간 + 지점장 이상 그리드 되물림 합계금액*/
+        //        String sumWpRedfDstrc, /*WELLS-P + 지구장 이하 되물림 합계금액*/
+        //        String sumWpRedfBrch, /*WELLS-P + 지점장 이상 되물림 합계 금액*/
         /*=================================*/
 
         String tRedfPpl, /*적채용.귀속월인원*/
