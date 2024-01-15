@@ -5,11 +5,14 @@ import javax.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.adrwork.dto.WsnfMonthManagementCstDto;
+import com.kyowon.sms.wells.web.service.adrwork.dvo.WsnfMonthManagementCstDvo;
 import com.kyowon.sms.wells.web.service.adrwork.service.WsnfMonthManagementCstService;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -58,6 +61,16 @@ public class WsnfMonthManagementCstController {
         return SaveResponse.builder()
             .processCount(service.removeMonthManagementCst(dto))
             .build();
+    }
+
+    @ApiOperation(value = "월관리 고객 생성 - 조회", notes = "조회조건에 따른 월관리 고객 생성 배치 상태 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "mngtYm", value = "배정년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "createTarget", value = "배정년월", paramType = "query", required = true),
+    })
+    @GetMapping
+    public WsnfMonthManagementCstDvo getMonthManagementCsts(WsnfMonthManagementCstDto.SearchReq dto) throws Exception {
+        return service.getMonthManagementCsts(dto);
     }
 
 }
