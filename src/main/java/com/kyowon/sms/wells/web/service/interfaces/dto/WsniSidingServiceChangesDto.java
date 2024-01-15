@@ -35,7 +35,7 @@ public class WsniSidingServiceChangesDto {
         @JsonProperty(value = "MTR_PROCS_STAT_CD")
         String mtrProcsStatCd, // 자료처리상태코드 (1:신규, 2:변경, 3:취소)
 
-        @JsonProperty(value = "CHO_CAPSL_CN")
+        @JsonProperty(value = "CONS_PD_LIST")
         String choCapslCn, // 자유선택인 경우 제품상품코드목록 (제품상품코드,수량|제품상품코드,수량| ....)
 
         @JsonProperty(value = "RCP_ICHR_PRTNR_NO")
