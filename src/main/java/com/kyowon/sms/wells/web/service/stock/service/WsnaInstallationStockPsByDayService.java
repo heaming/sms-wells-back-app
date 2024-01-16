@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -398,7 +399,15 @@ public class WsnaInstallationStockPsByDayService {
             map.put(item.getPdCd(), dvo);
         }
 
-        List<WsnaInstallationStockPsByDayPdDvo> sortList = new ArrayList<>(map.values());
+        List<WsnaInstallationStockPsByDayPdDvo> list = new ArrayList(map.values());
+        List<WsnaInstallationStockPsByDayPdDvo> sortList = list.stream().filter(item -> item.getAggAsnCnt() > 0)
+            .collect(Collectors.toList());
+        //        for (Map.Entry<String, WsnaInstallationStockPsByDayPdDvo> entry : map.entrySet()) {
+        //            if (entry.getValue().getAggAsnCnt() > 0)
+        //                sortList.add(entry.getValue());
+        //        }
+
+        log.info(sortList.toString());
 
         sortList.sort(
             Comparator.comparing(WsnaInstallationStockPsByDayPdDvo::getPdCd)
@@ -524,7 +533,14 @@ public class WsnaInstallationStockPsByDayService {
             map.put(item.getOgCd(), dvo);
         }
 
-        List<WsnaInstallationStockPsByDayPdDvo> sortList = new ArrayList(map.values());
+        List<WsnaInstallationStockPsByDayPdDvo> list = new ArrayList(map.values());
+        //        for (Map.Entry<String, WsnaInstallationStockPsByDayPdDvo> entry : map.entrySet()) {
+        //            if (entry.getValue().getAggAsnCnt() > 0)
+        //                sortList.add(entry.getValue());
+        //        }
+        List<WsnaInstallationStockPsByDayPdDvo> sortList = list.stream().filter(item -> item.getAggAsnCnt() > 0)
+            .collect(Collectors.toList());
+        log.info(sortList.toString());
         sortList.sort(
             Comparator.comparing(WsnaInstallationStockPsByDayPdDvo::getPdCd)
             //                .thenComparing(WsnaInstallationStockPsByDayPdDvo::getPdCd)
