@@ -18,6 +18,8 @@ import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
@@ -31,6 +33,11 @@ public class WsnaInstallationStockPsByDayController {
     private final WsnaInstallationStockPsByDayService service;
 
     @ApiOperation(value = "일자별 설치재고 현황 조회", notes = "조회일자, 서비스센터를 기준으로 14일 범위의 일자별 설치재고 집계 현황을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseDt", value = "기준일", paramType = "query", required = true),
+        @ApiImplicitParam(name = "pdGdCd", value = "등급", paramType = "query", required = false),
+        @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "query", required = true),
+    })
     @GetMapping("/center/paging")
     public PagingResult<WsnaInstallationStockPsByDayCenterDvo> getInstallationStockPsByDayCenter(
         @Valid
@@ -40,6 +47,11 @@ public class WsnaInstallationStockPsByDayController {
     }
 
     @ApiOperation(value = "일자별 설치재고 현황 엑셀다운로드", notes = "조회일자, 서비스센터를 기준으로 14일 범위의 일자별 설치재고 집계 현황을 엑셀 다운로드한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseDt", value = "기준일", paramType = "query", required = true),
+        @ApiImplicitParam(name = "pdGdCd", value = "등급", paramType = "query", required = false),
+        @ApiImplicitParam(name = "pdCd", value = "상품코드", paramType = "query", required = true),
+    })
     @GetMapping("/center/excel-download")
     public List<WsnaInstallationStockPsByDayCenterDvo> getInstallationStockPsByDayCenter(
         @Valid
@@ -49,6 +61,11 @@ public class WsnaInstallationStockPsByDayController {
     }
 
     @ApiOperation(value = "일자별 설치재고 현황 조회", notes = "조회일자, 품목 기준으로 14일 범위의 일자별 설치재고 집계 현황을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseDt", value = "기준일", paramType = "query", required = true),
+        @ApiImplicitParam(name = "pdGdCd", value = "등급", paramType = "query", required = false),
+        @ApiImplicitParam(name = "svCnr", value = "서비스센터", paramType = "query", required = true),
+    })
     @GetMapping("/product/paging")
     public PagingResult<WsnaInstallationStockPsByDayPdDvo> getInstallationStockPsByDayPd(
         @Valid
@@ -58,6 +75,11 @@ public class WsnaInstallationStockPsByDayController {
     }
 
     @ApiOperation(value = "일자별 설치재고 현황 엑셀다운로드", notes = "조회일자, 품목 기준으로 14일 범위의 일자별 설치재고 집계 현황을 엑셀 다운로드한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseDt", value = "기준일", paramType = "query", required = true),
+        @ApiImplicitParam(name = "pdGdCd", value = "등급", paramType = "query", required = false),
+        @ApiImplicitParam(name = "svCnr", value = "서비스센터", paramType = "query", required = true),
+    })
     @GetMapping("/product/excel-download")
     public List<WsnaInstallationStockPsByDayPdDvo> getInstallationStockPsByDayPd(
         @Valid
