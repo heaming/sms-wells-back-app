@@ -157,6 +157,9 @@ public class WsnaReturningGoodsStoreService {
 
                         result += this.mapper.insertDiDisuseOstrIz(dvo);
 
+                        // 서비스작업출고내역 업데이트
+                        this.mapper.updateSvWkIzForDisuse(dvo);
+
                         WsnaItemStockItemizationReqDvo didisuseOstrDto = setDiDiSuseOstrWsnaItemStockItemizationDtoSaveReq(
                             dvo
                         );
