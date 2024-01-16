@@ -2531,25 +2531,31 @@
                           AND CO_CD = '2000'
                           AND OG_TP_CD = 'W02'  /*웰스 M조직*/
                         UNION ALL
-                        SELECT A.PRTNR_NO
+                        SELECT T1.DGR3_LEVL_DG_PRTNR_NO AS PRTNR_NO
                              , 0 AS TOT_PPL
-                             , CASE WHEN A.PSTN_DV_CD = '7' AND NVL(E.ACTI_YN, 'N') = 'Y' THEN 1 ELSE 0 END SPCNT
-                             , CASE WHEN A.PSTN_DV_CD != '7' AND (F.QLF_DV_CD = '3') AND NVL(E.ACTI_YN, 'N') = 'Y' THEN 1 ELSE 0 END WMCNT
-                             , CASE WHEN A.PSTN_DV_CD != '7' AND (F.QLF_DV_CD != '3') AND NVL(E.ACTI_YN, 'N') = 'Y' THEN 1 ELSE 0 END WPCNT
-                          FROM TB_OGBS_MM_PRTNR_IZ A	/* 월파트너내역 */
+                             , CASE WHEN T2.PSTN_DV_CD != '7' AND (F.QLF_DV_CD = '1') AND NVL(E.ACTI_YN, 'N') = 'Y' THEN 1 ELSE 0 END SPCNT
+                             , CASE WHEN T2.PSTN_DV_CD != '7' AND (F.QLF_DV_CD = '3') AND NVL(E.ACTI_YN, 'N') = 'Y' THEN 1 ELSE 0 END WMCNT
+                             , CASE WHEN T2.PSTN_DV_CD != '7' AND (NVL(F.QLF_DV_CD, '2') NOT IN ('1', '3')) AND NVL(E.ACTI_YN, 'N') = 'Y' THEN 1 ELSE 0 END WPCNT
+                          FROM TB_OGBS_MM_OG_IZ T1 /* 월조직내역 */
+                         INNER JOIN TB_OGBS_MM_PRTNR_IZ T2 /* 월파트너내역 */
+                            ON T1.BASE_YM = T2.BASE_YM /* 기준년월 */
+                           AND T1.OG_ID = T2.OG_ID /* 조직ID */
+                           AND T1.OG_TP_CD = T2.OG_TP_CD /* 조직유형코드 */
+                           AND T2.DTA_DL_YN = 'N'
                           LEFT OUTER JOIN TB_FEAM_WELS_PAST_ACTI_IZ  E 	/* 웰스과거활동내역 */
-                            ON A.BASE_YM = E.PERF_YM
-                           AND A.OG_TP_CD = E.OG_TP_CD
-                           AND A.PRTNR_NO = E.PRTNR_NO
+                            ON T1.BASE_YM = E.PERF_YM
+                           AND T1.OG_TP_CD = E.OG_TP_CD
+                           AND T2.PRTNR_NO = E.PRTNR_NO
                            AND E.ACTI_YN = 'Y'	/* 활동여부 */
                           LEFT OUTER JOIN TB_OGPS_PLAR_QLF_CH_IZ F    /* 플래너자격변경내역 */
-                            ON A.BASE_YM BETWEEN F.STRTDT AND F.ENDDT
-                           AND A.OG_TP_CD = F.OG_TP_CD
-                           AND A.PRTNR_NO = F.PRTNR_NO
+                            ON T1.BASE_YM BETWEEN F.STRTDT AND F.ENDDT
+                           AND T1.OG_TP_CD = F.OG_TP_CD
+                           AND T2.PRTNR_NO = F.PRTNR_NO
                            AND NVL(F.QLF_APLC_DV_CD, '0') IN ('1', '2')     /* 승격,자격해제(과거)  3:보류 제외 */
-                         WHERE A.DTA_DL_YN = 'N'
-                           AND A.BASE_YM  = #{perfYm}
-                           AND A.OG_TP_CD  = 'W02'
+                         WHERE 1=1
+                           AND T1.DTA_DL_YN = 'N'
+                           AND T1.BASE_YM  = #{perfYm}
+                           AND T1.OG_TP_CD  = 'W02'
                      )
                  GROUP BY PRTNR_NO
               ) ACTI	/* 실활동 */
