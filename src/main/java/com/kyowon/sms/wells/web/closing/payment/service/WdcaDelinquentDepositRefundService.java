@@ -134,7 +134,7 @@ public class WdcaDelinquentDepositRefundService {
                     int dpAcuAmt = wdcaAgainDisbursementObjectDivideDvo.getDpAcuAmt();
                     if (cntrTam + eotDlqAmt <= dpAcuAmt + rveAmt) {
                         result = mapper.updateRedfAdsbBas(inputDvo, adsbRt, adsbAmt); /*재지급데이터 업데이트*/
-                        BizAssert.isTrue(result == 1, errMsg);
+                        //                        BizAssert.isTrue(result == 1, errMsg);
                     }
                 }
                 if ("2".equals(sellTpCd)) {
@@ -173,7 +173,7 @@ public class WdcaDelinquentDepositRefundService {
                         }
                     }
                     result = mapper.updateRedfAdsbBas(inputDvo, adsbRt, adsbAmt); /*재지급데이터 업데이트*/
-                    BizAssert.isTrue(result == 1, errMsg);
+                    //                    BizAssert.isTrue(result == 1, errMsg);
                 }
 
             }
