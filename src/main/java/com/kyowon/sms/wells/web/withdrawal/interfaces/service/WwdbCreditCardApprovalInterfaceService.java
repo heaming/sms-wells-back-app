@@ -68,6 +68,12 @@ public class WwdbCreditCardApprovalInterfaceService {
             returnRsNm = "금융기관코드는 필수 입니다.";
             return WwdaCreditCardApprovalInterfaceDto.SaveRes.builder().rsCd(returnRsCd).rsCdNm(returnRsNm).build();
         } else {
+            if ("Z98".equals(dto.fnitCd())) {
+                returnRsCd = "F";
+                returnRsNm = "유효하지 않은 금융기관코드 입니다.";
+                return WwdaCreditCardApprovalInterfaceDto.SaveRes.builder().rsCd(returnRsCd).rsCdNm(returnRsNm).build();
+            }
+
             ZwwdbFinanceCodesDto.SearchReq searchReq = new ZwwdbFinanceCodesDto.SearchReq("2", "003");
             List<ZwwdbFinanceCodesDto.SearchRes> fintInfos = financeCodesMapper.selectFinanceBureauCodes(searchReq);
             if (fintInfos.stream().filter(item -> dto.fnitCd().equals(item.codeId())).count() < 1) {
