@@ -63,12 +63,6 @@ public class WsnaReturningGoodsStoreService {
         int serialNumber = 0;
         String ostrDt = DateUtil.getNowDayString();
         String cfrmDt = DateUtil.getNowDayString();
-        String itmOstrNo = null;
-        String itmStrNo = null;
-        String ostrAkNo = null;
-        String disuseItmOstrNo = null; //----> 212
-        String strQuantityItmStrNo = null; //----> 123
-        String quantityItmOstrNo = null;
 
         SaveReq saveReq = dtos.get(0);
 
@@ -76,11 +70,11 @@ public class WsnaReturningGoodsStoreService {
         String ostrAkTpCd = RETURN_OSTR;
         String disuseOstrTpCd = RETURN_DISUSE; //----> 212
 
-        itmOstrNo = this.mapper.selectNextItmOstrNo(new FindItmOstrNoReq(ostrTpCd, ostrDt));
-        itmStrNo = this.mapper.selectNextItmStrNo(new FindItmStrNoReq(ostrTpCd, ostrDt));
-        disuseItmOstrNo = this.mapper.selectNextItmOstrNo(new FindItmOstrNoReq(disuseOstrTpCd, ostrDt));
-        strQuantityItmStrNo = this.mapper.selectNextItmStrNo(new FindItmStrNoReq(ostrTpCd, ostrDt));
-        quantityItmOstrNo = this.mapper.selectNextItmOstrNo(new FindItmOstrNoReq(ostrTpCd, ostrDt));
+        String itmOstrNo = this.mapper.selectNextItmOstrNo(new FindItmOstrNoReq(ostrTpCd, ostrDt));
+        String itmStrNo = this.mapper.selectNextItmStrNo(new FindItmStrNoReq(ostrTpCd, ostrDt));
+        String disuseItmOstrNo = this.mapper.selectNextItmOstrNo(new FindItmOstrNoReq(disuseOstrTpCd, ostrDt));
+        String strQuantityItmStrNo = this.mapper.selectNextItmStrNo(new FindItmStrNoReq(ostrTpCd, ostrDt));
+        String quantityItmOstrNo = this.mapper.selectNextItmOstrNo(new FindItmOstrNoReq(ostrTpCd, ostrDt));
         for (SaveReq dto : dtos) {
             serialNumber += 1;
             int result = 0;
@@ -124,7 +118,6 @@ public class WsnaReturningGoodsStoreService {
                     //반품처리유형이 리퍼용(20), 품질팀(21)인 경우
                     if ("20".equals(dvo.getRtngdProcsTpCd()) || "21".equals(dvo.getRtngdProcsTpCd())) {
                         result += this.mapper.insertQuantityItmOstrIz(dvo);
-                        //                                result += this.mapper.insertItmOstrAkIz(dvo);
                         result += this.mapper.insertQuantityItmStrIz(dvo);
 
                         /*출고창고의 재고모듈을 실행한다.*/
@@ -157,9 +150,6 @@ public class WsnaReturningGoodsStoreService {
 
                         result += this.mapper.insertDiDisuseOstrIz(dvo);
 
-                        // 서비스작업출고내역 업데이트
-                        this.mapper.updateSvWkIzForDisuse(dvo);
-
                         WsnaItemStockItemizationReqDvo didisuseOstrDto = setDiDiSuseOstrWsnaItemStockItemizationDtoSaveReq(
                             dvo
                         );
@@ -167,6 +157,7 @@ public class WsnaReturningGoodsStoreService {
 
                     }
                 }
+
                 /*출고일자, 스티커 출력 유무, 비고 사항 저장*/
                 result += this.mapper.updateWkOstrIz(dvo);
 

@@ -343,7 +343,7 @@
 
     <select id="selectNextItmStrNo" resultType="java.lang.String">
     <!-- 반품인 경우 입고번호 채번 261 -> 161 itmStrNo (161 + 등록일자8 + 일련번호7) -->
-        SELECT (CASE #{ostrTpCd} WHEN '261' THEN '161' WHEN '281' THEN '161' WHEN '123' THEN '123' ELSE '' END) || #{ostrDt} || LPAD(SQ_SVST_ITM_STR_IZ$ITM_STR_NO.NEXTVAL,7,'0') AS ITM_STR_NO
+        SELECT (CASE #{ostrTpCd} WHEN '261' THEN '161' WHEN '218' THEN '161' WHEN '123' THEN '123' ELSE '' END) || #{ostrDt} || LPAD(SQ_SVST_ITM_STR_IZ$ITM_STR_NO.NEXTVAL,7,'0') AS ITM_STR_NO
           FROM DUAL
     </select>
 
@@ -655,21 +655,25 @@
 
     <update id="updateWkOstrIz">
 	    UPDATE TB_SVST_SV_WK_OSTR_IZ /*서비스 작업출고내역 */
-	       SET OSTR_CONF_DT = #{ostrConfDt}             /* 출고확인일자 */
-	         , STKR_PRNT_YN = #{stkrPrntYn}             /* 스티커출력여부 */
-	         , RMK_CN = #{rmkCn}                        /* 비고 */
-	         , RTNGD_PROCS_TP_CD = #{rtngdProcsTpCd}    /* 반품처리유형코드 */
-	         , RTNGD_RVPY_PROCS_YN = 'Y'                /* 반품수불처리여부 */
-	         , OSTR_TP_CD = '261'                       /* 출고구분코드 */
-	         , OSTR_WARE_NO = #{hgrWareNo}              /* 출고창고번호 */
-	         , OSTR_DT = #{cfrmDt}                      /* 출고일자 */
-	         , ITM_OSTR_NO = #{itmOstrNo}               /* 품목출고번호 */
-	         , OSTR_SN = #{ostrSn}                      /* 출고순번 */
+	       SET OSTR_CONF_DT        = #{ostrConfDt}       /* 출고확인일자 */
+	         , STKR_PRNT_YN        = #{stkrPrntYn}       /* 스티커출력여부 */
+	         , RMK_CN              = #{rmkCn}            /* 비고 */
+	         , RTNGD_PROCS_TP_CD   = #{rtngdProcsTpCd}   /* 반품처리유형코드 */
+	         , RTNGD_RVPY_PROCS_YN = 'Y'                 /* 반품수불처리여부 */
+        <if test='!@MybatisUtils@equals(fnlItmGdCd, "X")'>
+             , OSTR_TP_CD          = CASE WHEN #{rtngdProcsTpCd} IN ('10', '11', '12', '22') THEN #{disuseOstrTpCd}
+                                          ELSE #{ostrTpCd}
+                                     END                 /* 출고유형 */
+	         , OSTR_WARE_NO        = #{hgrWareNo}        /* 출고창고번호 */
+	         , OSTR_DT             = #{cfrmDt}           /* 출고일자 */
+	         , ITM_OSTR_NO         = CASE WHEN #{rtngdProcsTpCd} IN ('10', '11', '12', '22') THEN #{disuseItmOstrNo}
+                                          ELSE #{quantityItmOstrNo}
+                                     END                 /* 품목출고번호 */
+	         , OSTR_SN             = #{ostrSn}           /* 출고순번 */
+        </if>
 	       <include refid="COMMON.updateSystemField"/>
-	     WHERE 1 = 1
-	       AND CST_SV_ASN_NO = #{cstSvAsnNo}            /* 고객서비스배정번호 */
-	       AND CNTR_NO = #{cntrNo}                      /* 계약번호 */
-	       AND CNTR_SN = #{cntrSn}                      /* 계약순번 */
+	     WHERE CST_SV_ASN_NO = #{cstSvAsnNo}            /* 고객서비스배정번호 */
+           AND WK_OSTR_SN    = TO_NUMBER(#{wkOstrSn})   /* 작업일련번호 */
     </update>
 
     <update id="updateRefrOstrFinish">
@@ -685,12 +689,8 @@
 	         , ITM_OSTR_NO = #{itmOstrNo}                   /* 품목출고번호 */
 	         , OSTR_SN = #{ostrSn}                          /* 출고순번 */
 	       <include refid="COMMON.updateSystemField"/>
-	     WHERE 1 = 1
-	       AND CST_SV_ASN_NO = #{cstSvAsnNo}                /* 고객서비스배정번호 */
-	       AND CNTR_NO = #{cntrNo}                          /* 계약번호 */
-	       AND CNTR_SN = #{cntrSn}                          /* 계약순번 */
-
-
+	     WHERE CST_SV_ASN_NO = #{cstSvAsnNo}            /* 고객서비스배정번호 */
+           AND WK_OSTR_SN    = TO_NUMBER(#{wkOstrSn})   /* 작업일련번호 */
     </update>
 
     <update id="updateNotOstrConfDt">
@@ -700,10 +700,8 @@
 	         , RMK_CN = #{rmkCn}                        /* 비고 */
 	         , RTNGD_PROCS_TP_CD = #{rtngdProcsTpCd}    /* 반품처리유형코드 */
 	       <include refid="COMMON.updateSystemField"/>
-	     WHERE 1 = 1
-	       AND CST_SV_ASN_NO = #{cstSvAsnNo}            /* 고객서비스배정번호 */
-	       AND CNTR_NO = #{cntrNo}                      /* 계약번호 */
-	       AND CNTR_SN = #{cntrSn}                      /* 계약순번 */
+	     WHERE CST_SV_ASN_NO = #{cstSvAsnNo}            /* 고객서비스배정번호 */
+           AND WK_OSTR_SN    = TO_NUMBER(#{wkOstrSn})   /* 작업일련번호 */
     </update>
 
 
@@ -827,18 +825,6 @@
                 , #{ostrConfDt} || '폐기출고'
                 <include refid="COMMON.insertSystemFieldValue" /> )
     </insert>
-
-    <update id="updateSvWkIzForDisuse">
-        UPDATE TB_SVST_SV_WK_OSTR_IZ   /* 서비스작업출고내역 */
-           SET ITM_OSTR_NO  = #{disuseItmOstrNo}
-             , OSTR_SN      = #{ostrSn}
-             , OSTR_TP_CD   = #{disuseOstrTpCd}
-             , OSTR_WARE_NO = #{hgrWareNo}
-             , OSTR_DT      = #{cfrmDt}
-        <include refid="COMMON.updateSystemField"/>
-         WHERE CST_SV_ASN_NO = #{cstSvAsnNo}
-           AND WK_OSTR_SN    = TO_NUMBER(#{wkOstrSn})
-    </update>
 
     <update id="updateReturningGoodsStrConfirm">
         UPDATE TB_SVST_CST_SV_ITM_STOC_IZ T1        /*고객서비스품목재고내역*/
