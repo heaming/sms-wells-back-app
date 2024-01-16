@@ -15,8 +15,8 @@ import lombok.Setter;
 @Setter
 public class WsnaReturningGoodsStoreDvo {
     String rowState; /*행상태*/
-    String itmPdCd; /*고객요청번호*/
-    String cstSvAsnNo; /*품목상품코드*/
+    String itmPdCd; /*품목상품코드*/
+    String cstSvAsnNo; /*고객서비스배정번호*/
     String itmKndCd; /*품목구분코드*/
     String stFnlVstFshDtFrom; /*처리일자FROM*/
     String edFnlVstFshDtTo; /*처리일자TO*/
