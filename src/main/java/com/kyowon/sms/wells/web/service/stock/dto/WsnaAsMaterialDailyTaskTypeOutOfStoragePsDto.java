@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import java.util.List;
+
 import io.swagger.annotations.ApiModel;
 
 public class WsnaAsMaterialDailyTaskTypeOutOfStoragePsDto {
@@ -14,8 +16,13 @@ public class WsnaAsMaterialDailyTaskTypeOutOfStoragePsDto {
         String svBizHclsfCd,
         String useYn,
         String itmKndCd,
+        String itmGrpCd,
+        List<String> itmPdCds,
         String itmPdCdFrom,
-        String itmPdCdTo
+        String itmPdCdTo,
+        String itmPdCd,
+        String strtSapCd,
+        String endSapCd
     ) {}
 
     @ApiModel(value = "WsnaAsMaterialDailyTaskTypeOutOfStoragePsDto-SearchRes")
