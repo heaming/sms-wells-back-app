@@ -408,7 +408,7 @@
                  END) AS DSTRC_GD /*지구등급*/
              , M.ATDC_DC AS ATDC_DC /*미팅(해당 실적년월의 출근일수)*/
 <!--             , D.PERF_DV_CD AS PERF_DV_CD /*구분*/-->
-             , F_CMZ_CD_NM(#{session.tenantId}, 'PERF_DV_CD', D.PERF_DV_CD, #{session.langId}) AS PERF_DV_CD /*실적구분*/
+             , F_CMZ_CD_NM(#{session.tenantId}, 'PERF_DV_CD', D.PERF_DV_CD_CHK, #{session.langId}) AS PERF_DV_CD /*실적구분*/
              , '' AS BRCH_DEC /*지점순감, TODO: AB7750P.지역단장 성과관리 매핑 테이블을 찾지못했음*/
              , (SELECT CASE WHEN X.PSTN_DV_CD = '10' THEN 'Y' ELSE 'N' END
                   FROM TB_OGBS_MM_PRTNR_IZ X /*월파트너내역*/
@@ -686,7 +686,7 @@
                                 , M.PERF_YM
                                 , M.OG_TP_CD
                                 , M.PRTNR_NO
-                                , M.REDF_ADSB_TP_CD
+                                , M.PERF_DV_CD AS PERF_DV_CD_CHK
                                 , CASE WHEN M.PERF_DV_CD = '0' THEN 'P' ELSE 'J' END AS PERF_DV_CD
                                 /*분기처리(M조직, P조직)*/
                                 /*M조직(지구장 이하): 기변수당, 기기변경,수석플래너,홈케어,환경가전 목표달성,환경가전영업,환경가전 미팅,환경가전 비례,환경가전외 영업,환경가전외 미팅,환경가전외 비례,판매장려,교육,정착,판매장려 소급,환경가전 조직,환경가전 조직미팅
@@ -746,7 +746,6 @@
                              				  SELECT S1.FEE_REDF_ADSB_ID
                                                    , MAX(CASE WHEN S2.SELL_TP_CD = '1' THEN '1' END) AS SELL_TP_CD_1
                                                    , MAX(CASE WHEN S2.SELL_TP_CD = '2' THEN '2' END) AS SELL_TP_CD_2
-                             				  	   <!--, S2.SELL_TP_CD /*1: 일시불, 2: 렌탈*/-->
                              				  	   , SUM(S2.FEE_ACKMT_BASE_AMT) AS FEE_ACKMT_BASE_AMT /*수수료인정기준금액, = 되물림실적*/
                              				  	   , SUM(S1.REDF_ADSB_OC_AMT) AS REDF_ADSB_OC_AMT
                              				  	   , SUM(S1.REDF_ADSB_CTR_CNFM_AMT) AS REDF_ADSB_CTR_CNFM_AMT
@@ -762,7 +761,6 @@
                               					 AND S1.REDF_ADSB_OC_YM BETWEEN #{redfAdsbOcYmFrom} AND #{redfAdsbOcYmTo} /*PARAM: 발생년월*/
                                                  </if>
                                                GROUP BY S1.FEE_REDF_ADSB_ID
-                                                      <!--, S2.SELL_TP_CD-->
                          	   ) S
                          	   ON M.FEE_REDF_ADSB_ID = S.FEE_REDF_ADSB_ID
                             WHERE M.DTA_DL_YN = 'N'
@@ -798,7 +796,6 @@
                                    , M.PERF_YM
                                    , M.OG_TP_CD
                                    , M.PRTNR_NO
-                                   , M.REDF_ADSB_TP_CD
                                    , M.PERF_DV_CD
                           ) D /*되물림 수수료*/
           LEFT OUTER JOIN LATERAL (
