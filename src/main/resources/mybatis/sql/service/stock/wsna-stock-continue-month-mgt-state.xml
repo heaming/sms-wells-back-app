@@ -5,7 +5,7 @@
 	    WITH PART_INF AS (
             /*품목정보*/
             SELECT P1.PD_CD
-                 , P2.SAP_MAT_CD    /*SAP자재코드*/
+                 , TO_CHAR(TO_NUMBER(P2.SAP_MAT_CD)) AS SAP_MAT_CD    /*SAP자재코드*/
                  , P2.PD_NM         /*품목명*/
                  , P1.PD_PRP_VAL15  /*기초자재*/
                  , P1.PD_PRP_VAL17  /*자재관리유형, AS_MAT_MNG_TP_CD, MAT_MNGT_DV_CD*/
@@ -30,6 +30,24 @@
                /*관리유형(전체, 기초1, 기초2, 기초3, 기초4, 기초5) 전체 : ALL*/
             <if test="@MybatisUtils@isNotEmpty(stockTpCd) and !@MybatisUtils@equals(stockTpCd, 'ALL')">
                AND P1.PD_PRP_VAL17 = #{stockTpCd}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(strtSapCd) or @MybatisUtils@isNotEmpty(endSapCd)'>
+               <choose>
+                   <when test='@MybatisUtils@isNotEmpty(strtSapCd) and @MybatisUtils@isNotEmpty(endSapCd)'>
+                       AND TO_CHAR(TO_NUMBER(P2.SAP_MAT_CD)) BETWEEN #{strtSapCd} AND #{endSapCd}
+                    </when>
+                    <otherwise>
+                        <if test='@MybatisUtils@isNotEmpty(strtSapCd)'>
+                            AND TO_CHAR(TO_NUMBER(P2.SAP_MAT_CD)) LIKE #{strtSapCd} ||'%'
+                        </if>
+                        <if test='@MybatisUtils@isNotEmpty(endSapCd)'>
+                            AND TO_CHAR(TO_NUMBER(P2.SAP_MAT_CD)) LIKE #{endSapCd} ||'%'
+                        </if>
+                    </otherwise>
+                </choose>
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+               AND P2.PD_CD = #{itmPdCd}
             </if>
                AND (P1.PD_PRP_VAL20 IN ('1', '2', '3', '4', '5', '6', '7', '8', '9', '91', '92', '93', '95', '96')
                  OR P1.PD_PRP_VAL20 IS NULL)
