@@ -301,6 +301,13 @@ public class WdeaAllowanceRedfMgtDto {
         String fxam, /*정액(WELLS-P).되물림실적*/
         String aFxam, /*정액(WELLS-P).되물림후실적*/
 
+        /*실활동(WELLS-P, 지점장만)*/
+        String tbActi, /*정액(WELLS-P).귀속전월실적*/
+        String tActi, /*정액(WELLS-P).귀속월실적*/
+        String bActi, /*정액(WELLS-P).되물림전실적*/
+        String acti, /*정액(WELLS-P).되물림실적*/
+        String aActi, /*정액(WELLS-P).되물림후실적*/
+
         /*===============되물림 수수료==============*/
         String mchnChRedf201903, /*기변수당*/
         String mchnChRedf201904, /*기기변경*/
