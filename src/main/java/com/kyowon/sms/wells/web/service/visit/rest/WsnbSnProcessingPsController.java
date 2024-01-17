@@ -61,4 +61,9 @@ public class WsnbSnProcessingPsController {
     public List<WsnbSnProcessingPsDto.SearchPuPartPdRes> getSnProcessingPsPuPartProducts(SearchPuPartPdReq dto) {
         return this.service.selectSnProcessingPuPartPds(dto);
     }
+
+    @GetMapping("/cstSignCn")
+    public WsnbSnProcessingPsDto.SearchCstSignCn getSnProcessingCstSignCn(String cstSvAsnNo) {
+        return this.service.getSnProcessingcstSignCn(cstSvAsnNo);
+    }
 }

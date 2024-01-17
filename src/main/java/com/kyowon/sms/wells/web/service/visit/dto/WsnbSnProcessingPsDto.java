@@ -31,6 +31,19 @@ public class WsnbSnProcessingPsDto {
         String cstSvAsnNo
     ) {}
 
+    @ApiModel(value = "WsnbSnProcessingPsDto-SearchCstSignCn")
+    public record SearchCstSignCn(
+        @NotNull
+        String cstSignCn
+    ) {
+        @AutomapConstructor
+        public SearchCstSignCn(
+            byte[] cstSignCn
+        ) {
+            this(cstSignCn != null ? Base64.getEncoder().encodeToString(cstSignCn) : "");
+        }
+    }
+
     @ApiModel(value = "WsnbSnProcessingPsDto-SearchCntrs")
     public record SearchCntrs(
         String reYn,
@@ -65,82 +78,11 @@ public class WsnbSnProcessingPsDto {
         String svProcsCn,
         String cancYn,
         String bcPblDvCd,
-        String cstSvAsnNo,
-        String cstSignCn
+        String cstSvAsnNo
     ) {
-        @AutomapConstructor
-        public SearchCntrs(
-            String reYn,
-            String bcInMthdCd,
-            String hdwrInRsonCd,
-            String pblTms,
-            String cntrNo,
-            String cntrSn,
-            String rcgvpKnm,
-            String cralLocaraTno,
-            String mexnoEncr,
-            String cralIdvTno,
-            String locaraTno,
-            String exnoEncr,
-            String idvTno,
-            String sapMatCd,
-            String pdCd,
-            String pdNm,
-            String sellTpCd,
-            String newAdrZip,
-            String addr,
-            String svBizDclsfCd,
-            String lstmmVstCnfmdt,
-            String vstCnfmdt,
-            String vstDuedt,
-            String vstExpHh,
-            String ogCd,
-            String ogNm,
-            String prtnrNo,
-            String prtnrKnm,
-            String vstPrgsStatCd,
-            String svProcsCn,
-            String cancYn,
-            String bcPblDvCd,
-            String cstSvAsnNo,
-            byte[] cstSignCn
-        ) {
-            this(
-                reYn,
-                bcInMthdCd,
-                hdwrInRsonCd,
-                pblTms,
-                cntrNo,
-                cntrSn,
-                rcgvpKnm,
-                cralLocaraTno,
-                StringUtils.isNotEmpty(mexnoEncr) ? DbEncUtil.dec(mexnoEncr) : mexnoEncr,
-                cralIdvTno,
-                locaraTno,
-                StringUtils.isNotEmpty(exnoEncr) ? DbEncUtil.dec(exnoEncr) : exnoEncr,
-                idvTno,
-                sapMatCd,
-                pdCd,
-                pdNm,
-                sellTpCd,
-                newAdrZip,
-                addr,
-                svBizDclsfCd,
-                lstmmVstCnfmdt,
-                vstCnfmdt,
-                vstDuedt,
-                vstExpHh,
-                ogCd,
-                ogNm,
-                prtnrNo,
-                prtnrKnm,
-                vstPrgsStatCd,
-                svProcsCn,
-                cancYn,
-                bcPblDvCd,
-                cstSvAsnNo,
-                cstSignCn != null ? Base64.getEncoder().encodeToString(cstSignCn) : ""
-            );
+        public SearchCntrs {
+            mexnoEncr = StringUtils.isNotEmpty(mexnoEncr) ? DbEncUtil.dec(mexnoEncr) : mexnoEncr;
+            exnoEncr = StringUtils.isNotEmpty(exnoEncr) ? DbEncUtil.dec(exnoEncr) : exnoEncr;
         }
     }
 
