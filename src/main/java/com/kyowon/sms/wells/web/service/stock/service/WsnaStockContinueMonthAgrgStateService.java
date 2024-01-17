@@ -67,6 +67,10 @@ public class WsnaStockContinueMonthAgrgStateService {
         dvo.setWareNoKeppMmFields(wareNoKeppMmFields);
         dvo.setWareNoPitmSumFields(wareNoPitmSumFields);
 
+        dvo.setItmPdCd(dto.itmPdCd());
+        dvo.setStrtSapCd(dto.strtSapCd());
+        dvo.setEndSapCd(dto.endSapCd());
+
         return dvo;
     }
 

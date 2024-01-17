@@ -5,14 +5,15 @@ import lombok.Setter;
 
 @Getter
 @Setter
-
 public class WsnaStockContinueMonthAgrgStateDvo {
-
     String baseYm;
     String useYn;
     String stockTpCd;
     String itmKndCd;
     String itmGdCd;
+    String itmPdCd;
+    String strtSapCd;
+    String endSapCd;
     String wareNoInStr;
     String wareNoPitmFields;
     String wareNoKeppMmFields;
