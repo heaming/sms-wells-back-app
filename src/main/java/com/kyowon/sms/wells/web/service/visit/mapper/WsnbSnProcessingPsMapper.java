@@ -18,4 +18,5 @@ public interface WsnbSnProcessingPsMapper {
 
     List<SearchPuPartPdRes> selectSnProcessingPsPuPartPds(SearchPuPartPdReq dto);
 
+    SearchCstSignCn selectSnProcessingPsCstSignCn(String cstSvAsnNo);
 }
