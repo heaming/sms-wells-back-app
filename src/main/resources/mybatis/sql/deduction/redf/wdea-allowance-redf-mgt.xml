@@ -583,6 +583,12 @@
              , NVL(M.A_FXAM, 0) + NVL(M.FXAM, 0) AS B_FXAM /*정액(WELLS-P).되물림전실적*/
              , NVL(M.FXAM, 0) AS FXAM /*정액(WELLS-P).되물림실적*/
              , NVL(M.A_FXAM, 0) AS A_FXAM /*정액(WELLS-P).되물림후실적*/
+             /*실활동(WELLS-P 지점장)*/
+             , NVL(M1.TB_ACTI, 0) AS TB_ACTI /*실활동(WELLS-P).귀속전월실적*/
+             , NVL(M1.T_ACTI, 0) AS T_ACTI /*실활동(WELLS-P).귀속월실적*/
+             , NVL(M1.B_ACTI, 0) AS B_ACTI /*실활동(WELLS-P).되물림전실적*/
+             , NVL(M1.ACTI, 0) AS ACTI /*실활동(WELLS-P).되물림실적*/
+             , NVL(M1.A_ACTI, 0) AS A_ACTI /*실활동(WELLS-P).되물림후실적*/
              /*되물림 수수료*/
              , NVL(D.MCHN_CH_REDF201903, 0) AS MCHN_CH_REDF201903 /*기변수당*/
              , NVL(D.MCHN_CH_REDF201904, 0) AS MCHN_CH_REDF201904 /*기기변경*/
@@ -684,6 +690,7 @@
           FROM  (
                            SELECT M.REDF_ADSB_OC_YM
                                 , M.PERF_YM
+                                , TO_CHAR(ADD_MONTHS(TO_DATE(M.PERF_YM || '01', 'YYYYMMDD'), 1), 'YYYYMM') AS PERF_YM_1
                                 , M.OG_TP_CD
                                 , M.PRTNR_NO
                                 , M.PERF_DV_CD AS PERF_DV_CD_CHK
@@ -801,7 +808,6 @@
           LEFT OUTER JOIN LATERAL (
                 SELECT B.BASE_YM
                      , A.PERF_YM
-                     , TO_CHAR(ADD_MONTHS(TO_DATE(A.PERF_YM || '01', 'YYYYMMDD'), 1), 'YYYYMM') AS PERF_YM_1
                      , A.OG_TP_CD
                      , A.PRTNR_NO
                      , A.PERF_DV_CD
@@ -888,13 +894,7 @@
                             AND OG_TP_CD = D.OG_TP_CD
                             AND PRTNR_NO = D.PRTNR_NO
                             AND PERF_AGRG_CRT_DV_CD = '101' /*귀속월실적(순주문집계)_P */
-                            <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                            AND PRTNR_NO = #{prtnrNo}
-                            </if>
-                            AND OG_TP_CD = #{ogTpCd}
-                            <if test='@MybatisUtils@isNotEmpty(perfYmFrom) and @MybatisUtils@isNotEmpty(perfYmTo)'>
-                            AND PERF_YM BETWEEN #{perfYmFrom} AND #{perfYmTo}
-                            </if>
+                            AND OG_TP_CD = 'W01'
                           GROUP BY BASE_YM , PERF_YM, OG_TP_CD, PRTNR_NO, PERF_DV_CD
                        ) A /*귀속월실적(기준년월 실적년월이 같은 최초 실적)*/
                    LEFT OUTER JOIN (
@@ -950,13 +950,7 @@
                                               AND PRTNR_NO = D.PRTNR_NO
                                               AND PERF_AGRG_CRT_DV_CD = '102' /*되물림후실적(순주문집계)_P */
                                               AND OG_TP_CD = #{ogTpCd}
-                                              <if test='@MybatisUtils@isNotEmpty(perfYmFrom) and @MybatisUtils@isNotEmpty(perfYmTo)'>
-                                              AND PERF_YM BETWEEN #{perfYmFrom} AND #{perfYmTo}
-                                              </if>
                                               AND BASE_YM = D.REDF_ADSB_OC_YM
-                                              <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                                              AND PRTNR_NO = #{prtnrNo}
-                                              </if>
                                          ) A
                                    GROUP BY A.BASE_YM
                                           , A.PERF_YM
@@ -969,46 +963,123 @@
                    AND A.PRTNR_NO = B.PRTNR_NO
                    AND A.PERF_DV_CD = B.PERF_DV_CD
                   LEFT OUTER JOIN (
-                                   SELECT BASE_YM
-                                        , PERF_YM
-                                        , OG_TP_CD
-                                        , PRTNR_NO
-                                        , CASE WHEN PERF_DV_CD = '0' THEN 'P'
-                                        	   ELSE 'J'
-                                        	END AS PERF_DV_CD
-                                        , NVL((CASE WHEN PERF_ATC_CD = 'W020001' THEN PERF_VAL END), 0) AS TB_ENVR_ELHM /*귀속전월실적(BEFORE B) 환경가전*/
-                                        , NVL((CASE WHEN PERF_ATC_CD = 'W02P00002' THEN PERF_VAL END), 0) AS TB_ENVR_ELHM_CNT /*귀속전월실적 환경가전(건수)*/
+		                         SELECT BASE_YM
+		                              , PERF_YM
+		                              , OG_TP_CD
+		                              , PRTNR_NO
+		                              , 'J' PERF_DV_CD /*개인/조직*/
+		                              , NVL(SUM(CASE WHEN A.PERF_ATC_CD IN ('W01P00001', 'W00P00003', 'W00P00004', 'W00P00005') THEN PERF_VAL END), 0) AS TB_ENVR_ELHM /*귀속전월실적(BEFORE B) 환경가전*/
+		                              , NVL(SUM(CASE WHEN A.PERF_ATC_CD IN ('W01P00030', 'W02P00002') THEN PERF_VAL END), 0) AS TB_ENVR_ELHM_CNT /*귀속전월실적 환경가전(건수)*/
+		                              , NVL(SUM(CASE WHEN A.PERF_ATC_CD = 'W00P00003' THEN A.PERF_VAL END), 0) AS TB_ENVR_ELHM_RENTAL /*귀속전월실적 환경가전 렌탈*/
+		                              , NVL(SUM(CASE WHEN A.PERF_ATC_CD = 'W00P00010' THEN A.PERF_VAL END), 0) AS TB_NW_SELL_CNT /*귀속전월실적 신규판매 건수*/
+		                              , NVL(SUM(CASE WHEN A.PERF_ATC_CD = 'W00P00004' THEN A.PERF_VAL END), 0) AS TB_ENVR_ELHM_SPAY /*귀속전월실적 환경가전 일시불*/
+		                              , NVL(SUM(CASE WHEN A.PERF_ATC_CD IN ('W01P00004', 'W00P00006', 'W00P00007') THEN A.PERF_VAL END), 0) AS TB_ENVR_ELHM_EXCP /*귀속전월실적 환경가전외 일시불*/
+		                              , NVL(SUM(CASE WHEN A.PERF_ATC_CD IN ('W00P00030', 'W00P00007') THEN A.PERF_VAL END), 0) AS TB_ENVR_ELHM_FXAM /*귀속전월실적 환경가전 정액(개인)*/
+		                              , NVL(SUM(CASE WHEN A.PERF_ATC_CD IN ('W00P00030', 'W00P00007') THEN A.PERF_VAL END), 0) AS TB_ENVR_ELHM_EXCP_FXAM /*귀속전월실적 환경가전외 정액*/
+		                              , NVL(SUM(CASE WHEN A.PERF_ATC_CD IN ('W01P00020', 'W02P00111') THEN A.PERF_VAL END), 0) AS TB_OG_MGT_PPL /*귀속전월실적 조직관리 실활동(명)*/
 
-                                        , NVL((CASE WHEN PERF_ATC_CD = 'W01P00002' THEN PERF_VAL END), 0) AS TB_MC /*되물림전후실적 기변*/
-                                        , NVL((CASE WHEN PERF_ATC_CD = 'W01P00014' THEN PERF_VAL END), 0) AS TB_FXAM /*되물림전후실적 정액*/
-                                        , NVL((CASE WHEN PERF_ATC_CD = 'W00P00003' THEN PERF_VAL END), 0) AS TB_ENVR_ELHM_RENTAL /*귀속전월실적 환경가전 렌탈*/
-                                        , NVL((CASE WHEN PERF_ATC_CD = 'W00P00010' THEN PERF_VAL END), 0) AS TB_NW_SELL_CNT /*귀속전월실적 신규판매 건수*/
-                                        , NVL((CASE WHEN PERF_ATC_CD = 'W00P00004' THEN PERF_VAL END), 0) AS TB_ENVR_ELHM_SPAY /*귀속전월실적 환경가전 일시불*/
-                                        , NVL((CASE WHEN PERF_ATC_CD = 'W00P00006' THEN PERF_VAL END), 0) AS TB_ENVR_ELHM_EXCP /*귀속전월실적 환경가전외 일시불*/
-                                        , NVL((CASE WHEN PERF_ATC_CD = 'W00P00005' THEN PERF_VAL END), 0) AS TB_ENVR_ELHM_FXAM /*귀속전월실적 환경가전 정액*/
-                                        , NVL((CASE WHEN PERF_ATC_CD = 'W00P00007' THEN PERF_VAL END), 0) AS TB_ENVR_ELHM_EXCP_FXAM /*귀속전월실적 환경가전외 정액*/
-                                        , NVL((CASE WHEN PERF_ATC_CD = 'W02P00111' THEN PERF_VAL END), 0) AS TB_OG_MGT_PPL /*귀속전월실적 조직관리 실활동(명)*/
-                                     FROM TB_FEAM_NTORP_PERF_MM_CL /* 순주문파트너실적월마감(ASIS: AK1700P) */
-                                    WHERE DTA_DL_YN = 'N'
-                                      AND FEE_TCNT_DV_CD = '02'
-                                      AND PERF_AGRG_CRT_DV_CD = '101' /*귀속전월실적(순주문집계)_P */
-                                      AND OG_TP_CD = #{ogTpCd} /* M조직 집계 */
-                                      <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                                      AND PRTNR_NO = #{prtnrNo}
-                                      </if>
-                                      AND PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(PERF_YM||'01', 'YYYYMMDD'), -1), 'YYYYMM')
-                                  ) C /*귀속전월실적*/
-                    ON A.BASE_YM = C.BASE_YM
-                   AND A.PERF_YM = C.PERF_YM
-                   AND A.OG_TP_CD = C.OG_TP_CD
-                   AND A.PRTNR_NO = C.PRTNR_NO
-                   AND A.PERF_DV_CD = C.PERF_DV_CD
-                 WHERE 1 =1
+		                              , NVL(SUM(CASE WHEN A.PERF_ATC_CD = 'W01P00002' THEN A.PERF_VAL END), 0) AS TB_MC /*귀속전월실적 기변(P조직용)*/
+		                              , NVL(SUM(CASE WHEN A.PERF_ATC_CD = 'W01P00014' THEN A.PERF_VAL END), 0) AS TB_FXAM /*귀속전월실적 정액(P조직용)*/
+		                           FROM TB_FEAM_NTORP_PERF_MM_CL A/* 순주문파트너실적월마감(ASIS: AK1700P) */
+		                          WHERE A.DTA_DL_YN = 'N'
+		                            AND A.FEE_TCNT_DV_CD = '02'
+		                            AND A.BASE_YM = A.PERF_YM
+		                            AND A.OG_TP_CD = D.OG_TP_CD
+		                            AND A.PRTNR_NO = D.PRTNR_NO
+		                            AND A.PERF_AGRG_CRT_DV_CD = '101' /*귀속월실적(순주문집계)_P */
+		                            AND A.PERF_DV_CD != '0' /*귀속전월실적은 조직실적만 추출*/
+
+		                            AND A.OG_TP_CD = 'W01'
+
+		                            AND A.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(D.PERF_YM||'01', 'YYYYMMDD'), -1), 'YYYYMM')
+		                            AND A.PERF_VAL > 0
+		                          GROUP BY A.BASE_YM , A.PERF_YM, A.OG_TP_CD, A.PRTNR_NO, A.PERF_DV_CD
+                      ) C /*귀속전월실적*/
+                    ON 1 = 1
               ) M
             ON M.PERF_YM = D.PERF_YM
            AND M.OG_TP_CD = D.OG_TP_CD
            AND M.PRTNR_NO = D.PRTNR_NO
            AND M.PERF_DV_CD = D.PERF_DV_CD
+          /*실활동 테이블이 따로라 조인 따로*/
+          LEFT OUTER JOIN LATERAL (
+                SELECT B.BASE_YM
+                     , A.PERF_YM
+                     , A.OG_TP_CD
+                     , A.PRTNR_NO
+                     , 'J' AS PERF_DV_CD /*실활동은 항상 조직실적이기에 J로 고정해서 조인*/
+                     , NVL(C.TB_ACTI, 0) AS TB_ACTI /*실활동.귀속전월실적(T_BEFORE TB)*/
+                     , NVL(A.T_ACTI, 0) AS T_ACTI /*실활동.귀속월실적*/
+                     , NVL(B.A_ACTI, B.B_ACTI) AS A_ACTI /*실활동.되물림전실적*/
+                     , NVL(A.T_ACTI, 0) - NVL(B.A_ACTI, B.B_ACTI) AS ACTI /*실활동.되물림실적*/
+                     , NVL(B.B_ACTI, 0) AS B_ACTI /*실활동.되물림후실적*/
+                  FROM (
+                         SELECT A1.BASE_YM
+                              , A1.PERF_YM
+                              , A1.OG_TP_CD
+                              , A1.PRTNR_NO
+                              , A1.PERF_VAL AS T_ACTI /*실활동.귀속월실적*/
+                           FROM TB_FEAM_PRTNR_PERF_MM_CL A1 /* 파트너실적월마감 */
+                          WHERE A1.DTA_DL_YN = 'N'
+                            AND A1.FEE_TCNT_DV_CD = '02'
+                            AND A1.BASE_YM = A1.PERF_YM
+                            AND A1.PERF_YM = D.PERF_YM
+                            AND A1.OG_TP_CD = D.OG_TP_CD
+                            AND A1.PRTNR_NO = D.PRTNR_NO
+                            AND A1.PERF_AGRG_CRT_DV_CD = '101' /*귀속월실적(순주문집계)_P */
+                            AND A1.PERF_ATC_CD = 'W01P00020' /*실활동*/
+                       ) A /*귀속월실적(기준년월 실적년월이 같은 최초 실적)*/
+                   LEFT OUTER JOIN (
+                   				   SELECT BASE_YM
+		                                , OG_TP_CD
+		                                , PRTNR_NO
+                                        , MAX(CASE WHEN RN = 1 THEN PERF_VAL END) AS B_ACTI /*되물림전실적*/
+                                        , MAX(CASE WHEN RN = 2 THEN PERF_VAL END) AS A_ACTI /*되물림후실적*/
+                   				     FROM (
+										   SELECT A.BASE_YM
+				                                , A.PERF_YM
+				                                , A.OG_TP_CD
+				                                , A.PRTNR_NO
+		                                        , A.PERF_VAL
+		                                        , ROW_NUMBER() OVER(PARTITION BY A.PRTNR_NO ORDER BY A.BASE_YM DESC) AS RN /*RN = 1(되물림후실적), 2(되물림전실적)*/
+		                                     FROM TB_FEAM_PRTNR_PERF_MM_CL A /* 파트너실적월마감 */
+		                                    WHERE A.DTA_DL_YN = 'N'
+		                                      AND A.FEE_TCNT_DV_CD = '02'
+		                                      AND A.OG_TP_CD = D.OG_TP_CD
+		                                      AND A.PRTNR_NO = D.PRTNR_NO
+		                                      AND A.PERF_AGRG_CRT_DV_CD = '102' /*되물림전후실적(순주문집계)_P */
+		                                      AND A.PERF_ATC_CD = 'W01P00020'
+		                                      AND A.BASE_YM = D.REDF_ADSB_OC_YM
+		                                      AND (A.PERF_YM = D.PERF_YM OR A.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(D.PERF_YM ||'01', 'YYYYMMDD'), -1), 'YYYYMM'))
+                                      )
+                                    WHERE 1 = 1
+                                      AND RN IN (1, 2)
+                                    GROUP BY BASE_YM, OG_TP_CD, PRTNR_NO
+                                 ) B /* 되물림전후실적(후: 되물림년월과 BASE_YM이 동월, 전: -1월) */
+                    ON 1 = 1
+                  LEFT OUTER JOIN (
+                                 SELECT A1.BASE_YM
+		                              , A1.PERF_YM
+		                              , A1.OG_TP_CD
+		                              , A1.PRTNR_NO
+		                              , A1.PERF_VAL AS TB_ACTI /*실활동.귀속전월실적*/
+		                           FROM TB_FEAM_PRTNR_PERF_MM_CL A1 /* 파트너실적월마감 */
+		                          WHERE A1.DTA_DL_YN = 'N'
+		                            AND A1.FEE_TCNT_DV_CD = '02'
+		                            AND A1.BASE_YM = A1.PERF_YM
+                                    AND A1.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(D.PERF_YM ||'01', 'YYYYMMDD'), -1), 'YYYYMM')
+		                            AND A1.OG_TP_CD = D.OG_TP_CD
+		                            AND A1.PRTNR_NO = D.PRTNR_NO
+		                            AND A1.PERF_AGRG_CRT_DV_CD = '101' /*귀속월실적(순주문집계)_P */
+		                            AND A1.PERF_ATC_CD = 'W01P00020' /*실활동*/
+                                  ) C /*귀속전월실적*/
+                    ON 1 = 1
+                 WHERE 1 = 1
+              ) M1
+            ON M1.PERF_YM = D.PERF_YM
+           AND M1.OG_TP_CD = D.OG_TP_CD
+           AND M1.PRTNR_NO = D.PRTNR_NO
+           AND M1.PERF_DV_CD = D.PERF_DV_CD
           LEFT OUTER JOIN TB_OGBS_PRTNR_DTL AK04 /*현재 직급으로 조회*/
             ON D.OG_TP_CD = AK04.OG_TP_CD
            AND D.PRTNR_NO = AK04.PRTNR_NO
@@ -1017,13 +1088,13 @@
            AND D.OG_TP_CD = AK05.OG_TP_CD
            AND D.PRTNR_NO = AK05.PRTNR_NO
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ AK55 /*월파트너내역(실적년월+1)*/
-            ON M.PERF_YM_1 = AK55.BASE_YM
-           AND M.OG_TP_CD = AK55.OG_TP_CD
-           AND M.PRTNR_NO = AK55.PRTNR_NO
+            ON D.PERF_YM_1 = AK55.BASE_YM
+           AND D.OG_TP_CD = AK55.OG_TP_CD
+           AND D.PRTNR_NO = AK55.PRTNR_NO
           LEFT OUTER JOIN TB_OGPS_TOPMR_PLAR_APLC_IZ AK06 /*수석플래너신청내역*/
-            ON M.PERF_YM = AK06.MNGT_YM
-           AND M.OG_TP_CD = AK06.OG_TP_CD
-           AND M.PRTNR_NO = AK06.PRTNR_NO
+            ON D.PERF_YM = AK06.MNGT_YM
+           AND D.OG_TP_CD = AK06.OG_TP_CD
+           AND D.PRTNR_NO = AK06.PRTNR_NO
            AND AK06.OG_TP_CD = 'W01' /* 수석플래너는 P조직만 있음 */
          INNER JOIN LATERAL ( SELECT /*+ no_unnest */
                                      B.PSTN_DV_CD
@@ -1046,10 +1117,10 @@
                               FROM TB_FEAM_WELS_NRCTR_MM_CL C1 /*웰스순주문계약월마감*/
                              WHERE C1.DTA_DL_YN = 'N'
                                AND C1.FEE_TCNT_DV_CD = '02'
-                               AND C1.BASE_YM = M.BASE_YM
-                               AND C1.PERF_YM = M.PERF_YM
-                               AND C1.PRTNR_NO = M.PRTNR_NO
-                               AND C1.OG_TP_CD = M.OG_TP_CD
+                               AND C1.BASE_YM = D.REDF_ADSB_OC_YM
+                               AND C1.PERF_YM = D.PERF_YM
+                               AND C1.PRTNR_NO = D.PRTNR_NO
+                               AND C1.OG_TP_CD = D.OG_TP_CD
                              GROUP BY C1.BASE_YM, C1.PERF_YM, C1.PRTNR_NO, C1.OG_TP_CD
                           ) C
             ON 1 = 1
@@ -1309,6 +1380,12 @@
              , NVL((CASE WHEN M.B_FXAM = 0 OR M.B_FXAM IS NULL THEN M.T_FXAM ELSE M.B_FXAM END) -
                (CASE WHEN M.A_FXAM = 0 OR M.A_FXAM IS NULL THEN (CASE WHEN M.B_FXAM = 0 OR M.B_FXAM IS NULL THEN M.T_FXAM ELSE M.B_FXAM END) ELSE M.A_FXAM END ), 0) AS FXAM /*정액.되물림실적*/
              , NVL((CASE WHEN M.A_FXAM = 0 OR M.A_FXAM IS NULL THEN (CASE WHEN M.B_FXAM = 0 OR M.B_FXAM IS NULL THEN M.T_FXAM ELSE M.B_FXAM END) ELSE M.A_FXAM END ), 0) AS A_FXAM /*정액.되물림후실적*/
+             /*실활동(WELLS-P)*/
+             , 0 AS TB_ACTI /*실활동.귀속전월실적*/
+             , 0 AS T_ACTI /*실활동.귀속월실적*/
+             , 0 AS B_ACTI /*실활동.되물림전실적*/
+             , 0 AS ACTI /*실활동.되물림실적*/
+             , 0 AS A_ACTI /*실활동.되물림후실적*/
              /*되물림 수수료*/
              , NVL(D.MCHN_CH_REDF201903, 0) AS MCHN_CH_REDF201903 /*기변수당*/
              , NVL(D.MCHN_CH_REDF201904, 0) AS MCHN_CH_REDF201904 /*기기변경*/
