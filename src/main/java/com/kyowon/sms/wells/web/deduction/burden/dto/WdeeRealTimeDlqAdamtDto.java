@@ -25,7 +25,7 @@ public class WdeeRealTimeDlqAdamtDto {
     @ApiModel("WdeeRealTimeDlqAdamtDto-SearchRes")
     public record SearchRes(
         String thmCtrDlqAddAmt,
-        String wordAcdp,
+        String workAcdp,
         String janAmt
     ) {}
 }
