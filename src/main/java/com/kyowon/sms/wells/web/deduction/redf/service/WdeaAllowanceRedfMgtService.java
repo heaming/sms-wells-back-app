@@ -4,11 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaAllowanceRedfMgtDto.SearchAwRedfRes;
-import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaAllowanceRedfMgtDto.SearchRedfBizdReq;
-import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaAllowanceRedfMgtDto.SearchRedfBizdRes;
-import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaAllowanceRedfMgtDto.SearchRedfRes;
-import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaAllowanceRedfMgtDto.SearchReq;
+import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaAllowanceRedfMgtDto.*;
 import com.kyowon.sms.wells.web.deduction.redf.mapper.WdeaAllowanceRedfMgtMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -63,9 +59,6 @@ public class WdeaAllowanceRedfMgtService {
      * @return PagingResult<SearchRedfBizdRes>
      */
     public PagingResult<SearchRedfBizdRes> getRedfBizdMgt(SearchRedfBizdReq dto, PageInfo pageInfo) {
-
-        // PagingResult<SearchRedfBizdRes> TEST = mapper.selectRedfBizdMgts(dto, pageInfo);
-
         return mapper.selectRedfBizdMgts(dto, pageInfo);
     }
 
