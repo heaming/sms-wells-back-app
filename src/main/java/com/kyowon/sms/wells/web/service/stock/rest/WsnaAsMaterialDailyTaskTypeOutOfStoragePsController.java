@@ -41,8 +41,13 @@ public class WsnaAsMaterialDailyTaskTypeOutOfStoragePsController {
         @ApiImplicitParam(name = "svBizHclsfCd", value = "서비스업무대분류코드", paramType = "query"),
         @ApiImplicitParam(name = "useYn", value = "사용여부", paramType = "query"),
         @ApiImplicitParam(name = "itmKndCd", value = "품목구분코드", paramType = "query"),
+        @ApiImplicitParam(name = "itmGrpCd", value = "품목그룹코드", paramType = "query"),
+        @ApiImplicitParam(name = "itmPdCds", value = "품목코드 리스트", paramType = "query", example = "[WM07102157]", dataType = "array"),
         @ApiImplicitParam(name = "itmPdCdFrom", value = "상품코드시작", paramType = "query"),
         @ApiImplicitParam(name = "itmPdCdTo", value = "상품코드종료", paramType = "query"),
+        @ApiImplicitParam(name = "itmPdCd", value = "품목코드", paramType = "query", example = "WM07102157"),
+        @ApiImplicitParam(name = "strtSapCd", value = "시작 SAP코드", paramType = "query", example = "300006248"),
+        @ApiImplicitParam(name = "endSapCd", value = "종료 SAP코드", paramType = "query", example = "300006248"),
     })
     @GetMapping
     public List<SearchRes> getAsMaterialDailyTaskTypeOutOfStoragePss(
