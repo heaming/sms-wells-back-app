@@ -354,7 +354,7 @@ RCP_CHNL_DTL=2010*/
     }
 
     @Test
-    @DisplayName("wells 렌탈 생성 테스트")
+    @DisplayName("wells 렌탈 생성 테스트 - 계약번호 자동 채번")
     void testCreateContractForRentalWithoutCntrNoSn() throws Exception {
         // given
         CreateRentalReq req = CreateRentalReq.builder()
@@ -374,6 +374,15 @@ RCP_CHNL_DTL=2010*/
 
             .aftnDvCd("1")
             .rtlfe1("349000")
+
+            .bnkCdcoDv1("96")
+            .preslCard1("")
+            .cardAmt1("339000")
+
+            .bnkCdcoDv1("96")
+            .preslCard1("M")
+            .cardAmt1("10000")
+
             .istCstNm("수령자")
             .istCphonLocaraTno("010")
             .istCphonExno("1234")
@@ -419,6 +428,11 @@ RCP_CHNL_DTL=2010*/
 
             .aftnDvCd("1")
             .rtlfe1("349000")
+
+            .bnkCdcoDv1("96")
+            .preslCard1("")
+            .cardAmt1("349000")
+
             .istCstNm("수령자")
             .istCphonLocaraTno("010")
             .istCphonExno("1234")
