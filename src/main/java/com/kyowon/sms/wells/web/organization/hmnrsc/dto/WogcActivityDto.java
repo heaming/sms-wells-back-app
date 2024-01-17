@@ -59,7 +59,9 @@ public class WogcActivityDto {
         String edu17Yn,
         String lcvcnt,
         String fnlCltnDtYn,
-        String lccn47
+        String lccn47,
+        String prfmtMon,
+        String ejtPersonCt
 
     ) {
     }
