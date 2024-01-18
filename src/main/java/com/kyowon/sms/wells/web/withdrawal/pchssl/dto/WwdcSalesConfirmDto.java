@@ -20,7 +20,7 @@ public class WwdcSalesConfirmDto {
     public record SearchSalesConfirmReq(
         String cntrNo,
         String cntrSn,
-        String cellTpCd, // 판매유형코드
+        String sellTpCd, // 판매유형코드
         String startDate,
         String endDate,
         String ogTpCd, /* 조직코드 */
