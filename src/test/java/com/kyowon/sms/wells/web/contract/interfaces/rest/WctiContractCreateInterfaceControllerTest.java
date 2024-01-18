@@ -1,8 +1,13 @@
 package com.kyowon.sms.wells.web.contract.interfaces.rest;
 
+import com.kyowon.sms.common.web.contract.zcommon.constants.CtSellChnlDtlCd;
+import com.kyowon.sms.common.web.contract.zcommon.constants.CtSessionTenantCd;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateRegularShippingReq;
 import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateRentalReq;
 import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateSinglePaymentReq;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.test.SpringTestSupport;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
 import org.junit.jupiter.api.DisplayName;
@@ -15,7 +20,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
+    public static final String VALID_CST_NO = "031542082";
+    public static final String KMEMBERS_PNTRT_NO = "1653227";
+    public static final String NEW_CNTR_NO_2 = "W20244903329";
     private final String BASE_URL = CtContractConst.INTERFACE_URL_V1;
+    private final String EXIST_CNTR_NO = "W20234902675";
+    private final String NEW_CNTR_NO = "W20244903293";
+    private final String EXIST_CNTR_SN = "1";
 
     /*
         -- SAMPLE DATA 추출
@@ -70,7 +81,7 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
         CreateSinglePaymentReq req = CreateSinglePaymentReq.builder()
             .inCls("5")
             .pdCd01("WP02110453")
-            .rcpChnlDtl("2010")
+            .rcpChnlDtl(CtSellChnlDtlCd.KMEMBERS.getCode())
             .dscDv("1")
             .uswy("0")
             .mngtPrd("3")
@@ -97,11 +108,11 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
             .inCls("1")
 //            .cntrNo("W20244903253")
 //            .cntrSn("1")
-            .cntrCstNo("031542082")
+            .cntrCstNo(VALID_CST_NO)
 //            .dcde("1646422")
 //            .rcpChnlDtl("2050")
-            .dcde("1653227")
-            .rcpChnlDtl("2010")
+            .dcde(KMEMBERS_PNTRT_NO)
+            .rcpChnlDtl(CtSellChnlDtlCd.KMEMBERS.getCode())
             .pdCd01("WP02110453")
             .dscDv("1")
             .uswy("0")
@@ -136,9 +147,9 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
         // given
         CreateSinglePaymentReq req = CreateSinglePaymentReq.builder()
             .inCls("1")
-            .cntrNo("W20244903293")
+            .cntrNo(NEW_CNTR_NO)
             .cntrSn("1")
-            .cntrCstNo("031542082")
+            .cntrCstNo(VALID_CST_NO)
             .dcde("1646422")
             .pdCd01("WP02110453")
             .rcpChnlDtl("2050")
@@ -179,9 +190,9 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
             .inCls("1")
             .cntrNo("W20230510674")
             .cntrSn("5")
-            .cntrCstNo("031542082")
-            .dcde("1653227")
-            .rcpChnlDtl("2010")
+            .cntrCstNo(VALID_CST_NO)
+            .dcde(KMEMBERS_PNTRT_NO)
+            .rcpChnlDtl(CtSellChnlDtlCd.KMEMBERS.getCode())
             .pdCd01("WP02110453")
             .dscDv("1")
             .uswy("0")
@@ -215,11 +226,11 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
         // given
         CreateSinglePaymentReq req = CreateSinglePaymentReq.builder()
             .inCls("1")
-            .cntrNo("W20234902675")
+            .cntrNo(EXIST_CNTR_NO)
             .cntrSn("1")
-            .cntrCstNo("031542082")
-            .dcde("1653227")
-            .rcpChnlDtl("2010")
+            .cntrCstNo(VALID_CST_NO)
+            .dcde(KMEMBERS_PNTRT_NO)
+            .rcpChnlDtl(CtSellChnlDtlCd.KMEMBERS.getCode())
             .pdCd01("WP02110453")
             .dscDv("1")
             .uswy("0")
@@ -253,11 +264,11 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
         // given
         CreateSinglePaymentReq req = CreateSinglePaymentReq.builder()
             .inCls("1")
-            .cntrNo("W20234902675")
+            .cntrNo(EXIST_CNTR_NO)
             .cntrSn("2")
-            .cntrCstNo("031542082")
-            .dcde("1653227")
-            .rcpChnlDtl("2010")
+            .cntrCstNo(VALID_CST_NO)
+            .dcde(KMEMBERS_PNTRT_NO)
+            .rcpChnlDtl(CtSellChnlDtlCd.KMEMBERS.getCode())
             .pdCd01("WP02110453")
             .dscDv("1")
             .uswy("0")
@@ -291,8 +302,8 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
         // given
         CreateRentalReq req2 = CreateRentalReq.builder()
             .inDv("5")
-            .prtnrNo("1653227")
-            .rcpChnlDtl("2010")
+            .prtnrNo(KMEMBERS_PNTRT_NO)
+            .rcpChnlDtl(CtSellChnlDtlCd.KMEMBERS.getCode())
             .pdCd("WP02120342")
             .dscDvCd("8")
 //            .dscTpCd("03")
@@ -306,8 +317,8 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
 
         CreateRentalReq req = CreateRentalReq.builder()
             .inDv("5")
-            .prtnrNo("1653227")
-            .rcpChnlDtl("2010")
+            .prtnrNo(KMEMBERS_PNTRT_NO)
+            .rcpChnlDtl(CtSellChnlDtlCd.KMEMBERS.getCode())
             .pdCd("WP02120319")
             .dscDvCd("8")
             .dscTpCd("03")
@@ -359,9 +370,9 @@ RCP_CHNL_DTL=2010*/
         // given
         CreateRentalReq req = CreateRentalReq.builder()
             .inDv("1")
-            .cstNo("031542082")
-            .prtnrNo("1653227")
-            .rcpChnlDtl("2010")
+            .cstNo(VALID_CST_NO)
+            .prtnrNo(KMEMBERS_PNTRT_NO)
+            .rcpChnlDtl(CtSellChnlDtlCd.KMEMBERS.getCode())
             .pdCd("WP02120342")
             .dscDvCd("8")
             .dscTpCd("03")
@@ -413,9 +424,9 @@ RCP_CHNL_DTL=2010*/
         // given
         CreateRentalReq req = CreateRentalReq.builder()
             .inDv("1")
-            .cstNo("031542082")
-            .prtnrNo("1653227")
-            .rcpChnlDtl("2010")
+            .cstNo(VALID_CST_NO)
+            .prtnrNo(KMEMBERS_PNTRT_NO)
+            .rcpChnlDtl(CtSellChnlDtlCd.KMEMBERS.getCode())
             .pdCd("WP02120342")
             .dscDvCd("8")
             .dscTpCd("03")
@@ -447,6 +458,102 @@ RCP_CHNL_DTL=2010*/
 
         // when & then
         MockHttpServletRequestBuilder request = post(BASE_URL + "/create-rental-contract")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(dto));
+
+        mockMvc.perform(request)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.header.ERR_OC_YN").value("N"))
+            .andExpect(jsonPath("$.body.RS_CD").value("S"))
+        ;
+    }
+
+    @Test
+    @DisplayName("wells 정기배송 생성 테스트 파스퇴르 1M")
+    void testCreateContractForRglrShpFor1MSvPd() throws Exception {
+        // given
+        CreateRegularShippingReq req = CreateRegularShippingReq.builder()
+            .procsDv("1")
+            .cntrNo(NEW_CNTR_NO_2)
+            .cntrSn("1")
+            .cstNo(VALID_CST_NO)
+            .sellPrtnrNo(KMEMBERS_PNTRT_NO)
+            .sellChnlCd(CtSellChnlDtlCd.KMEMBERS.getCode())
+            .basePdCd("WP03160172")
+            .stplPrdCd("12")
+
+            .aftnDvCd("1")
+            .aftnAmt("38900")
+
+            .rcgvpKnm("수령자")
+            .cralLocaraTno("010")
+            .mexno("1234")
+            .cralIdvTno("5678")
+            .zip("13254")
+            .basAdr("경기 성남시 중원구 광명로 204")
+            .dtlAdr("201동 303호 (중앙동,신흥역하늘채랜더스원아파트)")
+
+            .ag111Yn("Y")
+            .ag112Yn("Y")
+            .ag113Yn("Y")
+            .ag114Yn("Y")
+            .ag115Yn("Y")
+
+            .build();
+
+        EaiWrapper<CreateRentalReq> dto = new EaiWrapper(req);
+
+        // when & then
+        MockHttpServletRequestBuilder request = post(BASE_URL + "/create-regular-shipping-contract")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(dto));
+
+        mockMvc.perform(request)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.header.ERR_OC_YN").value("N"))
+            .andExpect(jsonPath("$.body.RS_CD").value("S"))
+        ;
+    }
+
+    @Test
+    @DisplayName("wells 정기배송 생성 테스트 활력슬림쏙(12박스)(WP03160159) 2M")
+    void testCreateContractForRglrShpFor3MSvPd() throws Exception {
+        UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
+        userSession.setTenantCd(CtSessionTenantCd.WELLS.getCode());
+        // given
+        CreateRegularShippingReq req = CreateRegularShippingReq.builder()
+            .procsDv("1")
+            .cntrNo(NEW_CNTR_NO_2)
+            .cntrSn("1")
+            .cstNo(VALID_CST_NO)
+            .sellPrtnrNo(KMEMBERS_PNTRT_NO)
+            .sellChnlCd(CtSellChnlDtlCd.KMEMBERS.getCode())
+            .basePdCd("WP03160159")
+            .stplPrdCd("12")
+
+            .aftnDvCd("1")
+            .aftnAmt("38900")
+
+            .rcgvpKnm("수령자")
+            .cralLocaraTno("010")
+            .mexno("1234")
+            .cralIdvTno("5678")
+            .zip("13254")
+            .basAdr("경기 성남시 중원구 광명로 204")
+            .dtlAdr("201동 303호 (중앙동,신흥역하늘채랜더스원아파트)")
+
+            .ag111Yn("Y")
+            .ag112Yn("Y")
+            .ag113Yn("Y")
+            .ag114Yn("Y")
+            .ag115Yn("Y")
+
+            .build();
+
+        EaiWrapper<CreateRentalReq> dto = new EaiWrapper(req);
+
+        // when & then
+        MockHttpServletRequestBuilder request = post(BASE_URL + "/create-regular-shipping-contract")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(dto));
 
