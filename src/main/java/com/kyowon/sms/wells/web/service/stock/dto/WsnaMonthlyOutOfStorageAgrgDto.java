@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import java.util.List;
+
 import io.swagger.annotations.ApiModel;
 
 /**
@@ -24,6 +26,10 @@ public class WsnaMonthlyOutOfStorageAgrgDto {
         String itmGdCd,
         String itmKndCd,
         String itmPdCd,
-        String useYn
+        String useYn,
+        List<String> itmPdCds,
+        String itmGrpCd,
+        String strtSapCd,
+        String endSapCd
     ) {}
 }
