@@ -46,7 +46,7 @@ public class WwdcSalesConfirmController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
-        @ApiImplicitParam(name = "cellTpCd", value = "업무구분", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpCd", value = "업무구분", paramType = "query"),
         @ApiImplicitParam(name = "ogTpCd", value = "조직코드", paramType = "query"),
         @ApiImplicitParam(name = "dgr1LevlOgId", value = "조직레벨1", paramType = "query"),
         @ApiImplicitParam(name = "dgr2LevlOgId", value = "조직레벨2", paramType = "query"),
@@ -71,7 +71,7 @@ public class WwdcSalesConfirmController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query"),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query"),
-        @ApiImplicitParam(name = "cellTpCd", value = "업무구분", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpCd", value = "업무구분", paramType = "query"),
         @ApiImplicitParam(name = "dgr1LevlOgId", value = "조직레벨1", paramType = "query"),
         @ApiImplicitParam(name = "dgr2LevlOgId", value = "조직레벨2", paramType = "query"),
         @ApiImplicitParam(name = "dtFrom", value = "매출인식일From", paramType = "query"),
