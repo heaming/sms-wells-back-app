@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.dvo;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -32,4 +34,8 @@ public class WsnaMonthlyOutOfStorageAgrgDvo {
     String itmKndCd;
     String itmPdCd;
     String useYn;
+    List<String> itmPdCds;
+    String itmGrpCd;
+    String strtSapCd;
+    String endSapCd;
 }
