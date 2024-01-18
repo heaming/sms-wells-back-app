@@ -12,11 +12,11 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
+import java.util.Map;
 
 @Api(tags = "[WFEF] 예상수수료 조회")
 @RequiredArgsConstructor
@@ -39,6 +39,17 @@ public class WfefEstimateFeeMgtController {
         return service.getEstimateFeeOgP(req);
     }
 
+    @ApiOperation(value = "예상수수료 - 조회(p조직) 추가실적", notes = "추가실적이 반영된 예상수수료 p조직을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "perType", value = "실적조회", paramType = "query", required = true),
+        @ApiImplicitParam(name = "sellPrtnrNo", value = "번호", paramType = "query", required = true),
+    })
+    @PostMapping("/p-og")
+    public SearchOgPRes getEstimateFeeOgP(@Valid SearchEstimateReq req, @RequestBody List<Map<String, Object>> addPerformances) {
+        return service.getEstimateFeeOgP(req, addPerformances);
+    }
+
     @ApiOperation(value = "예상수수료 - 조회(m조직)", notes = "예상수수료 m조직을 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
@@ -50,6 +61,17 @@ public class WfefEstimateFeeMgtController {
         return service.getEstimateFeeOgM(req);
     }
 
+    @ApiOperation(value = "예상수수료 - 조회(m조직) 추가실적", notes = "예상수수료 m조직을 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "perType", value = "실적조회", paramType = "query", required = true),
+        @ApiImplicitParam(name = "sellPrtnrNo", value = "번호", paramType = "query", required = true),
+    })
+    @PostMapping("/m-og")
+    public SearchOgMRes getEstimateFeeOgM(@Valid SearchEstimateReq req, @RequestBody List<Map<String, Object>> addPerformances) {
+        return service.getEstimateFeeOgM(req, addPerformances);
+    }
+
     @ApiOperation(value = "예상수수료 - 조회(홈마스터)", notes = "예상수수료 흄마스터를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
@@ -59,5 +81,16 @@ public class WfefEstimateFeeMgtController {
     @GetMapping("/home")
     public SearchHomeRes getEstimateFeeHome(@Valid SearchEstimateReq req) throws Exception {
         return service.getEstimateFeeHome(req);
+    }
+
+    @ApiOperation(value = "예상수수료 - 조회(홈마스터) 추가실적", notes = "예상수수료 흄마스터를 조회한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "perfYm", value = "실적년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "perType", value = "실적조회", paramType = "query", required = true),
+        @ApiImplicitParam(name = "sellPrtnrNo", value = "번호", paramType = "query", required = true),
+    })
+    @PostMapping("/home")
+    public SearchHomeRes getEstimateFeeHome(@Valid SearchEstimateReq req, @RequestBody List<Map<String, Object>> addPerformances) {
+        return service.getEstimateFeeHome(req, addPerformances);
     }
 }
