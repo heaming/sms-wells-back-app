@@ -35,6 +35,7 @@ public class WwdbVirtualAccountInterfaceService {
         paramVal.put("CNTR_SN", dto.cntrSn());
         paramVal.put("DP_AMT", dto.dpAmt());
         paramVal.put("FNIT_CD", dto.fnitCd());
+        paramVal.put("RVE_CD", "85066");
 
         HashMap<String, String> returnVal = vacService.createVirtualAccountInterface(paramVal);
         return WwdbVirtualAccountInterfaceDto.SaveRes.builder().cntrNo(dto.cntrNo()).cntrSn(dto.cntrSn())
