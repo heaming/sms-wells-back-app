@@ -7,13 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.common.web.deduction.zcommon.constant.DeDeductionConst;
 import com.kyowon.sms.wells.web.deduction.redf.converter.WdeaSoleDistributorMgtConverter;
-import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaSoleDistributorMgtDto.SaveReq;
-import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaSoleDistributorMgtDto.SearchBusinessToBusinessPrtnrRes;
-import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaSoleDistributorMgtDto.SearchSoleDistributorContractRes;
-import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaSoleDistributorMgtDto.SearchSoleDistributorCreateReq;
-import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaSoleDistributorMgtDto.SearchSoleDistributorMgtReq;
-import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaSoleDistributorMgtDto.SearchSoleDistributorMgtRes;
-import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaSoleDistributorMgtDto.SearchSoleDistributorPrtnrRes;
+import com.kyowon.sms.wells.web.deduction.redf.dto.WdeaSoleDistributorMgtDto.*;
 import com.kyowon.sms.wells.web.deduction.redf.dvo.WdeaSoleDistributorMgtDvo;
 import com.kyowon.sms.wells.web.deduction.redf.mapper.WdeaSoleDistributorMgtMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -119,7 +113,7 @@ public class WdeaSoleDistributorMgtService {
     /**
      * 총판/B2B 되물림 관리 - 수정
      * @param dto
-     * @return 
+     * @return
      */
     @Transactional
     public int editSoleDistributorB2b(List<SaveReq> dtos) {
@@ -133,6 +127,18 @@ public class WdeaSoleDistributorMgtService {
         }
 
         return processCount;
+    }
+
+    /**
+     * 총판/B2B 되물림 금액 생성 후 프로세스(총판 가지급금 생성)
+     *
+     * @param redfAdsbOcYm 발생년월
+     */
+    @Transactional
+    public void saveSoleDistributorB2bRedfAmt(String redfAdsbOcYm) {
+
+        mapper.insertSoleDistributorB2bRedfAmt(redfAdsbOcYm);
+
     }
 
 }
