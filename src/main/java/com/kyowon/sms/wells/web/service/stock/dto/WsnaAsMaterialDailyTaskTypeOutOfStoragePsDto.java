@@ -1,10 +1,14 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import io.swagger.annotations.ApiModel;
+import lombok.Builder;
 
 public class WsnaAsMaterialDailyTaskTypeOutOfStoragePsDto {
+
+    @Builder
     @ApiModel(value = "WsnaAsMaterialDailyTaskTypeOutOfStoragePsDto-SearchReq")
     public record SearchReq(
         String baseYm,
@@ -36,8 +40,8 @@ public class WsnaAsMaterialDailyTaskTypeOutOfStoragePsDto {
         Integer last1y,
         Integer last1yNext2m,
         Integer last3m,
-        Integer mmAgrg,
-        Integer ddAgrg,
+        BigDecimal mmAgrg,
+        BigDecimal ddAgrg,
         Integer lastPrev1m,
         Integer qtyPajuSum,
         Integer qtyCenterSum,
