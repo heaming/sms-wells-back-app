@@ -148,7 +148,6 @@ public class WsniParcelServiceRegController {
 
             if (dto.reqdvCd().equals("02")) {
 
-                DateTimeFormatter formatter_hist = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
                 String strHist = date.format(formatter);
                 WsnbWorkOrderDvo dvo = new WsnbWorkOrderDvo();
                 dvo.setCntrNo(dto.custNo());
