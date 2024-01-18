@@ -14,14 +14,17 @@
     </select>
     <select id="selectStockContinueMonthAgrgState" resultType="camelMap">
 	    WITH PART_INF AS (
-            /*품목정보*/
+            --품목정보
             SELECT P1.PD_CD
-                 , TO_CHAR(TO_NUMBER(P2.SAP_MAT_CD)) AS SAP_MAT_CD    /*SAP자재코드*/
-                 , P2.PD_NM         /*품목명*/
-                 , P1.PD_PRP_VAL15  /*기초자재*/
-                 , P1.PD_PRP_VAL17  /*자재관리유형, AS_MAT_MNG_TP_CD, MAT_MNGT_DV_CD*/
-                 , P1.PD_PRP_VAL21  /*AS자재 공통분류, AS_MAT_CMN_CLSF_CD, CMN_PART_DV_CD*/
-                 , P1.PD_PRP_VAL30  /*회전율 대상여부, TRNOVR_RT_OJ_YN*/
+	             , TO_CHAR(TO_NUMBER(P2.SAP_MAT_CD)) AS SAP_MAT_CD    /*SAP자재코드*/
+	             , P2.PD_NM  /*품목명*/
+	             , P1.PD_PRP_VAL06  /*리드타임, AS_LDTM*/
+	             , P1.PD_PRP_VAL17  /*자재관리유형, AS_MAT_MNG_TP_CD, MAT_MNGT_DV_CD*/
+	             , P1.PD_PRP_VAL21  /*AS자재 공통분류, AS_MAT_CMN_CLSF_CD, CMN_PART_DV_CD*/
+	             , P1.PD_PRP_VAL30  /*회전율 대상여부, TRNOVR_RT_OJ_YN*/
+	             , P1.PD_PRP_VAL07  /*최소발주량, MIN_GO_QTY*/
+	             , P1.PD_PRP_VAL20
+	             , P1.PD_PRP_VAL15
               FROM WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL P1  /*상품각사속성상세*/
                    INNER JOIN TB_PDBS_PD_BAS P2
                            ON P1.PD_CD = P2.PD_CD
@@ -63,7 +66,7 @@
          )
        , WARE_IF AS (
             /*창고정보*/
-            SELECT S1.APY_YM, S1.WARE_NO, S1.HGR_WARE_NO
+            SELECT *
               FROM WSMDBS.TB_SVST_MCBY_WARE_IZ S1  /*월별창고내역 ST102TB*/
              WHERE 1=1
                AND S1.APY_YM = #{baseYm}
@@ -73,7 +76,7 @@
          )
        , BASE_QTY_INF AS (
             /*창고별품목별 기준년월 기초/기말재고(물류 = 물류창고, 서비스센터 = 센터조직+하위엔지니어)*/
-            SELECT DISTINCT (CASE WHEN W1.WARE_NO NOT LIKE '%0' THEN W1.HGR_WARE_NO ELSE S1.WARE_NO END) AS WARE_NO
+            SELECT DISTINCT  (CASE WHEN W1.WARE_DTL_DV_CD NOT LIKE '%0' THEN W1.HGR_WARE_NO ELSE S1.WARE_NO END) AS WARE_NO
                  , S1.ITM_PD_CD
                  , (CASE WHEN 'A' = 'A' THEN SUM(S1.BTD_STOC_A_GD_QTY)
                          WHEN 'A' = 'B' THEN SUM(S1.BTD_STOC_B_GD_QTY)
@@ -94,13 +97,13 @@
              WHERE 1=1
                AND S1.BASE_YM = #{baseYm}
                AND S1.DTA_DL_YN = 'N'
-             GROUP BY (CASE WHEN W1.WARE_NO NOT LIKE '%0' THEN W1.HGR_WARE_NO ELSE S1.WARE_NO END), S1.ITM_PD_CD
+             GROUP BY (CASE WHEN W1.WARE_DTL_DV_CD NOT LIKE '%0' THEN W1.HGR_WARE_NO ELSE S1.WARE_NO END),  S1.ITM_PD_CD
          )
        , WK_OSTR_QTY_INF AS (
             /*창고별품목별 기준년월 작업출고(서비스센터)*/
-            SELECT DISTINCT (CASE WHEN W1.WARE_NO NOT LIKE '%0' THEN W1.HGR_WARE_NO ELSE S1.WK_WARE_NO END) AS WARE_NO
+            SELECT DISTINCT (CASE WHEN W1.WARE_DTL_DV_CD NOT LIKE '%0' THEN W1.HGR_WARE_NO ELSE S1.WK_WARE_NO END) AS WARE_NO
                  , S1.ITM_PD_CD
-                 , S1.USE_QTY AS USE_QTY
+                 , SUM(S1.USE_QTY) AS USE_QTY
               FROM WSMDBS.TB_SVST_SV_WK_OSTR_IZ S1  /*서비스작업출고내역, ST163TB*/
                    INNER JOIN WARE_IF W1
                            ON S1.WK_WARE_NO = W1.WARE_NO
@@ -112,11 +115,12 @@
                AND S1.SV_BIZ_HCLSF_CD != '6' /*반품제외*/
                AND S1.DTA_DL_YN = 'N'
                AND S1.WK_WARE_NO != '100002'
+			 GROUP BY (CASE WHEN W1.WARE_DTL_DV_CD NOT LIKE '%0' THEN W1.HGR_WARE_NO ELSE S1.WK_WARE_NO END), S1.ITM_PD_CD
              UNION ALL
             /*창고별품목별 기준년월 작업출고(물류센터)*/
             SELECT DISTINCT '100002' AS WARE_NO
                  , S1.ITM_PD_CD
-                 , S1.USE_QTY AS USE_QTY
+                 , SUM(S1.USE_QTY) AS USE_QTY
               FROM WSMDBS.TB_SVST_SV_WK_OSTR_IZ S1  /*서비스작업출고내역, ST163TB*/
                    INNER JOIN WARE_IF W1
                            ON S1.WK_WARE_NO = W1.WARE_NO
@@ -127,6 +131,7 @@
              </if>
                AND S1.SV_BIZ_HCLSF_CD != '6' /*반품제외*/
                AND S1.DTA_DL_YN = 'N'
+             GROUP BY S1.ITM_PD_CD
          )
        , BASE AS (
            SELECT DISTINCT B1.WARE_NO
