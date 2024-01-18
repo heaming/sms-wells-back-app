@@ -34,7 +34,7 @@
              ,T2.PDCT_PD_CD                                 /* 설치 제품코드 */
              ,T11.SELL_TP_CD                                /* 판매유형코드 */
              ,T2.SV_HSHD_NO                                 /* 가구코드 */
-             ,T3.FXN_PRTNR_NO                               /* 고정파트너번호 */
+             ,GAGU.FXN_PRTNR_NO                               /* 고정파트너번호 */
              ,T3.VST_NMN_N                                  /* 방푼차월수 */
              ,T12.PD_ABBR_NM       AS PD_ABBR_NM            /* 제품약어 */
              ,F_CMZ_CD_NM('TNT_WELLS','SELL_TP_CD', T11.SELL_TP_CD, 'ko') AS SELL_TP_NM /* 판매유형명 */
@@ -47,10 +47,18 @@
                                      AND T2.CNTR_SN = T3.CNTR_SN
                                      --AND T2.SV_HSHD_NO = T3.SV_HSHD_NO
                                      AND T3.MNGT_YM = TO_CHAR(SYSDATE,'YYYYMM')
+                 LEFT OUTER JOIN TB_SVPD_CNTR_FXN_PRTNR_IZ GAGU
+                            ON T2.CNTR_NO = GAGU.CNTR_NO
+                           AND T2.CNTR_SN = GAGU.CNTR_SN
+                           AND GAGU.CH_SN = (SELECT MAX(CH_SN)
+                                              FROM TB_SVPD_CNTR_FXN_PRTNR_IZ SUB
+                                             WHERE SUB.CNTR_NO = T1.CNTR_NO
+                                               AND SUB.CNTR_SN = T1.CNTR_SN )
+                           AND TO_CHAR(SYSDATE,'YYYYMM') >= GAGU.APY_STRT_YM
                  LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T4
-                                 ON T3.MNGT_YM = T4.BASE_YM
-                                     AND T3.FXN_PRTNR_OG_TP_CD = T4.OG_TP_CD
-                                     AND T3.FXN_PRTNR_NO = T4.PRTNR_NO
+                                 ON T4.BASE_YM = GAGU.APY_STRT_YM
+                                     AND GAGU.FXN_PRTNR_OG_TP_CD  = T4.OG_TP_CD
+                                     AND GAGU.FXN_PRTNR_NO = T4.PRTNR_NO
                  INNER JOIN TB_SSCT_CNTR_PRTNR_REL T5
                             ON T1.CNTR_NO = T5.CNTR_NO
                                 AND T5.CNTR_PRTNR_TP_CD = '010'
@@ -74,6 +82,7 @@
                                 AND T2.CNTR_SN  = T11.CNTR_SN
                  INNER JOIN TB_PDBS_PD_BAS T12
                             ON T2.PDCT_PD_CD = T12.PD_CD
+
         WHERE 1 = 1
           AND T1.CNTR_NO = #{cntrNo}
           AND T1.CNTR_SN = #{cntrSn}
