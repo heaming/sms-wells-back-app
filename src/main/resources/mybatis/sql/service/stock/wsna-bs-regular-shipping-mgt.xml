@@ -89,7 +89,8 @@
                  , REGEXP_SUBSTR(PL1.PART_NM_LIST,  '[^|]+', 1, 10) AS PART_NM_10  /* 투입부품명10 */
                  , REGEXP_SUBSTR(PL1.PART_QTY_LIST, '[^,]+', 1, 10) AS PART_QTY_10 /* 투입부품갯수10 */
               FROM (
-                    SELECT DISTINCT TA.CST_SV_ASN_NO  /* 고객서비스배정번호 */
+                    SELECT /*+ USE_HASH(TA TB) */
+                           DISTINCT TA.CST_SV_ASN_NO  /* 고객서비스배정번호 */
                          , TB.PDCT_PD_CD AS PDCT_PD_CD /* 제품상품코드 */
                          , COUNT(1) OVER ( PARTITION BY TB.ASN_OJ_YM, TB.CNTR_NO, TB.CNTR_SN
                                            ORDER BY     TB.ASN_OJ_YM, TB.CNTR_NO, TB.CNTR_SN
@@ -109,13 +110,16 @@
                      FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ  TA /* 고객서비스BS대상내역 */
                     INNER JOIN TB_SVPD_RGBS_PU_ITM_IZ TB /* 정기BS투입품목내역 */
                             ON  TA.ASN_OJ_YM = TB.ASN_OJ_YM
-                            AND TA.CNTR_NO   = TB.CNTR_NO
-                            AND TA.CNTR_SN   = TB.CNTR_SN
+                            AND TA.CST_SV_ASN_NO = TB.CST_SV_ASN_NO
                     INNER JOIN TB_PDBS_PD_BAS TC /* 상품기본 */
                             ON TB.PU_PART_PD_CD = TC.PD_CD
-                    WHERE 1=1
-                      AND TA.ASN_OJ_YM = #{asnYm}
+                    WHERE TA.DTA_DL_YN = 'N'
                       AND TA.VST_DV_CD = '20' /*20:택배*/
+                      AND TB.DTA_DL_YN = 'N'
+                      AND TC.DTA_DL_YN = 'N'
+                      AND TC.PD_TP_CD  = 'M'
+                      AND TA.ASN_OJ_YM = #{asnYm}
+                      AND TB.ASN_OJ_YM = #{asnYm}
                    ) PL1
              WHERE 1=1
         )
