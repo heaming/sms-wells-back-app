@@ -324,4 +324,101 @@
            AND PRTNR_NO = #{prtnrNo}
     </update>
 
+    <insert id="insertSoleDistributorB2bRedfAmt">
+        /*되물림 금액 생성 된 것, 총판가지급 테이블에 MERGE*/
+         MERGE INTO TB_FEDD_SODBT_FEE_MM_REDF_IZ A /*RDS지급신청기본*/
+    	 USING (
+		        SELECT S.REDF_ADSB_OC_YM /*되물림재지급발생년월*/
+		        	 , S.OG_TP_CD /*조직유형*/
+		        	 , S.PRTNR_NO /*파트너번호*/
+		        	 , NVL(S2.REDF_DDTN_BLAM_CRDOVR_AMT, 0) AS REDF_DDTN_BLAM_CRDOVR_AMT /*되물림공제잔액이월금액*/
+		        	 , NVL(S1.REDF_ADSB_OC_AMT, 0) AS REDF_OC_AMT /*되물림발생금액(당월발생)*/
+		        	 , 0 AS REDF_DDCTAM /*되물림공제금액(당월공제)*/
+		        	 , NVL(S2.REDF_DDTN_BLAM, 0) AS REDF_DDTN_BLAM /*되물림공제잔액*/
+		          FROM (
+				        SELECT #{redfAdsbOcYm} AS REDF_ADSB_OC_YM /*PARAM: 발생년월*/
+				        	 , B.OG_TP_CD /*총판 고정*/
+				        	 , B.PRTNR_NO
+				          FROM (
+			      				  SELECT B1.REDF_ADSB_OC_YM
+							      	   , B1.OG_TP_CD
+							      	   , B2.HOO_PRTNR_NO AS PRTNR_NO
+							      	   , NVL(SUM(B1.REDF_ADSB_CTR_CNFM_AMT), 0) AS REDF_ADSB_OC_AMT
+							        FROM TB_FEDD_FEE_REDF_ADSB_BAS B1
+							       INNER JOIN TB_FEAM_MM_PRTNR_HOO_IZ B2
+							          ON B1.PRTNR_NO = B2.PRTNR_NO
+							         AND B1.OG_TP_CD = B2.OG_TP_CD
+							         AND B1.PERF_YM = B2.BASE_YM
+							         AND B1.PERF_DV_CD = B2.PERF_DV_CD
+							       WHERE B1.REDF_ADSB_DV_CD = '02' /*되물림 고정*/
+							         AND B1.REDF_ADSB_OC_YM = #{redfAdsbOcYm} /*PARAM: 되물림 금액 발생년월*/
+							         AND B1.OG_TP_CD = 'W05' /*총판 고정*/
+							       GROUP BY B1.REDF_ADSB_OC_YM, B1.OG_TP_CD, B1.PRTNR_NO, B2.HOO_PRTNR_NO
+				          ) B
+				         UNION
+				        SELECT '202310' AS REDF_ADSB_OC_YM /*PARAM: 발생년월*/
+				        	 , A.OG_TP_CD /*총판 고정*/
+				        	 , A.PRTNR_NO
+				          FROM TB_FEDD_SODBT_FEE_MM_REDF_IZ A
+				         WHERE A.REDF_ADSB_OC_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{redfAdsbOcYm}, 'YYYYMM'), -1), 'YYYYMM') /*PARAM: 발생년월 전월 기준*/
+				           AND A.REDF_DDTN_BLAM > 0
+		         ) S
+		         LEFT OUTER JOIN (
+			      				  SELECT B1.REDF_ADSB_OC_YM
+							      	   , B1.OG_TP_CD
+							      	   , B2.HOO_PRTNR_NO AS PRTNR_NO
+							      	   , NVL(SUM(B1.REDF_ADSB_CTR_CNFM_AMT), 0) AS REDF_ADSB_OC_AMT
+							        FROM TB_FEDD_FEE_REDF_ADSB_BAS B1
+							       INNER JOIN TB_FEAM_MM_PRTNR_HOO_IZ B2
+							          ON B1.PRTNR_NO = B2.PRTNR_NO
+							         AND B1.OG_TP_CD = B2.OG_TP_CD
+							         AND B1.PERF_YM = B2.BASE_YM
+							         AND B1.PERF_DV_CD = B2.PERF_DV_CD
+							       WHERE B1.REDF_ADSB_DV_CD = '02' /*되물림 고정*/
+							         AND B1.REDF_ADSB_OC_YM = #{redfAdsbOcYm} /*PARAM: 되물림 금액 발생년월*/
+							         AND B1.OG_TP_CD = 'W05' /*총판 고정*/
+							       GROUP BY B1.REDF_ADSB_OC_YM, B1.OG_TP_CD, B1.PRTNR_NO, B2.HOO_PRTNR_NO
+		         ) S1
+		          ON S.REDF_ADSB_OC_YM = S1.REDF_ADSB_OC_YM
+		         AND S.PRTNR_NO = S1.PRTNR_NO
+		         AND S.OG_TP_CD = S1.OG_TP_CD
+		        LEFT OUTER JOIN TB_FEDD_SODBT_FEE_MM_REDF_IZ S2
+				  ON 1 = 1
+				 AND S.PRTNR_NO = S2.PRTNR_NO
+				 AND S.OG_TP_CD = S2.OG_TP_CD
+				 AND S2.REDF_ADSB_OC_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{redfAdsbOcYm}, 'YYYYMM'), -1), 'YYYYMM') /*PARAM: 발생년월 전월 기준*/
+				 AND S2.REDF_DDTN_BLAM > 0
+         ) B
+          ON (A.REDF_ADSB_OC_YM  = B.REDF_ADSB_OC_YM) /*해당 발생년월이 이미 만들어져있으면, UPDATE 아니면 INSERT*/
+	    WHEN MATCHED THEN
+		UPDATE
+		   SET A.REDF_DDTN_BLAM_CRDOVR_AMT = B.REDF_DDTN_BLAM_CRDOVR_AMT
+		     , A.REDF_OC_AMT = B.REDF_OC_AMT
+		     , A.REDF_DDCTAM = B.REDF_DDCTAM
+		     , A.REDF_DDTN_BLAM = A.REDF_DDTN_BLAM
+		     <include refid="COMMON.updateSystemField" />
+		WHEN NOT MATCHED THEN
+        INSERT (
+                     A.REDF_ADSB_OC_YM
+			       , A.OG_TP_CD
+			       , A.PRTNR_NO
+			       , A.REDF_DDTN_BLAM_CRDOVR_AMT
+			       , A.REDF_OC_AMT
+			       , A.REDF_DDCTAM
+			       , A.REDF_DDTN_BLAM
+			       , A.DTA_DL_YN
+                <include refid="COMMON.insertSystemField" />
+          ) VALUES (
+                     B.REDF_ADSB_OC_YM
+			       , B.OG_TP_CD
+			       , B.PRTNR_NO
+			       , B.REDF_DDTN_BLAM_CRDOVR_AMT
+			       , B.REDF_OC_AMT
+			       , B.REDF_DDCTAM
+			       , B.REDF_DDTN_BLAM
+			       , 'N'
+                <include refid="COMMON.insertSystemFieldValue" />
+    	  )
+    </insert>
+
 </mapper>
