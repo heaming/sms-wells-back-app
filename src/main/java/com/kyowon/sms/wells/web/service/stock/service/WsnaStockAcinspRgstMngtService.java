@@ -209,7 +209,7 @@ public class WsnaStockAcinspRgstMngtService {
         int processCount = 0;
 
         List<WsnaStockAcinspRgstMngtDvo> dvos = this.converter
-            .mapAllDeleteAcinspReqToWsnaStockAcinspRgstMngtDvo(dtos);
+            .mapAllSaveCancelReqToWsnaStockAcinspRgstMngtDvo(dtos);
 
         for (WsnaStockAcinspRgstMngtDvo dvo : dvos) {
             List<WsnaStockAcinspRgstMngtDvo> reDeleteDvo = this.mapper.selectDeleteAcinspRgstCancel(dvo);
@@ -241,7 +241,7 @@ public class WsnaStockAcinspRgstMngtService {
         int processCount = 0;
 
         List<WsnaStockAcinspRgstMngtDvo> dvos = this.converter
-            .mapAllDeleteApplAcinspReqToWsnaStockAcinspRgstMngtDvo(dtos);
+            .mapAllRemoveReqToWsnaStockAcinspRgstMngtDvo(dtos);
         for (WsnaStockAcinspRgstMngtDvo dvo : dvos) {
 
             int chkCount = this.mapper.deleteApplAcinsp(dvo);
