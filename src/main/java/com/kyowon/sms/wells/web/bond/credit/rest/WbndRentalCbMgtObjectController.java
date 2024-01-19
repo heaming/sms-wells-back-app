@@ -52,12 +52,12 @@ public class WbndRentalCbMgtObjectController {
     @PutMapping
     public SaveResponse saveRentalCbMgtObjects(
         @Valid
-        @RequestBody
-        @NotEmpty
-        List<SaveReq> dtos
+        @NotBlank
+        @RequestParam
+        String baseYm
     ) {
         return SaveResponse.builder()
-            .processCount(service.saveRentalCbMgtObjects(dtos)).build();
+            .processCount(service.saveRentalCbMgtObjects(baseYm)).build();
     }
 
     @ApiOperation(value = "렌탈CB 납입정보 팝업 조회", notes = "고객별 렌탈CB 대상 또는 기 등록된 고객의 납입 정보 조회")

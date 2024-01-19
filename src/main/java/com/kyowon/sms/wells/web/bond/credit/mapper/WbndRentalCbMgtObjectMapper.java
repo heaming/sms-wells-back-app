@@ -43,22 +43,16 @@ public interface WbndRentalCbMgtObjectMapper {
     /**
      * 렌탈CB 연체대상 관리 update
      *
-     * @param dto
      * @return int
      */
-    int updateMessageObjectYn(
-        WbndRentalCbDelinquentIzDvo dto
-    );
+    int updateMessageObjectYn();
 
     /**
      * 렌탈CB 연체대상 관리 이력 insert
      *
-     * @param dto
      * @return int
      */
-    int insertMessageObjectHist(
-        WbndRentalCbDelinquentIzDvo dto
-    );
+    int insertMessageObjectHist(String baseYm);
 
     /**
      * 렌탈CB납입정보(팝업) 페이징 조회

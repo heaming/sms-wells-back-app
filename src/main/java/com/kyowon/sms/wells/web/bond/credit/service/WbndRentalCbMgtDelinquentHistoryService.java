@@ -59,9 +59,6 @@ public class WbndRentalCbMgtDelinquentHistoryService {
     public int saveRentalCbMgtDelinquentHistories(List<SaveReq> dtos) {
         int processCount = 0;
 
-        BizAssert.isTrue(
-            this.mapper.selectRentalCbDlqIzSendThisMonthCount(dtos.get(0).baseYm()) == 0, "당월에 알림톡 발송한 내역이 있습니다."
-        );
         for (SaveReq dto : dtos) {
             WbndRentalCbDelinquentIzDvo dvo = this.converter.mapSaveReqToRentalCbDlqIzDvo(dto);
             // 연체내역 update
