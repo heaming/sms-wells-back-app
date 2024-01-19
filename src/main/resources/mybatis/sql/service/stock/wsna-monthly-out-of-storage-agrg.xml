@@ -57,7 +57,7 @@
              </if>
         )
         , WARE_INF AS (   /* 창고 */
-            SELECT O1.BASE_YM
+            SELECT DISTINCT O1.BASE_YM
                  , O1.OG_ID
                  , O1.OG_TP_CD
                  , O1.OG_CD
@@ -112,12 +112,18 @@
                AND S1.WARE_MNGT_PRTNR_NO = O2.PRTNR_NO
                --퇴사자제외 조건 선택 시
                --AND O2.CLTN_DT IS  NULL
-   LEFT OUTER JOIN WSMDBS.TB_OGPS_EGER_GD_RGST_IZ O3 /*엔지니어등급등록내역*/
+   LEFT OUTER JOIN (SELECT OO3.OG_TP_CD
+                         , OO3.PRTNR_NO
+                         , OO3.PRTNR_GD_CD
+                         , ROW_NUMBER() OVER(PARTITION BY OO3.OG_TP_CD, OO3.PRTNR_NO ORDER BY APY_SEQN DESC) AS RN
+                      FROM WSMDBS.TB_OGPS_EGER_GD_RGST_IZ OO3 /*엔지니어등급등록내역*/
+                     WHERE 1=1
+                       AND SUBSTR(#{startDt},1,6) || '01' BETWEEN OO3.APY_STRTDT AND OO3.APY_ENDDT
+                       AND OO3.DTA_DL_YN = 'N'
+                   ) O3
                 ON O3.OG_TP_CD = O2.OG_TP_CD
                AND O3.PRTNR_NO = O2.PRTNR_NO
-               AND SUBSTR(#{startDt},1,6) || '01' BETWEEN O3.APY_STRTDT AND O3.APY_ENDDT
-               AND ROWNUM = 1
-               AND O3.DTA_DL_YN = 'N'
+               AND O3.RN = 1
           WHERE 1=1
             AND S1.APY_YM = SUBSTR(#{startDt},1,6)
             --창고구분선택시, 전체면 조건 제거
@@ -193,8 +199,8 @@
                                  , (CASE WHEN S1.SV_BIZ_HCLSF_CD = '1' AND S1.FNL_SELL_TP_CD != '4' THEN S1.USE_QTY ELSE 0 END) AS IST_QTY      /*일반설치*/
                                  , (CASE WHEN S1.SV_BIZ_HCLSF_CD = '1' AND S1.FNL_SELL_TP_CD = '4' THEN S1.USE_QTY ELSE 0 END) AS CO_IST_QTY    /*회사설치*/
                                  , (CASE WHEN S1.SV_BIZ_HCLSF_CD = '2' THEN S1.USE_QTY ELSE 0 END) AS BFSVC_QTY  /*BS수량*/
-                                 , (CASE WHEN S1.SV_BIZ_HCLSF_CD = '3' AND S1.REFRI_DV_CD = '1' THEN S1.USE_QTY ELSE 0 END) AS FRISU_AS_QTY     /*무상AS*/
-                                 , (CASE WHEN S1.SV_BIZ_HCLSF_CD = '3' AND S1.REFRI_DV_CD = '2' THEN S1.USE_QTY ELSE 0 END) AS RECAP_AS_QTY     /*유상AS*/
+                                 , (CASE WHEN S1.SV_BIZ_HCLSF_CD IN ('3', '4') AND S1.REFRI_DV_CD = '1' THEN S1.USE_QTY ELSE 0 END) AS FRISU_AS_QTY     /*무상AS*/
+                                 , (CASE WHEN S1.SV_BIZ_HCLSF_CD IN ('3', '4') AND S1.REFRI_DV_CD = '2' THEN S1.USE_QTY ELSE 0 END) AS RECAP_AS_QTY     /*유상AS*/
                                  , 0 AS ETC_QTY
                               FROM WSMDBS.TB_SVST_SV_WK_OSTR_IZ S1  /*서비스작업출고내역, ST163TB*/
                                    INNER JOIN WARE_INF W1
