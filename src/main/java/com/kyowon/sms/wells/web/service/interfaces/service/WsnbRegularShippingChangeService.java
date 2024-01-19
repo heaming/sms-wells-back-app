@@ -100,21 +100,37 @@ public class WsnbRegularShippingChangeService {
         }
 
         // 홈카페AS요청이력
-        regularShippingChangeMapper.insertTbSvpdHcfAsAkHist(
-            new SaveReq(
-                req.cntrNo(),
-                req.cntrSn(),
-                req.asAkDvCd(),
-                req.akChdt(),
-                req.bfchPdCd(),
-                req.afchPdCd(),
-                req.choCapslCn(),
-                req.mtrProcsStatCd(),
-                RandomStringUtils.randomNumeric(6),
-                req.rcpIchrPrtnrNo(),
-                req.rcpOgTpCd()
-            )
+        req = new SaveReq(
+            req.cntrNo(),
+            req.cntrSn(),
+            req.asAkDvCd(),
+            req.akChdt(),
+            req.bfchPdCd(),
+            req.afchPdCd(),
+            req.choCapslCn(),
+            req.mtrProcsStatCd(),
+            RandomStringUtils.randomNumeric(6),
+            req.rcpIchrPrtnrNo(),
+            req.rcpOgTpCd()
         );
+        regularShippingChangeMapper.insertTbSvpdHcfAsAkHist(req);
+
+        // 홈카페AS요청이력
+//        regularShippingChangeMapper.insertTbSvpdHcfAsAkHist(
+//            new SaveReq(
+//                req.cntrNo(),
+//                req.cntrSn(),
+//                req.asAkDvCd(),
+//                req.akChdt(),
+//                req.bfchPdCd(),
+//                req.afchPdCd(),
+//                req.choCapslCn(),
+//                req.mtrProcsStatCd(),
+//                RandomStringUtils.randomNumeric(6),
+//                req.rcpIchrPrtnrNo(),
+//                req.rcpOgTpCd()
+//            )
+//        );
 
         // 요청 구분에 따라 처리 - 1: 패키지변경, 4:다음회차 방문 중지
         if ("1".equals(req.asAkDvCd()) && !"3".equals(req.mtrProcsStatCd())) {
