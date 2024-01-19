@@ -77,17 +77,14 @@ public class WsnaStockAcinspRgstMngtDto {
         String apyYm, /* 적용년월 */
         @NotBlank
         String wareNo, /* 창고번호 */
-        String wareNm, /* 창고명 */
         String itmKnd, /* 품목구분 */
-        String sapCd, /* SAP코드 */
         @NotBlank
         String itmPdCd, /* 품목상품코드 */
-        String pdAbbrNm, /* 품목약어명 */
         int acinspQty, /* 실사수량 */
         int eotStoc, /* 기말수량 */
         int minusQty, /* 차이수량 */
         String acinspRmkCn, /* 실사비고 */
-        String cnfmdt, /* 상태값 */
+        String cnfmdt, /* 확정일자 */
         int cnfmPitmEotStocQty, /* 확정시점기말재고수량 */
         int cnfmPitmStrGapQty, /* 확정시점입고차이수량 */
         int cnfmPitmOstrGapQty, /* 확정시점출고차이수량 */
@@ -109,16 +106,13 @@ public class WsnaStockAcinspRgstMngtDto {
         String apyYm, /* 적용년월 */
         @NotBlank
         String wareNo, /* 창고변호 */
-        String wareNm, /* 창고명 */
         String itmKnd, /* 품목구분 */
-        String sapCd, /* SAP코드 */
         String itmPdCd, /* 품목상품코드 */
-        String pdAbbrNm, /* 품목명 */
         int acinspQty, /* 실사수량 */
         int eotStoc, /* 기말수량 */
         int minusQty, /* 차이수량 */
         String acinspRmkCn, /* 실사비고 */
-        String cnfmdt, /* 상태값 */
+        String cnfmdt, /* 확정일자 */
         int cnfmPitmEotStocQty, /* 확정시점기말재고수량 */
         int cnfmPitmStrGapQty, /* 확정시점입고차이수량 */
         int cnfmPitmOstrGapQty, /* 확정시점출고차이수량 */
@@ -140,16 +134,13 @@ public class WsnaStockAcinspRgstMngtDto {
         String apyYm, /* 적용년월 */
         @NotBlank
         String wareNo, /* 창고변호 */
-        String wareNm, /* 창고명 */
         String itmKnd, /* 품목구분 */
-        String sapCd, /* SAP코드 */
         String itmPdCd, /* 품목상품코드*/
-        String pdAbbrNm, /* 품목명 */
         int acinspQty, /* 실사수량 */
         int eotStoc, /* 기말수량 */
         int minusQty, /* 차이수량 */
         String acinspRmkCn, /* 실사비고 */
-        String cnfmdt, /* 상태값 */
+        String cnfmdt, /* 확정일자 */
         int cnfmPitmEotStocQty, /* 확정시점기말재고수량 */
         int cnfmPitmStrGapQty, /* 확정시점입고차이수량 */
         int cnfmPitmOstrGapQty, /* 확정시점출고차이수량 */
@@ -168,16 +159,13 @@ public class WsnaStockAcinspRgstMngtDto {
     public record SaveReq(
         String apyYm, /* 적용년월 */
         String wareNo, /* 창고변호 */
-        String wareNm, /* 창고명 */
         String itmKnd, /* 품목구분 */
-        String sapCd, /* SAP코드 */
         String itmPdCd, /* 품목상품코드*/
-        String pdAbbrNm, /* 품목명 */
         int acinspQty, /* 실사수량 */
         int eotStoc, /* 기말수량 */
         int minusQty, /* 차이수량 */
         String acinspRmkCn, /* 실사비고 */
-        String cnfmdt, /* 상태값 */
+        String cnfmdt, /* 확정일자 */
         int cnfmPitmEotStocQty, /* 확정시점기말재고수량 */
         int cnfmPitmStrGapQty, /* 확정시점입고차이수량 */
         int cnfmPitmOstrGapQty, /* 확정시점출고차이수량 */
