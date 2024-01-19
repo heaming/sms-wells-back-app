@@ -348,6 +348,13 @@
          ) ZZZ
          WHERE 1=1
            AND ZZZ.DLQ_AMT-ZZZ.DLQ_BLAM >= 100000
+           AND NOT EXISTS (SELECT 1
+                             FROM TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ S1
+                            WHERE 1=1
+                              AND S1.DTA_DL_YN = 'N'
+                              AND S1.CST_NO = ZZZ.CST_NO
+                              AND S1.OC_BSDT LIKE #{baseYm}||'%'
+                          )
          ORDER BY ZZZ.CST_KNM
     </select>
 
@@ -727,6 +734,13 @@
          WHERE 1=1
            AND ZZ.DLQ_BLAM_CST_NO_SUM >= 100000  /*연체잔액고객별합계*/
            AND ZZ.DLQ_BLAM > 0                   /*연체잔액*/
+           AND NOT EXISTS (SELECT 1
+                            FROM TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ S1
+                           WHERE 1=1
+                             AND S1.DTA_DL_YN = 'N'
+                             AND S1.CNTR_NO = SUBSTR(ZZ.CNTR_DTL_NO,1,INSTR(ZZ.CNTR_DTL_NO,'-',1,1)-1)
+                             AND S1.OC_BSDT LIKE #{baseYm}||'%'
+                         )
          ORDER BY ZZ.CST_KNM, ZZ.CNTR_DTL_NO
     </select>
 
@@ -1059,7 +1073,13 @@
                                  ON 1=1
                               WHERE 1=1
                                 AND TT.FN_SMS_YN != 'Y'
-                                AND TT.CST_NO = #{cstNo}                  /*고객번호*/
+                                AND NOT EXISTS (SELECT 1
+                                                  FROM TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ S1
+                                                 WHERE 1=1
+                                                   AND S1.DTA_DL_YN = 'N'
+                                                   AND S1.CST_NO = TT.CST_NO
+                                                   AND S1.OC_BSDT LIKE #{baseYm}||'%'
+                                               )
                              ) TTT
                      ) SRC
                WHERE 1=1
@@ -1072,7 +1092,7 @@
                                     AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT
                                 )
                ) SRC2
-           ON (MRG_CB.CNTR_NO = SRC2.CNTR_NO AND MRG_CB.CST_NO = SRC2.CST_NO)
+           ON (MRG_CB.CNTR_NO = SRC2.CNTR_NO)
          WHEN MATCHED THEN
             UPDATE
                SET MRG_CB.DLQ_AMT = SRC2.DLQ_AMT     /*연체금액*/
@@ -1199,7 +1219,6 @@
         <include refid="COMMON.insertSystemFieldValue"/>
           FROM TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ /*T:WELLS렌탈CB연체내역*/
          WHERE 1 = 1
-           AND CST_NO = #{cstNo}
            AND OC_BSDT LIKE #{baseYm}||'%'
            AND NOTY_FW_OJ_YN = 'Y'
     </insert>
