@@ -30,8 +30,7 @@
               ) AS SL_DT                /*매출일자*/
               , C.FNL_AMT AS SELL_AMT    /*판매금액*/
               , D.DLQ_MCN       AS DLQ_MCN                                         /*연체개월수*/
---(삭제)      , NVL(A.BTD_UC_AMT,0) + NVL(D.BTD_DLQ_ADD_AMT,0) + NVL(D.THM_OC_DLQ_ADD_AMT,0) AS UC_AMT  /*미수금액=기초미수금액+기초연체가산금+당월발생연체가산금*/
-/*추가*/      , NVL(A.BTD_UC_AMT,0) + NVL(D.BTD_DLQ_ADD_AMT,0) + NVL(D.THM_OC_DLQ_ADD_AMT,0)  + NVL(D1.THM_OC_DLQ_ADD_AMT,0) AS UC_AMT  /*미수금액=기초미수금액+기초연체가산금+당월발생연체가산금+전달기초연체가산금*/
+              , NVL(A.BTD_UC_AMT,0) + NVL(D.BTD_DLQ_ADD_AMT,0) + NVL(D.THM_OC_DLQ_ADD_AMT,0)  + NVL(D1.THM_OC_DLQ_ADD_AMT,0) AS UC_AMT  /*미수금액=기초미수금액+기초연체가산금+당월발생연체가산금+전달기초연체가산금*/
               , NVL(A.BTD_UC_AMT,0) + NVL(D.BTD_DLQ_ADD_AMT,0) AS DLQ_AMT  /*연체금액=기초미수금액+기초연체가산금*/
               , A.SL_DP_AGG_AMT AS TOT_RVE_AMT /*입금누계-연체시작일자이후부터 입금된 총금액*/
               , (SELECT S1.PRTNR_KNM
@@ -50,50 +49,50 @@
          INNER JOIN TB_SSCT_CNTR_BAS B        /*T:계약기본*/
             ON 1 = 1
            AND A.CNTR_NO = B.CNTR_NO
-/*추가*/   AND B.DTA_DL_YN = 'N'
+           AND B.DTA_DL_YN = 'N'
          INNER JOIN TB_SSCT_CNTR_DTL C    /*T:계약상세*/
             ON 1 = 1
            AND C.CNTRW_TP_CD = '7'    /* 계약상세 7:정기배송 */
            AND C.CNTR_NO = A.CNTR_NO
            AND C.CNTR_SN = A.CNTR_SN
-/*추가*/   AND C.DTA_DL_YN = 'N'
+           AND C.DTA_DL_YN = 'N'
          INNER JOIN TB_CBCL_DLQ_BAS D /*T:연체기본*/
             ON 1 = 1
            AND D.PERF_YM = A.SL_CL_YM
            AND D.CNTR_NO = A.CNTR_NO
            AND D.CNTR_SN = A.CNTR_SN
-/*추가*/   AND D.DTA_DL_YN = 'N'
-/*추가*/  LEFT JOIN TB_CBCL_DLQ_BAS D1 /*T:연체기본*/
-/*추가*/    ON 1 = 1
-/*추가*/   AND D1.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(A.SL_CL_YM,'YYYYMM'),-1),'YYYYMM')
-/*추가*/   AND D1.CNTR_NO = A.CNTR_NO
-/*추가*/   AND D1.CNTR_SN = A.CNTR_SN
-/*추가*/   AND D1.DTA_DL_YN = 'N'
+           AND D.DTA_DL_YN = 'N'
+          LEFT JOIN TB_CBCL_DLQ_BAS D1 /*T:연체기본*/
+            ON 1 = 1
+           AND D1.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(A.SL_CL_YM,'YYYYMM'),-1),'YYYYMM')
+           AND D1.CNTR_NO = A.CNTR_NO
+           AND D1.CNTR_SN = A.CNTR_SN
+           AND D1.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_CBBO_WELLS_AUTH_RSG_IZ E
             ON 1 = 1
            AND E.BASE_YM = A.SL_CL_YM
            AND E.CNTR_NO = A.CNTR_NO
            AND E.CNTR_SN = A.CNTR_SN
-/*추가*/   AND E.DTA_DL_YN = 'N'
+           AND E.DTA_DL_YN = 'N'
           LEFT JOIN TB_OGBS_PRTNR_BAS F /*T:파트너기본*/
             ON 1 = 1
            AND F.OG_TP_CD = B.SELL_OG_TP_CD
            AND F.PRTNR_NO = B.SELL_PRTNR_NO
-/*추가*/   AND F.DTA_DL_YN = 'N'
+           AND F.DTA_DL_YN = 'N'
          LEFT JOIN TB_CBBO_BND_CNTR_BAS G /*T:채권계약기본*/
             ON 1 = 1
            AND G.BASE_YM = SUBSTR(#{authRsgDt},1,6)
            AND G.CNTR_NO = A.CNTR_NO
            AND G.CNTR_SN = A.CNTR_SN
-/*추가*/   AND G.DTA_DL_YN = 'N'
+           AND G.DTA_DL_YN = 'N'
           LEFT JOIN TB_FEAM_WELS_NRCTR_MM_CL H    /* 웰스순주문계약월마감 */
             ON 1 = 1
            AND H.BASE_YM = A.SL_CL_YM
            AND H.CNTR_NO = A.CNTR_NO
            AND H.CNTR_SN = A.CNTR_SN
-/*추가*/   AND H.DTA_DL_YN = 'N'
+           AND H.DTA_DL_YN = 'N'
          WHERE 1 = 1
-/*추가*/   AND A.DTA_DL_YN = 'N'
+           AND A.DTA_DL_YN = 'N'
            AND A.SL_CL_YM = #{authRsgDt}    /* 매출마감년월 */
            AND A.SL_RCOG_DT IS NOT NULL        /* LCSLEY>0 */
            AND A.CAN_DT IS NULL             /* 취소일자 */
@@ -118,8 +117,8 @@
                                 WHERE CNTR_NO = A.CNTR_NO
                                   AND CNTR_SN = A.CNTR_SN
                                   AND DTA_DL_YN = 'N'
-/*추가*/                          AND RSG_CRT_DV_CD = 'KF' /*해지생성구분코드*/
-/*추가*/                          AND CNTR_STAT_CH_RSON_CD = '05' /*강제탈퇴*/
+                                  AND RSG_CRT_DV_CD = 'KF' /*해지생성구분코드*/
+                                  AND CNTR_STAT_CH_RSON_CD = '05' /*강제탈퇴*/
                              )
         <if test='@MybatisUtils@isNotEmpty(clctamDvCd)'>
             AND G.CLCTAM_DV_CD = #{clctamDvCd}
@@ -276,7 +275,7 @@
                 END AS SL_DP_AMT /* 매출입금금액 */
             ,D.SL_DP_AGG_AMT   /* 매출입금누계금액 */
             ,F.UC_AMT   /* 미수금액 */
-            ,E.BTD_DLQ_AMT AS DLQ_AMT   /* (기초)연체금액-기말-EOT_DLQ_AMT */
+            ,NVL(E.BTD_DLQ_AMT,0) AS DLQ_AMT   /* (기초)연체금액-기말-EOT_DLQ_AMT */
             ,TO_CHAR(LAST_DAY(#{baseYm}||'01'), 'YYYYMMDD') AS RSG_APLC_DT   /* 해지신청일자 */
             ,TO_CHAR(LAST_DAY(#{baseYm}||'01'), 'YYYYMMDD') AS RSG_FSH_DT   /* 해지완료일자 */
             ,'05' AS CNTR_STAT_CH_RSON_CD   /* 계약상태변경사유코드-'05' */
@@ -330,15 +329,15 @@
         FROM TB_SSCT_CNTR_BAS A    /* 계약기본 */
         LEFT JOIN TB_SSCT_CNTR_DTL B    /*T:계약상세*/
             ON A.CNTR_NO = B.CNTR_NO
-/*추가*/    AND B.DTA_DL_YN = 'N'
+            AND B.DTA_DL_YN = 'N'
         INNER JOIN TB_CUBS_CST_BAS C                   /*T:고객기본*/
             ON C.CST_NO = A.CNTR_CST_NO
         LEFT JOIN TB_CBCL_WELLS_SL_MM_CL_IZ D         /*T:WELLS매출월마감내역*/
             ON D.SL_CL_YM = #{baseYm}    /* --TO_CHAR(SYSDATE, 'YYYYMM') */
             AND D.CNTR_NO = B.CNTR_NO
             AND D.CNTR_SN = B.CNTR_SN
-/*추가*/    AND D.DTA_DL_YN = 'N'
-        INNER JOIN TB_CBCL_DLQ_BAS E /*T:연체기본*/
+            AND D.DTA_DL_YN = 'N'
+        LEFT JOIN TB_CBCL_DLQ_BAS E /*T:연체기본*/
             ON E.CNTR_NO = B.CNTR_NO
             AND E.CNTR_SN = B.CNTR_SN
             AND E.PERF_YM = D.SL_CL_YM
@@ -349,14 +348,14 @@
             ON F.BASE_YM = #{baseYm}
             AND F.CNTR_NO = B.CNTR_NO
             AND F.CNTR_SN = B.CNTR_SN
-/*추가*/    AND F.DTA_DL_YN = 'N'
+            AND F.DTA_DL_YN = 'N'
         LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS G /*T:WELLS위약금액기본*/
             ON G.PERF_YM = D.SL_CL_YM
             AND G.CNTR_NO = B.CNTR_NO
             AND G.CNTR_SN = B.CNTR_SN
             AND G.DTA_DL_YN = 'N'
         WHERE 1 = 1
-/*추가*/    AND A.DTA_DL_YN = 'N'
+            AND A.DTA_DL_YN = 'N'
             AND B.CNTR_NO = #{cntrNo}
             AND B.CNTR_SN = #{cntrSn}
             AND NOT EXISTS (
@@ -366,10 +365,9 @@
                     AND DTA_DL_YN = 'N'
                     AND Z1.CNTR_NO = B.CNTR_NO
                     AND Z1.CNTR_SN = B.CNTR_SN
-/*추가*/            AND Z1.RSG_CRT_DV_CD = 'KF' /*해지생성구분코드*/
-/*추가*/            AND Z1.CNTR_STAT_CH_RSON_CD = '05' /*강제탈퇴*/
+                    AND Z1.RSG_CRT_DV_CD = 'KF' /*해지생성구분코드*/
+                    AND Z1.CNTR_STAT_CH_RSON_CD = '05' /*강제탈퇴*/
             )
---(삭제)    AND E.DTA_DL_YN = 'N'
     </insert>
 
     <update id="updateRegularShippingSales">
