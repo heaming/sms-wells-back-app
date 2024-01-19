@@ -10,6 +10,7 @@ import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.test.SpringTestSupport;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -119,6 +120,7 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
             .mngtPrd("3")
             .dpDvCd1("97")
             .subscAmt1("349000")
+            .sellAmt("349000")
             .istllKnm("수령자")
             .istCstCralLocaraTno("010")
             .istCstMexno("1234")
@@ -131,8 +133,7 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
         // when & then
         MockHttpServletRequestBuilder request = post(BASE_URL + "/create-singlepayment-contract")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(dto))
-            ;
+            .content(objectMapper.writeValueAsString(dto));
 
         mockMvc.perform(request)
             .andExpect(status().isOk())
@@ -158,6 +159,7 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
             .mngtPrd("3")
             .dpDvCd1("97")
             .subscAmt1("349000")
+            .sellAmt("349000")
             .istllKnm("수령자")
             .istCstCralLocaraTno("010")
             .istCstMexno("1234")
@@ -170,8 +172,7 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
         // when & then
         MockHttpServletRequestBuilder request = post(BASE_URL + "/create-singlepayment-contract")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(dto))
-            ;
+            .content(objectMapper.writeValueAsString(dto));
 
         /*"ERR_OC_YN":"X","RSP_MSG":"이미 존재하는 계약상세번호입니다."*/
 
@@ -199,6 +200,7 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
             .mngtPrd("3")
             .dpDvCd1("97")
             .subscAmt1("349000")
+            .sellAmt("349000")
             .istllKnm("수령자")
             .istCstCralLocaraTno("010")
             .istCstMexno("1234")
@@ -237,6 +239,7 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
             .mngtPrd("3")
             .dpDvCd1("97")
             .subscAmt1("349000")
+            .sellAmt("349000")
             .istllKnm("수령자")
             .istCstCralLocaraTno("010")
             .istCstMexno("1234")
@@ -275,6 +278,7 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
             .mngtPrd("3")
             .dpDvCd1("97")
             .subscAmt1("349000")
+            .sellAmt("349000")
             .istllKnm("수령자")
             .istCstCralLocaraTno("010")
             .istCstMexno("1234")
@@ -517,7 +521,7 @@ RCP_CHNL_DTL=2010*/
 
     @Test
     @DisplayName("wells 정기배송 생성 테스트 활력슬림쏙(12박스)(WP03160159) 2M")
-    void testCreateContractForRglrShpFor3MSvPd() throws Exception {
+    void testCreateContractForRglrShpFor2MSvPd() throws Exception {
         UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
         userSession.setTenantCd(CtSessionTenantCd.WELLS.getCode());
         // given
@@ -562,5 +566,110 @@ RCP_CHNL_DTL=2010*/
             .andExpect(jsonPath("$.header.ERR_OC_YN").value("N"))
             .andExpect(jsonPath("$.body.RS_CD").value("S"))
         ;
+    }
+
+    @Test
+    @DisplayName("wells 정기배송 생성 테스트 모종결합건 실패 테스트 모종 결함 검증 건")
+    void failTestCreateContractForRglrShpForWithSeeding() throws Exception {
+        // given
+        CreateRegularShippingReq req = CreateRegularShippingReq.builder()
+            .procsDv("1")
+            .cntrNo(NEW_CNTR_NO_2)
+            .cntrSn("1")
+            .cstNo(VALID_CST_NO)
+            .sellPrtnrNo(KMEMBERS_PNTRT_NO)
+            .sellChnlCd(CtSellChnlDtlCd.KMEMBERS.getCode())
+            .basePdCd("WP05160133")
+            .stplPrdCd("12")
+
+            .aftnDvCd("1")
+            .aftnAmt("38900")
+            .mchnCntrNo(EXIST_CNTR_NO)
+            .mchnCntrSn(EXIST_CNTR_SN)
+
+            .rcgvpKnm("수령자")
+            .cralLocaraTno("010")
+            .mexno("1234")
+            .cralIdvTno("5678")
+            .zip("13254")
+            .basAdr("경기 성남시 중원구 광명로 204")
+            .dtlAdr("201동 303호 (중앙동,신흥역하늘채랜더스원아파트)")
+
+            .ag111Yn("Y")
+            .ag112Yn("Y")
+            .ag113Yn("Y")
+            .ag114Yn("Y")
+            .ag115Yn("Y")
+
+            .build();
+
+        EaiWrapper<CreateRentalReq> dto = new EaiWrapper(req);
+
+        // when & then
+        MockHttpServletRequestBuilder request = post(BASE_URL + "/create-regular-shipping-contract")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(dto));
+
+        mockMvc.perform(request)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.header.ERR_OC_YN").value("X"))
+//            .andExpect(jsonPath("$.header.RSP_MSG").value("이미 존재하는 계약상세번호입니다."))
+        ;
+    }
+
+
+    @Test
+    @DisplayName("wells 정기배송 생성 테스트 모종결합 자유선택")
+    void testCreateContractForRglrShpForWithSeedingFreePackage() throws Exception {
+        // given
+        CreateRegularShippingReq req = CreateRegularShippingReq.builder()
+            .procsDv("1")
+            .cntrNo(NEW_CNTR_NO_2)
+            .cntrSn("1")
+            .cstNo(VALID_CST_NO)
+            .sellPrtnrNo(KMEMBERS_PNTRT_NO)
+            .sellChnlCd(CtSellChnlDtlCd.KMEMBERS.getCode())
+            .basePdCd("WP05160210")
+            .stplPrdCd("12")
+
+            .aftnDvCd("1")
+            .aftnAmt("38900")
+            .mchnCntrNo(EXIST_CNTR_NO)
+            .mchnCntrSn(EXIST_CNTR_SN)
+
+            .rcgvpKnm("수령자")
+            .cralLocaraTno("010")
+            .mexno("1234")
+            .cralIdvTno("5678")
+            .zip("13254")
+            .basAdr("경기 성남시 중원구 광명로 204")
+            .dtlAdr("201동 303호 (중앙동,신흥역하늘채랜더스원아파트)")
+
+            .ag111Yn("Y")
+            .ag112Yn("Y")
+            .ag113Yn("Y")
+            .ag114Yn("Y")
+            .ag115Yn("Y")
+
+            .build();
+
+        EaiWrapper<CreateRentalReq> dto = new EaiWrapper(req);
+
+        // when & then
+        MockHttpServletRequestBuilder request = post(BASE_URL + "/create-regular-shipping-contract")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(dto));
+
+        mockMvc.perform(request)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.header.ERR_OC_YN").value("N"))
+            .andExpect(jsonPath("$.body.RS_CD").value("S"))
+        ;
+    }
+
+    @BeforeEach
+    void setUp() {
+        UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
+        userSession.setTenantCd(CtSessionTenantCd.WELLS.getCode());
     }
 }
