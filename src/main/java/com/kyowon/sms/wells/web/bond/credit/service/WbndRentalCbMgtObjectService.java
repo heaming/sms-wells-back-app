@@ -6,6 +6,7 @@ import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtObjectDto.SearchP
 import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtObjectDto.SearchReq;
 import com.kyowon.sms.wells.web.bond.credit.dto.WbndRentalCbMgtObjectDto.SearchRes;
 import com.kyowon.sms.wells.web.bond.credit.dvo.WbndRentalCbDelinquentIzDvo;
+import com.kyowon.sms.wells.web.bond.credit.mapper.WbndRentalCbMgtDelinquentHistoryMapper;
 import com.kyowon.sms.wells.web.bond.credit.mapper.WbndRentalCbMgtObjectMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -34,6 +35,7 @@ import java.util.List;
 public class WbndRentalCbMgtObjectService {
 
     private final WbndRentalCbMgtObjectMapper mapper;
+    private final WbndRentalCbMgtDelinquentHistoryMapper historyMapper;
     private final WbndRentalCbMgtObjectConverter converter;
 
     /**
@@ -59,25 +61,20 @@ public class WbndRentalCbMgtObjectService {
     /**
      * 렌탈CB 연체대상 관리 저장
      *
-     * @param dtos
+     * @param baseYm
      * @return int
      */
     @Transactional
-    public int saveRentalCbMgtObjects(List<SaveReq> dtos) {
-        int processCount = 0;
+    public int saveRentalCbMgtObjects(String baseYm) {
 
-        for (SaveReq dto : dtos) {
-            WbndRentalCbDelinquentIzDvo dvo = this.converter.mapSaveReqToRentalCbDlqIzDvo(dto);
-            this.mapper.updateMessageObjectYn(dvo);
-            // BizAssert.isTrue(resultYn > 0, "MSG_ALT_SVE_ERR");
-            // processCount += resultYn;
+        BizAssert.isTrue(
+            this.historyMapper.selectRentalCbDlqIzSendThisMonthCount(baseYm) == 0, "당월에 알림톡 발송한 내역이 있습니다."
+        );
 
-            int resultHist = this.mapper.insertMessageObjectHist(dvo);
-            // BizAssert.isTrue(resultHist > 0, "MSG_ALT_SVE_ERR");
-            processCount += resultHist;
-        }
+        int processCount = this.mapper.updateMessageObjectYn();
+        int resultHist = this.mapper.insertMessageObjectHist(baseYm);
 
-        return processCount;
+        return processCount + resultHist;
     }
 
     /**
