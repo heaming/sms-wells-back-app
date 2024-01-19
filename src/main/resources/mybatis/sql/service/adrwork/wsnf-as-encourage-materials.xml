@@ -3,38 +3,48 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.adrwork.mapper.WsnfAsEnrgMatMngtMapper">
 
     <select id="selectAsEncourageMaterials" resultType="com.kyowon.sms.wells.web.service.adrwork.dvo.WsnfAsEnrgMatMngtDvo">
-    SELECT SVPD4.PDCT_PD_CD AS PD_CD /* 제품상품코드 */
-         , PDBS1.PD_ABBR_NM AS PD_NM /* 상품명 */
-         , SVPD4.ITM_PD_CD /* 추천자재코드 */
-         , (SELECT PD_ABBR_NM AS PD_NM FROM TB_PDBS_PD_BAS T WHERE T.PD_CD = SVPD4.ITM_PD_CD) AS ITM_PD_NM /* 추천자재 */
-         , (SELECT T.SAP_MAT_CD FROM TB_PDBS_PD_BAS T WHERE T.PD_CD = SVPD4.ITM_PD_CD) AS SAP_MAT_CD
-         , CNSL_TP_LCSF_CD_NM /* 접수증상 */
-         , CNSL_CN /* 접수증상상세 */
-         , ITM_RCMD_RNK /* 추천순위 */
-         , ITM_RCMD_QTY /* 수량 */
-         , TX.CNSL_TP_HCSF_CD
-         , TX.CNSL_TP_MCSF_CD
-         , TX.CNSL_TP_LCSF_CD
-      FROM TB_SVPD_CST_SV_RCMD_ITM_IZ SVPD4
-      LEFT OUTER JOIN CCSDBS.TB_CLASS_C TX /* 상담유형소분류 */
-        ON USE_FG = 'Y' AND JOB_CD = 'L001' AND TX.CNSL_TP_HCSF_CD = SVPD4.CNSL_TP_HCLSF_CD AND TX.CNSL_TP_MCSF_CD = SVPD4.CNSL_TP_MCLSF_CD AND TX.CNSL_TP_LCSF_CD = SVPD4.CNSL_TP_LCLSF_CD
-      INNER JOIN TB_PDBS_PD_BAS PDBS1 /* 상품기본 */
-        ON PDBS1.DTA_DL_YN = 'N' AND SVPD4.PDCT_PD_CD = PDBS1.PD_CD
-     WHERE SVPD4.DTA_DL_YN = 'N'
+        SELECT SVPD4.PDCT_PD_CD                     AS PD_CD     /* 제품상품코드 */
+             , TO_CHAR(TO_NUMBER(PDBS1.SAP_MAT_CD)) AS SAP_MAT_CD
+             , PDBS1.PD_ABBR_NM                     AS PD_NM     /* 상품명 */
+             , TO_CHAR(TO_NUMBER(PDBS2.SAP_MAT_CD)) AS RECOM_SAP_CD
+             , SVPD4.ITM_PD_CD                                   /* 추천자재코드 */
+             , PDBS2.PD_ABBR_NM                     AS ITM_PD_NM /* 추천자재 */
+             , TX.CNSL_TP_LCSF_CD_NM                             /* 접수증상 */
+             , TX.CNSL_CN                                        /* 접수증상상세 */
+             , SVPD4.ITM_RCMD_RNK                                /* 추천순위 */
+             , SVPD4.ITM_RCMD_QTY                                /* 수량 */
+             , TX.CNSL_TP_HCSF_CD
+             , TX.CNSL_TP_MCSF_CD
+             , TX.CNSL_TP_LCSF_CD
+          FROM TB_SVPD_CST_SV_RCMD_ITM_IZ SVPD4
+          LEFT OUTER JOIN CCSDBS.TB_CLASS_C TX /* 상담유형소분류 */
+            ON TX.CNSL_TP_HCSF_CD = SVPD4.CNSL_TP_HCLSF_CD
+           AND TX.CNSL_TP_MCSF_CD = SVPD4.CNSL_TP_MCLSF_CD
+           AND TX.CNSL_TP_LCSF_CD = SVPD4.CNSL_TP_LCLSF_CD
+           AND TX.USE_FG          = 'Y'
+           AND TX.JOB_CD          = 'L001'
+         INNER JOIN TB_PDBS_PD_BAS PDBS1 /* 상품기본 */
+            ON PDBS1.PD_CD = SVPD4.PDCT_PD_CD
+         INNER JOIN TB_PDBS_PD_BAS PDBS2 /* 상품기본 */
+            ON PDBS2.PD_CD = SVPD4.ITM_PD_CD
+         WHERE SVPD4.DTA_DL_YN = 'N'
+           AND PDBS1.DTA_DL_YN = 'N'
+           AND PDBS1.PD_TP_CD  = 'M'
+           AND PDBS2.DTA_DL_YN = 'N'
+           AND PDBS2.PD_TP_CD  = 'M'
        <if test="@MybatisUtils@isNotEmpty(pdCd)">
-       AND SVPD4.PDCT_PD_CD = #{pdCd}
+           AND SVPD4.PDCT_PD_CD = #{pdCd}
        </if>
-
        <if test="@MybatisUtils@isNotEmpty(classA)">
-       AND TX.CNSL_TP_HCSF_CD = #{classA}
+           AND TX.CNSL_TP_HCSF_CD = #{classA}
        </if>
        <if test="@MybatisUtils@isNotEmpty(classB)">
-       AND TX.CNSL_TP_MCSF_CD = #{classB}
+           AND TX.CNSL_TP_MCSF_CD = #{classB}
        </if>
        <if test="@MybatisUtils@isNotEmpty(classC)">
-       AND TX.CNSL_TP_LCSF_CD = #{classC}
+           AND TX.CNSL_TP_LCSF_CD = #{classC}
        </if>
-    ORDER BY PDCT_PD_CD DESC, ITM_RCMD_RNK ASC
+         ORDER BY SVPD4.PDCT_PD_CD DESC, SVPD4.ITM_RCMD_RNK ASC
     </select>
 
 </mapper>

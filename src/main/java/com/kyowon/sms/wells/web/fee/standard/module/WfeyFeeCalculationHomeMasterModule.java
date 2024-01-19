@@ -6,6 +6,7 @@ import com.kyowon.sms.common.web.fee.standard.annotation.FeeModuleMethodInfo;
 import com.kyowon.sms.common.web.fee.standard.context.ApplicationContextHolder;
 import com.kyowon.sms.common.web.fee.standard.dto.ZfeyFeeStandardDto;
 import com.kyowon.sms.common.web.fee.standard.module.ZfeyFeeCalculationCommonModule;
+import com.kyowon.sms.wells.web.fee.standard.mapper.WfeyEngineerCalculationMapper;
 import com.kyowon.sms.wells.web.fee.standard.mapper.WfeyHomeMasterCalculationMapper;
 
 import static com.kyowon.sms.common.web.fee.standard.constant.FeFeeConst.FeeCalculationTypeCode.FEE_CALCULATION;
@@ -47,7 +48,7 @@ public class WfeyFeeCalculationHomeMasterModule extends ZfeyFeeCalculationCommon
         this(feeStandardDetail, tenantId, feeCd, baseYm, baseYm, feeTcntDvCd, perfAgrgCrtDvCd, cntrPerfCrtDvCd);
     }
 
-        /**
+    /**
      * 생성자
      *
      * @param feeStandardDetail
@@ -59,6 +60,21 @@ public class WfeyFeeCalculationHomeMasterModule extends ZfeyFeeCalculationCommon
      */
     public WfeyFeeCalculationHomeMasterModule(ZfeyFeeStandardDto.SearchFeeStandardDetailRes feeStandardDetail, String tenantId, String feeCd, String baseYm, String feeTcntDvCd, String perfAgrgCrtDvCd) {
         this(feeStandardDetail, tenantId, feeCd, baseYm, baseYm, feeTcntDvCd, perfAgrgCrtDvCd, null);
+    }
+
+    /**
+     * 생성자
+     *
+     * @param tenantId
+     * @param baseYm
+     * @param mmAcuPerfAgrgCrtDvCd
+     * @param prtnrNo
+     */
+    public WfeyFeeCalculationHomeMasterModule(
+        ZfeyFeeStandardDto.SearchFeeStandardDetailRes feeStandardDetail, String tenantId, String baseYm, String mmAcuPerfAgrgCrtDvCd, String prtnrNo
+    ) {
+        super(feeStandardDetail, tenantId, baseYm, mmAcuPerfAgrgCrtDvCd, prtnrNo);
+        homeMasterCalculationMapper = ApplicationContextHolder.getBean(WfeyHomeMasterCalculationMapper.class);
     }
 
     /**

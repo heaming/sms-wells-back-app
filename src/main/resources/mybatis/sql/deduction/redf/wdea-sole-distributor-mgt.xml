@@ -133,17 +133,23 @@
              , M.PD_CD /*상품코드*/
              , D.PD_NM AS PD_CLSF_NM /*상품명*/
              , D.PD_ABBR_NM AS MODEL_NO /*모델명*/
-             , M.SELL_DSC_DV_CD /*할인구분*/
-             , M.SELL_DSC_TP_CD /*할인유형*/
+             , (CASE WHEN D.SELL_DSC_DV_CD IS NOT NULL THEN
+             			  D.SELL_DSC_DV_CD || '-' || DECODE(D.STPL_PTRM, '12', '1', '24', '2', '36', '3', '48', '4', '60', '5', '72', '6')
+         			 ELSE '0'
+         		  END)  AS SELL_DSC_DV_CD /*할인구분(ASIS: D-C)*/
+             , (CASE WHEN D.SELL_DSC_DV_CD IS NOT NULL THEN
+             			  D.SELL_DSC_DV_CD || '-' || DECODE(D.STPL_PTRM, '12', '1', '24', '2', '36', '3', '48', '4', '60', '5', '72', '6')
+     			     ELSE '0'
+         		  END) AS SELL_DSC_TP_CD /*할인유형(ASIS: P)*/
              , M.PMOT_USWY_DV_CD AS PMOT_CD /*할인제도(프로모션용도구분코드), TODO: 확실하지 않음*/
              , (CASE WHEN (SELECT COUNT(1)
                              FROM TB_SSCT_CNTR_REL X
                             WHERE X.OJ_DTL_CNTR_NO = M.CNTR_NO
                               AND X.OJ_DTL_CNTR_SN = M.CNTR_SN) = 0
                      THEN '' ELSE '1' END) AS COMBI_DV /*결합구분, ASIS 동일*/
-             , M.PMOT_USWY_DV_CD /*용도구분*/
-             , (CASE WHEN M.PMOT_USWY_DV_CD IN ('1', '2') THEN
-                     M.PMOT_USWY_DV_CD || '-' || F_CMZ_CD_NM(#{session.tenantId}, 'PMOT_USWY_DV_ACD', M.PMOT_USWY_DV_CD, #{session.langId})
+             , D.SV_PD_TP_CD AS PMOT_USWY_DV_CD /*용도구분*/
+             , (CASE WHEN D.SV_PD_TP_CD IN ('1', '2') THEN
+                     D.SV_PD_TP_CD || '-' || F_CMZ_CD_NM(#{session.tenantId}, 'PMOT_USWY_DV_ACD', D.SV_PD_TP_CD, #{session.langId})
              	  END) AS PMOT_USWY_DV_NM /*관리유형, ASIS 동일*/
              , M.BFSVC_PRD_CD /*방문주기*/
              , NVL(E1.MCHN_CH_TP_CD, 0) AS PD_GUB1 /*TODO: 확인필요, ASIS는 유형1과 유형2로 되어있는 컬럼, 상품중분류*/
@@ -181,14 +187,26 @@
                                   , D3.CST_KNM /*고객명*/
                                   , D4.PD_ABBR_NM /*모델명(상품약어명)*/
                                   , D4.PD_NM
-                                  , D5.PD_CLSF_NM /*상품분류명*/
+                                  , D4.CST_BASE_PD_ABBR_NM AS PD_CLSF_NM /*제품명*/
+                                  , D6.SELL_DSC_DV_CD
+                                  , D6.SELL_DSC_TP_CD
+                                  , D6.STPL_PTRM
+                                  , P.SV_PD_TP_CD
                                FROM TB_FEAM_WELS_NRCTR_MM_CL D1 /*웰스순주문계약월마감*/
-                               LEFT OUTER JOIN TB_SSCT_CNTR_BAS D2 /*계약기본*/
+                               LEFT OUTER JOIN TB_SVPD_CST_SV_EXCN_IZ S /* 고객서비스수행내역    */
+					             ON D1.CNTR_NO = S.CNTR_NO
+					            AND D1.CNTR_SN = S.CNTR_SN
+					           LEFT OUTER JOIN TB_PDBS_PD_BAS P /* 상품기본 - 서비스상품 */
+            					 ON S.SV_PD_CD = P.PD_CD
+                              INNER JOIN TB_SSCT_CNTR_BAS D2 /*계약기본*/
                                  ON D1.CNTR_NO = D2.CNTR_NO
-                               LEFT OUTER JOIN TB_CUBS_CST_BAS D3 /*고객기본*/
+                              INNER JOIN TB_SSCT_CNTR_DTL D6
+                                 ON D1.CNTR_NO = D6.CNTR_NO
+                                AND D1.CNTR_SN = D6.CNTR_SN
+                              INNER JOIN TB_CUBS_CST_BAS D3 /*고객기본*/
                                  ON D2.CNTR_CST_NO = D3.CST_NO
                                LEFT OUTER JOIN TB_PDBS_PD_BAS D4 /*상품기본*/
-                                 ON D1.PD_CD = D4.PD_CD
+                                 ON D6.BASE_PD_CD = D4.PD_CD
                                LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS D5 /*상품분류기본*/
                                  ON D4.PD_MCLSF_ID = D5.PD_CLSF_ID /*상품기본.중분류ID = 상품분류기본.상품분류ID*/
                                 AND D5.PD_TP_CD = 'P'  /* 상품유형코드 = 'P'(기준상품) */
@@ -305,5 +323,102 @@
            AND OG_TP_CD = #{ogTpCd}
            AND PRTNR_NO = #{prtnrNo}
     </update>
+
+    <insert id="insertSoleDistributorB2bRedfAmt">
+        /*되물림 금액 생성 된 것, 총판가지급 테이블에 MERGE*/
+         MERGE INTO TB_FEDD_SODBT_FEE_MM_REDF_IZ A /*RDS지급신청기본*/
+    	 USING (
+		        SELECT S.REDF_ADSB_OC_YM /*되물림재지급발생년월*/
+		        	 , S.OG_TP_CD /*조직유형*/
+		        	 , S.PRTNR_NO /*파트너번호*/
+		        	 , NVL(S2.REDF_DDTN_BLAM_CRDOVR_AMT, 0) AS REDF_DDTN_BLAM_CRDOVR_AMT /*되물림공제잔액이월금액*/
+		        	 , NVL(S1.REDF_ADSB_OC_AMT, 0) AS REDF_OC_AMT /*되물림발생금액(당월발생)*/
+		        	 , 0 AS REDF_DDCTAM /*되물림공제금액(당월공제)*/
+		        	 , NVL(S2.REDF_DDTN_BLAM, 0) AS REDF_DDTN_BLAM /*되물림공제잔액*/
+		          FROM (
+				        SELECT #{redfAdsbOcYm} AS REDF_ADSB_OC_YM /*PARAM: 발생년월*/
+				        	 , B.OG_TP_CD /*총판 고정*/
+				        	 , B.PRTNR_NO
+				          FROM (
+			      				  SELECT B1.REDF_ADSB_OC_YM
+							      	   , B1.OG_TP_CD
+							      	   , B2.HOO_PRTNR_NO AS PRTNR_NO
+							      	   , NVL(SUM(B1.REDF_ADSB_CTR_CNFM_AMT), 0) AS REDF_ADSB_OC_AMT
+							        FROM TB_FEDD_FEE_REDF_ADSB_BAS B1
+							       INNER JOIN TB_FEAM_MM_PRTNR_HOO_IZ B2
+							          ON B1.PRTNR_NO = B2.PRTNR_NO
+							         AND B1.OG_TP_CD = B2.OG_TP_CD
+							         AND B1.PERF_YM = B2.BASE_YM
+							         AND B1.PERF_DV_CD = B2.PERF_DV_CD
+							       WHERE B1.REDF_ADSB_DV_CD = '02' /*되물림 고정*/
+							         AND B1.REDF_ADSB_OC_YM = #{redfAdsbOcYm} /*PARAM: 되물림 금액 발생년월*/
+							         AND B1.OG_TP_CD = 'W05' /*총판 고정*/
+							       GROUP BY B1.REDF_ADSB_OC_YM, B1.OG_TP_CD, B1.PRTNR_NO, B2.HOO_PRTNR_NO
+				          ) B
+				         UNION
+				        SELECT '202310' AS REDF_ADSB_OC_YM /*PARAM: 발생년월*/
+				        	 , A.OG_TP_CD /*총판 고정*/
+				        	 , A.PRTNR_NO
+				          FROM TB_FEDD_SODBT_FEE_MM_REDF_IZ A
+				         WHERE A.REDF_ADSB_OC_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{redfAdsbOcYm}, 'YYYYMM'), -1), 'YYYYMM') /*PARAM: 발생년월 전월 기준*/
+				           AND A.REDF_DDTN_BLAM > 0
+		         ) S
+		         LEFT OUTER JOIN (
+			      				  SELECT B1.REDF_ADSB_OC_YM
+							      	   , B1.OG_TP_CD
+							      	   , B2.HOO_PRTNR_NO AS PRTNR_NO
+							      	   , NVL(SUM(B1.REDF_ADSB_CTR_CNFM_AMT), 0) AS REDF_ADSB_OC_AMT
+							        FROM TB_FEDD_FEE_REDF_ADSB_BAS B1
+							       INNER JOIN TB_FEAM_MM_PRTNR_HOO_IZ B2
+							          ON B1.PRTNR_NO = B2.PRTNR_NO
+							         AND B1.OG_TP_CD = B2.OG_TP_CD
+							         AND B1.PERF_YM = B2.BASE_YM
+							         AND B1.PERF_DV_CD = B2.PERF_DV_CD
+							       WHERE B1.REDF_ADSB_DV_CD = '02' /*되물림 고정*/
+							         AND B1.REDF_ADSB_OC_YM = #{redfAdsbOcYm} /*PARAM: 되물림 금액 발생년월*/
+							         AND B1.OG_TP_CD = 'W05' /*총판 고정*/
+							       GROUP BY B1.REDF_ADSB_OC_YM, B1.OG_TP_CD, B1.PRTNR_NO, B2.HOO_PRTNR_NO
+		         ) S1
+		          ON S.REDF_ADSB_OC_YM = S1.REDF_ADSB_OC_YM
+		         AND S.PRTNR_NO = S1.PRTNR_NO
+		         AND S.OG_TP_CD = S1.OG_TP_CD
+		        LEFT OUTER JOIN TB_FEDD_SODBT_FEE_MM_REDF_IZ S2
+				  ON 1 = 1
+				 AND S.PRTNR_NO = S2.PRTNR_NO
+				 AND S.OG_TP_CD = S2.OG_TP_CD
+				 AND S2.REDF_ADSB_OC_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{redfAdsbOcYm}, 'YYYYMM'), -1), 'YYYYMM') /*PARAM: 발생년월 전월 기준*/
+				 AND S2.REDF_DDTN_BLAM > 0
+         ) B
+          ON (A.REDF_ADSB_OC_YM  = B.REDF_ADSB_OC_YM) /*해당 발생년월이 이미 만들어져있으면, UPDATE 아니면 INSERT*/
+	    WHEN MATCHED THEN
+		UPDATE
+		   SET A.REDF_DDTN_BLAM_CRDOVR_AMT = B.REDF_DDTN_BLAM_CRDOVR_AMT
+		     , A.REDF_OC_AMT = B.REDF_OC_AMT
+		     , A.REDF_DDCTAM = B.REDF_DDCTAM
+		     , A.REDF_DDTN_BLAM = A.REDF_DDTN_BLAM
+		     <include refid="COMMON.updateSystemField" />
+		WHEN NOT MATCHED THEN
+        INSERT (
+                     A.REDF_ADSB_OC_YM
+			       , A.OG_TP_CD
+			       , A.PRTNR_NO
+			       , A.REDF_DDTN_BLAM_CRDOVR_AMT
+			       , A.REDF_OC_AMT
+			       , A.REDF_DDCTAM
+			       , A.REDF_DDTN_BLAM
+			       , A.DTA_DL_YN
+                <include refid="COMMON.insertSystemField" />
+          ) VALUES (
+                     B.REDF_ADSB_OC_YM
+			       , B.OG_TP_CD
+			       , B.PRTNR_NO
+			       , B.REDF_DDTN_BLAM_CRDOVR_AMT
+			       , B.REDF_OC_AMT
+			       , B.REDF_DDCTAM
+			       , B.REDF_DDTN_BLAM
+			       , 'N'
+                <include refid="COMMON.insertSystemFieldValue" />
+    	  )
+    </insert>
 
 </mapper>

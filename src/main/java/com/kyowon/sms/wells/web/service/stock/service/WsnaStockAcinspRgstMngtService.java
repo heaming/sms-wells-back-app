@@ -16,7 +16,7 @@ import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaStockAcinspRgstMngtConverter;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaStockAcinspRgstMngtDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaStockAcinspRgstMngtMapper;
-import com.sds.sflex.common.common.dto.ExcelBulkDownloadDto;
+import com.sds.sflex.common.common.dto.ExcelBulkDownloadDto.DownloadReq;
 import com.sds.sflex.common.common.service.ExcelDownloadService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -63,7 +63,7 @@ public class WsnaStockAcinspRgstMngtService {
      * @throws IOException
      */
     public void getStockAcinspRgstMngtsForExcelDownload(
-        ExcelBulkDownloadDto.DownloadReq req, HttpServletResponse response
+        DownloadReq req, HttpServletResponse response
     )
         throws IOException {
         SXSSFWorkbook workbook = new SXSSFWorkbook(-1);
@@ -209,7 +209,7 @@ public class WsnaStockAcinspRgstMngtService {
         int processCount = 0;
 
         List<WsnaStockAcinspRgstMngtDvo> dvos = this.converter
-            .mapAllDeleteAcinspReqToWsnaStockAcinspRgstMngtDvo(dtos);
+            .mapAllSaveCancelReqToWsnaStockAcinspRgstMngtDvo(dtos);
 
         for (WsnaStockAcinspRgstMngtDvo dvo : dvos) {
             List<WsnaStockAcinspRgstMngtDvo> reDeleteDvo = this.mapper.selectDeleteAcinspRgstCancel(dvo);
@@ -241,7 +241,7 @@ public class WsnaStockAcinspRgstMngtService {
         int processCount = 0;
 
         List<WsnaStockAcinspRgstMngtDvo> dvos = this.converter
-            .mapAllDeleteApplAcinspReqToWsnaStockAcinspRgstMngtDvo(dtos);
+            .mapAllRemoveReqToWsnaStockAcinspRgstMngtDvo(dtos);
         for (WsnaStockAcinspRgstMngtDvo dvo : dvos) {
 
             int chkCount = this.mapper.deleteApplAcinsp(dvo);

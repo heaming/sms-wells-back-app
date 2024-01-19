@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.service.stock.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +39,7 @@ public class WsnaPcsvReturningGoodsSaveService {
     private final ZsnaWellsCounselSevice counselService;
     private final WctaInstallationReqdDtInService reqdDtService;
     private final WsnaLogisticsInStorageAskService logisticsService;
+    private final WsnaItemStockItemizationService stockService;
 
     @Transactional
     public int savePcsvReturningGoods(List<SaveReq> dtos) {
@@ -53,11 +55,17 @@ public class WsnaPcsvReturningGoodsSaveService {
             */
             if ("10".equals(dvo.getWkPrgsStatCd()) && ("301".equals(dvo.getCntrDtlStatCd())
                 || "302".equals(dvo.getCntrDtlStatCd()) || "303".equals(dvo.getCntrDtlStatCd()))) {
+                // 취소완료 상태에서 저장시 반품완료 코드 '6' 으로 변경
+                dvo.setSvBizHclsfCd("6");
                 // 1. 동일 키값으로 작업결과 조회
                 selectExistSvpdCstSvWkRsIz(dvo);
                 // 2. 고객서비스설치배정내역 업데이트
                 saveMapper.updateSvpdCstSvasIstAsnIz(dvo);
                 // 3. 작업결과 저장
+                dvo.setOgId("W06-99992");
+                dvo.setOgTpCd("W06");
+                dvo.setPrtnrNo("99992");
+                log.info("zippo0209 dvo.getAsnDt() >>>>> {}", dvo.getAsnDt());
                 saveMapper.insertSvpdCstSvWkRsIz(dvo);
                 // 4. 철거일자 업데이트(고객서비스수행내역)
                 saveMapper.updateSvpdCstSvExcnIz(dvo);
@@ -109,6 +117,7 @@ public class WsnaPcsvReturningGoodsSaveService {
         // 상품정보세팅 필요
         List<WsnaPcsvReturningGoodsSaveProductDvo> products = dvo.getProducts();
         log.info("[상품 세부 종류] => {}", products.size());
+        List<WsnaPcsvReturningGoodsSaveDvo> logisticsVo = new ArrayList<WsnaPcsvReturningGoodsSaveDvo>();
         for (WsnaPcsvReturningGoodsSaveProductDvo productsVo : products) {
             dvo.setOstrTpCd(RETURN_INSIDE);
             dvo.setOstrDt(ostrDt);
@@ -119,14 +128,38 @@ public class WsnaPcsvReturningGoodsSaveService {
             dvo.setLogisticsPdQty(productsVo.getUseQty());
             // 9. 서비스작업출고내역 저장
             saveMapper.insertSvstSvWkOstrIz(dvo);
+
+            /**===================================
+             * 10. 재고
+             * 20240110 추가
+            **===================================*/
+            WsnaItemStockItemizationReqDvo itemReqDvl = new WsnaItemStockItemizationReqDvo();
+            /**------------------------------
+             * 1: 물류센터
+             * 2: 서비스센터
+             * 3: 영업센터
+            **------------------------------*/
+            itemReqDvl.setWareDv(dvo.getWkWareNo().substring(0, 1));
+            itemReqDvl.setWareNo(dvo.getWkWareNo());
+            itemReqDvl.setWareMngtPrtnrNo(dvo.getWareMngtPrtnrNo());
+            itemReqDvl.setIostTp("162");
+            itemReqDvl.setWorkDiv("A");
+            itemReqDvl.setItmPdCd(productsVo.getPdCd());
+            itemReqDvl.setItemGd(dvo.getFnlGb());
+            itemReqDvl.setQty(String.valueOf(productsVo.getUseQty()));
+
+            itemReqDvl.setProcsYm(ostrDt.substring(0, 6));
+            itemReqDvl.setProcsDt(ostrDt);
+            this.stockService.createStock(itemReqDvl);
+
             // 반품요청 연계(물류서비스) DVO 세팅
-            List<WsnaPcsvReturningGoodsSaveDvo> logisticsVo = new ArrayList<WsnaPcsvReturningGoodsSaveDvo>();
             logisticsVo.add(dvo);
-            // 10. 반품요청 연계(물류서비스) DVO 변환 및 호출
-            logisticsService.createInStorageAsks(setLogisticsInStorageAskReqDvo(logisticsVo));
+
             // 11. 품목 재고 변경 내용 저장 => 물류 연계 배치 처리 후, 품목 재고 변경
             ostrSn += 1;
         }
+        // 10. 반품요청 연계(물류서비스) DVO 변환 및 호출
+            logisticsService.createInStorageAsks(setLogisticsInStorageAskReqDvo(logisticsVo));
         return 1;
     }
 
@@ -182,6 +215,8 @@ public class WsnaPcsvReturningGoodsSaveService {
         WellsCounselReqIvo reqIvo = new WellsCounselReqIvo();
         StringBuffer cnslCn = new StringBuffer();
 
+        final String tmpValue = "||CHR(10)||";
+
         // 1. dvo와 ivo 매핑 처리
         reqIvo.setCST_NO(dvo.getCntrCstNo()); //계약고객번호
         reqIvo.setSELL_TP_CD(dvo.getSellTpCd()); //판매유형코드
@@ -191,27 +226,27 @@ public class WsnaPcsvReturningGoodsSaveService {
         //상담내용
         cnslCn.append("@ 상담내용 ||CHR(10)||");
         cnslCn.append("1. 매출일자 : ");
-        cnslCn.append(dvo.getCntrPdStrtdt() + "||CHR(10)||");
+        cnslCn.append(dvo.getCntrPdStrtdt() + tmpValue);
         cnslCn.append("2. 제품수령일자 : ");
-        cnslCn.append(dvo.getPcsvRcgvDt() + "||CHR(10)||");
+        cnslCn.append(dvo.getPcsvRcgvDt() + tmpValue);
         cnslCn.append("3. 반품상담접수일자 : ");
-        cnslCn.append(dvo.getRcpdt() + "||CHR(10)||");
+        cnslCn.append(dvo.getRcpdt() + tmpValue);
         cnslCn.append("4. 현물입고일자 : ");
-        cnslCn.append(dvo.getArvDt() + "||CHR(10)||");
+        cnslCn.append(dvo.getArvDt() + tmpValue);
         cnslCn.append("5. 경과일수 : ");
-        cnslCn.append(dvo.getPdUseDc() + "||CHR(10)||");
+        cnslCn.append(dvo.getPdUseDc() + tmpValue);
         cnslCn.append("6. 산정등급 : ");
-        cnslCn.append(dvo.getFnlGb() + "||CHR(10)||");
+        cnslCn.append(dvo.getFnlGb() + tmpValue);
         cnslCn.append("7. 개봉여부 : ");
         if ("91".equals(dvo.getDtmChRsonCd())) {
-            cnslCn.append("개봉" + "||CHR(10)||");
+            cnslCn.append("개봉" + tmpValue);
         } else if ("92".equals(dvo.getDtmChRsonCd())) {
-            cnslCn.append("미개봉" + "||CHR(10)||");
+            cnslCn.append("미개봉" + tmpValue);
         } else {
-            cnslCn.append("||CHR(10)||");
+            cnslCn.append(tmpValue);
         }
         cnslCn.append("8. 반품운송장 번호 : ");
-        cnslCn.append(dvo.getFwSppIvcNo() + "||CHR(10)||");
+        cnslCn.append(dvo.getFwSppIvcNo() + tmpValue);
         cnslCn.append("9. 비고(택배사/반품자) : ");
         cnslCn.append(dvo.getDtmChRsonDtlCn());
 

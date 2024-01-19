@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.common.dto;
 
+import java.math.BigDecimal;
+
 import javax.validation.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModel;
@@ -20,22 +22,25 @@ public class WsnyPaidAsCostMgtDto {
         String pdCd, //품목코드
         String cmnPartChk, //공통부품 체크 여부
         String apyMtrChk //현재적용자료 체크 여부
-    ){}
+    ) {}
     @ApiModel(value = "WsnyPaidAsCostMgtDto-SearchRes")
     public record SearchRes(
         String sapMatCd, // SAP코드
         String useMatPdCd, // 품목코드
         String pdNm, // 품목명
         String apyStrtdt, // 적용시작일자
+        String orgApyStrtdt, // 변경전 적용시작일자
         String apyEnddt, // 적용종료일자
-        int csmrUprcAmt, // 소비자단가금액
-        int whlsUprcAmt, // 도매단가금액
-        int insiUprcAmt, // 내부단가금액
-        int tcfeeAmt, // 기술료금액
-        int sumAmt, // 합계(소비자단가금액+기술료금액)
-        int izSn,
-        String pdctPdCd
-    ){}
+        String orgApyEnddt, // 변경 전 적용종료일자
+        BigDecimal csmrUprcAmt, // 소비자단가금액
+        BigDecimal whlsUprcAmt, // 도매단가금액
+        BigDecimal insiUprcAmt, // 내부단가금액
+        BigDecimal tcfeeAmt, // 기술료금액
+        BigDecimal sumAmt, // 합계(소비자단가금액+기술료금액)
+        BigDecimal izSn,
+        String pdctPdCd,
+        int rn
+    ) {}
 
     @ApiModel(value = "WsnyPaidAsCostMgtDto-SaveReq")
     public record SaveReq(
@@ -43,13 +48,13 @@ public class WsnyPaidAsCostMgtDto {
         String useMatPdCd, // 상품코드
         @NotBlank
         String pdctPdCd, // 기준상품코드
-        @NotBlank
-        int izSn, //내역일련번호
+        BigDecimal izSn, //내역일련번호
         String apyStrtdt, // 적용시작일자
+        String orgApyStrtdt, // 변경 전 적용시작일자
         String apyEnddt, // 적용종료일자
-        int csmrUprcAmt, // 소비자단가금액
-        int whlsUprcAmt, // 도매단가금액
-        int insiUprcAmt, // 내부단가금액
-        int tcfeeAmt // 기술료금액
-    ){}
+        BigDecimal csmrUprcAmt, // 소비자단가금액
+        BigDecimal whlsUprcAmt, // 도매단가금액
+        BigDecimal insiUprcAmt, // 내부단가금액
+        BigDecimal tcfeeAmt // 기술료금액
+    ) {}
 }

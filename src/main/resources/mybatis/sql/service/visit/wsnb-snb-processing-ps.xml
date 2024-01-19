@@ -69,16 +69,17 @@
             END ) AS CANC_YN
             , F_CMZ_CD_NM('TNT_WELLS', 'ITG_QRS_OJ_DV_CD',  B2.BC_PBL_DV_CD  , 'ko') AS BC_PBL_DV_CD
             , S1.CST_SV_ASN_NO
-            , S3.CST_SIGN_CN
+--             , S3.CST_SIGN_CN
         FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ S1 /* 고객서비스BS배정내역 ac261 */
-  INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S2
+  INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S2 /* AC201 */
           ON S1.CNTR_NO  = S2.CNTR_NO
          AND S1.CNTR_SN = S2.CNTR_SN
+         AND S1.ASN_OJ_YM = SUBSTR(#{startDt},1,6)
   INNER JOIN TB_SSCT_CNTR_ADR_REL T3 /*계약주소관계*/
           ON S1.CNTR_NO = T3.DTL_CNTR_NO
          AND S1.CNTR_SN = T3.DTL_CNTR_SN
          AND T3.ADRPC_TP_CD IN ('2','3')    /*1 계약주소, 2 배달주소, 3 설치주소*/
-         AND S1.ASN_OJ_YM BETWEEN T3.VL_STRT_DTM AND T3.VL_END_DTM
+         AND S1.ASN_OJ_YM BETWEEN SUBSTR(T3.VL_STRT_DTM,1,6) AND SUBSTR(T3.VL_END_DTM,1,6)
   INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T4 /*계약주소지기본*/
           ON T3.CNTR_ADRPC_ID = T4.CNTR_ADRPC_ID /*계약주소지ID*/
      --  AND C2.ADR_ID = T4.ADR_ID
@@ -88,33 +89,35 @@ LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS A1
          AND A1.DTA_DL_YN = 'N'
   INNER JOIN PD_INF
           ON S2.PDCT_PD_CD = PD_INF.PD_CD
-  INNER JOIN TB_OGBS_MM_PRTNR_IZ P1
+  INNER JOIN TB_OGBS_PRTNR_BAS P1
           ON S1.CNFM_PSIC_PRTNR_NO = P1.PRTNR_NO
-         AND S1.ASN_OJ_YM = P1.BASE_YM
          AND S1.CNFM_PSIC_PRTNR_OG_TP_CD = P1.OG_TP_CD
          AND P1.OG_ID != '71322'
 LEFT OUTER JOIN TB_SVPD_BC_RPBL_AK_CST_IZ B1 /* 바코드재발행요청고객내역  */
           ON S2.CNTR_NO = B1.CNTR_NO
          AND S2.CNTR_SN = B1.CNTR_SN
-         AND (B1.FST_PBL_DT LIKE SUBSTR(#{startDt},1,6)||'%' OR B1.FNL_PBL_DT LIKE SUBSTR(#{startDt},1,6)||'%')
+         AND (B1.FST_PBL_DT LIKE SUBSTR(#{startDt},1,6)||'%' OR B1.FNL_PBL_DT LIKE SUBSTR(#{endDt},1,6)||'%')
          AND B1.BC_NO = S2.BC_NO
 LEFT OUTER JOIN TB_SVPD_PD_BC_RPBL_CST_IZ B2
           ON S2.BC_NO = B2.BC_NO
          AND PD_INF.ITM_KND_CD = B2.ITM_KND_CD
 LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S3 /* 고객서비스작업결과내역 VS106 */
           ON S1.CST_SV_ASN_NO = S3.CST_SV_ASN_NO
+         AND S3.VST_FSH_DT BETWEEN #{startDt} AND #{endDt}
          /* AND B1.CST_SV_ASN_NO = S3.CST_SV_ASN_NO */
   INNER JOIN WSMDBS.TB_SSCT_CNTR_WELLS_DTL S4 /*계약상세*/
           ON S1.CNTR_NO = S4.CNTR_NO
          AND S1.CNTR_SN = S4.CNTR_SN
          AND S4.DTA_DL_YN = 'N'
        WHERE S1.VST_PRGS_STAT_CD != '73'
+        <if test="@MybatisUtils@isNotEmpty(svBizMclsfCd)">
+            AND S1.SV_BIZ_MCLSF_CD = #{svBizMclsfCd}
+        </if>
          AND S1.SV_BIZ_MCLSF_CD LIKE '2%'
          AND S1.CNFM_PSIC_DV_CD = #{mngrDvCd}
          AND S1.CNFM_PSIC_PRTNR_NO IS NOT NULL
-         AND S1.ASN_OJ_YM BETWEEN SUBSTR(#{startDt},1,6) AND SUBSTR(#{endDt},1,6)
-         AND S3.VST_FSH_DT BETWEEN #{startDt} AND #{endDt}
-        <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId) or @MybatisUtils@isNotEmpty(dgr3LevlOgId) or @MybatisUtils@isNotEmpty(prtnrNo) or @MybatisUtils@isNotEmpty(ogId)">
+         AND S1.ASN_OJ_YM = SUBSTR(#{startDt},1,6)
+        <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId) or @MybatisUtils@isNotEmpty(dgr3LevlOgId) or @MybatisUtils@isNotEmpty(ogId)">
         AND P1.OG_ID IN (SELECT OG_ID
                            FROM ( SELECT T1.BASE_YM
                                        , T1.PRTNR_NO
@@ -151,23 +154,12 @@ LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S3 /* 고객서비스작업결과내역 
                                      <if test="@MybatisUtils@isNotEmpty(ogId)">
                                      AND T1.OG_ID = #{ogId}
                                      </if>
-                                     <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
-                                     AND T1.PRTNR_NO = #{prtnrNo}
-                                     </if>
                          )
-
-
                         WHERE RN=1 )
         </if>
-        <!--<if test="@MybatisUtils@isNotEmpty(vstFshStDt)">-->
-        <!--AND (S3.VST_FSH_DT BETWEEN #{vstFshStDt} AND #{vstFshEndDt} OR  S3.VST_FSH_DT IS NULL)-->
-        <!--</if>-->
-        <!--<if test="@MybatisUtils@isNotEmpty(svBizMclsfCd)">-->
-        <!--AND S1.SV_BIZ_MCLSF_CD = #{svBizMclsfCd} /* 정기bs 21 비정기bs 26 */-->
-        <!--</if>-->
-        <!--<if test="@MybatisUtils@isNotEmpty(vstPrgsStatCd)">-->
-        <!--AND S1.VST_PRGS_STAT_CD = #{vstPrgsStatCd}-->
-        <!--</if>-->
+        <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+        AND S1.CNFM_PSIC_PRTNR_NO =  #{prtnrNo}
+        </if>
         ORDER BY P1.OG_CD
         </select>
 
@@ -230,79 +222,89 @@ LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S3 /* 고객서비스작업결과내역 
            INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S2
                    ON S1.CNTR_NO = S2.CNTR_NO
                   AND S1.CNTR_SN = S2.CNTR_SN
+                  AND S1.ASN_OJ_YM = SUBSTR(#{startDt},1,6)
            INNER JOIN PD_INF
                    ON S2.PDCT_PD_CD = PD_INF.PD_CD
-           INNER JOIN TB_OGBS_MM_PRTNR_IZ P1
+           INNER JOIN TB_OGBS_PRTNR_BAS P1
                    ON S1.CNFM_PSIC_PRTNR_NO = P1.PRTNR_NO
-                  AND S1.ASN_OJ_YM = P1.BASE_YM
                   AND S1.CNFM_PSIC_PRTNR_OG_TP_CD = P1.OG_TP_CD
                   AND P1.OG_ID != '71322'
+           INNER JOIN TB_SSCT_CNTR_ADR_REL T3 /*계약주소관계*/
+                   ON S1.CNTR_NO = T3.DTL_CNTR_NO
+                  AND S1.CNTR_SN = T3.DTL_CNTR_SN
+                  AND T3.ADRPC_TP_CD IN ('2','3')    /*1 계약주소, 2 배달주소, 3 설치주소*/
+                  AND S1.ASN_OJ_YM BETWEEN SUBSTR(T3.VL_STRT_DTM,1,6) AND SUBSTR(T3.VL_END_DTM,1,6)
+           INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T4 /*계약주소지기본*/
+                   ON T3.CNTR_ADRPC_ID = T4.CNTR_ADRPC_ID /*계약주소지ID*/
+                --  AND C2.ADR_ID = T4.ADR_ID
+                  AND T4.DTA_DL_YN = 'N'
       LEFT OUTER JOIN TB_SVPD_BC_RPBL_AK_CST_IZ B1 /* 바코드재발행요청고객내역 */
                    ON S2.CNTR_NO = B1.CNTR_NO
                   AND S2.CNTR_SN = B1.CNTR_SN
-                  AND (B1.FST_PBL_DT LIKE SUBSTR(#{startDt},1,6)||'%' OR B1.FNL_PBL_DT LIKE SUBSTR(#{startDt},1,6)||'%')
+                  AND (B1.FST_PBL_DT LIKE SUBSTR(#{startDt},1,6)||'%' OR B1.FNL_PBL_DT LIKE SUBSTR(#{endDt},1,6)||'%')
                   AND B1.BC_NO = S2.BC_NO
       LEFT OUTER JOIN TB_SVPD_PD_BC_RPBL_CST_IZ B2
                    ON S2.BC_NO = B2.BC_NO
                   AND PD_INF.ITM_KND_CD = B2.ITM_KND_CD
       LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S3 /* 고객서비스작업결과내역 VS106 */
                    ON S1.CST_SV_ASN_NO = S3.CST_SV_ASN_NO
-                  /* AND B1.CST_SV_ASN_NO = S3.CST_SV_ASN_NO */
+                  AND S3.VST_FSH_DT BETWEEN #{startDt} AND #{endDt}
+                /* AND B1.CST_SV_ASN_NO = S3.CST_SV_ASN_NO */
            INNER JOIN WSMDBS.TB_SSCT_CNTR_WELLS_DTL S4 /*계약상세*/
                    ON S1.CNTR_NO = S4.CNTR_NO
                   AND S1.CNTR_SN = S4.CNTR_SN
                   AND S4.DTA_DL_YN = 'N'
                 WHERE S1.VST_PRGS_STAT_CD != '73'
                 <if test="@MybatisUtils@isNotEmpty(svBizMclsfCd)">
-                 AND S1.SV_BIZ_MCLSF_CD = #{svBizMclsfCd}
+                  AND S1.SV_BIZ_MCLSF_CD = #{svBizMclsfCd}
                 </if>
-                AND S3.VST_FSH_DT BETWEEN #{startDt} AND #{endDt}
-          AND S1.CNFM_PSIC_DV_CD = #{mngrDvCd}
-          AND S1.CNFM_PSIC_PRTNR_NO IS NOT NULL
-          AND S1.ASN_OJ_YM BETWEEN SUBSTR(#{startDt},1,6) AND SUBSTR(#{endDt},1,6)
-          <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId) or @MybatisUtils@isNotEmpty(dgr3LevlOgId) or @MybatisUtils@isNotEmpty(prtnrNo) or @MybatisUtils@isNotEmpty(ogId)">
-          AND P1.OG_ID IN (SELECT OG_ID
-                             FROM ( SELECT T1.BASE_YM
-                                         , T1.PRTNR_NO
-                                         , T1.OG_TP_CD
-                                         , T1.PRTNR_KNM
-                                         , T1.OG_ID
-                                         , T1.OG_CD
-                                         , T1.OG_NM
-                                         , T1.HMNRSC_DEPT_CD   /*인사부서코드*/
-                                         , T3.HGR_OG_ID
-                                         /* , T4.OG_NM AS HGR_OG_NM */
-                                         , RANK() OVER(PARTITION BY T1.PRTNR_NO ORDER BY T1.OG_TP_CD DESC) AS RN
-                                      FROM WSMDBS.TB_OGBS_MM_PRTNR_IZ T1 /*월파트너내역*/
-                                INNER JOIN WSMDBS.TB_OGBS_PRTNR_BAS T2 /*파트너기본*/
-                                        ON T1.PRTNR_NO = T2.PRTNR_NO
-                                       AND T1.OG_TP_CD = T2.OG_TP_CD
-                                       AND T2.DTA_DL_YN = 'N'
-                                INNER JOIN WSMDBS.TB_OGBS_MM_OG_IZ T3   /*월조직내역*/
-                                        ON T1.OG_ID = T3.OG_ID
-                                       AND T1.BASE_YM = T3.BASE_YM
-                                       AND T3.DTA_DL_YN = 'N'
-                                     WHERE 1=1
-                                       AND T1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
-                                       /* AND (T1.PRTNR_NO IN (SELECT ICHR_PRTNR_NO FROM TEMP1) OR T1.PRTNR_NO IN (SELECT PRTNR_NO FROM TEMP1) OR T1.PRTNR_NO IN (SELECT FST_RGST_USR_ID FROM TEMP1)) */
-                                       AND T1.OG_TP_CD IN ('HR1', 'W02', 'W03','W06') /*조직유형코드 W01 P추진, W02 M추진, W03 홈마스터, W04 B2B, W05 온라인총판, W06 엔지니어, ALC 제휴채널, HR1 임직원, BND 채권, L01 라이프, X01 KLC, X02 LC전문강사*/
-                                       /* AND T1.BZ_STAT_CD IN ('1','2','3') */  /*1 사업, 2 해약, 3 휴업*/
-                                       AND T1.DTA_DL_YN = 'N'
-                                       <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
-                                       AND T3.HGR_OG_ID = #{dgr2LevlOgId}
-                                       </if>
-                                       <if test="@MybatisUtils@isNotEmpty(ogId)">
-                                       AND T1.OG_ID = #{ogId}
-                                       </if>
-                                       <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
-                                       AND T1.OG_ID = #{dgr3LevlOgId}
-                                       </if>
-                                       <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
-                                       AND T1.PRTNR_NO = #{prtnrNo}
-                                       </if>
-                                 )
-                        WHERE RN=1 )
-        </if>
+                  AND S1.SV_BIZ_MCLSF_CD LIKE '2%'
+                  AND S1.CNFM_PSIC_DV_CD = #{mngrDvCd}
+                  AND S1.CNFM_PSIC_PRTNR_NO IS NOT NULL
+                  AND S1.ASN_OJ_YM = SUBSTR(#{startDt},1,6)
+                <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId) or @MybatisUtils@isNotEmpty(dgr3LevlOgId) or @MybatisUtils@isNotEmpty(ogId)">
+                 AND P1.OG_ID IN (SELECT OG_ID
+                                    FROM ( SELECT T1.BASE_YM
+                                                 , T1.PRTNR_NO
+                                                 , T1.OG_TP_CD
+                                                 , T1.PRTNR_KNM
+                                                 , T1.OG_ID
+                                                 , T1.OG_CD
+                                                 , T1.OG_NM
+                                                 , T1.HMNRSC_DEPT_CD   /*인사부서코드*/
+                                                 , T3.HGR_OG_ID
+                                                 /* , T4.OG_NM AS HGR_OG_NM */
+                                                 , RANK() OVER(PARTITION BY T1.PRTNR_NO ORDER BY T1.OG_TP_CD DESC) AS RN
+                                              FROM WSMDBS.TB_OGBS_MM_PRTNR_IZ T1 /*월파트너내역*/
+                                        INNER JOIN WSMDBS.TB_OGBS_PRTNR_BAS T2 /*파트너기본*/
+                                                ON T1.PRTNR_NO = T2.PRTNR_NO
+                                               AND T1.OG_TP_CD = T2.OG_TP_CD
+                                               AND T2.DTA_DL_YN = 'N'
+                                        INNER JOIN WSMDBS.TB_OGBS_MM_OG_IZ T3   /*월조직내역*/
+                                                ON T1.OG_ID = T3.OG_ID
+                                               AND T1.BASE_YM = T3.BASE_YM
+                                               AND T3.DTA_DL_YN = 'N'
+                                             WHERE 1=1
+                                               AND T1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+                                               /* AND (T1.PRTNR_NO IN (SELECT ICHR_PRTNR_NO FROM TEMP1) OR T1.PRTNR_NO IN (SELECT PRTNR_NO FROM TEMP1) OR T1.PRTNR_NO IN (SELECT FST_RGST_USR_ID FROM TEMP1)) */
+                                               AND T1.OG_TP_CD IN ('HR1', 'W02', 'W03','W06') /*조직유형코드 W01 P추진, W02 M추진, W03 홈마스터, W04 B2B, W05 온라인총판, W06 엔지니어, ALC 제휴채널, HR1 임직원, BND 채권, L01 라이프, X01 KLC, X02 LC전문강사*/
+                                               /* AND T1.BZ_STAT_CD IN ('1','2','3') */  /*1 사업, 2 해약, 3 휴업*/
+                                               AND T1.DTA_DL_YN = 'N'
+                                               <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
+                                               AND T3.HGR_OG_ID = #{dgr2LevlOgId}
+                                               </if>
+                                               <if test="@MybatisUtils@isNotEmpty(ogId)">
+                                               AND T1.OG_ID = #{ogId}
+                                               </if>
+                                               <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
+                                               AND T1.OG_ID = #{dgr3LevlOgId}
+                                               </if>
+                                         )
+                                  WHERE RN=1 )
+                </if>
+                <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+                AND S1.CNFM_PSIC_PRTNR_NO = #{prtnrNo}
+                </if>
         )
     </select>
 
@@ -323,5 +325,12 @@ LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S3 /* 고객서비스작업결과내역 
             ON P1.PD_CD = S2.PU_PART_PD_CD
          WHERE 1=1
            AND S1.CST_SV_ASN_NO = #{cstSvAsnNo}
+    </select>
+
+    <select id="selectSnProcessingPsCstSignCn" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbSnProcessingPsDto$SearchCstSignCn">
+        SELECT CST_SIGN_CN
+          FROM TB_SVPD_CST_SV_WK_RS_IZ
+         WHERE 1=1
+           AND CST_SV_ASN_NO = #{cstSvAsnNo}
     </select>
 </mapper>

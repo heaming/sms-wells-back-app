@@ -5,7 +5,7 @@
 	    WITH PART_INF AS (
             /*품목정보*/
             SELECT P1.PD_CD
-                 , P2.SAP_MAT_CD    /*SAP자재코드*/
+                 , TO_CHAR(TO_NUMBER(P2.SAP_MAT_CD)) AS SAP_MAT_CD    /*SAP자재코드*/
                  , P2.PD_NM         /*품목명*/
                  , P1.PD_PRP_VAL15  /*기초자재*/
                  , P1.PD_PRP_VAL17  /*자재관리유형, AS_MAT_MNG_TP_CD, MAT_MNGT_DV_CD*/
@@ -30,6 +30,39 @@
                /*관리유형(전체, 기초1, 기초2, 기초3, 기초4, 기초5) 전체 : ALL*/
             <if test="@MybatisUtils@isNotEmpty(stockTpCd) and !@MybatisUtils@equals(stockTpCd, 'ALL')">
                AND P1.PD_PRP_VAL17 = #{stockTpCd}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(strtSapCd) or @MybatisUtils@isNotEmpty(endSapCd)'>
+               <choose>
+                   <when test='@MybatisUtils@isNotEmpty(strtSapCd) and @MybatisUtils@isNotEmpty(endSapCd)'>
+                       AND TO_CHAR(TO_NUMBER(P2.SAP_MAT_CD)) BETWEEN #{strtSapCd} AND #{endSapCd}
+                    </when>
+                    <otherwise>
+                        <if test='@MybatisUtils@isNotEmpty(strtSapCd)'>
+                            AND TO_CHAR(TO_NUMBER(P2.SAP_MAT_CD)) LIKE #{strtSapCd} ||'%'
+                        </if>
+                        <if test='@MybatisUtils@isNotEmpty(endSapCd)'>
+                            AND TO_CHAR(TO_NUMBER(P2.SAP_MAT_CD)) LIKE #{endSapCd} ||'%'
+                        </if>
+                    </otherwise>
+                </choose>
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
+               AND P2.PD_CD = #{itmPdCd}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(itmGrpCd)">
+               AND (    P1.PD_PRP_VAL20 = #{itmGrpCd}
+                     OR EXISTS ( SELECT 1
+                                   FROM TB_PDBS_PD_REL T1
+                                  INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+                                     ON T2.PD_CD = T1.BASE_PD_CD
+                                  WHERE T1.DTA_DL_YN          = 'N'
+                                    AND T1.PD_REL_TP_CD       = '14'   /* AS부품 */
+                                    AND T2.DTA_DL_YN          = 'N'
+                                    AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+                                    AND T1.OJ_PD_CD           = P2.PD_CD
+                                    AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
+                                    AND T2.PD_PRP_VAL20       = #{itmGrpCd} )
+                   )
             </if>
                AND (P1.PD_PRP_VAL20 IN ('1', '2', '3', '4', '5', '6', '7', '8', '9', '91', '92', '93', '95', '96')
                  OR P1.PD_PRP_VAL20 IS NULL)
@@ -115,6 +148,12 @@
                           AND S1.WARE_NO = W1.WARE_NO
              WHERE 1=1
                AND S1.BASE_YM = SUBSTR(#{startDt}, 1,6)
+            <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+               AND S1.ITM_PD_CD IN
+                                 <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                    #{itmPdCd}
+                                 </foreach>
+            </if>
                AND S1.DTA_DL_YN = 'N'
              GROUP BY S1.ITM_PD_CD
          )

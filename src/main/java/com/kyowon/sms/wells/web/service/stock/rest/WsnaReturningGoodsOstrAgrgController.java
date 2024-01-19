@@ -16,10 +16,10 @@ import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrAgrgDto.
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaReturningGoodsOstrAgrgDto.SearchWareReq;
 import com.kyowon.sms.wells.web.service.stock.service.WsnaReturningGoodsOstrAgrgService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
-import com.sds.sflex.system.config.datasource.PageInfo;
-import com.sds.sflex.system.config.datasource.PagingResult;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
@@ -32,16 +32,22 @@ public class WsnaReturningGoodsOstrAgrgController {
 
     private final WsnaReturningGoodsOstrAgrgService service;
 
-    @ApiOperation(value = "반품출고집계현황 조회", notes = "반품으로 출고된 상품들의 집계 현황을 조회한다.")
-    @GetMapping("/paging")
-    public PagingResult<SearchRes> getReturningGoodsOstrAgrg(
-        @Valid
-        SearchReq dto, PageInfo pageInfo
-    ) {
-        return service.getReturningGoodsOstrAgrg(dto, pageInfo);
-    }
+    //    @ApiOperation(value = "반품출고집계현황 조회", notes = "반품으로 출고된 상품들의 집계 현황을 조회한다.")
+    //    @GetMapping("/paging")
+    //    public PagingResult<SearchRes> getReturningGoodsOstrAgrg(
+    //        @Valid
+    //        SearchReq dto, PageInfo pageInfo
+    //    ) {
+    //        return service.getReturningGoodsOstrAgrg(dto, pageInfo);
+    //    }
 
-    @ApiOperation(value = "반품출고집계현황 엑셀다운로드", notes = "반품으로 출고된 상품들의 집계 현황을 엑셀 다운로드한다.")
+    @ApiOperation(value = "반품출고집계현황", notes = "반품으로 출고된 상품들의 집계 현황을 조회.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "startDate", value = "시작일", paramType = "query", required = true),
+        @ApiImplicitParam(name = "endDate", value = "종료일", paramType = "query", required = true),
+        @ApiImplicitParam(name = "rtngdProcsTpCd", value = "반품유형", paramType = "query", required = false),
+        @ApiImplicitParam(name = "svCnrCd", value = "센터코드", paramType = "query", required = false),
+    })
     @GetMapping("/excel-download")
     public List<SearchRes> getReturningGoodsOstrAgrg(
         @Valid

@@ -97,6 +97,8 @@ public class WsnaPcsvReturningGoodsSaveDvo {
     String logisticsPdCd;
     String logisticsPdNm;
     String logisticsPdQty;
+    String fnlItmGdCd;
+    String asnDt;
 
     List<WsnaPcsvReturningGoodsSaveProductDvo> products;
 

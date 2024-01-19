@@ -10,10 +10,12 @@
     </select>
 
     <select id='selectManagerVisitFees' resultType="com.kyowon.sms.wells.web.fee.control.dto.WfedManagerVisitFeeDto$SearchRes">
-        <include refid="COMMON.dataAuthOrgWithClause">
-            <property name="paramOgTpCd" value="'W02'"/>
-            <property name="paramBaseYm" value="#{baseYm}"/>
-        </include>
+        <if test="!@MybatisUtils@equals(session.dataFullAuthYn,'Y')">
+            <include refid="COMMON.dataAuthOrgWithClause">
+                <property name="paramOgTpCd" value="'W02'"/>
+                <property name="paramBaseYm" value="#{baseYm}"/>
+            </include>
+        </if>
         SELECT /*+ USE_NL(T1 T2 T4) LEADING(T1 T2) USE_HASH(BAS) */
              OG.DGR1_LEVL_OG_ID	/*총괄단*/
              , OG.DGR2_LEVL_OG_ID	/*지역단*/
@@ -84,7 +86,7 @@
                     , NULL AS CNTR_CAN_RSON_CD	/*계약취소사유코드*/
                     , NULL AS HCR_DV_CD	/*홈케어구분코드*/
                     , C2.CNTR_CST_NO	/*계약고객번호*/
-                    , CASE WHEN C3.CNTR_REL_DTL_CD = '216'	/*모종결합*/ THEN 'Y' ELSE 'N' END AS COMBI_YN	/*결합제외여부*/
+                    , CASE WHEN C3.CNTR_REL_DTL_CD = '216' AND NOT (P1.PD_PRP_VAL14 = '1' AND P1.PD_PRP_VAL15 = '4') /*모종결합*/ THEN 'Y' ELSE 'N' END AS COMBI_YN	/*결합제외여부*/
                  FROM TB_SSCT_CNTR_DTL C1	/*계약상세*/
                 INNER JOIN TB_SSCT_CNTR_BAS C2	/*계약기본*/
                    ON C1.CNTR_NO = C2.CNTR_NO
@@ -93,6 +95,9 @@
                    ON C3.BASE_DTL_CNTR_NO = C1.CNTR_NO
                   AND C3.BASE_DTL_CNTR_SN = C1.CNTR_SN
                   AND C3.DTA_DL_YN = 'N'
+                 LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL P1
+                   ON P1.PD_EXTS_PRP_GRP_CD = 'CNTR'
+                  AND C1.BASE_PD_CD = P1.PD_CD
                 WHERE C1.DTA_DL_YN = 'N'
                   AND C1.CNTR_NO = T1.CNTR_NO
                   AND C1.CNTR_SN = T1.CNTR_SN
@@ -262,11 +267,13 @@
           <!--AND T1.OG_TP_CD IN ('W02', 'W03')	/*M조직, 홈마스터*/-->
           AND (T1.WK_EXCN_DT IS NOT NULL OR T1.WK_EXCN_DT != '0')	/*작업수행일자*/
           AND NVL(T4.COMBI_YN, ' ') != 'Y' /*모종이고 결합이면 제외, 기기이고 결합이 아니면 제외*/
+          <if test="!@MybatisUtils@equals(session.dataFullAuthYn,'Y')">
           /*로그인한 사용자의 권한에 따라 하위 조직만 조회*/
           AND EXISTS (SELECT 1
                         FROM OBJ_ORG X1
                        WHERE X1.OG_TP_CD = OG.OG_TP_CD
                          AND X1.OG_ID = OG.OG_ID)
+          </if>
         <if test='@MybatisUtils@isNotEmpty(ogLevlDvCd1)'>
           AND OG.DGR1_LEVL_OG_ID = #{ogLevlDvCd1}
         </if>

@@ -1,6 +1,10 @@
 package com.kyowon.sms.wells.web.service.common.dto;
 
+import java.math.BigDecimal;
+
 import javax.validation.constraints.NotBlank;
+
+import com.sds.sflex.system.config.validation.validator.ValidDate;
 
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
@@ -28,17 +32,12 @@ public class WsnyAsVisitCostMgtDto {
         String apyMtrChk
     ) {}
 
-    @ApiModel(value = "WsnyAsVisitCostMgtDto-SearchRes")
-    public record SearchRes(
+    @Builder
+    @ApiModel(value = "WsnyAsVisitCostMgtDto-RemoveReq")
+    public record RemoveReq(
+        @NotBlank
         String pdCd,
-        String izSn,
-        String bstrCsAmt,
-        String apyStrtdt,
-        String apyEnddt,
-        String rmkCn,
-        String sapMatCd,
-        String pdNm,
-        String isLast
+        int izSn
     ) {}
 
     @Builder
@@ -48,19 +47,15 @@ public class WsnyAsVisitCostMgtDto {
         String rowState,
         @NotBlank
         String pdCd,
-        String izSn,
+        Integer izSn,
+        BigDecimal bstrCsAmt,
         @NotBlank
-        String bstrCsAmt,
-        @NotBlank
+        @ValidDate
         String apyStrtdt,
         @NotBlank
+        @ValidDate
         String apyEnddt,
-        String rmkCn,
-        String oldApyStrtdt,
-        String oldApyEnddt,
-        String oldRmkCn,
-        String prevIzSn,
-        String nextIzSn
+        String rmkCn
     ) {}
 
 }

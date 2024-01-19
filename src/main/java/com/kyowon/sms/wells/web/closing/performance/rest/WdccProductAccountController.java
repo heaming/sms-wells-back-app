@@ -5,12 +5,10 @@ import com.kyowon.sms.wells.web.closing.performance.dto.WdccProductAccountDto.Se
 import com.kyowon.sms.wells.web.closing.performance.dto.WdccProductAccountDto.SearchTotalRes;
 import com.kyowon.sms.wells.web.closing.performance.service.WdccProductAccountService;
 import com.kyowon.sms.wells.web.closing.zcommon.constants.DcClosingConst;
+import com.kyowon.sms.wells.web.closing.zcommon.constants.MakeFileStatus;
 import com.sds.sflex.common.common.dto.ExcelBulkDownloadDto;
 import com.sds.sflex.system.config.validation.BizAssert;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.FileCopyUtils;
@@ -125,14 +123,28 @@ public class WdccProductAccountController {
         return service.createdetailItemizationFile(dto);
     }
 
+    @GetMapping("/check-downloadable")
+    public String checkDownloadable(
+        @RequestParam
+        String baseYm
+    ) {
+        var baseY = Integer.parseInt(baseYm.substring(0, 4));
+        var baseM = Integer.parseInt(baseYm.substring(4, 6));
+        var status = service.checkFileStatus(baseY, baseM);
+        if (status.isPresent() && MakeFileStatus.PROCESSING.getCode().equals(String.valueOf(status.get().zfcseq()))) {
+            return MakeFileStatus.PROCESSING.getName();
+        } else {
+            return MakeFileStatus.DONE.getName();
+        }
+    }
+
     @PostMapping("/download")
-    public void getDownload(
+    public String getDownload(
         @RequestBody
         SearchReq dto,
         HttpServletResponse response
     ) throws Exception {
         String fileName = service.getDownloadFileName(dto.baseYm());
-
         log.info("fileName:" + fileName);
         // wsmwlp_sdata/tnt_wells/prd/share/WdccSalesInfobyProductExcelJob/W_AccountByProd_202311.csv
         File file = new File(fileName);
@@ -153,9 +165,8 @@ public class WdccProductAccountController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         output.flush();
         output.close();
+        return fileName;
     }
-
 }

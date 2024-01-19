@@ -1,24 +1,36 @@
 package com.kyowon.sms.wells.web.service.common.service;
 
-import com.kyowon.sms.wells.web.service.common.converter.WsnyAsCodeMgtConverter;
-import com.kyowon.sms.wells.web.service.common.dto.WsnyAsCodeMgtDto.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.kyowon.sms.wells.web.service.common.dto.WsnyAsCodeMgtDto.SearchReq;
 import com.kyowon.sms.wells.web.service.common.dvo.WsnyAsCodeMgtDvo;
 import com.kyowon.sms.wells.web.service.common.mapper.WsnyAsCodeMgtMapper;
+import com.sds.sflex.common.common.dto.ExcelBulkDownloadDto.DownloadReq;
 import com.sds.sflex.common.common.dto.ExcelUploadDto;
 import com.sds.sflex.common.common.dvo.ExcelMetaDvo;
 import com.sds.sflex.common.common.dvo.ExcelUploadErrorDvo;
+import com.sds.sflex.common.common.service.ExcelDownloadService;
 import com.sds.sflex.common.common.service.ExcelReadService;
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.interceptor.ExcelResultHandler;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.util.*;
 
 /**
  *
@@ -35,23 +47,31 @@ import java.util.*;
 public class WsnyAsCodeMgtService {
 
     private final WsnyAsCodeMgtMapper mapper;
-    private final WsnyAsCodeMgtConverter converter;
     private final MessageResourceService messageResourceService;
     private final ExcelReadService excelReadService;
+
+    private final SqlSession priSqlSession;
+    private final ExcelDownloadService excelDownloadService;
+
     private String MSG_ALT_INPUT_OVER_LEN = "MSG_ALT_INPUT_OVER_LEN";
 
-    public PagingResult<SearchRes> getAsCodePages(
+    public PagingResult<WsnyAsCodeMgtDvo> getAsCodePages(
         SearchReq dto, PageInfo pageInfo
     ) {
-        return new PagingResult<>(
-            converter.mapAllSearchResToDvo(mapper.selectAsCodes(dto, pageInfo)), pageInfo
-        );
+        return mapper.selectAsCodes(dto, pageInfo);
     }
 
-    public List<SearchRes> getAsCodes(
-        SearchReq dto
-    ) {
-        return converter.mapAllSearchResToDvo(mapper.selectAsCodes(dto));
+    public void getAsCodes(
+        DownloadReq req, HttpServletResponse response
+    ) throws IOException {
+
+        SXSSFWorkbook workbook = new SXSSFWorkbook(-1);
+        priSqlSession.select(
+            "com.kyowon.sms.wells.web.service.common.mapper.WsnyAsCodeMgtMapper.selectAsCodes",
+            req.parameter(),
+            new ExcelResultHandler(workbook, req.columns(), req.searchCondition())
+        );
+        excelDownloadService.downloadBulkExcel(workbook, response);
     }
 
     public ExcelUploadDto.UploadRes uploadExcel(
@@ -60,7 +80,7 @@ public class WsnyAsCodeMgtService {
 
         final Map<String, String> header = new LinkedHashMap<String, String>();
         header.put("pdGrpCd", messageResourceService.getMessage("MSG_TXT_PD_GRP"));
-        header.put("pdCd", messageResourceService.getMessage("MSG_TXT_PRDT"));
+        header.put("pdCd", messageResourceService.getMessage("MSG_TXT_PRDT_CODE"));
         header.put("svDvCd", messageResourceService.getMessage("MSG_TXT_SV_TP"));
         header.put("asLctCd", messageResourceService.getMessage("MSG_TXT_AS_LCT"));
         header.put("asPhnCd", messageResourceService.getMessage("MSG_TXT_AS_PHN"));
@@ -85,27 +105,37 @@ public class WsnyAsCodeMgtService {
             ExcelUploadErrorDvo errorDvo = new ExcelUploadErrorDvo();
 
             //필수값이 누락되어 있습니다.
-            if (StringUtils.isEmpty(excelRowDvo.getPdGrpCd()))
+            if (StringUtils.isBlank(excelRowDvo.getPdGrpCd()))
                 errorDvo.setHeaderName(header.get("pdGrpCd"));
-            if (StringUtils.isEmpty(excelRowDvo.getPdCd()))
+            if (StringUtils.isBlank(excelRowDvo.getPdCd()))
                 errorDvo.setHeaderName(header.get("pdCd"));
-            if (StringUtils.isEmpty(excelRowDvo.getSvTpCd()))
+            if (StringUtils.isBlank(excelRowDvo.getSvTpCd()))
                 errorDvo.setHeaderName(header.get("svTpCd"));
-            if (StringUtils.isEmpty(excelRowDvo.getAsLctCd()))
+            if (StringUtils.isBlank(excelRowDvo.getAsLctCd()))
                 errorDvo.setHeaderName(header.get("asLctCd"));
-            if (StringUtils.isEmpty(excelRowDvo.getAsPhnCd()))
+            if (StringUtils.isBlank(excelRowDvo.getAsPhnCd()))
                 errorDvo.setHeaderName(header.get("asPhnCd"));
-            if (StringUtils.isEmpty(excelRowDvo.getAsCausCd()))
+            if (StringUtils.isBlank(excelRowDvo.getAsCausCd()))
                 errorDvo.setHeaderName(header.get("asCausCd"));
-            if (StringUtils.isEmpty(excelRowDvo.getSiteAwAtcDsnDt()))
+            if (StringUtils.isBlank(excelRowDvo.getSiteAwAtcDsnDt()))
                 errorDvo.setHeaderName(header.get("siteAwAtcDsnDt"));
-            if (StringUtils.isEmpty(excelRowDvo.getSvAnaHclsfCd()))
+            if (StringUtils.isBlank(excelRowDvo.getSvAnaHclsfCd()))
                 errorDvo.setHeaderName(header.get("svAnaHclsfCd"));
             if (StringUtil.isNotEmpty(errorDvo.getHeaderName())) {
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(messageResourceService.getMessage("MSG_ALT_EMPTY_REQUIRED_VAL"));
             }
             //--------------------------------------------------------------------
+
+            // 품목코드 유효성체크
+            String pdCd = excelRowDvo.getPdCd();
+            String validPdCd = this.mapper.selectPdCdValid(pdCd);
+            if (StringUtils.isEmpty(validPdCd)) {
+                errorDvo.setHeaderName(header.get("pdCd"));
+                errorDvo.setErrorRow(row);
+                errorDvo.setErrorData(this.messageResourceService.getMessage("MSG_ALT_INVLD_ITM_PD_CD"));
+            }
+
             // 입력 가능 길이를 초과하였습니다 (최대: ?, 입력: ?)
             if (StringUtil.nvl(excelRowDvo.getPdGrpCd(), "").trim().length() > 4) {
                 errorDvo.setHeaderName(header.get("pdGrpCd"));
@@ -117,7 +147,7 @@ public class WsnyAsCodeMgtService {
                     )
                 );
             }
-            if (StringUtil.nvl(excelRowDvo.getPdCd(), "").trim().length() > 10) {
+            if (pdCd.trim().length() > 10) {
                 errorDvo.setHeaderName(header.get("pdCd"));
                 errorDvo.setErrorRow(row);
                 errorDvo.setErrorData(

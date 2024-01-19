@@ -148,7 +148,6 @@ public class WsniParcelServiceRegController {
 
             if (dto.reqdvCd().equals("02")) {
 
-                DateTimeFormatter formatter_hist = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
                 String strHist = date.format(formatter);
                 WsnbWorkOrderDvo dvo = new WsnbWorkOrderDvo();
                 dvo.setCntrNo(dto.custNo());
@@ -178,8 +177,12 @@ public class WsniParcelServiceRegController {
 
             // STEP 03. 보내는분 주소정제
             AddressCleansingResultData senderdata = parcelServiceRegService.selectAddressCleansing(req_param);
+            if(senderdata != null){
+                save_data.setSendrAddr(senderdata.getCLSFADDR());
+            }else{
+                save_data.setSendrAddr(dto.sendrAddr());
+            }
 
-            save_data.setSendrAddr(senderdata.getCLSFADDR());
             save_data.setTokkenNum(tokennum);
             save_data.setCustNo(dto.custNo()); // 고객사용번호 -> 기업고객이 관리하는 주문번호/ 영수번호 등 내부 관리번호 취소 시에 취소처리 기준(중복되면 취소 불가능)
             save_data.setReqdvCd(dto.reqdvCd()); // 요청구분코드(01: 요청, 02: 취소)

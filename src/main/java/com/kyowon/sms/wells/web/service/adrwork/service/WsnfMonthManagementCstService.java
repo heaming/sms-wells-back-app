@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sflex.common.common.dvo.BatchCallReqDvo;
+import com.kyowon.sflex.common.common.dvo.BatchStatusDvo;
 import com.kyowon.sflex.common.common.service.BatchCallService;
 import com.kyowon.sms.wells.web.service.adrwork.converter.WsnfMonthManagementCstConverter;
 import com.kyowon.sms.wells.web.service.adrwork.dto.WsnfMonthManagementCstDto;
@@ -76,6 +77,32 @@ public class WsnfMonthManagementCstService {
         }
 
         return mapper.deleteMonthManagementCst(dto);
+    }
+
+    /*
+     * 월관리 고객 생성 - 조회
+     * 월관리 고객 생성 Batch의 상태를 조회한다.
+     */
+    public WsnfMonthManagementCstDvo getMonthManagementCsts(WsnfMonthManagementCstDto.SearchReq dto) throws Exception {
+        WsnfMonthManagementCstDvo dvo = converter.mapSearchProcessReqToDvo(dto);
+        BatchStatusDvo batchDvo = new BatchStatusDvo();
+        Map<String, String> params = new HashMap<String, String>();
+
+        //상태확인을 위한 DVO 기본 setting
+        batchDvo.setFolderId("WSM_SN_B01");
+        batchDvo.setJobName("WsncMonthMngtCstCrdovrJob");
+        batchDvo.setJobId("ST_OAWSMSN0047_02");
+
+        //배치 기본 Parameter setting
+        params.put("mngtYm", dvo.getMngtYm());
+        params.put("createTarget", dvo.getCreateTarget());
+        batchDvo.setParams(params);
+        String statusA = batchCallService.getLastestJobStatusByQuery(batchDvo);
+        dvo.setStatusA(statusA);
+
+        log.info("[WsnfMonthManagementCstService] getMonthManagementCsts ::: createTarget A Job Status is ::: " + statusA);
+
+        return dvo;
     }
 
 }

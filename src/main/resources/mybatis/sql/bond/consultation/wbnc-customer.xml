@@ -116,14 +116,14 @@
 		                     , T9.CRAL_LOCARA_TNO AS IST_CRAL_LOCARA_TNO /* 설치휴대전화번호1 */
 		                     , T9.MEXNO_ENCR AS IST_MEXNO_ENCR /* 설치휴대전화번호2 */
 		                     , T9.CRAL_IDV_TNO AS IST_CRAL_IDV_TNO /* 설치휴대전화번호3 */
-		                     , T10.VT_AC_BNK  /* 가상계좌은행 */
+                             , (SELECT TT3.FNIT_NM FROM TB_RVDW_FNIT_CD TT3 WHERE FNIT_DV_CD = '1' AND TT3.FNIT_CD = T10.VAC_BNK_CD) AS VT_AC_BNK   /* 가상계좌은행 */
 		                     , T10.VT_AC_NO /* 가상계좌번호 */
 		                     , T4.SFK_VAL AS SFK /* 세이프키*/
 		                     , T2.BND_CLN_PSBL_DV_CD AS CLN_PSBL /* 회수가능성*/
 		                     , T2.BND_CLN_PRCS_DV_CD AS CLN_PRCS /* 회수절차*/
 		                     , T2.BND_CNSL_CST_STAT_CD AS CST_STAT /* 고객상태*/
 		                     , '' AS CVCP_INF /* 민원정보*/
-		                     , (SELECT TT1.CNSL_UNUITM_CN FROM TB_CBBO_BND_UNUITM_CVCP_DTL TT1 WHERE TT1.BND_CNTR_TP_CD = '01' AND TT1.CST_NO = T1.CST_NO AND TT1.DTA_DL_YN = 'N' ORDER BY FST_RGST_DTM DESC FETCH FIRST 1 ROW ONLY) AS UNUSL_ARTC /* 특이사항*/
+                             , (SELECT TT1.CNSL_UNUITM_CN FROM TB_CBBO_BND_UNUITM_CVCP_DTL TT1 WHERE FST_RGST_DTM = (SELECT MAX(FST_RGST_DTM) FROM TB_CBBO_BND_UNUITM_CVCP_DTL TT2 WHERE TT2.BND_CNTR_TP_CD = '01' AND TT2.CST_NO = T1.CST_NO AND TT2.DTA_DL_YN = 'N' )  AND TT1.CST_NO = T1.CST_NO AND ROWNUM=1) AS UNUSL_ARTC /* 특이사항*/
 		                     , T13.COPN_DV_CD AS CNTR_TP_CD /* 고객구분*/
 		                     , T1.CNTR_NO /* 계약번호 */
 		                     , T1.CNTR_SN /* 계약일련번호 */
@@ -137,7 +137,8 @@
 		                                        , FST_RGST_DTM
 		                                     FROM TB_CBBO_BND_TEL_CNSL_IZ TT1 /* 채권전화상담내역 */
 		                                    WHERE TT1.CST_NO = T1.CST_NO
-		                                    ORDER BY FST_RGST_DTM DESC FETCH FIRST 1 ROW ONLY
+                                                AND TT1.FST_RGST_DTM = (SELECT MAX(FST_RGST_DTM) FROM TB_CBBO_BND_TEL_CNSL_IZ TT2 WHERE TT2.CST_NO = T1.CST_NO AND TT1.DTA_DL_YN = 'N')
+                                                AND ROWNUM = 1
 		                     ) T2
 		                    ON 1=1
                           LEFT JOIN LATERAL(
@@ -179,7 +180,7 @@
 		                    ON T8.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(T1.BASE_YM, 'YYYYMM'), -1), 'YYYYMM')
 		                   AND T8.CNTR_NO = T1.CNTR_NO
 		                   AND T8.CNTR_SN = T1.CNTR_SN
-		                  LEFT OUTER JOIN (
+		                  LEFT OUTER JOIN LATERAL (
 		                                    SELECT CR.CNTR_ADRPC_ID
 		                                         , CR.DTL_CNTR_NO
 		                                         , CR.DTL_CNTR_SN
@@ -200,16 +201,16 @@
 		                                     WHERE CR.CNTR_UNIT_TP_CD = '020'
 		                                       AND CR.ADRPC_TP_CD IN ('2','3')  /* 배송,설치주소 */
 		                                       AND CR.DTA_DL_YN = 'N'
+                                               AND T1.CNTR_NO = CR.DTL_CNTR_NO
+                                               AND T1.CNTR_SN = CR.DTL_CNTR_SN
 		                                  ) T9
-		                    ON T1.CNTR_NO = T9.DTL_CNTR_NO
-		                   AND T1.CNTR_SN = T9.DTL_CNTR_SN
-		                  LEFT JOIN LATERAL (
+		                    ON 1=1
+		                  LEFT OUTER JOIN LATERAL (
 		                                      SELECT
 		                                             CST_NO
 		                                           , CNTR_NO
 		                                           , CNTR_SN
 		                                           , TT2.VAC_BNK_CD
-		                                           , (SELECT TT3.FNIT_NM FROM TB_RVDW_FNIT_CD TT3 WHERE FNIT_DV_CD = '1' AND TT3.FNIT_CD = TT2.VAC_BNK_CD) AS VT_AC_BNK
 		                                           , TT2.VAC_NO AS VT_AC_NO
 		                                        FROM TB_RVDW_VAC_IS_DTL TT1
 		                                       INNER JOIN TB_RVDW_VAC_BAS TT2
@@ -224,7 +225,7 @@
                             ON 1=1
 		                 INNER JOIN TB_SSCT_CNTR_BAS T13 /* 계약기본 */
 		                    ON T1.CNTR_NO = T13.CNTR_NO
-		                 LEFT OUTER JOIN (
+		                 LEFT OUTER JOIN LATERAL (
 		                                    SELECT CR.CNTR_ADRPC_ID
 		                                         , CR.DTL_CNTR_NO
 		                                         , CR.DTL_CNTR_SN
@@ -245,9 +246,10 @@
 		                                     WHERE CR.CNTR_UNIT_TP_CD = '020'
 		                                       AND CR.ADRPC_TP_CD IN ('1')  /* 계약주소 */
 		                                       AND CR.DTA_DL_YN = 'N'
+                                               AND T1.CNTR_NO = CR.DTL_CNTR_NO
+                                               AND T1.CNTR_SN = CR.DTL_CNTR_SN
 		                                  ) T14
-		                    ON T14.DTL_CNTR_NO = T1.CNTR_NO
-		                   AND T14.DTL_CNTR_SN = T1.CNTR_SN
+		                    ON 1=1
 		                 WHERE 1=1
 		                   AND T1.BASE_YM = (SELECT MAX(BASE_YM) FROM TB_CBBO_BND_CNSL_BAS_IZ)
 		             )
@@ -345,7 +347,7 @@
 		     , F_CMZ_CD_NM('TNT_WELLS', 'CNTR_DTL_STAT_CD', T7.CNTR_DTL_STAT_CD) AS CNTR_DTL_STAT_NM /* 현재회원상태명 */
 		     , (SELECT TO_CHAR(TO_DATE(CNTR_RCP_FSH_DTM,'YYYYMMDDHH24MISS'),'YYYY-MM-DD') FROM TB_SSCT_CNTR_BAS WHERE CNTR_NO = T1.CNTR_NO) AS RCP_DT /* 접수일 */
 		     , TO_CHAR(TO_DATE(CASE WHEN T1.BND_BIZ_DV_CD IN ('L30','L31','L32') THEN T7.CNTR_PD_STRTDT ELSE T9.IST_DT END,'YYYYMMDD'),'YYYY-MM-DD') AS IST_DT /* 설치일 */
-		     , TO_CHAR(TO_DATE(T7.CNTR_PD_ENDDT,'YYYYMMDD'),'YYYY-MM-DD') AS CAN_DT /* 취소일 */
+             , (SELECT TO_CHAR(TO_DATE(RSG_FSH_DT,'YYYYMMDD'),'YYYY-MM-DD') FROM TB_SSCT_CNTR_RSG_PROCS_IZ TT1 WHERE TT1.CNTR_NO = T1.CNTR_NO AND TT1.CNTR_SN = T1.CNTR_SN AND TT1.DTA_DL_YN = 'N') AS CAN_DT /* 취소일 */
 		     , TO_CHAR(TO_DATE(T9.REQD_DT,'YYYYMMDD'),'YYYY-MM-DD') AS REQD_DT /* 철거일 */
 		     , CASE WHEN T11.DP_TP_CD = '0102' THEN (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD TT1 WHERE TT1.FNIT_DV_CD = '1' AND TT1.FNIT_CD = T11.BNK_CD) WHEN T11.DP_TP_CD = '0203' THEN (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD TT1 WHERE TT1.FNIT_DV_CD = '2' AND TT1.FNIT_CD = T11.CDCO_CD) END BNK /* 은행명 */
 		     , CASE WHEN T11.DP_TP_CD = '0102' THEN T11.ACNO_ENCR WHEN T11.DP_TP_CD = '0203' THEN T11.CRCDNO_ENCR END VT_AC /* 계좌번호 */
@@ -549,10 +551,11 @@
 		                         , B4.CRAL_IDV_TNO /*지국장휴대전화번호 뒤*/
 		                         , B5.CLTN_DT /*지국장 해약일자*/
 		                        FROM TB_SSCT_CNTR_BAS B1/*계약기본*/
-		                         INNER JOIN TB_OGBS_MM_PRTNR_IZ B2/*월파트너내역*/ ON B2.BASE_YM = SUBSTR(B1.CNTR_CNFM_DTM,1,6) AND B1.SELL_OG_TP_CD = B2.OG_TP_CD AND B1.SELL_PRTNR_NO = B2.PRTNR_NO
-                                 INNER JOIN TB_OGBS_MM_OG_IZ B3/*월조직내역*/ ON B3.BASE_YM = SUBSTR(B1.CNTR_CNFM_DTM,1,6) AND B3.OG_ID = B2.OG_ID
-                                 INNER JOIN TB_OGBS_PRTNR_BAS B4/*파트너기본*/ ON B4.PRTNR_NO = (CASE WHEN INSTR(B3.DGR3_LEVL_OG_NM,'지점',1,1) > 0 THEN B3.DGR3_LEVL_DG_PRTNR_NO WHEN INSTR(B3.DGR2_LEVL_OG_NM,'지점',1,1) > 0 THEN B3.DGR2_LEVL_DG_PRTNR_NO ELSE B3.DGR1_LEVL_DG_PRTNR_NO END )
-                                 INNER JOIN TB_OGBS_PRTNR_DTL B5/*파트너상세*/ ON B5.OG_TP_CD = B4.OG_TP_CD AND B5.PRTNR_NO = B4.PRTNR_NO
+                                INNER JOIN TB_OGBS_MM_PRTNR_IZ B2/*월파트너내역*/ ON B2.BASE_YM = SUBSTR(B1.CNTR_CNFM_DTM,1,6) AND B1.SELL_OG_TP_CD = B2.OG_TP_CD AND B1.SELL_PRTNR_NO = B2.PRTNR_NO AND B2.DTA_DL_YN = 'N'
+                                INNER JOIN TB_OGBS_MM_OG_IZ B3/*월조직내역*/ ON B3.BASE_YM = SUBSTR(B1.CNTR_CNFM_DTM,1,6) AND B3.OG_ID = B2.OG_ID AND B3.DTA_DL_YN = 'N'
+                                INNER JOIN TB_OGBS_PRTNR_BAS B4/*파트너기본*/ ON B4.OG_TP_CD = B3.OG_TP_CD AND B4.PRTNR_NO = (CASE WHEN INSTR(B3.DGR3_LEVL_OG_NM,'지점',1,1) > 0 THEN B3.DGR3_LEVL_DG_PRTNR_NO WHEN INSTR(B3.DGR2_LEVL_OG_NM,'지점',1,1) > 0 THEN B3.DGR2_LEVL_DG_PRTNR_NO ELSE B3.DGR1_LEVL_DG_PRTNR_NO END ) AND B4.DTA_DL_YN = 'N'
+                                INNER JOIN TB_OGBS_PRTNR_DTL B5/*파트너상세*/ ON B5.OG_TP_CD = B4.OG_TP_CD AND B5.PRTNR_NO = B4.PRTNR_NO AND B5.DTA_DL_YN = 'N'
+                            WHERE B1.DTA_DL_YN = 'N'
 		                  ) T13
 		    ON T1.CNTR_NO = T13.CNTR_NO
 		  LEFT OUTER JOIN (
@@ -563,11 +566,12 @@
 	                             , TB6.EXNO_ENCR
 	                             , TB6.IDV_TNO
 	                        FROM TB_SSCT_CNTR_BAS TB1 /* 계약기본 */
-	                                 INNER JOIN TB_OGBS_MM_PRTNR_IZ TB2/*월파트너내역*/ ON TB2.BASE_YM = SUBSTR(TB1.CNTR_CNFM_DTM,1,6) AND TB1.SELL_OG_TP_CD = TB2.OG_TP_CD AND TB1.SELL_PRTNR_NO = TB2.PRTNR_NO
-	                                 INNER JOIN TB_OGBS_MM_OG_IZ TB3/*월조직내역*/ ON TB3.BASE_YM = SUBSTR(TB1.CNTR_CNFM_DTM,1,6) AND TB3.OG_ID = TB2.OG_ID
-	                                 INNER JOIN TB_OGBS_PRTNR_BAS TB4/*파트너기본*/ ON TB4.PRTNR_NO = (CASE WHEN INSTR(TB3.DGR3_LEVL_OG_NM,'지점',1,1) > 0 THEN TB3.DGR3_LEVL_DG_PRTNR_NO WHEN INSTR(TB3.DGR2_LEVL_OG_NM,'지점',1,1) > 0 THEN TB3.DGR2_LEVL_DG_PRTNR_NO ELSE TB3.DGR1_LEVL_DG_PRTNR_NO END )
-	                                 INNER JOIN TB_OGBS_OG_BAS TB5 /* 조직기본 */ ON TB5.OG_TP_CD = TB4.OG_TP_CD AND TB5.OG_ID = TB4.OG_ID
-	                                 INNER JOIN TB_OGBS_BLD_BAS TB6 /* 빌딩기본 */ ON TB6.OG_TP_CD = TB5.OG_TP_CD AND TB6.BLD_CD = TB5.BLD_CD
+                                INNER JOIN TB_OGBS_MM_PRTNR_IZ TB2/*월파트너내역*/ ON TB2.BASE_YM = SUBSTR(TB1.CNTR_CNFM_DTM,1,6) AND TB1.SELL_OG_TP_CD = TB2.OG_TP_CD AND TB1.SELL_PRTNR_NO = TB2.PRTNR_NO AND TB2.DTA_DL_YN = 'N'
+                                INNER JOIN TB_OGBS_MM_OG_IZ TB3/*월조직내역*/ ON TB3.BASE_YM = SUBSTR(TB1.CNTR_CNFM_DTM,1,6) AND TB3.OG_ID = TB2.OG_ID AND TB3.DTA_DL_YN = 'N'
+                                INNER JOIN TB_OGBS_PRTNR_BAS TB4/*파트너기본*/ ON TB4.OG_TP_CD = TB3.OG_TP_CD AND TB4.PRTNR_NO = (CASE WHEN INSTR(TB3.DGR3_LEVL_OG_NM,'지점',1,1) > 0 THEN TB3.DGR3_LEVL_DG_PRTNR_NO WHEN INSTR(TB3.DGR2_LEVL_OG_NM,'지점',1,1) > 0 THEN TB3.DGR2_LEVL_DG_PRTNR_NO ELSE TB3.DGR1_LEVL_DG_PRTNR_NO END ) AND TB3.DTA_DL_YN = 'N'
+                                INNER JOIN TB_OGBS_OG_BAS TB5 /* 조직기본 */ ON TB5.OG_TP_CD = TB4.OG_TP_CD AND TB5.OG_ID = TB4.OG_ID AND TB4.DTA_DL_YN = 'N'
+                                INNER JOIN TB_OGBS_BLD_BAS TB6 /* 빌딩기본 */ ON TB6.OG_TP_CD = TB5.OG_TP_CD AND TB6.BLD_CD = TB5.BLD_CD AND TB5.DTA_DL_YN = 'N'
+                            WHERE TB1.DTA_DL_YN = 'N'
 		                  ) T14
 		    ON T1.CNTR_NO = T14.CNTR_NO
 		  LEFT JOIN LATERAL (

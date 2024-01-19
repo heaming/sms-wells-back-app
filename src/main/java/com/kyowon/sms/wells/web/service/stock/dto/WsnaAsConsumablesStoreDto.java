@@ -52,7 +52,15 @@ public class WsnaAsConsumablesStoreDto {
         // 입고수량
         String strQty,
         // 비고
-        String rmkCn
+        String rmkCn,
+        // 등록일
+        String fstRgstDt,
+        // 등록자
+        String rgstUsrNm,
+        // 최종수정일
+        String fnlMdfcDt,
+        // 최종수정자
+        String mdfcUsrNm
     ) {}
 
     @ApiModel(value = "WsnaAsConsumablesStoreDto-FindItmStrNoReq")

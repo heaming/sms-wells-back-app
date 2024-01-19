@@ -23,4 +23,12 @@ public class WsnfMonthManagementCstDto {
         @NotBlank
         String createTarget     /* 생성대상 */
     ) {}
+
+    @ApiModel(value = "WsnfMonthManagementCstDto-SearchReq")
+    public record SearchReq(
+        @NotBlank
+        String mngtYm,          /* 관리년월 */
+        @NotBlank
+        String createTarget     /* 생성대상 */
+    ) {}
 }

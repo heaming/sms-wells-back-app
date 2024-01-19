@@ -28,4 +28,6 @@ public class WsnaStockStateIndividualWareDvo {
     String stndUnuseYn;
     String fromSapCd;
     String toSapCd;
+    String pdCdFrom;
+    String pdCdTo;
 }

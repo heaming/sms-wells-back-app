@@ -8,4 +8,6 @@ import com.kyowon.sms.wells.web.service.adrwork.dvo.WsnfMonthManagementCstDvo;
 @Mapper(componentModel = "spring")
 public interface WsnfMonthManagementCstConverter {
     WsnfMonthManagementCstDvo mapSaveProcessReqToDvo(WsnfMonthManagementCstDto.CreateReq dto) throws Exception;
+
+    WsnfMonthManagementCstDvo mapSearchProcessReqToDvo(WsnfMonthManagementCstDto.SearchReq dto) throws Exception;
 }

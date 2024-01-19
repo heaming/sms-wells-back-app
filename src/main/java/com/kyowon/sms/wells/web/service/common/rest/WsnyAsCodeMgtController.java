@@ -1,25 +1,29 @@
 package com.kyowon.sms.wells.web.service.common.rest;
 
+import java.io.IOException;
+
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.kyowon.sms.wells.web.service.common.dto.WsnyAsCodeMgtDto.SearchReq;
-import com.kyowon.sms.wells.web.service.common.dto.WsnyAsCodeMgtDto.SearchRes;
+import com.kyowon.sms.wells.web.service.common.dvo.WsnyAsCodeMgtDvo;
 import com.kyowon.sms.wells.web.service.common.service.WsnyAsCodeMgtService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
+import com.sds.sflex.common.common.dto.ExcelBulkDownloadDto.DownloadReq;
 import com.sds.sflex.common.common.dto.ExcelUploadDto.UploadRes;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-
-import java.util.List;
-import javax.validation.Valid;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/as-codes")
@@ -31,7 +35,6 @@ public class WsnyAsCodeMgtController {
 
     private final WsnyAsCodeMgtService service;
 
-
     @ApiOperation(value = "AS 코드 관리 목록조회", notes = "조회조건에 일치하는 AS 코드 정보를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "pdGrpCd", value = "상품그룹", paramType = "query", example = "1"),
@@ -42,7 +45,7 @@ public class WsnyAsCodeMgtController {
         @ApiImplicitParam(name = "applyDate", value = "적용일자", paramType = "query", dataType = "date", example = "20220101")
     })
     @GetMapping("/paging")
-    public PagingResult<SearchRes> getAsCodePages(
+    public PagingResult<WsnyAsCodeMgtDvo> getAsCodePages(
         SearchReq dto, @Valid
         PageInfo pageInfo
     ) {
@@ -58,11 +61,13 @@ public class WsnyAsCodeMgtController {
         @ApiImplicitParam(name = "apyChk", value = "적용일자선택", paramType = "query", example = "1"),
         @ApiImplicitParam(name = "applyDate", value = "적용일자", paramType = "query", dataType = "date", example = "20220101")
     })
-    @GetMapping("/excel-download")
-    public List<SearchRes> getAsCodeExcelDownload(
-        SearchReq dto
-    ) {
-        return service.getAsCodes(dto);
+    @PostMapping("/bulk-excel-download")
+    public void getAsCodeExcelDownload(
+        @RequestBody
+        DownloadReq req,
+        HttpServletResponse response
+    ) throws IOException {
+        this.service.getAsCodes(req, response);
     }
 
     @PostMapping("/excel-upload")

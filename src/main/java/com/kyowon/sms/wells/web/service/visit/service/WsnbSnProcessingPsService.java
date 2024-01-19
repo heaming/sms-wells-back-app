@@ -42,4 +42,8 @@ public class WsnbSnProcessingPsService {
     public List<SearchPuPartPdRes> selectSnProcessingPuPartPds(SearchPuPartPdReq dto) {
         return mapper.selectSnProcessingPsPuPartPds(dto);
     }
+
+    public SearchCstSignCn getSnProcessingcstSignCn(String cstSvAsnNo) {
+        return mapper.selectSnProcessingPsCstSignCn(cstSvAsnNo);
+    }
 }

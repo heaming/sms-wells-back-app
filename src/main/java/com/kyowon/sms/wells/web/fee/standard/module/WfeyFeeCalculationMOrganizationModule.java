@@ -9,6 +9,7 @@ import com.kyowon.sms.common.web.fee.standard.dvo.ZfeyFeeStandardDvo;
 import com.kyowon.sms.common.web.fee.standard.module.ZfeyFeeCalculationCommonModule;
 import com.kyowon.sms.common.web.fee.standard.service.ZfeyFeeStandardSqlService;
 import com.kyowon.sms.common.web.fee.standard.util.FeFeeUtil;
+import com.kyowon.sms.wells.web.fee.standard.mapper.WfeyHomeMasterCalculationMapper;
 import com.kyowon.sms.wells.web.fee.standard.mapper.WfeyMOrganizationCalculationMapper;
 import com.sds.sflex.system.config.validation.BizAssert;
 
@@ -69,6 +70,22 @@ public class WfeyFeeCalculationMOrganizationModule extends ZfeyFeeCalculationCom
      */
     public WfeyFeeCalculationMOrganizationModule(ZfeyFeeStandardDto.SearchFeeStandardDetailRes feeStandardDetail, String tenantId, String feeCd, String baseYm, String feeTcntDvCd, String perfAgrgCrtDvCd) {
         this(feeStandardDetail, tenantId, feeCd, baseYm, baseYm, feeTcntDvCd, perfAgrgCrtDvCd, null);
+    }
+
+    /**
+     * 생성자
+     *
+     * @param tenantId
+     * @param baseYm
+     * @param mmAcuPerfAgrgCrtDvCd
+     * @param prtnrNo
+     */
+    public WfeyFeeCalculationMOrganizationModule(
+        ZfeyFeeStandardDto.SearchFeeStandardDetailRes feeStandardDetail, String tenantId, String baseYm, String mmAcuPerfAgrgCrtDvCd, String prtnrNo
+    ) {
+        super(feeStandardDetail, tenantId, baseYm, mmAcuPerfAgrgCrtDvCd, prtnrNo);
+        mOrganizationCalculationMapper = ApplicationContextHolder.getBean(WfeyMOrganizationCalculationMapper.class);
+        feeStandardSqlService = ApplicationContextHolder.getBean(ZfeyFeeStandardSqlService.class);
     }
 
     /**

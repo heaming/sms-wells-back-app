@@ -193,6 +193,8 @@ public class WsnaMdProductReturningGoodsSaveService {
         WellsCounselReqIvo reqIvo = new WellsCounselReqIvo();
         StringBuffer cnslCn = new StringBuffer();
 
+        final String tmpValue = "||CHR(10)||";
+
         // 1. dvo와 ivo 매핑 처리
         reqIvo.setCST_NO(dvo.getCntrCstNo()); //계약고객번호
         reqIvo.setSELL_TP_CD(dvo.getSellTpCd()); //판매유형코드
@@ -202,28 +204,29 @@ public class WsnaMdProductReturningGoodsSaveService {
         //상담내용
         cnslCn.append("@ 상담내용 ||CHR(10)||");
         cnslCn.append("1. 매출일자 : ");
-        cnslCn.append(dvo.getCntrPdStrtdt() + "||CHR(10)||");
+        cnslCn.append(dvo.getCntrPdStrtdt() + tmpValue);
         cnslCn.append("2. 제품수령일자 : ");
-        cnslCn.append(dvo.getPcsvRcgvDt() + "||CHR(10)||");
+        cnslCn.append(dvo.getPcsvRcgvDt() + tmpValue);
         cnslCn.append("3. 반품상담접수일자 : ");
-        cnslCn.append(dvo.getRcpdt() + "||CHR(10)||");
+        cnslCn.append(dvo.getRcpdt() + tmpValue);
         cnslCn.append("4. 현물입고일자 : ");
-        cnslCn.append(dvo.getArvDt() + "||CHR(10)||");
+        cnslCn.append(dvo.getArvDt() + tmpValue);
         cnslCn.append("5. 경과일수 : ");
-        cnslCn.append(dvo.getPdUseDc() + "||CHR(10)||");
+        cnslCn.append(dvo.getPdUseDc() + tmpValue);
         cnslCn.append("6. 산정등급 : ");
-        cnslCn.append(dvo.getFnlGb() + "||CHR(10)||");
+        cnslCn.append(dvo.getFnlGb() + tmpValue);
         cnslCn.append("7. 개봉여부 : ");
         if ("91".equals(dvo.getDtmChRsonCd())) {
-            cnslCn.append("개봉" + "||CHR(10)||");
+            cnslCn.append("개봉" + tmpValue);
         } else if ("92".equals(dvo.getDtmChRsonCd())) {
-            cnslCn.append("미개봉" + "||CHR(10)||");
+            cnslCn.append("미개봉" + tmpValue);
         } else {
-            cnslCn.append("||CHR(10)||");
+            cnslCn.append(tmpValue);
         }
         cnslCn.append("8. 반품운송장 번호 : ");
-        cnslCn.append(dvo.getFwSppIvcNo() + "||CHR(10)||");
-        cnslCn.append("9. 비고(택배사/반품자) : ");
+        cnslCn.append(dvo.getFwSppIvcNo() + tmpValue);
+        String tmpWord = "9. 비고(택배사/반품자) : ";
+        cnslCn.append(tmpWord);
         cnslCn.append(dvo.getDtmChRsonDtlCn());
 
         reqIvo.setCNSL_CN(cnslCn.toString()); //상담내용

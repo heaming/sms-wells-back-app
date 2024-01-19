@@ -164,4 +164,13 @@ public class WdccProductAccountDto {
         String rentalTn3, /*렌탈차월*/
         String nomAccYn3 /*정상계정여부*/
     ) {}
+
+    @ApiModel("WdccProductAccountDto-SearchStatusRes")
+    public record SearchStatusRes(
+        @NotBlank
+        String zfgubn, /* 구분 (WA) */
+        String zfcdty, /* 기준년 */
+        String zfcdtm, /* 기준월 */
+        String zfcseq /* 상태 (0: 진행 중, 1: 완료) */
+    ) {}
 }

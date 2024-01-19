@@ -157,10 +157,10 @@
              SELECT S1.WARE_NO
                   , S1.ITM_PD_CD
                   /*등급에 따라 재고 수량 계산*/
-                  , (CASE WHEN 'A' = 'A' THEN S1.BTD_STOC_A_GD_QTY + S1.STOC_ACINSP_STR_A_GD_QTY - S1.STOC_ACINSP_OSTR_A_GD_QTY
-                          WHEN 'A' = 'B' THEN S1.BTD_STOC_B_GD_QTY + S1.STOC_ACINSP_STR_B_GD_QTY - S1.STOC_ACINSP_OSTR_B_GD_QTY
-                          WHEN 'A' = 'E' THEN S1.BTD_STOC_E_GD_QTY + S1.STOC_ACINSP_STR_E_GD_QTY - S1.STOC_ACINSP_OSTR_E_GD_QTY
-                          WHEN 'A' = 'R' THEN S1.BTD_STOC_R_GD_QTY + S1.STOC_ACINSP_STR_R_GD_QTY - S1.STOC_ACINSP_OSTR_R_GD_QTY
+                  , (CASE WHEN #{itmGdCd} = 'A' THEN S1.BTD_STOC_A_GD_QTY + S1.STOC_ACINSP_STR_A_GD_QTY - S1.STOC_ACINSP_OSTR_A_GD_QTY
+                          WHEN #{itmGdCd} = 'B' THEN S1.BTD_STOC_B_GD_QTY + S1.STOC_ACINSP_STR_B_GD_QTY - S1.STOC_ACINSP_OSTR_B_GD_QTY
+                          WHEN #{itmGdCd} = 'E' THEN S1.BTD_STOC_E_GD_QTY + S1.STOC_ACINSP_STR_E_GD_QTY - S1.STOC_ACINSP_OSTR_E_GD_QTY
+                          WHEN #{itmGdCd} = 'R' THEN S1.BTD_STOC_R_GD_QTY + S1.STOC_ACINSP_STR_R_GD_QTY - S1.STOC_ACINSP_OSTR_R_GD_QTY
                           ELSE 0
                      END) AS BTD_QTY
                   /*전체 등급이라면*/
@@ -293,10 +293,12 @@
            , WARE_AGRG_QTY AS
            (
              /*창고별 집계 수량*/
-             SELECT Q1.WARE_NO
+             SELECT
+                    Q1.WARE_NO
                   , Q1.ITM_PD_CD
-                  , SUM(NVL(Q1.BTD_QTY,0)) + SUM(NVL(Q2.STR_QTY,0)) + SUM(NVL(Q4.USE_QTY,0)) + SUM(NVL(Q6.CTR_QTY,0))
-                    - SUM(NVL(Q3.OSTR_QTY,0)) - SUM(NVL(Q5.USE_QTY,0)) - SUM(NVL(Q7.CTR_QTY,0)) AS AGRG_QTY
+                  , NVL(MAX(Q1.BTD_QTY),0) + NVL(MAX(Q2.STR_QTY),0) + NVL(MAX(Q4.USE_QTY),0) + NVL(MAX(Q6.CTR_QTY),0) - NVL(MAX(Q3.OSTR_QTY),0) - NVL(MAX(Q5.USE_QTY),0) - NVL(MAX(Q7.CTR_QTY),0)   AS AGRG_QTY
+                 /* , SUM(NVL(Q1.BTD_QTY,0)) + SUM(NVL(Q2.STR_QTY,0)) + SUM(NVL(Q4.USE_QTY,0)) + SUM(NVL(Q6.CTR_QTY,0))
+                    - SUM(NVL(Q3.OSTR_QTY,0)) - SUM(NVL(Q5.USE_QTY,0)) - SUM(NVL(Q7.CTR_QTY,0)) AS AGRG_QTY */
                   , Q1.LCT_NM
                FROM BTD_STOC_QTY Q1
          LEFT OUTER JOIN NOM_STR_QTY Q2
@@ -323,7 +325,7 @@
            (
              SELECT AS_MAT_MNG_TP_CD
                   , TO_CHAR(TO_NUMBER(P1.SAP_MAT_CD)) AS SAP_MAT_CD
-                  , P1.KIWI_PD_CD
+                  , P1.PD_CD AS KIWI_PD_CD
                   , P1.PD_NM
                   , Q1.LCT_NM
                   , Q1.WARE_NO
@@ -336,6 +338,12 @@
               WHERE 1=1
                 AND Q1.WARE_NO IS NOT NULL
                 AND Q1.AGRG_QTY != 0
+                <if test="@MybatisUtils@isNotEmpty(pdCdFrom) and @MybatisUtils@isNotEmpty(pdCdTo)">
+                    AND P1.PD_CD BETWEEN #{pdCdFrom} AND #{pdCdTo}
+                </if>
+                <if test="@MybatisUtils@isNotEmpty(fromSapCd) and @MybatisUtils@isNotEmpty(toSapCd)">
+                    AND P1.SAP_MAT_CD BETWEEN #{fromSapCd} AND #{toSapCd}
+                </if>
               ORDER BY SAP_MAT_CD, PD_CD, WARE_NO
            )
         SELECT *
