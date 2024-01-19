@@ -7,6 +7,7 @@ import javax.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbSnProcessingPsDto;
@@ -63,7 +64,8 @@ public class WsnbSnProcessingPsController {
     }
 
     @GetMapping("/cstSignCn")
-    public WsnbSnProcessingPsDto.SearchCstSignCn getSnProcessingCstSignCn(String cstSvAsnNo) {
+    public WsnbSnProcessingPsDto.SearchCstSignCn getSnProcessingCstSignCn(@RequestParam(name = "cstSvAsnNo")
+    String cstSvAsnNo) {
         return this.service.getSnProcessingcstSignCn(cstSvAsnNo);
     }
 }
