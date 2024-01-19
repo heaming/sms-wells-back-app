@@ -89,6 +89,20 @@ public class WwdbDepositService {
                 if (!ObjectUtils.isEmpty(rveAkDtls)) {
                     // 입금된 금액 추출
                     // Integer itgDpAmt = Integer.parseInt(itgDeposit.getDpAmt());
+
+                    // 3. 하나의 통합입금번호에 대해 입금대사 처리 완료 후 수납기본, 수납상세 Insert
+                    ZwdzWithdrawalReceiveDvo receiveDvo = new ZwdzWithdrawalReceiveDvo();
+                    receiveDvo.setKwGrpCoCd(itgDeposit.getKwGrpCoCd());
+                    receiveDvo.setRveAkNo(itgDeposit.getRveAkNo());
+                    receiveDvo.setRvePhCd("");
+                    String rveDt = DateUtil.getNowDayString();
+                    if (!StringUtils.isEmpty(itgDeposit.getDpDtm())) {
+                        rveDt = itgDeposit.getDpDtm().substring(0, 8);
+                    }
+                    receiveDvo.setRveDt(rveDt);
+                    receiveDvo.setRveAmt(itgDeposit.getDpAmt());
+                    // 수납기본 Insert
+                    String rveNo = zwdzWithdrawalService.createReceive(receiveDvo);
                     // 조회된 수납요청상세 데이터의 수납요청금액에 따라 계산
                     for (WwdbIntegrationDepositInfoDvo rveAkDtl : rveAkDtls) {
                         // Integer rveAmt = Integer.parseInt(rveAkDtl.getRveAkAmt());
@@ -120,25 +134,32 @@ public class WwdbDepositService {
                         dpCrcnfDvo.setRveOjDrmNo2(rveAkDtl.getRveAkOjDrmNo2());
                         // 입금대사기본 Insert
                         mapper.insertDepositComparisonComfirmation(dpCrcnfDvo);
-                    }
 
-                    // 3. 하나의 통합입금번호에 대해 입금대사 처리 완료 후 수납기본, 수납상세 Insert
-                    ZwdzWithdrawalReceiveDvo receiveDvo = new ZwdzWithdrawalReceiveDvo();
-                    receiveDvo.setKwGrpCoCd(itgDeposit.getKwGrpCoCd());
-                    receiveDvo.setRveAkNo(itgDeposit.getRveAkNo());
-                    receiveDvo.setRvePhCd("");
-                    String rveDt = DateUtil.getNowDayString();
-                    if (!StringUtils.isEmpty(itgDeposit.getDpDtm())) {
-                        rveDt = itgDeposit.getDpDtm();
+                        receiveDvo.setRveNo(rveNo);
+                        receiveDvo.setRveSn("1");
+                        receiveDvo.setProcsDvCd("1");
+                        receiveDvo.setDpCprcnfNo(dpCrcnfNo);
+                        receiveDvo.setDpDt(rveDt);
+                        receiveDvo.setPerfDt(rveDt);
+                        receiveDvo.setRveProcsYn("Y");
+                        receiveDvo.setDpAmt(String.valueOf(dpCprcnfAmt));
+                        receiveDvo.setKwGrpCoCd(itgDeposit.getKwGrpCoCd());
+                        receiveDvo.setRveCoCd(itgDeposit.getRveCoCd());
+                        receiveDvo.setRveCd(itgDeposit.getRveCd());
+                        receiveDvo.setDpDvCd(itgDeposit.getDpDvCd());
+                        receiveDvo.setDpMesCd(itgDeposit.getDpMesCd());
+                        receiveDvo.setDpTpCd(itgDeposit.getDpTpCd());
+                        receiveDvo.setRveDvCd(rveAkDtl.getRveDvCd());
+                        receiveDvo.setItgDpNo(itgDeposit.getItgDpNo());
+                        receiveDvo.setCntrNo(itgDeposit.getCntrNo());
+                        receiveDvo.setCntrSn(itgDeposit.getCntrSn());
+                        receiveDvo.setIncmdcYn(itgDeposit.getIncmdcYn());
+                        receiveDvo.setRveOjDrmNo1(rveAkDtl.getRveAkOjDrmNo1());
+                        receiveDvo.setRveOjDrmNo2(rveAkDtl.getRveAkOjDrmNo2());
+
+                        // 수납상세 Insert
+                        zwdzWithdrawalService.createReceiveDetail(receiveDvo);
                     }
-                    receiveDvo.setRveDt(rveDt);
-                    receiveDvo.setRveAmt(itgDeposit.getDpAmt());
-                    // 수납기본 Insert
-                    String rveNo = zwdzWithdrawalService.createReceive(receiveDvo);
-                    receiveDvo.setRveNo(rveNo);
-                    receiveDvo.setItgDpNo(itgDeposit.getItgDpNo());
-                    // 수납상세 Insert
-                    zwdzWithdrawalService.createReceiveDetail(receiveDvo);
 
                     // 4. 입금된 데이터가 가상계좌인 경우 가상계좌입금배분내역 Insert
                     mapper.insertVirtualAccountDistribution(itgDeposit.getItgDpNo());
