@@ -350,11 +350,45 @@
                      , T1.UPGR_YM  FEE_PERF_ATC_VAL
                      , NULL AS PERF_VAL
                   FROM TB_OGBS_MM_PRTNR_IZ O1
-       LEFT OUTER JOIN TB_OGPS_TOPMR_PLAR_APLC_IZ T1
+       LEFT OUTER JOIN (
+                         SELECT X2.MNGT_YM
+                               , X2.APLC_SN
+                               , X2.OG_TP_CD
+                               , X2.PRTNR_NO
+                               , X2.UPGR_YM
+                         FROM
+                         (
+                          SELECT MNGT_YM
+                               , MAX(APLC_SN) AS APLC_SN
+                               , OG_TP_CD
+                               , PRTNR_NO
+                          FROM TB_OGPS_TOPMR_PLAR_APLC_IZ
+                          WHERE 1=1
+                          AND MNGT_YM = #{perfYm}
+                          AND QLF_DV_CD = '1'
+                          GROUP BY MNGT_YM, OG_TP_CD, PRTNR_NO
+                         ) X1
+                         LEFT OUTER JOIN
+                         (
+                          SELECT MNGT_YM
+                               , APLC_SN
+                               , OG_TP_CD
+                               , PRTNR_NO
+                               , UPGR_YM
+                          FROM TB_OGPS_TOPMR_PLAR_APLC_IZ
+                          WHERE 1=1
+                          AND MNGT_YM = #{perfYm}
+                          AND QLF_DV_CD = '1'
+                         ) X2
+                         ON X1.MNGT_YM = X2.MNGT_YM
+                         AND X1.APLC_SN = X2.APLC_SN
+                         AND X1.OG_TP_CD = X2.OG_TP_CD
+                         AND X1.PRTNR_NO = X2.PRTNR_NO
+
+                    ) T1
                     ON O1.BASE_YM = T1.MNGT_YM
                    AND O1.OG_TP_CD = T1.OG_TP_CD
                    AND O1.PRTNR_NO = T1.PRTNR_NO
-                   AND T1.QLF_DV_CD = '1'
                  WHERE 1 = 1
                    AND O1.BASE_YM = #{perfYm}
                    AND O1.OG_TP_CD = 'W01'
@@ -370,7 +404,43 @@
                      , NVL2(MAX(F1.FEE_YM), 'Y', 'N') AS FEE_PERF_ATC_VAL
                      , NULL AS PERF_VAL
                   FROM TB_OGBS_MM_PRTNR_IZ O1
-       LEFT OUTER JOIN TB_OGPS_TOPMR_PLAR_APLC_IZ O2
+       LEFT OUTER JOIN (
+
+                     SELECT X2.MNGT_YM
+                           , X2.APLC_SN
+                           , X2.OG_TP_CD
+                           , X2.PRTNR_NO
+                           , X2.UPGR_YM
+                     FROM
+                     (
+                      SELECT MNGT_YM
+                           , MAX(APLC_SN) AS APLC_SN
+                           , OG_TP_CD
+                           , PRTNR_NO
+                      FROM TB_OGPS_TOPMR_PLAR_APLC_IZ
+                      WHERE 1=1
+                      AND MNGT_YM = #{perfYm}
+                      AND UPGR_DMTN_DV_CD = '1' -- 1 승급
+                      GROUP BY MNGT_YM, OG_TP_CD, PRTNR_NO
+                     ) X1
+                     LEFT OUTER JOIN
+                     (
+                      SELECT MNGT_YM
+                           , APLC_SN
+                           , OG_TP_CD
+                           , PRTNR_NO
+                           , UPGR_YM
+                      FROM TB_OGPS_TOPMR_PLAR_APLC_IZ
+                      WHERE 1=1
+                      AND MNGT_YM = #{perfYm}
+                      AND UPGR_DMTN_DV_CD = '1' -- 1 승급
+                     ) X2
+                     ON X1.MNGT_YM = X2.MNGT_YM
+                     AND X1.APLC_SN = X2.APLC_SN
+                     AND X1.OG_TP_CD = X2.OG_TP_CD
+                     AND X1.PRTNR_NO = X2.PRTNR_NO
+
+                    ) O2
                     ON O1.BASE_YM = O2.MNGT_YM
                    AND O1.OG_TP_CD = O2.OG_TP_CD
                    AND O1.PRTNR_NO = O2.PRTNR_NO
