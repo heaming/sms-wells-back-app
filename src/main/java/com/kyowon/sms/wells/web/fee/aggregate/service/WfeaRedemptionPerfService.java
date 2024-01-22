@@ -81,7 +81,7 @@ public class WfeaRedemptionPerfService {
             switch (ogTpCd) {
                 case "W01": /* P조직 */
                     perfAtcCds.addAll(
-                        Arrays.asList("W01P00001", "W00P00028", "W01P00003", "W01P00004", "W01P00009", "W01P00029")
+                        Arrays.asList("W00P00029", "W00P00030", "W01P00001", "W00P00028", "W01P00003", "W01P00004", "W01P00009", "W01P00029")
                     );
                     break;
                 case "W02": /* M조직 */
