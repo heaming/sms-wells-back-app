@@ -33,16 +33,17 @@
              , NVL(T.TOT_PRPM, 0)   AS TOT_PRM_MCNT /* 총선납개월 */
              , NVL(T.DSC_MM, 0)     AS DSC_OBJ_PRM_MCNT /* 할인대상선납개월 */
              , NVL(T.DSC_RAT_VAL, 0) AS PRM_DSCR /* 선납시할인율 */
-             , NVL(T.DSC_AMT, 0)    AS DSC_OBJ_PRM_AMT /* 할인대상선납금액 */
+             , NVL(T.SELL_AMT, 0) * DSC_RAT * DSC_MM , (SELL_AMT * NO_DSC_MM)
+             , (NVL(T.SELL_AMT, 0) * DSC_MM) + (SELL_AMT * NO_DSC_MM)  AS DSC_OBJ_PRM_AMT /* 할인대상선납금액 */
              , NVL(T.NO_DSC_MM, 0)  AS NON_DSC_OBJ_PRM_MCNT /* 미할인대상 선납개월 */
              , NVL(T.NO_DSC_AMT, 0) AS NON_DSC_OBJ_PRM_AMT/* 미할인대상 선납금액 */
             /*
-             , NVL(CASE WHEN T.DSC_AMT <![CDATA[>]]> 0 THEN ROUND(CEIL(T.DSC_AMT / DECODE(T.DSC_MM, 0, NULL, T.DSC_MM)), -1)
+             , NVL(CASE WHEN T.DSC_AMT > 0 THEN ROUND(CEIL(T.DSC_AMT / DECODE(T.DSC_MM, 0, NULL, T.DSC_MM)), -1)
                     ELSE ROUND(CEIL(T.NO_DSC_AMT / DECODE(T.TOT_PRPM, 0, NULL, T.TOT_PRPM)), -1)
                 END, 0) AS FMN_AMT 월납입금액
             */
              , THM_SL_SUM_AMT FMN_AMT /* 월납입금액 */
-             , NVL(CASE WHEN T.DSC_AMT <![CDATA[>]]> 0 THEN ROUND(CEIL(T.DSC_AMT / DECODE(T.DSC_MM * T.DSC_RAT, 0, NULL, T.DSC_MM * T.DSC_RAT)), -1)
+             , NVL(CASE WHEN T.DSC_AMT > 0 THEN ROUND(CEIL(T.DSC_AMT / DECODE(T.DSC_MM * T.DSC_RAT, 0, NULL, T.DSC_MM * T.DSC_RAT)), -1)
                     ELSE ROUND(CEIL(T.NO_DSC_AMT / DECODE(T.TOT_PRPM * T.DSC_RAT, 0, NULL, T.TOT_PRPM * T.DSC_RAT)), -1)
                 END, 0) AS FMN_DSC_AMT /* 한달할인금액 */
              , NVL(T.ATAM, 0)   AS PRPD_AMT /* 선수금액 */
@@ -51,60 +52,60 @@
              , #{prmPtrmStrtdt} AS PRM_PTRM_STRTDT /* 선납기간from */
              , TO_CHAR(ADD_MONTHS(TO_DATE(#{prmPtrmStrtdt}, 'YYYYMM'), T.DSC_MM - 1), 'YYYYMM') AS PRM_PTRM_ENDDT /* 선납기간to */
           FROM (
-               SELECT
-                      CASE WHEN B.RENTAL_TN IS NULL THEN 1
-                           ELSE B.RENTAL_TN
-                       END AS RCNT /* 차월 */
-                    , D1.SELL_AMT
-                    , D1.TOT_PRPM /* 총선납개월 */
-                    , D1.DSC_MM /* 할인 대상 선납개월 */
-                    , CASE WHEN D1.DSC_MM = 12 THEN 5 /* 5% 할인 */
-                           WHEN D1.DSC_MM = 24 THEN 7 /* 7% 할인 */
-                           WHEN D1.DSC_MM = 36 THEN 10 /* 10% 할인 */
-                           ELSE 0
-                       END AS DSC_RAT_VAL /* 선납시 할인율 */
-                    , CASE WHEN D1.DSC_MM = 12 THEN 0.95 /* 5% 할인 */
-                           WHEN D1.DSC_MM = 24 THEN 0.93 /* 7% 할인 */
-                           WHEN D1.DSC_MM = 36 THEN 0.90 /* 10% 할인 */
-                           ELSE 0
-                       END AS DSC_RAT /* 선납시 할인율 */
-                    , CASE WHEN D1.DSC_MM = 12 THEN ROUND(TRUNC(D1.SELL_AMT * 12 / DECODE(D1.TOT_PRPM, 0, NULL, D1.TOT_PRPM), -1), -1)
-                           WHEN D1.DSC_MM = 24 THEN ROUND(TRUNC(D1.SELL_AMT * 24 / DECODE(D1.TOT_PRPM, 0, NULL, D1.TOT_PRPM), -1), -1)
-                           WHEN D1.DSC_MM = 36 THEN ROUND(TRUNC(D1.SELL_AMT * 36 / DECODE(D1.TOT_PRPM, 0, NULL, D1.TOT_PRPM), -1), -1)
-                           ELSE 0
-                       END AS DSC_AMT /* 할인대상 선납금액 */
-                    , NO_DSC_MM /* 미할인 대상 선납개월 */
-                    , ROUND(CEIL(D1.SELL_AMT * D1.NO_DSC_MM / DECODE(D1.TOT_PRPM, 0, NULL, D1.TOT_PRPM)), -1) AS NO_DSC_AMT /* 미할인 대상 선납금액 */
-                    , NVL(D2.ATAM, 0) AS ATAM
-                    , NVL(D2.UC_AMT, 0) AS UC_AMT /* 미수금액 */
-                    , NVL(D2.DP_AMT, 0) AS DP_AMT
-                    , NVL(B.NOM_SL_AMT, 0) THM_SL_SUM_AMT /*월납입액*/
+            SELECT
+                    CASE WHEN B.RENTAL_TN IS NULL THEN 1
+                         ELSE B.RENTAL_TN
+                     END AS RCNT /* 차월 */
+                  , D1.SELL_AMT
+                  , D1.TOT_PRPM /* 총선납개월 */
+                  , D1.DSC_MM /* 할인 대상 선납개월 */
+                  , CASE WHEN D1.DSC_MM = 12 THEN 5 /* 5% 할인 */
+                         WHEN D1.DSC_MM = 24 THEN 7 /* 7% 할인 */
+                         WHEN D1.DSC_MM = 36 THEN 10 /* 10% 할인 */
+                         ELSE 0
+                     END AS DSC_RAT_VAL /* 선납시 할인율 */
+                  , CASE WHEN D1.DSC_MM = 12 THEN 0.95 /* 5% 할인 */
+                         WHEN D1.DSC_MM = 24 THEN 0.93 /* 7% 할인 */
+                         WHEN D1.DSC_MM = 36 THEN 0.90 /* 10% 할인 */
+                         ELSE 0
+                     END AS DSC_RAT /* 선납시 할인율 */
+                  , CASE WHEN D1.DSC_MM = 12 THEN ROUND(TRUNC(D1.SELL_AMT * 12 / DECODE(D1.TOT_PRPM, 0, NULL, D1.TOT_PRPM), -1), -1)
+                         WHEN D1.DSC_MM = 24 THEN ROUND(TRUNC(D1.SELL_AMT * 24 / DECODE(D1.TOT_PRPM, 0, NULL, D1.TOT_PRPM), -1), -1)
+                         WHEN D1.DSC_MM = 36 THEN ROUND(TRUNC(D1.SELL_AMT * 36 / DECODE(D1.TOT_PRPM, 0, NULL, D1.TOT_PRPM), -1), -1)
+                         ELSE 0
+                     END AS DSC_AMT /* 할인대상 선납금액 */
+                  , NO_DSC_MM /* 미할인 대상 선납개월 */
+                  , ROUND(CEIL(D1.SELL_AMT * D1.NO_DSC_MM / DECODE(D1.TOT_PRPM, 0, NULL, D1.TOT_PRPM)), -1) AS NO_DSC_AMT /* 미할인 대상 선납금액 */
+                  , NVL(D2.ATAM, 0) AS ATAM
+                  , NVL(D2.UC_AMT, 0) AS UC_AMT /* 미수금액 */
+                  , NVL(D2.DP_AMT, 0) AS DP_AMT
+                  , NVL(B.NOM_SL_AMT, 0) THM_SL_SUM_AMT /*월납입액*/
                  FROM TB_SSCT_CNTR_DTL A /* 계약상세 */
                  LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ B /* WELLS매출월마감내역 */
                    ON B.SL_CL_YM = #{prmPtrmStrtdt}
                   AND B.CNTR_NO = A.CNTR_NO
                   AND B.CNTR_SN = A.CNTR_SN
                 INNER JOIN LATERAL (
-                      SELECT
-                             M.SELL_AMT
-                           , M.TOT_PRPM /* 총선납개월 */
-                           , CASE WHEN M.TOT_PRPM <![CDATA[>=]]> 12 AND M.TOT_PRPM <![CDATA[<]]> 24 THEN 12
-                                  WHEN M.TOT_PRPM <![CDATA[>=]]> 24 AND M.TOT_PRPM <![CDATA[<]]> 36 THEN 24
-                                  WHEN M.TOT_PRPM <![CDATA[>=]]> 36 THEN 36
-                                  ELSE 0
-                              END AS DSC_MM /* 할인 대상 선납개월 */
-                           , CASE WHEN M.TOT_PRPM <![CDATA[<]]> 12 THEN M.TOT_PRPM
-                                  WHEN M.TOT_PRPM <![CDATA[>]]> 12 AND M.TOT_PRPM <![CDATA[<]]> 24 THEN M.TOT_PRPM - 12
-                                  WHEN M.TOT_PRPM <![CDATA[>]]> 24 AND M.TOT_PRPM <![CDATA[<]]> 36 THEN M.TOT_PRPM - 24
-                                  WHEN M.TOT_PRPM <![CDATA[>]]> 36 THEN M.TOT_PRPM - 36
-                                  ELSE 0
-                              END AS NO_DSC_MM /* 미할인 대상 선납개월 */
-                        FROM (
-                             SELECT
-                                    MONTHS_BETWEEN(TO_DATE(#{prmPtrmEnddt},'YYYYMM'), TO_DATE(#{prmPtrmStrtdt}, 'YYYYMM')) + 1  AS TOT_PRPM /* 총선납개월 */
-                                  , A.FNL_AMT AS SELL_AMT /* 최종금액 */
-                               FROM DUAL
-                             ) M
+                     SELECT
+                            M.SELL_AMT
+                          , M.TOT_PRPM /* 총선납개월 */
+                          , CASE WHEN M.TOT_PRPM >= 12 AND M.TOT_PRPM <![CDATA[<]]> 24 THEN 12
+                                 WHEN M.TOT_PRPM >= 24 AND M.TOT_PRPM <![CDATA[<]]> 36 THEN 24
+                                 WHEN M.TOT_PRPM >= 36 THEN 36
+                                 ELSE 0
+                             END AS DSC_MM /* 할인 대상 선납개월 */
+                          , CASE WHEN M.TOT_PRPM <![CDATA[<]]> 12 THEN M.TOT_PRPM
+                                 WHEN M.TOT_PRPM > 12 AND M.TOT_PRPM <![CDATA[<]]> 24 THEN M.TOT_PRPM - 12
+                                 WHEN M.TOT_PRPM > 24 AND M.TOT_PRPM <![CDATA[<]]> 36 THEN M.TOT_PRPM - 24
+                                 WHEN M.TOT_PRPM > 36 THEN M.TOT_PRPM - 36
+                                 ELSE 0
+                             END AS NO_DSC_MM /* 미할인 대상 선납개월 */
+                       FROM (
+                            SELECT
+                                   MONTHS_BETWEEN(TO_DATE(#{prmPtrmEnddt},'YYYYMM'), TO_DATE(#{prmPtrmStrtdt}, 'YYYYMM')) + 1  AS TOT_PRPM /* 총선납개월 */
+                                 , A.FNL_AMT AS SELL_AMT /* 최종금액 */
+                              FROM DUAL
+                            ) M
                       ) D1
                    ON 1 = 1
                  LEFT OUTER JOIN LATERAL (
