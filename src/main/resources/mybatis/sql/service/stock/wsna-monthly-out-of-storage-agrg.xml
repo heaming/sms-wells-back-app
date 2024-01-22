@@ -13,7 +13,7 @@
     </select>
     <select id="selectMonthlyOutOfStorageAgrgs" resultType="camelMap">
         WITH PART_INF AS (   /* 품목정보 */
-            SELECT P1.PD_CD
+             SELECT P1.PD_CD
                   , P2.SAP_MAT_CD              /*SAP자재코드*/
                   , P2.PD_NM              /*품목명*/
                   , P2.PD_ABBR_NM              /*품목명*/
@@ -53,7 +53,7 @@
                AND P1.PD_CD = #{itmPdCd}  /* 품목코드 */
              </if>
              <if test="@MybatisUtils@isNotEmpty(strtSapCd) and @MybatisUtils@isNotEmpty(endSapCd)">
-               AND P2.SAP_MAT_CD BETWEEN #{strtSapCd} AND #{endSapCd}
+               AND TO_NUMBER(P2.SAP_MAT_CD) BETWEEN TO_NUMBER(#{strtSapCd}) AND TO_NUMBER(#{endSapCd})
              </if>
         )
         , WARE_INF AS (   /* 창고 */
@@ -95,7 +95,7 @@
                  , O2.QLF_DV_CD             /*자격구분코드*/
                  , O2.PERF_EXCD_OJ_YN       /*실적제외대상여부*/
                  , O2.RDS_DSB_EXCD_OJ_YN    /*RDS지급제외대상여부*/
-                 , O3.PRTNR_GD_CD AS ENG_PRTNR_GD_CD             /*파트너등급코드*/
+--                  , O3.PRTNR_GD_CD AS ENG_PRTNR_GD_CD             /*파트너등급코드*/
                  , COUNT(1) OVER (PARTITION BY HGR_OG_ID ORDER BY HGR_OG_ID) AS HTR_CNT
               FROM WSMDBS.TB_OGBS_MM_OG_IZ O1  /*월조직내역*/
    LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ S1 /*월별창고내역*/
@@ -112,20 +112,8 @@
                AND S1.WARE_MNGT_PRTNR_NO = O2.PRTNR_NO
                --퇴사자제외 조건 선택 시
                --AND O2.CLTN_DT IS  NULL
-   LEFT OUTER JOIN (SELECT OO3.OG_TP_CD
-                         , OO3.PRTNR_NO
-                         , OO3.PRTNR_GD_CD
-                         , ROW_NUMBER() OVER(PARTITION BY OO3.OG_TP_CD, OO3.PRTNR_NO ORDER BY APY_SEQN DESC) AS RN
-                      FROM WSMDBS.TB_OGPS_EGER_GD_RGST_IZ OO3 /*엔지니어등급등록내역*/
-                     WHERE 1=1
-                       AND SUBSTR(#{startDt},1,6) || '01' BETWEEN OO3.APY_STRTDT AND OO3.APY_ENDDT
-                       AND OO3.DTA_DL_YN = 'N'
-                   ) O3
-                ON O3.OG_TP_CD = O2.OG_TP_CD
-               AND O3.PRTNR_NO = O2.PRTNR_NO
-               AND O3.RN = 1
           WHERE 1=1
-            AND S1.APY_YM = SUBSTR(#{startDt},1,6)
+        AND S1.APY_YM BETWEEN SUBSTR(#{startDt},1,6) AND SUBSTR(#{endDt},1,6)
             --창고구분선택시, 전체면 조건 제거
             <if test="@MybatisUtils@isNotEmpty(wareDvCd)">
                 <choose>
@@ -205,6 +193,7 @@
                               FROM WSMDBS.TB_SVST_SV_WK_OSTR_IZ S1  /*서비스작업출고내역, ST163TB*/
                                    INNER JOIN WARE_INF W1
                                            ON S1.WK_WARE_NO = W1.WARE_NO
+                                          AND SUBSTR(S1.FNL_VST_FSH_DT,1,6) = W1.BASE_YM
                                    INNER JOIN PART_INF P1
                                             ON S1.ITM_PD_CD = P1.PD_CD
                              WHERE 1=1
@@ -231,10 +220,11 @@
                                  , 0 AS BFSVC_QTY
                                  , S1.OSTR_QTY AS ETC_QTY
                               FROM WSMDBS.TB_SVST_ITM_OSTR_IZ S1    /*품목출고내역, ST161TB*/
-                                   INNER JOIN WARE_INF W1
-                                           ON S1.OSTR_WARE_NO = W1.WARE_NO
-                                   INNER JOIN PART_INF P1
-                                           ON S1.ITM_PD_CD = P1.PD_CD
+                        INNER JOIN WARE_INF W1
+                                ON S1.OSTR_WARE_NO = W1.WARE_NO
+                               AND SUBSTR(S1.OSTR_DT,1,6) = W1.BASE_YM
+                        INNER JOIN PART_INF P1
+                                ON S1.ITM_PD_CD = P1.PD_CD
                              WHERE 1=1
                                AND S1.OSTR_QTY &gt; 0
                                --조회기간입력조건
