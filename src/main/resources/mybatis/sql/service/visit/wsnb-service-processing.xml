@@ -12,16 +12,14 @@
     </select>
 
     <select id="selectServiceProcessings" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbServiceProcessingDvo">
-        SELECT *
-          FROM (
             <if test='!@MybatisUtils@equals(serviceType, "2")'>
             SELECT <if test='@MybatisUtils@equals(inquiryBase, "1")'>
                    /*+ USE_NL(S2 S1 S3 S4 S5 S6 S7 C1 C2 C3 C4 O11 O12 O2 O3 P1) LEADING(S2 S1 S4 C3 O2)
-                       NO_MERGE(S7) PUSH_PRED(S7) NO_MERGE(S6) PUSH_PRED(S6) INDEX(S2 IX_SVPD_CST_SVAS_IST_OJ_IZ_01) */
+                       NO_MERGE(S7) PUSH_PRED(S7) NO_MERGE(S6) PUSH_PRED(S6) NO_MERGE(B3) PUSH_PRED(B3) INDEX(S2 IX_SVPD_CST_SVAS_IST_OJ_IZ_01) */
                    </if>
                    <if test='@MybatisUtils@equals(inquiryBase, "2") or @MybatisUtils@equals(inquiryBase, "3") or @MybatisUtils@equals(inquiryBase, "4")'>
                    /*+ USE_NL(S1 S2 S3 S4 S5 S6 S7 C1 C2 C3 C4 O11 O12 O2 O3 P1) LEADING(S1 S4 C3 O2)
-                       NO_MERGE(S7) PUSH_PRED(S7) NO_MERGE(S6) PUSH_PRED(S6) INDEX(S1 IX_SVPD_CST_SVAS_IST_ASN_IZ_01) */
+                       NO_MERGE(S7) PUSH_PRED(S7) NO_MERGE(S6) PUSH_PRED(S6) NO_MERGE(B3) PUSH_PRED(B3) INDEX(S1 IX_SVPD_CST_SVAS_IST_ASN_IZ_01) */
                    </if>
                    S1.CNTR_NO /* 계약번호 */
                  , S1.CNTR_SN /* 계약일련번호 */
@@ -161,8 +159,8 @@
                                               AND X1.RGLVL_GD_CD = Y1.RGLVL_GD_CD)
                         ), 0) AS AW_AMT /* 현장수당(금액) */
                  , S4.CRAL_LOCARA_TNO AS CONTACT_CRAL_LOCARA_TNO /* 연락처(핸드폰) 1 */
-                 , C4.MEXNO_ENCR AS CONTACT_MEXNO_ENCR /* 연락처(핸드폰) 2 */
-                 , C4.CRAL_IDV_TNO AS CONTACT_CRAL_IDV_TNO /* 연락처(핸드폰) 3 */
+                 , S4.MEXNO_ENCR AS CONTACT_MEXNO_ENCR /* 연락처(핸드폰) 2 */
+                 , S4.CRAL_IDV_TNO AS CONTACT_CRAL_IDV_TNO /* 연락처(핸드폰) 3 */
                  , S2.FNL_RCPDT /* 접수일자 */
                  , S2.FNL_RCP_HH /* 접수일시 */
                  , S1.VST_DUEDT /* 예정일자 */
@@ -216,7 +214,7 @@
                  , NVL(S6.BSTR_CS, 0) BSTR_CS /* 수납(출장료) */
                  , NVL(S6.ETC_CS, 0) ETC_CS /* 수납(기타비용) */
                  , NVL(S6.RVE_CS_TOT, 0) RVE_CS_TOT /* 수납(전체) */
-                 , B2.CS_BIL_NO /* 비용청구번호 */
+                 , B1.CS_BIL_NO /* 비용청구번호 */
                  , B3.ADP_BIL_AMT AS ADP_BIL_AMT /* 합산청구금액 */
                  , B3.CARD_STLM_AMT AS CARD_STLM_AMT /* 카드결제금액 */
                  , B3.VAC_STLM_AMT AS VAC_STLM_AMT /* 가상계좌결제금액 */
@@ -228,7 +226,7 @@
                  , O3.PRTNR_KNM AS ACPN_PRTNR_KNM /* 동행작업자(동행자명) */
                  , F_CMZ_CD_NM(#{session.tenantId}, 'PRTNR_GD_CD', O3.PRTNR_GD_CD) AS ACPN_PRTNR_GD_NM /* 동행작업자 직급구분 */
                  , S1.CST_SV_ASN_NO /* 고객서비스배정번호 */
-                 , (CASE WHEN M1.OJ_CNTR_NO IS NOT NULL THEN M1.OJ_CNTR_NO || '-' || M1.OJ_CNTR_SN ELSE NULL END) AS BF_CNTR_NO_SN /* 전상대코드 */
+                 , CASE WHEN M1.OJ_CNTR_NO IS NOT NULL THEN M1.OJ_CNTR_NO || '-' || M1.OJ_CNTR_SN END AS BF_CNTR_NO_SN /* 전상대코드 */
               FROM TB_SVPD_CST_SVAS_IST_ASN_IZ S1
              INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ S2
                 ON S2.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
@@ -271,6 +269,7 @@
                                    FROM TB_SVST_SV_WK_OSTR_IZ X1
                                   WHERE 1 = 1
                                     AND X1.DTA_DL_YN = 'N'
+                                    AND X1.SV_BIZ_HCLSF_CD IN ('1', '2', '3', '6')
                               ) Y1
                           INNER JOIN TB_PDBS_PD_BAS Y2
                              ON Y1.ITM_PD_CD = Y2.PD_CD
@@ -331,35 +330,34 @@
                AND B1.CNTR_SN = S1.CNTR_SN
                AND B1.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
                AND B1.DTA_DL_YN = 'N'
-              LEFT OUTER JOIN TB_SVPD_SV_CS_BIL_BAS B2 /* 서비스비용청구기본 */
-                ON B2.CS_BIL_NO = B1.CS_BIL_NO
-               AND B2.DTA_DL_YN = 'N'
               LEFT OUTER JOIN (SELECT CS_BIL_NO, CNTR_NO, CNTR_SN, CST_SV_ASN_NO
-                                      ,SUM(CASE WHEN STLM_DV_CD = '01' THEN NVL(DP_SUM_AMT, 0) ELSE 0 END) AS ADP_BIL_AMT /* 합산청구금액 */
-                                      ,SUM(CASE WHEN STLM_DV_CD = '02' THEN NVL(DP_SUM_AMT, 0) ELSE 0 END) AS CARD_STLM_AMT /* 카드결제금액 */
-                                      ,SUM(CASE WHEN STLM_DV_CD = '03' THEN NVL(DP_SUM_AMT, 0) ELSE 0 END) AS VAC_STLM_AMT /* 가상계좌결제금액 */
-                                      ,SUM(CASE WHEN STLM_DV_CD = '04' THEN NVL(DP_SUM_AMT, 0) ELSE 0 END) AS CASH_STLM_AMT /* 현금 결제금액 */
-                                 FROM TB_SVPD_SV_CS_DP_IZ /* 서비스비용입금내역 */
-                                WHERE DTA_DL_YN = 'N'
-                                  AND CAN_DV_CD IS NULL
-                                GROUP BY CS_BIL_NO, CNTR_NO, CNTR_SN, CST_SV_ASN_NO) B3
-                ON B3.CS_BIL_NO = B1.CS_BIL_NO
-               AND B3.CNTR_NO = B1.CNTR_NO
-               AND B3.CNTR_SN = B1.CNTR_SN
-               AND B3.CST_SV_ASN_NO = B1.CST_SV_ASN_NO
-              LEFT OUTER JOIN (SELECT V1.BASE_CNTR_NO
-                                    , V1.BASE_CNTR_SN
-                                    , V1.OJ_CNTR_NO
-                                    , V1.OJ_CNTR_SN
-                                 FROM TB_SSCT_MCHN_CH_IZ V1 /* 기기변경내역 */
-                                WHERE V1.MCHN_CH_SN = (SELECT MAX(MCHN_CH_SN)
-                                                         FROM TB_SSCT_MCHN_CH_IZ
-                                                        WHERE BASE_CNTR_NO = V1.BASE_CNTR_NO
-                                                          AND BASE_CNTR_SN = V1.BASE_CNTR_SN
-                                                          AND DTA_DL_YN = 'N')
-                 ) M1
-                ON M1.BASE_CNTR_NO = C2.CNTR_NO
-               AND M1.BASE_CNTR_SN = C2.CNTR_SN
+                                       ,SUM(CASE WHEN STLM_DV_CD = '01' THEN NVL(DP_SUM_AMT, 0) ELSE 0 END) AS ADP_BIL_AMT /* 합산청구금액 */
+                                       ,SUM(CASE WHEN STLM_DV_CD = '02' THEN NVL(DP_SUM_AMT, 0) ELSE 0 END) AS CARD_STLM_AMT /* 카드결제금액 */
+                                       ,SUM(CASE WHEN STLM_DV_CD = '03' THEN NVL(DP_SUM_AMT, 0) ELSE 0 END) AS VAC_STLM_AMT /* 가상계좌결제금액 */
+                                       ,SUM(CASE WHEN STLM_DV_CD = '04' THEN NVL(DP_SUM_AMT, 0) ELSE 0 END) AS CASH_STLM_AMT /* 현금 결제금액 */
+                                  FROM TB_SVPD_SV_CS_DP_IZ /* 서비스비용입금내역 */
+                                 WHERE DTA_DL_YN = 'N'
+                                   AND CAN_DV_CD IS NULL
+                                   AND CNTR_NO LIKE 'W%'
+                                   AND STLM_DV_CD BETWEEN '01' AND '04'
+                                 GROUP BY CS_BIL_NO, CNTR_NO, CNTR_SN, CST_SV_ASN_NO) B3
+                 ON B3.CS_BIL_NO = B1.CS_BIL_NO
+                AND B3.CNTR_NO = B1.CNTR_NO
+                AND B3.CNTR_SN = B1.CNTR_SN
+                AND B3.CST_SV_ASN_NO = B1.CST_SV_ASN_NO
+               LEFT OUTER JOIN (SELECT V1.BASE_CNTR_NO
+                                     , V1.BASE_CNTR_SN
+                                     , V1.OJ_CNTR_NO
+                                     , V1.OJ_CNTR_SN
+                                  FROM TB_SSCT_MCHN_CH_IZ V1 /* 기기변경내역 */
+                                 WHERE V1.MCHN_CH_SN = (SELECT MAX(MCHN_CH_SN)
+                                                          FROM TB_SSCT_MCHN_CH_IZ
+                                                         WHERE BASE_CNTR_NO = V1.BASE_CNTR_NO
+                                                           AND BASE_CNTR_SN = V1.BASE_CNTR_SN
+                                                           AND DTA_DL_YN = 'N')
+                  ) M1
+                 ON M1.BASE_CNTR_NO = C2.CNTR_NO
+                AND M1.BASE_CNTR_SN = C2.CNTR_SN
              WHERE 1 = 1
                AND S1.DTA_DL_YN = 'N'
                AND S2.DTA_DL_YN = 'N'
@@ -429,7 +427,7 @@
             <if test='@MybatisUtils@equals(inquiryBase, "2")'>
               UNION ALL
              SELECT /*+ USE_NL(S1 S2 S3 S4 S5 S6 S7 C1 C2 C3 C4 O11 O12 O2 O3 P1) LEADING(S3 S1 C3 O2) NO_MERGE(S7) PUSH_PRED(S7)
-                        NO_MERGE(S6) PUSH_PRED(S6) INDEX(S1 IX_SVPD_CST_SVAS_IST_ASN_IZ_01) */
+                        NO_MERGE(S6) PUSH_PRED(S6) NO_MERGE(B3) PUSH_PRED(B3) INDEX(S1 IX_SVPD_CST_SVAS_IST_ASN_IZ_01) */
                     S1.CNTR_NO /* 계약번호 */
                   , S1.CNTR_SN /* 계약일련번호 */
                   , S1.CNTR_NO || '-' || S1.CNTR_SN AS CNTR_NO_SN /* 계약상세번호 */
@@ -568,8 +566,8 @@
                                                AND X1.RGLVL_GD_CD = Y1.RGLVL_GD_CD)
                          ), 0) AS AW_AMT /* 현장수당(금액) */
                   , S4.CRAL_LOCARA_TNO AS CONTACT_CRAL_LOCARA_TNO /* 연락처(핸드폰) 1 */
-                  , C4.MEXNO_ENCR AS CONTACT_MEXNO_ENCR /* 연락처(핸드폰) 2 */
-                  , C4.CRAL_IDV_TNO AS CONTACT_CRAL_IDV_TNO /* 연락처(핸드폰) 3 */
+                  , S4.MEXNO_ENCR AS CONTACT_MEXNO_ENCR /* 연락처(핸드폰) 2 */
+                  , S4.CRAL_IDV_TNO AS CONTACT_CRAL_IDV_TNO /* 연락처(핸드폰) 3 */
                   , S2.FNL_RCPDT /* 접수일자 */
                   , S2.FNL_RCP_HH /* 접수일시 */
                   , S1.VST_DUEDT /* 예정일자 */
@@ -623,7 +621,7 @@
                   , NVL(S6.BSTR_CS, 0) BSTR_CS /* 수납(출장료) */
                   , NVL(S6.ETC_CS, 0) ETC_CS /* 수납(기타비용) */
                   , NVL(S6.RVE_CS_TOT, 0) RVE_CS_TOT /* 수납(전체) */
-                  , B2.CS_BIL_NO /* 비용청구번호 */
+                  , B1.CS_BIL_NO /* 비용청구번호 */
                   , B3.ADP_BIL_AMT AS ADP_BIL_AMT /* 합산청구금액 */
                   , B3.CARD_STLM_AMT AS CARD_STLM_AMT /* 카드결제금액 */
                   , B3.VAC_STLM_AMT AS VAC_STLM_AMT /* 가상계좌결제금액 */
@@ -635,7 +633,7 @@
                   , O3.PRTNR_KNM AS ACPN_PRTNR_KNM /* 동행작업자(동행자명) */
                   , F_CMZ_CD_NM(#{session.tenantId}, 'PRTNR_GD_CD', O3.PRTNR_GD_CD) AS ACPN_PRTNR_GD_NM /* 동행작업자 직급 */
                   , S1.CST_SV_ASN_NO /* 고객서비스배정번호 */
-                  , (CASE WHEN M1.OJ_CNTR_NO IS NOT NULL THEN M1.OJ_CNTR_NO || '-' || M1.OJ_CNTR_SN ELSE NULL END) AS BF_CNTR_NO_SN /* 전상대코드 */
+                  , CASE WHEN M1.OJ_CNTR_NO IS NOT NULL THEN M1.OJ_CNTR_NO || '-' || M1.OJ_CNTR_SN END AS BF_CNTR_NO_SN /* 전상대코드 */
                FROM TB_SVPD_CST_SVAS_IST_ASN_IZ S1
               INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ S2
                  ON S2.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
@@ -678,6 +676,7 @@
                                     FROM TB_SVST_SV_WK_OSTR_IZ X1
                                    WHERE 1 = 1
                                      AND X1.DTA_DL_YN = 'N'
+                                     AND X1.SV_BIZ_HCLSF_CD IN ('1', '2', '3', '6')
                                ) Y1
                            INNER JOIN TB_PDBS_PD_BAS Y2
                               ON Y1.ITM_PD_CD = Y2.PD_CD
@@ -738,9 +737,6 @@
                 AND B1.CNTR_SN = S1.CNTR_SN
                 AND B1.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
                 AND B1.DTA_DL_YN = 'N'
-               LEFT OUTER JOIN TB_SVPD_SV_CS_BIL_BAS B2 /* 서비스비용청구기본 */
-                 ON B2.CS_BIL_NO = B1.CS_BIL_NO
-                AND B2.DTA_DL_YN = 'N'
                LEFT OUTER JOIN (SELECT CS_BIL_NO, CNTR_NO, CNTR_SN, CST_SV_ASN_NO
                                        ,SUM(CASE WHEN STLM_DV_CD = '01' THEN NVL(DP_SUM_AMT, 0) ELSE 0 END) AS ADP_BIL_AMT /* 합산청구금액 */
                                        ,SUM(CASE WHEN STLM_DV_CD = '02' THEN NVL(DP_SUM_AMT, 0) ELSE 0 END) AS CARD_STLM_AMT /* 카드결제금액 */
@@ -749,6 +745,8 @@
                                   FROM TB_SVPD_SV_CS_DP_IZ /* 서비스비용입금내역 */
                                  WHERE DTA_DL_YN = 'N'
                                    AND CAN_DV_CD IS NULL
+                                   AND CNTR_NO LIKE 'W%'
+                                   AND STLM_DV_CD BETWEEN '01' AND '04'
                                  GROUP BY CS_BIL_NO, CNTR_NO, CNTR_SN, CST_SV_ASN_NO) B3
                  ON B3.CS_BIL_NO = B1.CS_BIL_NO
                 AND B3.CNTR_NO = B1.CNTR_NO
@@ -827,7 +825,7 @@
            </if>
            <if test='@MybatisUtils@equals(serviceType, "2") or @MybatisUtils@isEmpty(serviceType)'>
              SELECT /*+ USE_NL(S1 S2 S3 S4 S5 S6 S7 C1 C2 C3 C4 O11 O12 O2 O3 P1) LEADING(S1 S4 C3 O2)
-                        NO_MERGE(S7) PUSH_PRED(S7) NO_MERGE(S6) PUSH_PRED(S6) INDEX(S1 IX_SVPD_CST_SVAS_IST_ASN_IZ_01) */
+                        NO_MERGE(S7) PUSH_PRED(S7) NO_MERGE(S6) PUSH_PRED(S6) NO_MERGE(B3) PUSH_PRED(B3) INDEX(S1 IX_SVPD_CST_SVAS_IST_ASN_IZ_01) */
                     S1.CNTR_NO /* 계약번호 */
                   , S1.CNTR_SN /* 계약일련번호 */
                   , S1.CNTR_NO || '-' || S1.CNTR_SN AS CNTR_NO_SN
@@ -967,8 +965,8 @@
                                                AND X1.RGLVL_GD_CD = Y1.RGLVL_GD_CD)
                          ), 0) AS AW_AMT /* 현장수당(금액) */
                   , S4.CRAL_LOCARA_TNO AS CONTACT_CRAL_LOCARA_TNO /* 연락처(핸드폰) 1 */
-                  , C4.MEXNO_ENCR AS CONTACT_MEXNO_ENCR /* 연락처(핸드폰) 2 */
-                  , C4.CRAL_IDV_TNO AS CONTACT_CRAL_IDV_TNO /* 연락처(핸드폰) 3 */
+                  , S4.MEXNO_ENCR AS CONTACT_MEXNO_ENCR /* 연락처(핸드폰) 2 */
+                  , S4.CRAL_IDV_TNO AS CONTACT_CRAL_IDV_TNO /* 연락처(핸드폰) 3 */
                   , SUBSTR(S2.FST_RGST_DTM, 1, 8) AS FNL_RCPDT -- S2.FNL_RCPDT /* 접수일자 */
                   , SUBSTR(S2.FST_RGST_DTM, 9, 6) AS FNL_RCP_HH -- S2.FNL_RCP_HH /* 접수일시 */
                   , S1.VST_DUEDT /* 예정일자 */
@@ -1034,7 +1032,7 @@
                   , O3.PRTNR_KNM AS ACPN_PRTNR_KNM /* 동행작업자(동행자명) */
                   , F_CMZ_CD_NM('TNT_WELLS', 'PRTNR_GD_CD', O3.PRTNR_GD_CD) AS ACPN_PRTNR_GD_NM /* 동행작업자등급명 */
                   , S1.CST_SV_ASN_NO /* 고객서비스배정번호 */
-                  , (CASE WHEN M1.OJ_CNTR_NO IS NOT NULL THEN M1.OJ_CNTR_NO || '-' || M1.OJ_CNTR_SN ELSE NULL END) AS BF_CNTR_NO_SN /* 전상대코드 */
+                  , CASE WHEN M1.OJ_CNTR_NO IS NOT NULL THEN M1.OJ_CNTR_NO || '-' || M1.OJ_CNTR_SN END AS BF_CNTR_NO_SN /* 전상대코드 */
                FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ S1 /* 고객서비스BS배정내역 */
               INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ S2 /* 고객서비스BS대상내역 */
                  ON S2.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
@@ -1078,6 +1076,7 @@
                                     FROM TB_SVST_SV_WK_OSTR_IZ X1
                                    WHERE 1 = 1
                                      AND X1.DTA_DL_YN = 'N'
+                                     AND X1.SV_BIZ_HCLSF_CD IN ('1', '2', '3', '6')
                                    ) Y1
                                INNER JOIN TB_PDBS_PD_BAS Y2
                                   ON Y1.ITM_PD_CD = Y2.PD_CD
@@ -1124,7 +1123,7 @@
                  ON O1.BASE_YM = O11.BASE_YM
                 AND O1.OG_TP_CD = O11.OG_TP_CD
                 AND O1.PRTNR_NO = O11.PRTNR_NO
-               LEFT OUTER JOIN TB_OGBS_MM_OG_IZ O12 /* 월파트너내역 */
+               LEFT OUTER JOIN TB_OGBS_MM_OG_IZ O12 /* 월조직내역 */
                  ON O11.BASE_YM = O12.BASE_YM
                 AND O11.OG_TP_CD = O12.OG_TP_CD
                 AND O11.OG_ID = O12.OG_ID
@@ -1155,9 +1154,6 @@
                 AND B1.CNTR_SN = S1.CNTR_SN
                 AND B1.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
                 AND B1.DTA_DL_YN = 'N'
-               LEFT OUTER JOIN TB_SVPD_SV_CS_BIL_BAS B2 /* 서비스비용청구기본 */
-                 ON B2.CS_BIL_NO = B1.CS_BIL_NO
-                AND B2.DTA_DL_YN = 'N'
                LEFT OUTER JOIN (SELECT CS_BIL_NO, CNTR_NO, CNTR_SN, CST_SV_ASN_NO
                                        ,SUM(CASE WHEN STLM_DV_CD = '01' THEN NVL(DP_SUM_AMT, 0) ELSE 0 END) AS ADP_BIL_AMT /* 합산청구금액 */
                                        ,SUM(CASE WHEN STLM_DV_CD = '02' THEN NVL(DP_SUM_AMT, 0) ELSE 0 END) AS CARD_STLM_AMT /* 카드결제금액 */
@@ -1166,6 +1162,8 @@
                                   FROM TB_SVPD_SV_CS_DP_IZ /* 서비스비용입금내역 */
                                  WHERE DTA_DL_YN = 'N'
                                    AND CAN_DV_CD IS NULL
+                                   AND CNTR_NO LIKE 'W%'
+                                   AND STLM_DV_CD BETWEEN '01' AND '04'
                                  GROUP BY CS_BIL_NO, CNTR_NO, CNTR_SN, CST_SV_ASN_NO) B3
                  ON B3.CS_BIL_NO = B1.CS_BIL_NO
                 AND B3.CNTR_NO = B1.CNTR_NO
@@ -1243,8 +1241,7 @@
                 AND S3.IST_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(S2.FST_RGST_DTM, 'YYYYMMDDHH24MISS'), -12), 'YYYYMMDD') /* 설치기준 '1년 이내' */
             </if>
            </if>
-            )
-        ORDER BY CNTR_NO
+               ORDER BY CNTR_NO_SN
     </select>
 
 </mapper>

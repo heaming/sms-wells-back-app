@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcessingDto.FindProductRes;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcessingDto.SearchReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcessingDto.SearchRes;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbServiceProcessingDvo;
 import com.kyowon.sms.wells.web.service.visit.service.WsnbServiceProcessingService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -74,7 +74,7 @@ public class WsnbServiceProcessingController {
         @ApiImplicitParam(name = "installBase", value = "설치기준", paramType = "query", example = "1"),
     })
     @GetMapping("/paging")
-    public PagingResult<SearchRes> getServiceProcessings(
+    public PagingResult<WsnbServiceProcessingDvo> getServiceProcessings(
         SearchReq dto,
         @Valid
         PageInfo pageInfo
@@ -89,7 +89,7 @@ public class WsnbServiceProcessingController {
      */
     @ApiOperation(value = "서비스처리 내역 조회 (엑셀 다운로드)", notes = "조회조건에 해당하는 고객 방문 후 서비스 처리 내역을 조회한다.")
     @GetMapping("/excel-download")
-    public List<SearchRes> getServiceProcessingsForExcel(SearchReq dto) {
+    public List<WsnbServiceProcessingDvo> getServiceProcessingsForExcel(SearchReq dto) {
         return this.service.getServiceProcessingsForExcel(dto);
     }
 
