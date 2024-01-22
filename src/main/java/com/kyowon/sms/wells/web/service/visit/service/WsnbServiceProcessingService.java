@@ -7,10 +7,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.service.visit.converter.WsnbServiceProcessingConverter;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcessingDto.FindProductRes;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcessingDto.SearchReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcessingDto.SearchRes;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbServiceProcessingDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbServiceProcessingMapper;
 import com.sds.sflex.common.docs.dvo.AttachFileDvo;
@@ -37,8 +35,6 @@ public class WsnbServiceProcessingService {
 
     private final WsnbServiceProcessingMapper mapper;
 
-    private final WsnbServiceProcessingConverter converter;
-
     private final AttachFileService attachFileService;
 
     /**
@@ -52,8 +48,10 @@ public class WsnbServiceProcessingService {
     /**
      * 서비스 처리내역 조회
      */
-    public PagingResult<SearchRes> getServiceProcessings(SearchReq dto, PageInfo pageInfo) {
-        PagingResult<WsnbServiceProcessingDvo> dvos = mapper.selectServiceProcessings(dto, pageInfo);
+    public PagingResult<WsnbServiceProcessingDvo> getServiceProcessings(SearchReq dto, PageInfo pageInfo) {
+        PagingResult<WsnbServiceProcessingDvo> result = mapper.selectServiceProcessings(dto, pageInfo);
+
+        List<WsnbServiceProcessingDvo> dvos = result.getList();
 
         for (WsnbServiceProcessingDvo dvo : dvos) {
             if (ObjectUtils.isNotEmpty(dvo.getCstSignCnByte())) {
@@ -97,14 +95,16 @@ public class WsnbServiceProcessingService {
             }
         }
 
-        return new PagingResult<>(converter.mapAllDvoToSearchRes(dvos), pageInfo);
+        result.setList(dvos);
+
+        return result;
     }
 
     /**
      * 서비스 처리내역 엑셀 다운로드
      */
-    public List<SearchRes> getServiceProcessingsForExcel(SearchReq dto) {
-        return converter.mapAllDvoToSearchRes(mapper.selectServiceProcessings(dto));
+    public List<WsnbServiceProcessingDvo> getServiceProcessingsForExcel(SearchReq dto) {
+        return mapper.selectServiceProcessings(dto);
     }
 
 }
