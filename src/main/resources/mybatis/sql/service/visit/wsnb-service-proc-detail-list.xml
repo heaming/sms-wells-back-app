@@ -359,4 +359,229 @@
               AND P1.DTA_DL_YN = 'N'
 	     ORDER BY P1.WK_OSTR_SN ASC
     </select>
+
+    <select id="selectCttBasKey" resultType="java.lang.String">
+        SELECT LPAD((SELECT NVL(MAX(CTT_OJ_ID),0) FROM TB_SSOP_CTT_BAS) + 1, 15, '0') FROM DUAL
+    </select>
+
+    <insert id="insertCttNwRgst">
+        INSERT
+          INTO TB_SSOP_CTT_BAS /* 컨택기본 */
+             (
+               CTT_OJ_ID            /* 컨택대상ID */
+             , CST_NO               /* 고객번호 */
+             , CNTR_NO              /* 계약번호 */
+             , CTT_RCP_DTM          /* 컨택접수일시 */
+             , CTT_FSH_DTM          /* 컨택완료일시 */
+             , CTT_PSIC_ID          /* 컨택담당자ID */
+             , CTT_DUEDT            /* 컨택예정일자 */
+             , CTT_EXP_DV_CD        /* 컨택예정구분코드 */
+             , CTT_MO_CN            /* 컨택메모내용 */
+             , DTA_DL_YN            /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField" />
+             )
+        SELECT #{cttOjId}
+             , T2.CNTR_CST_NO AS CST_NO	    /* 고객번호 */
+             , T1.CNTR_NO AS CNTR_NO	    /* 계약번호 */
+             , TO_CHAR(SYSDATE, 'YYYYMMDD') AS CTT_RCP_DTM/* 컨택접수일시 */
+             , #{cttRcpDtm} AS CTT_FSH_DTM	/* 컨택완료일시 */
+             , CASE WHEN (T1.CTT_PSIC_ID = '0' OR T1.CTT_PSIC_ID = NULL) THEN #{session.userId}
+                    ELSE T1.CTT_PSIC_ID END AS CTT_PSIC_ID	/* 컨택담당자ID */
+             , #{cttDuedt} AS CTT_DUEDT	    /* 컨택예정일자..화면에서 받아옴 */
+             , '10' AS CTT_EXP_DV_CD	    /* 컨택예정구분코드 */
+             , #{cttMoCn} AS CTT_MO_CN	    /* 컨택메모내용 */
+             , 'N' AS DTA_DL_YN             /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_SSCT_CNTR_DTL T1
+         INNER JOIN TB_SSCT_CNTR_BAS T2
+            ON T2.CNTR_NO = T1.CNTR_NO
+           AND T2.DTA_DL_YN = 'N'
+         WHERE 1=1
+           AND T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+    </insert>
+
+    <update id="updateCttNwRgst">
+        UPDATE TB_SSOP_CTT_BAS
+           SET CTT_RCP_DTM=#{cttRcpDtm}
+             , CTT_DUEDT=#{cttDuedt}
+             , CTT_MO_CN=#{cttMoCn}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE 1=1
+           AND CTT_OJ_ID=#{cttOjId}
+    </update>
+
+    <insert id="insertCttNwDtlRgst">
+        INSERT
+          INTO TB_SSOP_CTT_DTL /* 컨택상세 */
+             (
+               CTT_OJ_ID
+             , CTT_SN
+             , CNTR_NO
+             , CNTR_SN
+             , CTT_AK_CN
+            <if test="@MybatisUtils@equals(wkKnd, 'update')">
+             , CTT_DTL_MO_CN
+            </if>
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />
+             )
+        VALUES
+             (
+               #{cttOjId}
+             , (SELECT NVL(MAX(TO_NUMBER(CTT_SN)) + 1, 1) FROM TB_SSOP_CTT_DTL WHERE CTT_OJ_ID=#{cttOjId})
+             , #{cntrNo}
+             , #{cntrSn}
+             , #{cttMoCn}
+            <if test="@MybatisUtils@equals(wkKnd, 'update')">
+             , ('컨택일: ' || #{beforeRcpDtm} || ' -> ' || #{cttRcpDtm}
+               || ', 방문예정일:' || #{beforeDuedt} || ' -> ' || #{cttDuedt}
+               || ', 전달사항:' || #{beforeMoCn} || ' -> ' || #{cttMoCn})
+            </if>
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" />
+             )
+    </insert>
+
+    <select id="selectServiceProcDetailCttDatas" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcDetailListDto$CttIzReq">
+        SELECT CD.CNTR_NO /* 계약번호 */
+             , CD.CNTR_SN /* 계약일련번호 */
+             , CB.CTT_OJ_ID /* 컨택대상ID */
+             , CD.CTT_SN /* 컨택일련번호 */
+             , CB.CTT_MO_CN  /* 컨택요청내용 */
+             , CB.CTT_RCP_DTM /* 컨택접수일자 */
+             , CB.CTT_DUEDT /* 컨택예정일자 */
+          FROM TB_SSOP_CTT_BAS CB
+         INNER JOIN TB_SSOP_CTT_DTL CD
+            ON CB.CTT_OJ_ID=CD.CTT_OJ_ID
+         WHERE 1=1
+           AND CB.CNTR_NO=#{cntrNo}
+           AND CD.CTT_SN=(SELECT MAX(CTT_SN) FROM TB_SSOP_CTT_DTL WHERE CNTR_NO=#{cntrNo} AND CNTR_SN=#{cntrSn})
+           AND CB.DTA_DL_YN='N'
+         ORDER BY CD.CTT_SN DESC
+    </select>
+
+    <select id="selectCttBeforeDatas" resultType="hashmap">
+        SELECT CTT_RCP_DTM
+             , CST_NO
+             , CTT_DUEDT
+             , CTT_MO_CN
+          FROM TB_SSOP_CTT_BAS
+         WHERE 1=1
+           AND CTT_OJ_ID=#{cttOjId}
+    </select>
+
+    <insert id="insertCttChHistRgst">
+        INSERT
+          INTO TB_SSOP_CTT_CH_HIST /* 컨택변경이력 */
+             (
+               CTT_OJ_ID            /* 컨택대상ID */
+             , HIST_STRT_DTM        /* 이력시작일시 */
+             , CST_NO               /* 고객번호 */
+             , CNTR_NO              /* 고객번호 */
+             , CTT_PRGS_STAT_CD     /* 컨택진행상태코드 */
+             , CTT_RCP_DTM          /* 컨택접수일시 */
+             , CTT_DUEDT            /* 컨택예정일자 */
+             , DTA_DL_YN            /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField" />
+             )
+        VALUES
+             (
+               #{cttOjId}
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , (
+                 SELECT CNTR_CST_NO
+                   FROM TB_SSCT_CNTR_DTL T1
+                  INNER JOIN TB_SSCT_CNTR_BAS T2
+                     ON T2.CNTR_NO = T1.CNTR_NO
+                    AND T2.DTA_DL_YN = 'N'
+                  WHERE 1=1
+                    AND T1.CNTR_NO=#{cntrNo}
+                    AND T1.CNTR_SN=#{cntrSn}
+               )
+             , #{cntrNo}
+             , #{cttPrgsStatCd}
+             , #{cttRcpDtm}
+             , #{cttDuedt}
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" />
+             )
+    </insert>
+
+    <insert id="insertCttDchHistRgst">
+        INSERT
+          INTO TB_SSOP_CTT_DCH_HIST /* 컨택상세변경이력 */
+             (
+               CTT_OJ_ID
+             , HIST_STRT_DTM
+             , CTT_SN
+             , CNTR_NO
+             , CNTR_SN
+             , CTT_AK_CN
+        <if test="@MybatisUtils@equals(wkKnd, 'update')">
+             , CTT_DTL_MO_CN
+        </if>
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />
+             )
+        VALUES
+             (
+               #{cttOjId}
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , (SELECT NVL(MAX(TO_NUMBER(CTT_SN)) + 1, 1) FROM TB_SSOP_CTT_DTL WHERE CTT_OJ_ID=#{cttOjId})
+             , #{cntrNo}
+             , #{cntrSn}
+             , #{cttMoCn}
+        <if test="@MybatisUtils@equals(wkKnd, 'update')">
+             , ('컨택일: ' || #{beforeRcpDtm} || ' -> ' || #{cttRcpDtm}
+               || ', 방문예정일:' || #{beforeDuedt} || ' -> ' || #{cttDuedt}
+               || ', 전달사항:' || #{beforeMoCn} || ' -> ' || #{cttMoCn})
+        </if>
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" />
+             )
+    </insert>
+
+    <insert id="updateWkCanIz">
+        UPDATE TB_SVPD_CST_SVAS_IST_ASN_IZ
+           SET WK_CAN_RSON_CD=#{canRson}
+             , WK_CAN_MO_CN=#{canRsonDtlIz}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE 1=1
+           AND CST_SV_ASN_NO=#{cstSvAsnNo}
+           AND CNTR_NO=#{cntrNo}
+           AND CNTR_SN=#{cntrSn}
+    </insert>
+
+    <insert id="insertWkCanHist">
+        INSERT
+          INTO TB_SVPD_CST_SVAS_IST_ASN_HIST
+             (
+               AS_IST_ASN_ID
+             , CST_SV_ASN_NO
+             , CNTR_NO
+             , CNTR_SN
+             , CNTR_CST_NO
+             , WK_CAN_RSON_CD
+             , WK_CAN_MO_CN
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />
+             )
+        VALUES
+             (
+               TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_SVPD_CST_SVAS_IST_ASN_HIST$AS_IST_ASN_ID.NEXTVAL, 12, 0)
+             , #{cstSvAsnNo}
+             , #{cntrNo}
+             , #{cntrSn}
+             , (
+                 SELECT CNTR_CST_NO
+                   FROM TB_SSCT_CNTR_BAS
+                  WHERE CNTR_NO=#{cntrNo}
+             )
+             , #{canDv}
+             , #{canRson}
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" />
+             )
+    </insert>
 </mapper>
