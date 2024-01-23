@@ -28,16 +28,10 @@
                       , T4.SELL_TP_CD AS SELL_TP_CD
                       , T1.PDCT_PD_CD AS PDCT_PD_CD
                       , T5.FRISU_BFSVC_PTRM_N AS FRISU_BFSVC_PTRM_N
-                      , CASE WHEN T4.STPL_PTRM = '999' THEN 0
-                             ELSE T4.STPL_PTRM
-                        END AS VST_CYCL
                       , MONTHS_BETWEEN(TO_CHAR(SYSDATE, 'YYYYMM')||'01', SUBSTR(T1.IST_DT,1,6)||'01') AS INST_MTH
-                      , CASE WHEN T4.STPL_PTRM = '999' THEN 0
-                             ELSE MONTHS_BETWEEN(TO_CHAR(SYSDATE, 'YYYYMM')||'01', SUBSTR(T1.IST_DT,1,6)||'01')
-                        END AS VST_MTHS
                       , T6.PART_PD_CD AS PART_PD_CD
                       -- 해당 상품/방문주기/필터 교체 주기
-                      , ( SELECT MIN(VST_NMN_N)
+                      , ( SELECT MIN(VST_NMN_N)     /* 2024.01.23 홍세기 각 필터에 대한 주기를 구하여 다음 교체 대상인지 파악하기 위함 */
                             FROM TB_PDBS_RGBS_WK_BASE_DTL
                            WHERE SV_PD_CD = T1.SV_PD_CD
                              AND PDCT_PD_CD = T1.PDCT_PD_CD
@@ -55,7 +49,7 @@
                            WHERE VST_NMN_N != '0'
                              AND CNTR_NO = T1.CNTR_NO
                              AND CNTR_SN = T1.CNTR_SN
-                             AND VST_DUEDT <![CDATA[<]]> TO_CHAR(SYSDATE, 'YYYYMM')||'01' ) AS LAST_VST_DT  -- 주기표상 마지막 방문일자
+                             AND WK_DT IS NOT NULL ) AS LAST_VST_DT  -- 주기표상 마지막 방문일자
                       , T7.SVPD_NM_KOR AS PART_NM
                    FROM TB_SVPD_CST_SV_EXCN_IZ T1
                   INNER JOIN TB_SSCT_CNTR_ADR_REL T2
@@ -74,21 +68,20 @@
                   INNER JOIN TB_PDBS_RGBS_WK_BASE_DTL T6
                      ON T1.PDCT_PD_CD = T6.PDCT_PD_CD
                     AND T1.SV_PD_CD = T6.SV_PD_CD
-                    AND T6.VST_DV_CD != '20'
                     AND T6.PART_PD_CD IS NOT NULL
-                    AND T6.VST_NMN_N = ( SELECT MIN (VST_NMN_N)
+                    AND T6.VST_NMN_N = ( SELECT MIN (VST_NMN_N)  /* 2024.01.23 홍세기 박누리M 협의 택배도 대상필터로 포함 */
                                            FROM TB_PDBS_RGBS_WK_BASE_DTL
                                           WHERE SV_PD_CD = T6.SV_PD_CD
                                             AND PDCT_PD_CD = T6.PDCT_PD_CD
                                             AND PART_PD_CD = T6.PART_PD_CD
-                                            AND VST_DV_CD != '20'
                                             AND PART_PD_CD IS NOT NULL )
                   INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T7
                      ON T7.SVPD_PD_CD = T6.PART_PD_CD
                   WHERE T1.IST_DT IS NOT NULL
                     AND T1.CNTR_NO = #{cntrNo}
                     AND T1.CNTR_SN = #{cntrSn}
-                    AND MONTHS_BETWEEN(TO_CHAR(SYSDATE, 'YYYYMM') || '01', SUBSTR(T1.IST_DT, 1, 6) || '01') >= T5.FRISU_BFSVC_PTRM_N    --무상B/S 기간을 넘겼고
+                    /* 2024.01.23 홍세기 박누리M 협의 무상기간 관련없이 필터 조회 */
+                    -- AND MONTHS_BETWEEN(TO_CHAR(SYSDATE, 'YYYYMM') || '01', SUBSTR(T1.IST_DT, 1, 6) || '01') >= T5.FRISU_BFSVC_PTRM_N
                   ORDER BY T6.PART_PD_CD
                ) V1
     </select>
