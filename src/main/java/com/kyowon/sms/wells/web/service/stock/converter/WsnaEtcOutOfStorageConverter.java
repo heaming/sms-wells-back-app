@@ -1,10 +1,10 @@
 package com.kyowon.sms.wells.web.service.stock.converter;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncRpbAreaChargeMgtDto;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRpbAreaChargeDvo;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageDto;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaEtcOutOfStorageDvo;
 import org.mapstruct.Mapper;
+
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageDto.DeleteReq;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaEtcOutOfStorageDto.SaveReq;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaEtcOutOfStorageDvo;
 
 /**
  * <pre>
@@ -17,8 +17,8 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface WsnaEtcOutOfStorageConverter {
 
-    WsnaEtcOutOfStorageDvo mapDeleteReqToWsnaEtcOutOfStorageDvo(WsnaEtcOutOfStorageDto.DeleteReq dto);
+    WsnaEtcOutOfStorageDvo mapDeleteReqToWsnaEtcOutOfStorageDvo(DeleteReq dto);
 
-    WsnaEtcOutOfStorageDvo mapSaveReqToWsnaEtcOutOfStorageDvo(WsnaEtcOutOfStorageDto.SaveReq dto);
+    WsnaEtcOutOfStorageDvo mapSaveReqToWsnaEtcOutOfStorageDvo(SaveReq dto);
 
 }
