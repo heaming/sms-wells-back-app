@@ -778,9 +778,9 @@
                 , TO_CHAR(TO_DATE(A1.CNTR_CH_RCP_DTM, 'YYYYMMDDHH24MISS'), 'HH24MISS') RCT_TM /*접수시간*/
                 , A1.CH_RCP_USR_ID /*변경접수사용자ID*/
                 , (
-                   SELECT MAX(A2.PRTNR_KNM)
-                     FROM TB_OGBS_PRTNR_BAS A2
-                    WHERE A2.PRTNR_NO = A1.CH_RCP_USR_ID
+                   SELECT USR_NM
+                     FROM T_CMP_USR_ACO_M
+                     WHERE USR_ID = A1.CH_RCP_USR_ID
                   ) PSIC_NM /*담당자명*/
                 , B1.DTL_CNTR_NO CNTR_NO /*계약번호*/
                 , B1.DTL_CNTR_SN CNTR_SN /*계약일련번호*/
@@ -882,7 +882,7 @@
                 , D1.MPY_BSDT FNT_STPL_D /*이체약정일*/
                 , E1.TRS_DTM AFTN_EVID_FSH_DT /*자동이체증빙완료일자*/
                 , CASE WHEN E1.TRS_DTM IS NOT NULL THEN 'Y' ELSE 'N' END AFTN_EVID_FSH_YN /*자동이체증빙완료여부*/
-                , D1.FNIT_APR_RS_CD /*금융기관승인결과코드*/
+                , F_CMZ_CD_NM(#{session.tenantId}, 'FNIT_APR_RS_CD', D1.FNIT_APR_RS_CD) AS FNIT_APR_RS_CD /*금융기관승인결과코드명*/
                 , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', (
                                                                   SELECT A2.SELL_TP_CD
                                                                     FROM TB_SSCT_CNTR_DTL A2
@@ -892,13 +892,11 @@
                                                                  )
                   ) SELL_TP_CD_NM /*판매유형코드명*/
              FROM TB_SSCT_CNTR_CH_RCP_BAS A1 /*계약변경접수기본*/
-             JOIN TB_SSCT_CNTR_CH_RCP_DTL B1 /*계약변경접수상세*/
-               ON B1.DTA_DL_YN = 'N'
-              AND B1.CNTR_CH_RCP_ID = A1.CNTR_CH_RCP_ID
-             JOIN TB_SSCT_CNTR_STLM_BAS D1 /*계약결제기본*/
-               ON D1.DTA_DL_YN = 'N'
-              AND D1.CNTR_STLM_ID = B1.CNTR_STLM_ID
-             JOIN (
+       LEFT OUTER JOIN TB_SSCT_CNTR_CH_RCP_DTL B1 /*계약변경접수상세*/
+               ON (B1.CNTR_CH_RCP_ID = A1.CNTR_CH_RCP_ID)
+       LEFT OUTER JOIN TB_SSCT_CNTR_STLM_BAS D1 /*계약결제기본*/
+               ON (D1.CNTR_STLM_ID = B1.CNTR_STLM_ID)
+       LEFT OUTER JOIN (
                    SELECT E1.CNTR_NO
                         , E1.CNTR_SN
                         , E1.APR_DT
@@ -908,12 +906,13 @@
                      FROM TB_RVCL_AC_FNT_EVID_MTRS_IZ E1
                     WHERE E1.DTA_DL_YN = 'N'
                   ) E1
-               ON E1.RN = 1
-              AND E1.CNTR_NO = B1.DTL_CNTR_NO
-              AND E1.CNTR_SN = B1.DTL_CNTR_SN
-              AND E1.APR_DT = TO_CHAR(TO_DATE(A1.CNTR_CH_RCP_DTM, 'YYYYMMDDHH24MISS'), 'YYYYMMDD')
-              AND E1.BNK_CD = D1.BNK_CD
-           WHERE A1.DTA_DL_YN = 'N'
+               ON (    E1.RN = 1
+                   AND E1.CNTR_NO = B1.DTL_CNTR_NO
+                   AND E1.CNTR_SN = B1.DTL_CNTR_SN
+                   AND E1.APR_DT = TO_CHAR(TO_DATE(A1.CNTR_CH_RCP_DTM, 'YYYYMMDDHH24MISS'), 'YYYYMMDD')
+                   AND E1.BNK_CD = D1.BNK_CD
+                  )
+           WHERE 1=1
              AND A1.CNTR_CH_TP_CD = '301' /*자동이체변경*/
         <if test='@MybatisUtils@isNotEmpty(rctDt)'>
              AND A1.CNTR_CH_RCP_DTM BETWEEN #{rctDt}||'000000' AND #{rctDt}||'235959'
@@ -925,7 +924,11 @@
              AND B1.DTL_CNTR_SN = #{cntrSn}
         </if>
         <if test='@MybatisUtils@isNotEmpty(chRcpUsrId)'>
-             AND A1.CH_RCP_USR_ID = #{chRcpUsrId}
+             AND (
+                   SELECT EPNO
+                     FROM T_CMP_USR_ACO_M
+                     WHERE USR_ID = A1.CH_RCP_USR_ID
+                  ) = #{chRcpUsrId}
         </if>
         <if test='@MybatisUtils@equals(evidFshYn, "Y")'>
              AND E1.TRS_DTM IS NOT NULL
