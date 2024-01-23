@@ -59,6 +59,7 @@ public class WsnaStockContinueMonthAgrgStateService {
             .map(item -> "NVL(T1.WARE_" + item.getWareNo() + "_KEPP,0) AS WARE_" + item.getWareNo() + "_KEPP_MM")
             .collect(Collectors.joining(","));
         String wareNoPitmSumFields = wares.stream()
+            .filter(item -> !item.getWareNo().equals("100002"))
             .map(item -> " NVL(T1.WARE_" + item.getWareNo() + "_PITM,0) ")
             .collect(Collectors.joining("+")); //영업센터 합계
 
@@ -66,10 +67,6 @@ public class WsnaStockContinueMonthAgrgStateService {
         dvo.setWareNoPitmFields(wareNoPitmFields);
         dvo.setWareNoKeppMmFields(wareNoKeppMmFields);
         dvo.setWareNoPitmSumFields(wareNoPitmSumFields);
-
-        dvo.setItmPdCd(dto.itmPdCd());
-        dvo.setStrtSapCd(dto.strtSapCd());
-        dvo.setEndSapCd(dto.endSapCd());
 
         return dvo;
     }
