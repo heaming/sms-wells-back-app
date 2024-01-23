@@ -338,7 +338,8 @@ public class WdeaAllowanceRedfMgtDto {
         String wpFxamRedfBrch, /*정액(지점장이상)*/
         String wpEnvrExcpPrRedf, /*가전외 개인비례*/
         String wpEnvrPrRedf, /*가전 개인비례*/
-        String wpPrSellEncrgRedf, /*개인 판매장려*/
+        String wpPrSellEncrgRedf, /*판매장려(지점장 미만)*/
+        String wpBrchPrSellEncrgRedf, /*개인 판매장려(지점장 이상)*/
         String wpMetgRedf, /*미팅*/
         String wpSettleRedfDstrc, /*정착(지구장이하)*/
         String wpSettleRedfBrch, /*정착(지점장이상)*/

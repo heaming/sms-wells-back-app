@@ -83,9 +83,13 @@ public class WsnaPcsvOutOfStorageSaveDvo {
     /* 물류 인터페이스 필수 */
     String rcgvpKnm;
 
-    String cralIdvTno;
+    String cralLocaraTno; // 핸드폰1
+    String mexnoEncr; // 핸드폰2
+    String cralIdvTno; // 핸드폰3
 
-    String idvTno;
+    String locaraTno; // 전화번호1
+    String exnoEncr; // 전화번호2
+    String idvTno; // 전화번호3
 
     String newAdrZip; // 우편번호
 
