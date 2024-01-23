@@ -1,6 +1,6 @@
 package com.kyowon.sms.wells.web.fee.simulation.service;
 
-import com.kyowon.sms.common.web.fee.calculation.service.ZfebFeeSmlCalculationService;
+import com.kyowon.sms.common.web.fee.simulation.service.ZfefFeeSmlCalculationService;
 import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.SearchEstimateReq;
 import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.SearchHomeRes;
 import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.SearchOgMRes;
@@ -25,7 +25,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class WfefEstimateFeeMgtService {
-    private final ZfebFeeSmlCalculationService feeSmlCalculationService;
+    private final ZfefFeeSmlCalculationService feeSmlCalculationService;
     private final WfefEstimateFeeMgtMapper mapper;
 
     /**
