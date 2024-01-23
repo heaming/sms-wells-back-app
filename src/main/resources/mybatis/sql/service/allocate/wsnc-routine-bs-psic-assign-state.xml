@@ -4,451 +4,108 @@
     <resultMap id="cstSignCn" type="hashMap">
         <result column="CST_SIGN_CN" jdbcType="BLOB" javaType="byte[]"></result>
     </resultMap>
-    <select id="selectRoutineBsPsicAssignState" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncRoutineBsPsicAssignStateDto$SearchRes">
-        WITH OG_PRTNR_WARE_INF AS (
-            /*조직 및 창고*/
-            SELECT O1.BASE_YM
-                 , O1.OG_ID
-                 , O1.DGR2_LEVL_OG_ID /*지역단*/
-                 , O1.DGR2_LEVL_OG_NM
-                 , O1.OG_TP_CD
-                 , O1.OG_CD
-                 , O1.OG_NM
-                 , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR1_LEVL_OG_ID WHEN O1.OG_TP_CD IN ('W06') THEN '71314' ELSE O1.OG_ID END) AS L1_HGR_OG_ID
-                 , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR2_LEVL_OG_ID ELSE O1.OG_ID END) AS L2_HGR_OG_ID
-                 , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR3_LEVL_OG_ID ELSE O1.OG_ID END) AS L3_HGR_OG_ID
-                 , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR1_LEVL_OG_CD WHEN O1.OG_TP_CD IN ('W06') THEN '71314' ELSE O1.OG_CD END) AS L1_HGR_OG_CD
-                 , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR2_LEVL_OG_CD ELSE O1.OG_CD END) AS L2_HGR_OG_CD
-                 , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR3_LEVL_OG_CD ELSE O1.OG_CD END) AS L3_HGR_OG_CD
-                 , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR1_LEVL_OG_NM WHEN O1.OG_TP_CD IN ('W06') THEN 'Wells CS운영팀' ELSE O1.OG_NM END) AS L1_HGR_OG_NM
-                 , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR2_LEVL_OG_NM ELSE O1.OG_NM END) AS L2_HGR_OG_NM
-                 , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR3_LEVL_OG_NM ELSE O1.OG_NM END) AS L3_HGR_OG_NM
-                 , O1.HGR_OG_ID
-                 , S1.WARE_NO
-                 , S1.WARE_NM
-                 , S1.WARE_USE_YN
-                 , S1.WARE_MNGT_PRTNR_NO
-                 , S1.WARE_DTL_DV_CD
-                 , S1.HGR_WARE_NO
-                 , S1.STD_WARE_USE_YN       /*표준창고사용여부*/
-                 , O2.PRTNR_NO
-                 , O2.PRTNR_KNM
-                 , O2.FST_CNTR_DT           /*최초계약일자*/
-                 , O2.FNL_CLTN_DT           /*최종해약일자*/
-                 , O2.RCNTR_DT              /*재계약일자*/
-                 , O2.CLTN_DT               /*해약일자*/
-                 , O2.CNTR_DT               /*계약일자*/
-                 , O2.HIR_FOM_CD            /*고용형태코드,1 사업자, 2 계약직,3 정규직, 4 법인영업수수료대상	, 5 강사, 9 기타(위탁)*/
-                 , O2.BZ_STAT_CD            /*사업상태코드, 1 사업, 2 해약, 3 휴업*/
-                 , O2.PSTN_DV_CD            /*직급구분코드*/
-                 , O2.RSB_DV_CD             /*직책구분코드*/
-                 , O2.ROL_DV_CD             /*직무구분코드*/
-                 , O2.PRTNR_GD_CD           /*파트너등급코드*/
-                 , O2.QLF_DV_CD             /*자격구분코드*/
-                 , O2.PERF_EXCD_OJ_YN       /*실적제외대상여부*/
-                 , O2.RDS_DSB_EXCD_OJ_YN    /*RDS지급제외대상여부*/
-                 , '' AS ENG_PRTNR_GD_CD     /*엔지니어등급등록내역*/
-                 , COUNT(1) OVER (PARTITION BY HGR_OG_ID ORDER BY HGR_OG_ID) AS HTR_CNT
-              FROM WSMDBS.TB_OGBS_MM_OG_IZ O1  /*월조직내역*/
-                   INNER JOIN TB_SVST_MCBY_WARE_IZ S1 /*월별창고내역*/
-                                ON O1.BASE_YM = S1.APY_YM
-                               AND O1.OG_TP_CD = S1.OG_TP_CD
-                               AND O1.OG_ID = S1.OG_ID
-                               AND S1.WARE_DTL_DV_CD NOT IN ('10', '20', '30')
-                               /*AND S1.WARE_DTL_DV_CD LIKE '2%'*/
-                               /*AND S1.WARE_USE_YN = 'Y'  미사용창고에서 반품 되는 경우도 있기 때문에*/
-                               AND S1.DTA_DL_YN = 'N'
-                   INNER JOIN WSMDBS.TB_OGBS_MM_PRTNR_IZ O2 /*월파트너내역*/
-                                ON S1.APY_YM = O2.BASE_YM
-                               AND S1.OG_TP_CD = O2.OG_TP_CD
-                               AND S1.OG_ID = O2.OG_ID
-                               AND S1.WARE_MNGT_PRTNR_NO = O2.PRTNR_NO
-                               AND O2.BASE_YM = #{baseYm}
-                               /*퇴사자제외 조건 선택 시*/
-                             <if test='@MybatisUtils@isNotEmpty(rgsnExcdYn) and @MybatisUtils@equals(rgsnExcdYn, "Y")'>
-                               AND O2.CLTN_DT IS NULL     /* 퇴사자 제외 */
-                             </if>
-                               /*가상매니저 조건 선택 시*/
-                             <if test='@MybatisUtils@isNotEmpty(vacManaYn) and @MybatisUtils@equals(vacManaYn, "Y")'>
-                               AND O2.PSTN_DV_CD = '4'     /* 가상매니저 : 확인필요 AS-IS 4 */
-                             </if>
-              WHERE 1 = 1
-                /*익월 bs를 조회시 월조직이 생성이 안되어 있기 때문에 이렇게 처리*/
-                AND O1.BASE_YM = LEAST(#{baseYm}, to_char(sysdate, 'YYYYMM'))
-                /* 조직 검색조건 */
-             <if test='@MybatisUtils@isNotEmpty(mngrDvCd) and @MybatisUtils@equals(mngrDvCd, "1")'>
-                AND O1.OG_TP_CD IN ('W02') /* 매니저 */
-                AND O2.QLF_DV_CD = '3'     /* 웰스매니저만 조회 */
-             </if>
-             <if test='@MybatisUtils@isNotEmpty(mngrDvCd) and @MybatisUtils@equals(mngrDvCd, "2")'>
-                AND O1.OG_TP_CD IN ('W03','W06') /* 엔지니어 */
-             </if>
-             <if test="@MybatisUtils@isNotEmpty(dgr1LevlOgId)">
-                AND O1.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}   /* 총괄단조건(1차레벨조직코드) */
-             </if>
-             <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
-                AND O1.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}   /* 지역단조건(2차레벨조직코드)*/
-             </if>
-             <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
-                AND O1.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}   /* 지점조건(3차레벨조직코드)*/
-             </if>
-             <if test="@MybatisUtils@isNotEmpty(ogId)">
-                AND O1.OG_ID = #{ogId}                     /* 서비스센터 */
-             </if>
-             <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                AND O2.PRTNR_NO = #{prtnrNo}               /* 엔지니어/매니저 파트너번호 */
-             </if>
-                AND S1.WARE_USE_YN = 'Y'                   /* 창고사용여부 */
-                AND O1.DTA_DL_YN = 'N'
-              ORDER BY O1.BASE_YM, O1.OG_CD
-         )
-       , PART_INF AS (
-            /*품목정보*/
-            SELECT P1.PD_CD
-                 , P2.SAP_MAT_CD              /*SAP자재코드*/
-                 , P2.PD_NM                   /*품목명*/
-                 , P2.PD_ABBR_NM              /*상품약어명*/
-                 , P1.PD_PRP_VAL06 AS AS_LDTM /*리드타임, AS_LDTM*/
-                 , P1.PD_PRP_VAL17 AS AS_MAT_MNG_TP_CD /*자재관리유형, AS_MAT_MNG_TP_CD, MAT_MNGT_DV_CD 1 기초1, 2 기초2, 3 기초3, 4 기초4, 5 기초5, 6 기초6, 7 기초7, 8 기초8*/
-                 , P1.PD_PRP_VAL21 AS AS_MAT_CMN_CLSF_CD /*AS자재 공통분류, AS_MAT_CMN_CLSF_CD, CMN_PART_DV_CD*/
-                 , P1.PD_PRP_VAL30 AS TRNOVR_RT_OJ_YN /*회전율 대상여부, TRNOVR_RT_OJ_YN*/
-                 , P1.PD_PRP_VAL07 AS MIN_GO_QTY /*최소발주량, MIN_GO_QTY*/
-                 , P1.PD_PRP_VAL32 AS UI_EXPSR_YN /*사용여부*/
-                 , P1.PD_PRP_VAL36 AS SV_MAT_GRP_CD	/*서비스자재그룹 A 일반, B 설치, C 필터, D 피팅/폼, E 중수리, F 소모품, G 공구*/
-                 , (CASE WHEN P1.PD_PRP_VAL20 IS NULL THEN SUBSTR(P1.PD_PRP_VAL01,2,1) ELSE P1.PD_PRP_VAL20 END) AS AS_MAT_ITM_GRP_CD /*PD_GRP_CD	AS자재 품목그룹*/
-                 , P1.PD_PRP_VAL26 AS AS_SPL_UNIT_AMT /*물류의 공급단가(물류 매각시 사용단가)*/
-                 , P1.PD_PRP_VAL01 || P1.PD_PRP_VAL31 AS KIWI_PD_CD
-                 , P1.PD_PRP_VAL19 AS AS_MAT_ITM_KND_CD
-              FROM WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL P1  /*상품각사속성상세*/
-                   INNER JOIN TB_PDBS_PD_BAS P2
-                           ON P1.PD_CD = P2.PD_CD
-                          AND P2.PD_TP_CD = 'M'    /*상품유형코드 : C 복합상품, P 기준상품, S 서비스, M 교재제품, Y 융합상품*/
-                          AND P2.DTA_DL_YN = 'N'
-             WHERE 1=1
-               AND P1.PD_EXTS_PRP_GRP_CD = 'PART'
-               /*품목구분 선택 값이 있을 경우, 전체면 조건 제거*/
-               /*AND P1.PD_PRP_VAL19 IN ('4', '5' )   AS자재 품목종류, AS_MAT_ITM_KND_CD, ITM_KND_CD*/
-               /*상품그룹 선택값이 있을 경우, 전체면 조건 제거*/
-             <if test='@MybatisUtils@isNotEmpty(pdGrpCd)'>
-                 AND (CASE WHEN P1.PD_PRP_VAL20 IS NULL
-                           THEN SUBSTR(P1.PD_PRP_VAL01,2,1)
-                           ELSE P1.PD_PRP_VAL20
-                      END)  = #{pdGrpCd}   /* 상품그룹 */
-             </if>
-               /*모델 선택값이 있을 경우, 전체면 조건 제거*/
-             <if test='@MybatisUtils@isNotEmpty(pdCd)'>
-                 AND P1.PD_CD = #{pdCd}
-             </if>
-               AND P1.DTA_DL_YN = 'N'
-         )
-       , INQRY_LIST AS (
-            SELECT S1.ASN_OJ_YM
-                 , S1.CST_SV_ASN_NO
-                 , S1.CNTR_NO
-                 , S1.CNTR_SN
-                 , S1.SV_BIZ_MCLSF_CD
-                 , S1.SV_BIZ_DCLSF_CD
-                 , S1.VST_PRGS_STAT_CD   /*서비스상태코드 : 00 작업대기, 10 진행중, 20 작업완료, 71 대기취소, 72 진행취소, 73 방문중지, 91 방문이월, 92 중복취소, 93 방문취소*/
-                 , F_CMZ_CD_NM('TNT_WELLS', 'WK_PRGS_STAT_CD', S1.VST_PRGS_STAT_CD, 'ko') AS VST_PRGS_STAT_NM
-                 , S2.PDCT_PD_CD
-                 , P1.AS_MAT_ITM_GRP_CD
-                 , S2.VST_DUEDT /*최초배정시 방문예정일*/
-                 , S2.BF_VST_DUEDT /*직전배정시 방문예정일*/
-                 , S1.VST_CNFMDT  /*현재 방문예정일*/
-                 , S1.VST_CNFM_HH /*현재 방문시간*/
-                 , S1.MNGER_RGLVL_DV_CD
-                 , S2.ADR_ID
-                 , S1.CNFM_PSIC_DV_CD
-                 , S1.CNFM_PSIC_PRTNR_OG_TP_CD
-                 , S1.CNFM_PSIC_PRTNR_NO
-                 , S1.LSTMM_VST_CNFMDT
-                 , S3.VST_FSH_DT
-                 , S3.VST_FSH_HH
-                 , S3.SV_PROCS_CN
-                 , S3.CST_SIGN_CN
-                 , S1.SITE_AW_ATC_CD
-                 , S2.SPC_AS_TP_CD  /*특별AS유형코드*/
-              FROM WSMDBS.TB_SVPD_CST_SV_BFSVC_ASN_IZ S1            /*고객서비스수행배정내역, AC261TB*/
-                   INNER JOIN WSMDBS.TB_SVPD_CST_SV_BFSVC_OJ_IZ S2  /*고객서비스BS대상내역, AC251TB*/
-                           ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO
-                          AND S2.DTA_DL_YN = 'N'
-                   LEFT OUTER JOIN WSMDBS.TB_SVPD_CST_SV_WK_RS_IZ S3   /*고객서비스작업결과내역, VS106TB*/
-                           ON S3.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
-                          AND S3.DTA_DL_YN = 'N'
-                   INNER JOIN OG_PRTNR_WARE_INF O1
-                           ON O1.BASE_YM = S1.ASN_OJ_YM
-                          AND O1.OG_TP_CD = S1.CNFM_PSIC_PRTNR_OG_TP_CD
-                          AND O1.PRTNR_NO = S1.CNFM_PSIC_PRTNR_NO
-                   INNER JOIN PART_INF P1
-                           ON P1.PD_CD = S2.PDCT_PD_CD
-             WHERE 1=1
-               /*배정기준일 조건값*/
-               AND S1.ASN_OJ_YM  = #{baseYm}
-               /*약속일자 선택 값 존재 시*/
-            <if test="@MybatisUtils@isNotEmpty(startDt) and @MybatisUtils@isNotEmpty(endDt)">
-               AND S1.VST_CNFMDT  BETWEEN #{startDt} AND #{endDt}
-            </if>
-               /*서비스유형 검색 - 21:정기B/S 22:비정기B/S*/
-            <if test='@MybatisUtils@isNotEmpty(svTpCd)'>
-               AND S1.SV_BIZ_MCLSF_CD = #{svTpCd}
-            </if>
-               /*작업구분 검색 - 2210:정기점검 2220:필터교체 2230:부품교체*/
-            <if test='@MybatisUtils@isNotEmpty(wkDvCds)'>
-               AND S1.SV_BIZ_DCLSF_CD IN
-                 (
-                   <foreach collection="wkDvCds" item="wkDvCd" separator=", ">
-                   #{wkDvCd}
-                   </foreach>
-                 )
-            </if>
-               /*진행구분 검색 - 00:작업대기 20:작업완료*/
-            <if test='@MybatisUtils@isNotEmpty(prgsStatCd)'>
-               AND S1.VST_PRGS_STAT_CD = #{prgsStatCd}
-            </if>
-               AND S1.DTA_DL_YN = 'N'
-        )
-       , SN_RPBL_INF AS (
-            /*제품시리얼재발행정보*/
-            SELECT V1.CNTR_NO
-                 , V1.CNTR_SN
-                 , COUNT(1) AS SN_RPBL_CNT
-              FROM (/*오픈전 자료 조회시*/
-                    SELECT S1.CNTR_NO
-                         , S1.CNTR_SN
-                      FROM WSMDBS.TB_SVPD_BC_RPBL_AK_CST_IZ S1  /*바코드재발행요청고객내역, KWAS.ATEMP_LYJ_BARCODE_ISSUE*/
-                           INNER JOIN INQRY_LIST I1
-                                   ON S1.CNTR_NO = I1.CNTR_NO
-                                  AND S1.CNTR_SN = I1.CNTR_SN
-                                  AND (CASE WHEN S1.FNL_PBL_DT IS NOT NULL THEN SUBSTR(S1.FNL_PBL_DT,1,6)
-                                            ELSE SUBSTR(S1.FST_PBL_DT,1,6)
-                                       END) = I1.ASN_OJ_YM
-                                  AND S1.DTA_DL_YN = 'N'
-                      UNION ALL
-                    /*오픈후 자료 조회시*/
-                    SELECT S2.CNTR_NO
-                         , S2.CNTR_SN
-                      FROM WSMDBS.TB_SVPD_PD_BC_RPBL_APLC_IZ S2 /*상품바코드재발행신청내역, KWAS.ATEMP_LYJ_BARCODE*/
-                           INNER JOIN INQRY_LIST I1
-                                   ON S2.CNTR_NO = I1.CNTR_NO
-                                  AND S2.CNTR_SN = I1.CNTR_SN
-                                  AND SUBSTR(S2.CST_SV_ASN_NO,2,6) <![CDATA[<]]> I1.ASN_OJ_YM
-                                  AND (S2.RPBL_DT IS NULL
-                                    OR SUBSTR(S2.RPBL_DT,1,6) <![CDATA[>=]]> I1.ASN_OJ_YM)
-                                  AND S2.DTA_DL_YN = 'N'
-                   ) V1
-             GROUP BY V1.CNTR_NO, V1.CNTR_SN
-        )
-       , CST_CTT_INF AS (
-            /*고객컨택정보*/
-            SELECT V1.*
-              FROM (
-                    SELECT S1.*
-                         , ROW_NUMBER() OVER(PARTITION BY S1.CST_SV_ASN_NO ORDER BY S1.CST_SV_ASN_NO, CNTC_DT DESC , CNTC_HH DESC) AS CST_SV_ASN_NO_RNK
-                      FROM WSMDBS.TB_SVPD_CST_SV_CNTC_IZ S1 /*고객서비스접촉내역, VS101TB*/
-                           INNER JOIN INQRY_LIST I1
-                                   ON S1.CST_SV_ASN_NO = I1.CST_SV_ASN_NO
-                                  AND S1.DTA_DL_YN = 'N'
-                     WHERE 1=1
-                   ) V1
-             WHERE 1=1
-               AND V1.CST_SV_ASN_NO_RNK = 1
-        )
-       , CST_UNUITM_INF AS (
-            /*고객특이사항*/
-            SELECT V1.CNTR_NO
-                 , V1.CNTR_SN
-                 , V1.DTL_SN
-                 , V1.CST_UNUITM_CN
-                 , V1.FST_RGST_DTM
-                 , SUBSTR(V1.FST_RGST_DTM, 9, 13) AS FST_RGST_TM
-              FROM (
-                    SELECT S1.CNTR_NO
-                         , S1.CNTR_SN
-                         , S1.DTL_SN
-                         , S1.CST_UNUITM_CN
-                         , S1.FST_RGST_DTM
-                         , ROW_NUMBER() OVER(PARTITION BY S1.CNTR_NO, S1.CNTR_SN ORDER BY S1.CNTR_NO, S1.CNTR_SN, S1.DTL_SN DESC) AS CST_UNUITM_RNK
-                      FROM WSMDBS.TB_SVPD_CNTR_CST_UNUITM_DTL S1  /*계약고객특이사항상세, KWAS.ATEMP_LYJ_ABNORMALITY*/
-                           INNER JOIN INQRY_LIST I1
-                                   ON S1.CNTR_NO = I1.CNTR_NO
-                                  AND S1.CNTR_SN = I1.CNTR_SN
-                     WHERE 1=1
-                       AND S1.DTA_DL_YN = 'N'
-                   ) V1
-             WHERE 1=1
-               AND CST_UNUITM_RNK = 1
-        )
-       , CNTR_INF AS (
-            /*계약정보*/
-            SELECT C1.CNTR_NO
-                 , C1.CNTR_SN
-                 , C1.BASE_PD_CD       /*기준상품코드*/
-                 , C1.SELL_TP_CD       /*판매유형코드 : 1 일시불, 2 렌탈/리스, 3 멤버십, 4 회사설치, 5 유지관리, 6 정기배송, 9 필터*/
-                 , C1.SELL_TP_DTL_CD   /*판매유형코드 : 11 일반, 12 홈케어, 13 환경가전, 21 일반렌탈, 22 리스, 23 공유렌탈, 24 환경리스, 25 장기할부, 26 환경할부, 31 일시불 멤버십, 32 렌탈 멤버십, 33 홈케어 멤버십, 34 회사설치, 61 일반, 62 모종, 63 캡슐*/
-                 , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', C1.SELL_TP_CD, 'ko') AS SELL_TP_NM
-                 , C1.CNTR_DTL_STAT_CD /*계약상세상태코드 : 101 정상, 201 고객요청정지, 202 연체정지, 203 해약접수정지, 301 고객요청해약, 302 연체해약, 303 계약취소, 401 최종종료, 402 계약기간종료*/
-                 , F_CMZ_CD_NM('TNT_WELLS', 'CNTR_DTL_STAT_CD', C1.CNTR_DTL_STAT_CD, 'ko') AS CNTR_DTL_STAT_NM
-                 , C2.CNTR_RCP_FSH_DTM /*계약접수완료일시*/
-                 , CNTR_PD_STRTDT      /*계약상품시작일자*/
-                 , CNTR_PD_ENDDT       /*계약상품종료일자*/
-                 , C4.RCGVP_KNM        /*수령자한글명*/
-                 , C5.NEW_ADR_ZIP      /*신주소우편번호*/
-                 , C5.RNADR            /*도로명주소*/
-                 , C5.RDADR            /*도로명상세주소*/
-                 , C4.ADR_DV_CD        /*주소구분코드 : 1 도로명, 2 지번*/
-                 , C4.ADR_ID           /*주소ID*/
-                 , C4.CRAL_LOCARA_TNO  /*휴대지역전화번호*/
-                 , C4.MEXNO_ENCR       /*휴대전화국번호암호화*/
-                 , C4.CRAL_IDV_TNO     /*휴대개별전화번호*/
-                 , C4.LOCARA_TNO       /*지역전화번호*/
-                 , C4.EXNO_ENCR        /*전화국번호암호화*/
-                 , C4.IDV_TNO          /*개별전화번호*/
-                 , C6.RSG_APLC_DT      /*해지신청일자*/
-                 , C6.RSG_FSH_DT       /*해지완료일자*/
-                 , C3.ADRPC_TP_CD      /*계약주소지ID : 1 계약주소, 2 배달주소, 3 설치주소*/
-                 , CS1.CST_NO
-                 , CS1.CST_GD_CD
-                 , C7.BASE_DTL_CNTR_NO
-                 , C7.BASE_DTL_CNTR_SN
-                 , C7.VL_STRT_DTM
-                 , C7.VL_END_DTM
-                 , ROW_NUMBER() OVER(PARTITION BY C3.DTL_CNTR_NO, C3.DTL_CNTR_SN ORDER BY C3.ADRPC_TP_CD DESC) AS ADRPC_TP_CD_RNK
-              FROM WSMDBS.TB_SSCT_CNTR_DTL C1                     /*계약상세*/
-                   INNER JOIN WSMDBS.TB_SSCT_CNTR_BAS C2           /*계약기본*/
-                           ON C1.CNTR_NO = C2.CNTR_NO
-                          AND C2.DTA_DL_YN = 'N'
-                   INNER JOIN WSMDBS.TB_SSCT_CNTR_ADR_REL C3       /*계약주소관계*/
-                           ON C1.CNTR_NO = C3.DTL_CNTR_NO
-                          AND C1.CNTR_SN = C3.DTL_CNTR_SN
-                          /*AND C3.ADRPC_TP_CD = '2'    1 계약주소, 2 배달주소,3 설치주소*/
-                          AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C3.VL_STRT_DTM AND C3.VL_END_DTM
-                          AND C3.DTA_DL_YN = 'N'
-                   INNER JOIN WSMDBS.TB_SSCT_CNTR_ADRPC_BAS C4     /*계약주소지기본*/
-                           ON C3.CNTR_ADRPC_ID = C4.CNTR_ADRPC_ID
-                          AND C4.DTA_DL_YN = 'N'
-                   LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS C5
-                                ON C4.ADR_ID = C5.ADR_ID   /*이해욱이사님,이진성프로님과 협의 설치, AS는 배정시에 주소를 사용 해야 하기 때문에 TB_SVPD_CST_SVAS_IST_OJ_IZ 에 ADR_ID 를 추가 하기로 함. 테이블이 변경 되면, C4.ADR_ID 를 C1.ADR_ID 으로 수정 해야 함*/
-                               AND C5.DTA_DL_YN = 'N'
-                   LEFT OUTER JOIN WSMDBS.TB_SSCT_CNTR_RSG_PROCS_IZ C6  /*계약해지처리내역*/
-                                ON C1.CNTR_NO = C6.CNTR_NO
-                               AND C1.CNTR_SN = C6.CNTR_SN
-                               AND C6.DTA_DL_YN = 'N'
-                   LEFT OUTER JOIN WSMDBS.TB_SSCT_CNTR_REL C7              /*계약관계*/
-                                ON C7.OJ_DTL_CNTR_NO = C1.CNTR_NO   /*멤버십이외원코드*/
-                               AND C7.OJ_DTL_CNTR_SN = C1.CNTR_SN
-                               AND C7.CNTR_REL_DTL_CD = '212'   /*계약관계상세코드 : 108 무료체험교체, 211 필터 - 정수기, 212 멤버십 - 원주문, 213 정수기 - 부가서비스, 214 정기배송 - 원주문, 215 1+1연계, 216 모종결합, 217 소개추천, 218 에어컨결합, 219 홈케어, 221 홈케어멤버십, 22L 플래너상조제휴, 22M 다건, 22P 패키지(대수할인), 22W 패키지상품*/
-                               /*AND C7.VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')    유효시작일시*/
-                               /*AND C7.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')   유효종료일시*/
-                               AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C7.VL_STRT_DTM AND C7.VL_END_DTM
-                               AND C7.DTA_DL_YN = 'N'
-                   INNER JOIN WSMDBS.TB_CUBS_CST_DTL CS1    /*고객상세*/
-                           ON C2.CNTR_CST_NO = CS1.CST_NO
-                          AND CS1.DTA_DL_YN = 'N'
-                   INNER JOIN INQRY_LIST I1
-                           ON C1.CNTR_NO = I1.CNTR_NO
-                          AND C1.CNTR_SN = I1.CNTR_SN
-             WHERE 1=1
-               AND C1.DTA_DL_YN = 'N'
-         )
-        SELECT (CASE WHEN S1.CNTR_NO IS NOT NULL THEN 'Y' ELSE '' END) AS SN_RPBL_YN    /*제품시리얼 재발행 여부*/
-             , C1.CST_GD_CD
-             , F_CMZ_CD_NM('TNT_WELLS', 'CST_GD_CD', C1.CST_GD_CD , 'ko') AS CST_GD_NM  /*고객등급, 1 일반, 2 VIP, 3 엘로우*/
-             , (CASE WHEN S2.CST_SV_ASN_NO IS NOT NULL THEN 'Y' ELSE '' END) AS CST_CNTT_YN
-             , I1.VST_PRGS_STAT_CD
-             , I1.VST_PRGS_STAT_NM
-             /*, S2.ABSNC_RSON_CD*/
-             , I1.VST_DUEDT
-             , (CASE /*철거일자 유무에 따라 표시*/
-                     WHEN C1.RSG_FSH_DT IS NOT NULL THEN '취소'
-                     /*만료 유무 표시*/
+    <select id="selectRoutineBsPsicAssignState" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncRoutineBsPsicAssignStateDvo">
+        SELECT '' AS CHK
+             , (CASE WHEN B1.CNTR_NO IS NOT NULL OR B2.CNTR_NO IS NOT NULL
+                     THEN 'Y'
+                ELSE '' END) AS SN_RPBL_YN  /*제품시리얼 재발행 여부*/
+             , C2.CNTR_CST_NO               /*고객번호*/
+             , CS1.CST_GD_CD                /*고객등급*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'CST_GD_CD',CS1.CST_GD_CD, 'ko') AS CST_GD_NM  /*고객등급, 1 일반, 2 VIP, 3 엘로우*//*고객등급명*/
+             , (CASE WHEN CN1.CST_SV_ASN_NO IS NOT NULL THEN 'Y' ELSE '' END) AS CST_CNTT_YN    /*컨택완료*/
+             , SV2.VST_PRGS_STAT_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'WK_PRGS_STAT_CD',SV2.VST_PRGS_STAT_CD, 'ko') AS VST_PRGS_STAT_NM
+             , (CASE -- 철거일자 유무에 따라 표시
+                     WHEN C6.RSG_FSH_DT IS NOT NULL THEN '취소'
+                     -- 만료 유무 표시
                      WHEN C1.CNTR_PD_STRTDT IS NOT NULL AND ((ROUND(MONTHS_BETWEEN(TO_CHAR(SYSDATE,'YYYYMM')||'01' , SUBSTR(C1.CNTR_PD_STRTDT,1,6)||'01'),0) BETWEEN '57' AND '60') AND C1.SELL_TP_CD = '2') THEN '만료'
-                     /*컨택 코드 값에 따라 표시*/
-                     WHEN S2.ABSNC_RSON_CD = '11' THEN '판매'
-                     WHEN S2.ABSNC_RSON_CD = '12' THEN '안내'
-                     WHEN S2.ABSNC_RSON_CD = '13' THEN '문자'
-                     WHEN S2.ABSNC_RSON_CD = '21' THEN '취예'
-                     WHEN S2.ABSNC_RSON_CD = '22' THEN '이사'
-                     WHEN S2.ABSNC_RSON_CD = '23' THEN '연체'
-                     WHEN S2.ABSNC_RSON_CD = '24' THEN '거부'
-                     WHEN S2.ABSNC_RSON_CD = '25' THEN '두절'
-                     WHEN S2.ABSNC_RSON_CD = '26' THEN '여행'
-                     WHEN S2.ABSNC_RSON_CD = '27' THEN '익월'
-                     WHEN S2.ABSNC_RSON_CD = '31' THEN '이관'
-                     WHEN S2.ABSNC_RSON_CD = '32' THEN 'A/S'
-                     /*방문예정일자 값에 따라 표시 (연수기가 아니면 '월초', '월중', '월말' 로 표시, 연수기 일반 이라면 '일상', '일하'로 표시, 연수기 특별이라면 '특상', '특하'로 표시)*/
+                     -- 컨택 코드 값에 따라 표시
+                     WHEN CN1.ABSNC_RSON_CD = '11' THEN '판매'
+                     WHEN CN1.ABSNC_RSON_CD = '12' THEN '안내'
+                     WHEN CN1.ABSNC_RSON_CD = '13' THEN '문자'
+                     WHEN CN1.ABSNC_RSON_CD = '21' THEN '취예'
+                     WHEN CN1.ABSNC_RSON_CD = '22' THEN '이사'
+                     WHEN CN1.ABSNC_RSON_CD = '23' THEN '연체'
+                     WHEN CN1.ABSNC_RSON_CD = '24' THEN '거부'
+                     WHEN CN1.ABSNC_RSON_CD = '25' THEN '두절'
+                     WHEN CN1.ABSNC_RSON_CD = '26' THEN '여행'
+                     WHEN CN1.ABSNC_RSON_CD = '27' THEN '익월'
+                     WHEN CN1.ABSNC_RSON_CD = '31' THEN '이관'
+                     WHEN CN1.ABSNC_RSON_CD = '32' THEN 'A/S'
+                     -- 방문예정일자 값에 따라 표시 (연수기가 아니면 '월초', '월중', '월말' 로 표시, 연수기 일반 이라면 '일상', '일하'로 표시, 연수기 특별이라면 '특상', '특하'로 표시)
                      WHEN ((CASE WHEN P1.PD_PRP_VAL20 IS NULL THEN SUBSTR(P1.PD_PRP_VAL01,2,1) ELSE P1.PD_PRP_VAL20 END) != '4'
-                        AND SUBSTR(I1.VST_DUEDT,7,8) <![CDATA[>=]]> 00 AND SUBSTR(I1.VST_DUEDT,7,8) <![CDATA[<=]]> 10) THEN '월초'
+                        AND SUBSTR(SV1.VST_DUEDT,7,8) >= 00 AND SUBSTR(SV1.VST_DUEDT,7,8) <![CDATA[ <= ]]> 10) THEN '월초'
                      WHEN ((CASE WHEN P1.PD_PRP_VAL20 IS NULL THEN SUBSTR(P1.PD_PRP_VAL01,2,1) ELSE P1.PD_PRP_VAL20 END) != '4'
-                        AND SUBSTR(I1.VST_DUEDT,7,8) <![CDATA[>=]]> 11 AND SUBSTR(I1.VST_DUEDT,7,8) <![CDATA[<=]]> 20) THEN '월중'
+                        AND SUBSTR(SV1.VST_DUEDT,7,8) >= 11 AND SUBSTR(SV1.VST_DUEDT,7,8) <![CDATA[ <= ]]> 20) THEN '월중'
                      WHEN ((CASE WHEN P1.PD_PRP_VAL20 IS NULL THEN SUBSTR(P1.PD_PRP_VAL01,2,1) ELSE P1.PD_PRP_VAL20 END) != '4'
-                        AND SUBSTR(I1.VST_DUEDT,7,8) <![CDATA[>=]]> 21) THEN '월말'
-                     /*2017년 이후 AC201_USGE = '2' 인 상품이 없고, 차세대에서는 SV_PD_TP_CD 값으로 전환되었는데 의미가 다름 */
+                        AND SUBSTR(SV1.VST_DUEDT,7,8) >= 21) THEN '월말'
+                     --2017년 이후 AC201_USGE = '2' 인 상품이 없고, 차세대에서는 SV_PD_TP_CD 값으로 전환되었는데 의미가 다름
                      WHEN ((CASE WHEN P1.PD_PRP_VAL20 IS NULL THEN SUBSTR(P1.PD_PRP_VAL01,2,1) ELSE P1.PD_PRP_VAL20 END) = '4'
-                        AND SUBSTR(I1.VST_DUEDT,7,8) <![CDATA[>=]]> 01 AND SUBSTR(I1.VST_DUEDT,7,8) <![CDATA[<=]]> 14) THEN '일상'
+                        AND SUBSTR(SV1.VST_DUEDT,7,8) >= 01 AND SUBSTR(SV1.VST_DUEDT,7,8) <![CDATA[ <= ]]> 14) THEN '일상'
                      WHEN ((CASE WHEN P1.PD_PRP_VAL20 IS NULL THEN SUBSTR(P1.PD_PRP_VAL01,2,1) ELSE P1.PD_PRP_VAL20 END) = '4'
-                        AND SUBSTR(I1.VST_DUEDT,7,8) <![CDATA[>=]]> 15) THEN '일하'
+                        AND SUBSTR(SV1.VST_DUEDT,7,8) >= 15) THEN '일하'
                      ELSE ''
                 END) AS STAT_DTL
-             , I1.CNTR_NO
-             , I1.CNTR_SN
-             , I1.CNTR_NO || '-' || I1.CNTR_SN AS CNTR_DTL_NO
-             , C1.RCGVP_KNM
-             , C1.CRAL_LOCARA_TNO  /*휴대지역전화번호*/
-             , C1.MEXNO_ENCR       /*휴대전화국번호암호화*/
-             , C1.CRAL_IDV_TNO     /*휴대개별전화번호*/
-             , C1.LOCARA_TNO       /*지역전화번호*/
-             , C1.EXNO_ENCR        /*전화국번호암호화*/
-             , C1.IDV_TNO          /*개별전화번호*/
-             , P2.PD_CD
-             , P2.PD_NM
-             , P2.PD_ABBR_NM
-             /*조회시점 상태 값*/
-             , C1.SELL_TP_CD
+             , SV2.CNTR_NO || '-' ||SV2.CNTR_SN AS CNTR_NO_SN   /*계약번호+계약일련번호*/
+             , SV2.CNTR_NO                  /*계약번호*/
+             , SV2.CNTR_SN                  /*계약일련번호*/
+             , C4.RCGVP_KNM                 /**설치자명*/
+             , C4.CRAL_LOCARA_TNO           /*휴대지역전화번호*/
+             , C4.MEXNO_ENCR                /*휴대전화국번호암호화*/
+             , C4.CRAL_IDV_TNO              /*휴대개별전화번호*/
+             , C4.LOCARA_TNO                /*지역전화번호*/
+             , C4.EXNO_ENCR                 /*전화국번호암호화*/
+             , C4.IDV_TNO                   /*개별전화번호*/
+             , P1.PD_CD                     /*상품코드*/
+             , P2.PD_NM                     /*상품명*/
+             , C1.SELL_TP_CD                /*판매유형*/
              , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', C1.SELL_TP_CD , 'ko') AS SELL_TP_NM  /*판매유형코드 : 1 일시불, 2 렌탈/리스, 3 멤버십, 4 회사설치, 5 유지관리, 6 정기배송, 9 필터*/
-             , C1.CNTR_DTL_STAT_CD
-             , F_CMZ_CD_NM('TNT_WELLS', 'CNTR_DTL_STAT_CD', C1.CNTR_DTL_STAT_CD , 'ko') AS CNTR_DTL_STAT_NM  /*고객등급, 1 일반, 2 VIP, 3 엘로우*/
-             , I1.MNGER_RGLVL_DV_CD
-             , F_CMZ_CD_NM('TNT_WELLS', 'MNGER_RGLVL_DV_CD', I1.MNGER_RGLVL_DV_CD , 'ko') AS MNGER_RGLVL_DV_NM  /*매니저급지구분코드, 1 정상, 3 1급지, 4 2급지*/
-             /*배정자료 생성 시 주소*/
-             , G1.NEW_ADR_ZIP
-             , G1.RNADR || ' ' || G1.RDADR AS RNDADR
-             , I1.CNFM_PSIC_DV_CD
-             , I1.CNFM_PSIC_PRTNR_OG_TP_CD
-             , I1.CNFM_PSIC_PRTNR_NO
-             , O1.L2_HGR_OG_CD
-             , I1.SV_BIZ_DCLSF_CD
-             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', I1.SV_BIZ_DCLSF_CD , 'ko') AS SV_BIZ_DCLSF_NM  /*매니저급지구분코드, 1 정상, 3 1급지, 4 2급지*/
-             , I1.BF_VST_DUEDT
-             , I1.VST_CNFMDT        /*현재 방문예정일*/
-             , I1.VST_CNFM_HH       /*현재 방문시간*/
-             , I1.VST_FSH_DT        /*작업완료일자*/
-             , I1.VST_FSH_HH        /*작업완료시간*/
-             , S3.CST_UNUITM_CN     /*고객특이사항*/
-             , S3.FST_RGST_DTM      /*고객특이등록일시*/
-             , S3.FST_RGST_TM
-             , O1.OG_ID
-             , O1.DGR2_LEVL_OG_ID AS DGR2_LEVL_OG_ID    /*지역단*/
-             , O1.DGR2_LEVL_OG_NM AS DGR2_LEVL_OG_NM
-             , O1.OG_CD
-             , O1.OG_NM
-             , O1.PRTNR_KNM
-             , O1.PRTNR_NO
-             , O1.PSTN_DV_CD AS PSTN_DV_CD  /*직급구분*/
-             , I1.SITE_AW_ATC_CD
-             , F_CMZ_CD_NM('TNT_WELLS', 'SITE_AW_ATC_CD', I1.SITE_AW_ATC_CD , 'ko') AS SITE_AW_ATC_NM
-             , I1.AS_MAT_ITM_GRP_CD
-             , I1.SV_BIZ_MCLSF_CD
-             , O1.HIR_FOM_CD            /*고용형태코드,1 사업자, 2 계약직,3 정규직, 4 법인영업수수료대상, 5 강사, 9 기타(위탁)*/
-             , (SELECT (CASE WHEN O1.ENG_PRTNR_GD_CD = '11' THEN F1.FULEY_AW_AMT
-                             WHEN O1.ENG_PRTNR_GD_CD = '21' THEN F1.ROL_LYR1_TOPMR_AW_AMT
-                             WHEN O1.ENG_PRTNR_GD_CD = '22' THEN F1.ROL_LYR1_UPLR_AW_AMT
-                             WHEN O1.ENG_PRTNR_GD_CD = '23' THEN F1.ROL_LYR1_MDLYR_AW_AMT
-                             WHEN O1.ENG_PRTNR_GD_CD = '24' THEN F1.ROL_LYR1_LOLYR_AW_AMT
-                             WHEN O1.ENG_PRTNR_GD_CD = '31' THEN F1.ROL_L2_UPLR_AW_AMT
-                             WHEN O1.ENG_PRTNR_GD_CD = '32' THEN F1.ROL_L2_MDLYR_AW_AMT
-                             WHEN O1.ENG_PRTNR_GD_CD = '33' THEN F1.ROL_L2_LOLYR_AW_AMT
-                             WHEN O1.ENG_PRTNR_GD_CD = '41' THEN F1.ROL_L3_AW_AMT
-                             WHEN O1.ENG_PRTNR_GD_CD = '51' THEN F1.CRWK_AW_AMT
+             , C1.SELL_TP_DTL_CD            /*판매유형상세*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', C1.SELL_TP_DTL_CD , 'ko') AS SELL_TP_DTL_NM  /*판매유형상세코드명*/
+             , SV2.MNGER_RGLVL_DV_CD        /*매니저급지구분코드*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'MNGER_RGLVL_DV_CD', SV2.MNGER_RGLVL_DV_CD , 'ko') AS MNGER_RGLVL_DV_NM  /*매니저급지구분코드, 1 정상, 3 1급지, 4 2급지*/
+             --배정자료 생성 시 주소
+             , C5.NEW_ADR_ZIP
+             , C5.RNADR || ' ' || C5.RDADR AS RNDADR
+             , SV1.RLTD_SV_BIZ_DCLSF_CD
+             , SV1.CLSF_CD_SRN_PRNT_CN
+             , SV1.BF_VST_DUEDT             /*이정방문예정일자*/
+             , SV1.VST_DUEDT                /*최초방문예정일자-이월전최초배정시예정일자*/
+             , SV2.VST_CNFMDT               /*최종방문약속일자*/
+             , SV2.VST_CNFM_HH              /*최종방문약속시간*/
+             , SV3.VST_FSH_DT               /*작업완료일자*/
+             , SV3.VST_FSH_HH               /*작업완료시간*/
+             , CN2.CST_UNUITM_CN            /*고객특이사항*/
+             , CN2.FST_RGST_DTM             /*고객특이사항등록일시*/
+             --소속정보
+        --     , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR1_LEVL_OG_ID WHEN O1.OG_TP_CD IN ('W06') THEN '71314' ELSE O1.OG_ID END) AS L1_HGR_OG_ID
+        --     , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR2_LEVL_OG_ID ELSE O1.OG_ID END) AS L2_HGR_OG_ID
+        --     , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR3_LEVL_OG_ID ELSE O1.OG_ID END) AS L3_HGR_OG_ID
+             , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR1_LEVL_OG_CD WHEN O1.OG_TP_CD IN ('W06') THEN '71314' ELSE O1.OG_CD END) AS L1_HGR_OG_CD
+             , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR2_LEVL_OG_CD ELSE O1.OG_CD END) AS L2_HGR_OG_CD
+             , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR3_LEVL_OG_CD ELSE O1.OG_CD END) AS L3_HGR_OG_CD
+             , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR1_LEVL_OG_NM WHEN O1.OG_TP_CD IN ('W06') THEN 'Wells CS운영팀' ELSE O1.OG_NM END) AS L1_HGR_OG_NM
+             , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR2_LEVL_OG_NM ELSE O1.OG_NM END) AS L2_HGR_OG_NM
+             , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR3_LEVL_OG_NM ELSE O1.OG_NM END) AS L3_HGR_OG_NM
+             , SV2.CNFM_PSIC_DV_CD          /*확정담당자구분코드*/
+             , SV2.CNFM_PSIC_PRTNR_OG_TP_CD /*확정담당자파트너조직유형코드*/
+             , SV2.CNFM_PSIC_PRTNR_NO       /*확정담당자파트너번호*/
+             , O1.PRTNR_KNM                 /*파트너한글명*/
+             , O1.PSTN_DV_CD                /*직급구분*/
+             , TO_SINGLE_BYTE(F_CMZ_CD_NM('TNT_WELLS', 'SAP_PSTN_DV_CD', O1.PSTN_DV_CD , 'ko')) AS PSTN_DV_NM  /*직급명*/
+             , SV2.SITE_AW_ATC_CD           /*현장수당항목코드*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SITE_AW_ATC_CD', SV2.SITE_AW_ATC_CD , 'ko') AS SITE_AW_ATC_NM  /*현장수당항목명*/
+             , O3.ENG_PRTNR_GD_CD           /*엔지니어수당등급*/
+             , (SELECT (CASE WHEN O3.ENG_PRTNR_GD_CD = '11' THEN F1.FULEY_AW_AMT
+                             WHEN O3.ENG_PRTNR_GD_CD = '21' THEN F1.ROL_LYR1_TOPMR_AW_AMT
+                             WHEN O3.ENG_PRTNR_GD_CD = '22' THEN F1.ROL_LYR1_UPLR_AW_AMT
+                             WHEN O3.ENG_PRTNR_GD_CD = '23' THEN F1.ROL_LYR1_MDLYR_AW_AMT
+                             WHEN O3.ENG_PRTNR_GD_CD = '24' THEN F1.ROL_LYR1_LOLYR_AW_AMT
+                             WHEN O3.ENG_PRTNR_GD_CD = '31' THEN F1.ROL_L2_UPLR_AW_AMT
+                             WHEN O3.ENG_PRTNR_GD_CD = '32' THEN F1.ROL_L2_MDLYR_AW_AMT
+                             WHEN O3.ENG_PRTNR_GD_CD = '33' THEN F1.ROL_L2_LOLYR_AW_AMT
+                             WHEN O3.ENG_PRTNR_GD_CD = '41' THEN F1.ROL_L3_AW_AMT
+                             WHEN O3.ENG_PRTNR_GD_CD = '51' THEN F1.CRWK_AW_AMT
                              WHEN O1.HIR_FOM_CD = '3' THEN FULEY_AW_AMT
                              WHEN O1.HIR_FOM_CD = '3' AND O1.PSTN_DV_CD = '86' THEN F1.ROL_LYR1_MDLYR_AW_AMT
                              WHEN O1.HIR_FOM_CD = '3' AND O1.PSTN_DV_CD = '87' THEN F1.ROL_L2_MDLYR_AW_AMT
@@ -456,58 +113,202 @@
                              WHEN O1.HIR_FOM_CD = '2' THEN F1.CRWK_AW_AMT
                              WHEN O1.HIR_FOM_CD = '1' THEN F1.INDV_ENTRP_AW_AMT
                              ELSE 0
-                        END)
+                           END)
                   FROM WSMDBS.TB_FEAM_SITE_AW_DSB_BASE_BAS F1 /*현장수당지급기준기본*/
                  WHERE 1=1
-                   AND F1.PD_GRP_CD = I1.AS_MAT_ITM_GRP_CD
-                   AND F1.SV_TP_CD = SUBSTR(I1.SV_BIZ_MCLSF_CD,1,1)
-                   AND F1.SITE_AW_ATC_CD = I1.SITE_AW_ATC_CD
-                 <if test='@MybatisUtils@isNotEmpty(mngrDvCd) and @MybatisUtils@equals(mngrDvCd, "1")'>
-                   AND F1.RGLVL_DV_CD = I1.MNGER_RGLVL_DV_CD   /* 매니저 */
-                 </if>
-                 <if test='@MybatisUtils@isNotEmpty(mngrDvCd) and @MybatisUtils@equals(mngrDvCd, "2")'>
-                   AND F1.RGLVL_DV_CD = '1'   /* 엔지니어 급지는 1급지로 정리됨 */
-                 </if>
-                   AND I1.VST_FSH_DT BETWEEN F1.APY_STRTDT AND F1.APY_ENDDT
+                   AND F1.PD_GRP_CD = (CASE WHEN P1.PD_PRP_VAL20 IS NULL THEN SUBSTR(P1.PD_PRP_VAL01,2,1) ELSE P1.PD_PRP_VAL20 END)
+                   AND F1.SV_TP_CD = SUBSTR(SV1.SV_BIZ_MCLSF_CD,1,1)
+                   AND F1.SITE_AW_ATC_CD = SV2.SITE_AW_ATC_CD
+                   AND F1.RGLVL_DV_CD = '1'   --엔지니어 급지는 1급지로 정리됨
+                   AND SV3.VST_FSH_DT BETWEEN F1.APY_STRTDT AND F1.APY_ENDDT
                    AND F1.DTA_DL_YN = 'N'
-               ) AS AW_AMT  /*현장수당*/
-             , I1.SV_PROCS_CN
-             , I1.CST_SIGN_CN
-             /*BD26	방문취소사유, 매니저 작업 취소를 위해 만들었으나, BS는 취소가 안 되어 미사용, BS를 취소 할 수 있는 기능이 필요한지 사업본부에 확인 필요, 10 고객사유,20 고객이사,30 고객탈퇴,40 매출취소,50 방문중지,90 기타사유*/
-             , (CASE WHEN C1.RSG_FSH_DT IS NOT NULL THEN '고객탈퇴' /*해지고객*/
+             ) AS AW_AMT  --현장수당
+             , SV3.SV_PROCS_CN              /*서비스처리내용*/
+             , SV3.CST_SIGN_CN              /*고객서명*/
+             --BD26	방문취소사유, 매니저 작업 취소를 위해 만들었으나, BS는 취소가 안 되어 미사용, BS를 취소 할 수 있는 기능이 필요한지 사업본부에 확인 필요, 10 고객사유,20 고객이사,30 고객탈퇴,40 매출취소,50 방문중지,90 기타사유
+             , (CASE WHEN C6.RSG_FSH_DT IS NOT NULL THEN '고객탈퇴' /*해지고객*/
                      WHEN C1.CNTR_DTL_STAT_CD = '202' THEN '방문중지'   /*연체중지*/
                      ELSE '' END
-                ) AS BG_COLO
-             , I1.SPC_AS_TP_CD
-             , '' AS EXP_PART  /*예정부품*/
-             , I1.CST_SV_ASN_NO AS CST_SV_ASN_NO
-          FROM INQRY_LIST I1
-               LEFT OUTER JOIN SN_RPBL_INF S1
-                            ON I1.CNTR_NO = S1.CNTR_NO
-                           AND I1.CNTR_SN = S1.CNTR_SN
-               LEFT OUTER JOIN CST_CTT_INF S2
-                            ON S2.CST_SV_ASN_NO = I1.CST_SV_ASN_NO
-               INNER JOIN CNTR_INF C1
-                       ON I1.CNTR_NO = C1.CNTR_NO
-                      AND I1.CNTR_SN = C1.CNTR_SN
-                      AND C1.ADRPC_TP_CD_RNK = '1'
-               INNER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL P1  /*상품각사속성상세*/
-                       ON P1.PD_CD = I1.PDCT_PD_CD
-                      AND P1.PD_EXTS_PRP_GRP_CD = 'PART'
-                      AND P1.DTA_DL_YN = 'N'
-               INNER JOIN WSMDBS.TB_PDBS_PD_BAS P2          /*상품기본*/
-                       ON P2.PD_CD = P1.PD_CD
-                      AND P2.DTA_DL_YN = 'N'
-               INNER JOIN GBSDBS.TB_GBCO_ADR_BAS G1    /*주소기본*/
-                       ON G1.ADR_ID = I1.ADR_ID
-                      AND G1.DTA_DL_YN = 'N'
-               INNER JOIN OG_PRTNR_WARE_INF O1
-                       ON O1.PRTNR_NO = I1.CNFM_PSIC_PRTNR_NO
-               LEFT OUTER JOIN CST_UNUITM_INF S3
-                       ON S3.CNTR_NO = I1.CNTR_NO
-                      AND S3.CNTR_SN = I1.CNTR_SN
-        ORDER BY CNTR_NO
+             ) AS BG_COLO                /*변동사항*/
+             , C1.CNTR_DTL_STAT_CD          /*계약상세상태코드*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'CNTR_DTL_STAT_CD', C1.CNTR_DTL_STAT_CD, 'ko') AS CNTR_DTL_STAT_NM
+          FROM WSMDBS.TB_SVPD_CST_SV_BFSVC_OJ_IZ SV1                        /*고객서비스BS대상내역, AC251TB*/
+         INNER JOIN WSMDBS.TB_SVPD_CST_SV_BFSVC_ASN_IZ SV2            /*고객서비스BS배정내역, AC261TB*/
+            ON SV1.CST_SV_ASN_NO = SV2.CST_SV_ASN_NO
+           AND SV1.ASN_OJ_YM = SV2.ASN_OJ_YM
+           AND SV2.DTA_DL_YN = 'N'
+    LEFT OUTER JOIN WSMDBS.TB_SVPD_CST_SV_WK_RS_IZ SV3           /*고객서비스작업결과내역, VS106TB*/
+            ON SV1.CST_SV_ASN_NO = SV3.CST_SV_ASN_NO
+           AND SV3.DTA_DL_YN = 'N'
+    LEFT OUTER JOIN WSMDBS.TB_OGBS_MM_PRTNR_IZ O1                /*월파트너내역*/
+            ON SV2.ASN_OJ_YM = O1.BASE_YM
+           AND SV2.CNFM_PSIC_PRTNR_OG_TP_CD = O1.OG_TP_CD
+           AND SV2.CNFM_PSIC_PRTNR_NO = O1.PRTNR_NO
+           AND O1.DTA_DL_YN = 'N'
+    LEFT OUTER JOIN WSMDBS.TB_OGBS_MM_OG_IZ O2                        /*월조직내역*/
+            ON O1.BASE_YM = O2.BASE_YM
+           AND O1.OG_TP_CD = O2.OG_TP_CD
+           AND O1.OG_ID = O2.OG_ID
+           AND O2.DTA_DL_YN = 'N'
+        <if test="@MybatisUtils@isNotEmpty(dgr1LevlOgId)">
+           AND O2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}   /* 총괄단조건(1차레벨조직코드) */
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
+           AND O2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}   /* 지역단조건(2차레벨조직코드)*/
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
+           AND O2.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}   /* 지점조건(3차레벨조직코드)*/
+        </if>
+    LEFT OUTER JOIN (SELECT *
+                       FROM (
+                            SELECT OO3.OG_TP_CD
+                                 , OO3.PRTNR_NO
+                                 , OO3.PRTNR_GD_CD AS ENG_PRTNR_GD_CD
+                                 , ROW_NUMBER() OVER(PARTITION BY OO3.OG_TP_CD, OO3.PRTNR_NO ORDER BY APY_SEQN DESC) AS RN
+                              FROM WSMDBS.TB_OGPS_EGER_GD_RGST_IZ OO3 /*엔지니어등급등록내역*/
+                             WHERE 1=1
+                               AND #{baseYm} || '01' BETWEEN OO3.APY_STRTDT AND OO3.APY_ENDDT
+                               AND OO3.DTA_DL_YN = 'N'
+                            ) O3
+                      WHERE 1=1
+                        AND RN =1
+                    ) O3
+            ON O1.OG_TP_CD = O3.OG_TP_CD
+           AND O1.PRTNR_NO = O3.PRTNR_NO
+           AND O3.RN = 1
+         INNER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL P1                 /*상품각사속성상세*/
+            ON SV1.PDCT_PD_CD = P1.PD_CD
+           AND P1.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND P1.DTA_DL_YN = 'N'
+         INNER JOIN WSMDBS.TB_PDBS_PD_BAS P2
+            ON P1.PD_CD = P2.PD_CD
+         --AND P2.PD_TP_CD = 'M'    /*상품유형코드 : C 복합상품, P 기준상품, S 서비스, M 교재제품, Y 융합상품*/
+           AND P2.DTA_DL_YN = 'N'
+    LEFT OUTER JOIN WSMDBS.TB_SVPD_BC_RPBL_AK_CST_IZ B1          /*차세대 오픈전 바코드재발행요청고객내역*/
+            ON SV1.CNTR_NO = B1.CNTR_NO
+           AND SV1.CNTR_SN = B1.CNTR_SN
+           AND (CASE WHEN B1.FNL_PBL_DT IS NOT NULL THEN SUBSTR(B1.FNL_PBL_DT,1,6)
+                     ELSE SUBSTR(B1.FST_PBL_DT,1,6)
+                 END) = SV1.ASN_OJ_YM
+           AND B1.DTA_DL_YN = 'N'
+    LEFT OUTER JOIN WSMDBS.TB_SVPD_PD_BC_RPBL_APLC_IZ B2         /*상품바코드재발행신청내역, KWAS.ATEMP_LYJ_BARCODE*/
+            ON SV1.CNTR_NO = B1.CNTR_NO
+           AND SV1.CNTR_SN = B1.CNTR_SN
+           AND SUBSTR(SV1.CST_SV_ASN_NO,2,6) <![CDATA[ < ]]> SV1.ASN_OJ_YM
+           AND (B2.RPBL_DT IS NULL
+            OR SUBSTR(B2.RPBL_DT,1,6) >= SV1.ASN_OJ_YM)
+           AND B2.DTA_DL_YN = 'N'
+         INNER JOIN WSMDBS.TB_SSCT_CNTR_DTL C1                        /*계약상세*/
+            ON SV1.CNTR_NO = C1.CNTR_NO
+           AND SV1.CNTR_SN = C1.CNTR_SN
+           AND C1.DTA_DL_YN = 'N'
+         INNER JOIN WSMDBS.TB_SSCT_CNTR_BAS C2                        /*계약기본*/
+            ON SV1.CNTR_NO = C2.CNTR_NO
+           AND C2.DTA_DL_YN = 'N'
+         INNER JOIN WSMDBS.TB_SSCT_CNTR_ADR_REL C3                    /*계약주소관계*/
+            ON C1.CNTR_NO = C3.DTL_CNTR_NO
+           AND C1.CNTR_SN = C3.DTL_CNTR_SN
+           AND C3.ADRPC_TP_CD IN ('2', '3')    /*1 계약주소, 2 배달주소, 3 설치주소 -- 2, 3번 중에 하나만 존재*/
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C3.VL_STRT_DTM AND C3.VL_END_DTM
+           AND C3.DTA_DL_YN = 'N'
+         INNER JOIN WSMDBS.TB_SSCT_CNTR_ADRPC_BAS C4                  /*계약주소지기본*/
+            ON C3.CNTR_ADRPC_ID = C4.CNTR_ADRPC_ID
+           AND C4.DTA_DL_YN = 'N'
+    LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS C5                    /*주소기본 -- 배정시 주소를 사용 해야 함. 현재 주소가 아닌 */
+            ON SV1.ADR_ID = C5.ADR_ID
+           AND C5.DTA_DL_YN = 'N'
+    LEFT OUTER JOIN WSMDBS.TB_SSCT_CNTR_RSG_PROCS_IZ C6          /*계약해지처리내역*/
+            ON SV1.CNTR_NO = C6.CNTR_NO
+           AND SV1.CNTR_SN = C6.CNTR_SN
+           AND C6.DTA_DL_YN = 'N'
+    LEFT OUTER JOIN WSMDBS.TB_CUBS_CST_DTL CS1                   /*고객상세*/
+            ON C2.CNTR_CST_NO = CS1.CST_NO
+           AND CS1.DTA_DL_YN = 'N'
+    LEFT OUTER JOIN (--고객컨택
+                    SELECT *
+                      FROM (
+                           SELECT S1.*
+                                , ROW_NUMBER() OVER(PARTITION BY S1.CST_SV_ASN_NO ORDER BY S1.CST_SV_ASN_NO, CNTC_DT DESC , CNTC_HH DESC) AS CST_SV_ASN_NO_RNK
+                             FROM WSMDBS.TB_SVPD_CST_SV_CNTC_IZ S1 /*고객서비스접촉내역, VS101TB*/
+                            WHERE 1=1
+                              AND CST_SV_ASN_NO LIKE '2' || #{baseYm} || '%'
+                              AND S1.DTA_DL_YN = 'N'
+                           )
+                     WHERE 1=1
+                       AND CST_SV_ASN_NO_RNK = 1) CN1
+            ON SV1.CST_SV_ASN_NO = CN1.CST_SV_ASN_NO
+    LEFT OUTER JOIN (----고객특이사항
+                    SELECT V1.CNTR_NO
+                         , V1.CNTR_SN
+                         , V1.DTL_SN
+                         , V1.CST_UNUITM_CN
+                         , V1.FST_RGST_DTM
+                      FROM (
+                           SELECT S1.CNTR_NO
+                                , S1.CNTR_SN
+                                , S1.DTL_SN
+                                , S1.CST_UNUITM_CN
+                                , S1.FST_RGST_DTM
+                                , ROW_NUMBER() OVER(PARTITION BY S1.CNTR_NO, S1.CNTR_SN ORDER BY S1.CNTR_NO, S1.CNTR_SN, S1.DTL_SN DESC) AS CST_UNUITM_RNK
+                             FROM WSMDBS.TB_SVPD_CNTR_CST_UNUITM_DTL S1  /*계약고객특이사항상세, KWAS.ATEMP_LYJ_ABNORMALITY*/
+                            WHERE 1=1
+                              AND S1.DTA_DL_YN = 'N'
+                           ) V1
+                     WHERE 1=1
+                       AND CST_UNUITM_RNK = 1
+                    ) CN2
+            ON SV1.CNTR_NO = CN2.CNTR_NO
+           AND SV1.CNTR_SN = CN2.CNTR_SN
+         WHERE 1=1
+           AND SV1.ASN_OJ_YM = #{baseYm}
+           AND SV1.DTA_DL_YN = 'N'
+        <if test='@MybatisUtils@isNotEmpty(rgsnExcdYn) and @MybatisUtils@equals(rgsnExcdYn, "Y")'>
+           --퇴사자제외 조건 선택 시
+           AND O1.CLTN_DT IS NULL     /* 퇴사자 제외 */
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(mngrDvCd)">
+          AND SV2.CNFM_PSIC_DV_CD = #{mngrDvCd}
+            <if test='@MybatisUtils@equals(mngrDvCd, "2")'>
+           --엔지니어조회시
+           AND SV1.VST_DV_CD NOT LIKE '2%'
+            </if>
+            <if test='@MybatisUtils@equals(mngrDvCd, "1")'>
+            --매니저조회시
+           AND SV1.VST_DV_CD IN ('10', '11')
+            </if>
+        </if>
+           --조직코드조회시
+           --AND O1.OG_CD = '71350'
+        <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+           --담당자조회시
+           AND SV2.CNFM_PSIC_PRTNR_NO = #{prtnrNo}    /* 엔지니어/매니저 파트너번호 */
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(pdGrpCd)'>
+           --상품그룹조회시
+           AND (CASE WHEN P1.PD_PRP_VAL20 IS NULL THEN SUBSTR(P1.PD_PRP_VAL01,2,1) ELSE P1.PD_PRP_VAL20 END)  = #{pdGrpCd} /*AS_MAT_ITM_GRP_CD 값이 없을 경우 기존 KIWI 코드의 2번째자리 사용*/
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(pdCd)'>
+           --상품조회시
+           AND P1.PD_CD = #{pdCd}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(svTpCd)'>
+           --서비스유형조회시
+           AND SV2.SV_BIZ_MCLSF_CD = #{svTpCd}   /*21 정기, 22 비정기*/
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(prgsStatCd)'>
+           --진행구분조회시
+           AND SV2.VST_PRGS_STAT_CD = #{prgsStatCd}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(startDt) and @MybatisUtils@isNotEmpty(endDt)">
+           --약속일자 선택 값 존재 시
+           AND SV2.VST_CNFMDT  BETWEEN #{startDt} AND #{endDt}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(vacManaYn) and @MybatisUtils@equals(vacManaYn, "Y")'>
+           --가상매니저조회시
+           AND O1.PSTN_DV_CD = '4' /*직급구분코드, 가상매니저 현재 유지되고 있는지 박광진파트장에게 확인 필요*/
+        </if>
     </select>
+
     <select id="selectWellsManager" resultType="camelMap">
         SELECT *
               FROM (SELECT T1.PRTNR_NO
