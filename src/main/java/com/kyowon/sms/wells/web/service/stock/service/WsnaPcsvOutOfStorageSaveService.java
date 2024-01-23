@@ -80,8 +80,8 @@ public class WsnaPcsvOutOfStorageSaveService {
 
                 dvo.setLgstOstrAkNo(lgstOstrAkNo); // 물류요청번호
 
-                String idvTno = dvo.getIdvTno(); // 전화번호
-                String cralIdvTno = dvo.getCralIdvTno(); //휴대폰 번호
+                String idvTno = dvo.getLocaraTno() + dvo.getExnoEncr() + dvo.getIdvTno(); // 전화번호
+                String cralIdvTno = dvo.getCralLocaraTno() + dvo.getMexnoEncr() + dvo.getCralIdvTno(); //휴대폰 번호
 
                 // 4.상품 내역 등록 및 수불 처리 (물류)
                 List<WsnaPcsvSendDtlDvo> pcsvSendDtlDvos = this.setWsnaPcsvSendDtlDvo(dvo);
@@ -188,8 +188,8 @@ public class WsnaPcsvOutOfStorageSaveService {
 
                 dvo.setLgstOstrAkNo(lgstOstrAkNo); // 물류요청번호
 
-                String idvTno = dvo.getIdvTno(); // 전화번호
-                String cralIdvTno = dvo.getCralIdvTno(); //휴대폰 번호
+                String idvTno = dvo.getLocaraTno() + dvo.getExnoEncr() + dvo.getIdvTno(); // 전화번호
+                String cralIdvTno = dvo.getCralLocaraTno() + dvo.getMexnoEncr() + dvo.getCralIdvTno(); //휴대폰 번호
 
                 // 4.상품 내역 등록 및 수불 처리 (물류)
                 List<WsnaPcsvSendDtlDvo> pcsvSendDtlDvos = this.setWsnaPcsvSendDtlDvo(dvo);
@@ -214,6 +214,8 @@ public class WsnaPcsvOutOfStorageSaveService {
                     pcsvSendDtlDvo.setAdrsTnoVal(idvTno);
                     pcsvSendDtlDvo.setAdrsCphonNoVal(cralIdvTno);
                     logisticDvos.add(converter.mapPcsvOutOfStorageDvoToLogisticDvo(pcsvSendDtlDvo));
+
+                    log.debug("택배정보 물류 연동을위한 매핑 저장 확인");
                 }
 
                 // 9.출고 확정시 일자(설치일자,배송예정일자) 현재날짜 지정 (판매시스템 연계) 생략
@@ -284,39 +286,42 @@ public class WsnaPcsvOutOfStorageSaveService {
         // 출고요청 번호 생성
         WsnaPcsvSendDtlDvo sendDtlDvo = new WsnaPcsvSendDtlDvo();
         String now = DateUtil.getNowString();
-        sendDtlDvo.setOstrAkNo(sendDtlMapper.selectOstAkNo());
+        sendDtlDvo.setOstrAkNo(sendDtlMapper.selectOstAkNo()); // 출고요청번호
 
         // 고정 셋팅
-        sendDtlDvo.setOstrAkTpCd("400");
-        sendDtlDvo.setSppDvCd("1");
-        sendDtlDvo.setOstrAkRgstDt(now.substring(0, 8));
-        sendDtlDvo.setOstrHopDt(now.substring(0, 8));
-        sendDtlDvo.setAsnOjYm(now.substring(0, 6));
-        sendDtlDvo.setIostAkDvCd("WE");
-        sendDtlDvo.setLgstSppMthdCd("2");
+        sendDtlDvo.setOstrAkTpCd("400");// 출고요청유형코드
+        sendDtlDvo.setSppDvCd("1"); // 택배출고상태구분코드
+        sendDtlDvo.setOstrAkRgstDt(now.substring(0, 8)); //출고요청일자
+        sendDtlDvo.setOstrHopDt(now.substring(0, 8)); // 출고희망일자
+        sendDtlDvo.setAsnOjYm(now.substring(0, 6)); // 배정년월
+        sendDtlDvo.setIostAkDvCd("WE"); // 입출고요청구분코드
+        sendDtlDvo.setLgstSppMthdCd("2"); // 물류배송방식코드
         sendDtlDvo.setItmGdCd("A");
 
         // 창고정보  세팅
-        sendDtlDvo.setOstrOjWareNo("100002");
+        sendDtlDvo.setOstrOjWareNo("100002"); // 출고 창고 번호
         sendDtlDvo.setWareMngtPrtnrNo(vo.getWareMngtPrtnrNo());
         sendDtlDvo.setWareMngtPrtnrOgTpCd(vo.getWareMngtPrtnrOgTpCd());
 
+        String idvTno = vo.getLocaraTno() + vo.getExnoEncr() + vo.getIdvTno(); // 전화번호
+        String cralIdvTno = vo.getCralLocaraTno() + vo.getMexnoEncr() + vo.getCralIdvTno(); //휴대폰 번호
+
         // 고객정보 파라미터 세팅
-        sendDtlDvo.setCstSvAsnNo(vo.getCstSvAsnNo());
-        sendDtlDvo.setCstNo(vo.getCntrCstNo());
-        sendDtlDvo.setCstNm(vo.getRcgvpKnm());
-        sendDtlDvo.setCntrNo(vo.getCntrNo());
-        sendDtlDvo.setCntrSn(vo.getCntrSn());
-        sendDtlDvo.setAdrsTnoVal(vo.getIdvTno());
-        sendDtlDvo.setAdrsCphonNoVal(vo.getCralIdvTno());
-        sendDtlDvo.setBasAdr(vo.getRnadr());
-        sendDtlDvo.setDtlAdr(vo.getRdadr());
-        sendDtlDvo.setZip(vo.getNewAdrZip());
+        sendDtlDvo.setCstSvAsnNo(vo.getCstSvAsnNo()); // 고객서비스배정번호
+        sendDtlDvo.setCstNo(vo.getCntrCstNo()); // 계약고객번호
+        sendDtlDvo.setCstNm(vo.getRcgvpKnm()); // 고객명
+        sendDtlDvo.setCntrNo(vo.getCntrNo()); // 계약번호
+        sendDtlDvo.setCntrSn(vo.getCntrSn()); // 계약일련번호
+        sendDtlDvo.setAdrsTnoVal(idvTno); // 수취인전화번호
+        sendDtlDvo.setAdrsCphonNoVal(cralIdvTno); // 수취인휴대폰번호값
+        sendDtlDvo.setBasAdr(vo.getRnadr()); // 배송기본주소
+        sendDtlDvo.setDtlAdr(vo.getRdadr()); // 상세주소
+        sendDtlDvo.setZip(vo.getNewAdrZip()); // 배송우편번호
 
         // 파라미터(물류작업방식코드,합포장일련번호,물류요청번호)
-        sendDtlDvo.setLgstWkMthdCd(vo.getLgstWkMthdCd());
-        sendDtlDvo.setMpacSn(vo.getMpacSn());
-        sendDtlDvo.setLgstOstrAkNo(vo.getLgstOstrAkNo());
+        sendDtlDvo.setLgstWkMthdCd(vo.getLgstWkMthdCd()); // 물류작업방식코드
+        sendDtlDvo.setMpacSn(vo.getMpacSn()); // 합포장일련번호
+        sendDtlDvo.setLgstOstrAkNo(vo.getLgstOstrAkNo()); // 물류요청번호
 
         // null대신 X값 세팅. (물류인터페이스요청)
         sendDtlDvo.setSvCnrCd("X");
