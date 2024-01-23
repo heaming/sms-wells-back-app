@@ -7,11 +7,13 @@
             SELECT P1.PD_CD
                  , TO_CHAR(TO_NUMBER(P2.SAP_MAT_CD)) AS SAP_MAT_CD    /*SAP자재코드*/
                  , P2.PD_NM         /*품목명*/
+                 , P1.PD_PRP_VAL06  /*리드타임, AS_LDTM*/
+                 , P1.PD_PRP_VAL07  /*최소발주량, MIN_GO_QTY*/
                  , P1.PD_PRP_VAL15  /*기초자재*/
                  , P1.PD_PRP_VAL17  /*자재관리유형, AS_MAT_MNG_TP_CD, MAT_MNGT_DV_CD*/
+                 , P1.PD_PRP_VAL20
                  , P1.PD_PRP_VAL21  /*중수리 - AS자재 공통분류, AS_MAT_CMN_CLSF_CD, CMN_PART_DV_CD*/
                  , P1.PD_PRP_VAL30  /*회전율 대상여부, TRNOVR_RT_OJ_YN*/
-                 , P1.PD_PRP_VAL20
               FROM WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL P1  /*상품각사속성상세*/
                    INNER JOIN TB_PDBS_PD_BAS P2
                            ON P1.PD_CD = P2.PD_CD
@@ -34,14 +36,15 @@
             <if test='@MybatisUtils@isNotEmpty(strtSapCd) or @MybatisUtils@isNotEmpty(endSapCd)'>
                <choose>
                    <when test='@MybatisUtils@isNotEmpty(strtSapCd) and @MybatisUtils@isNotEmpty(endSapCd)'>
-                       AND TO_CHAR(TO_NUMBER(P2.SAP_MAT_CD)) BETWEEN #{strtSapCd} AND #{endSapCd}
+                       AND P2.SAP_MAT_CD <![CDATA[>=]]> LPAD(#{strtSapCd}, 18, '0')
+                       AND P2.SAP_MAT_CD <![CDATA[<=]]> LPAD(#{endSapCd}, 18, '0')
                     </when>
                     <otherwise>
                         <if test='@MybatisUtils@isNotEmpty(strtSapCd)'>
-                            AND TO_CHAR(TO_NUMBER(P2.SAP_MAT_CD)) LIKE #{strtSapCd} ||'%'
+                            AND P2.SAP_MAT_CD LIKE '%' || #{strtSapCd} ||'%'
                         </if>
                         <if test='@MybatisUtils@isNotEmpty(endSapCd)'>
-                            AND TO_CHAR(TO_NUMBER(P2.SAP_MAT_CD)) LIKE #{endSapCd} ||'%'
+                            AND P2.SAP_MAT_CD LIKE '%' || #{endSapCd} ||'%'
                         </if>
                     </otherwise>
                 </choose>
@@ -82,8 +85,7 @@
                             SELECT MTRL_CD
                                  , PLANT
                                  , MAX(SHEET_YM) AS SHEET_YM
-                                 /*22.06.17 김인수 파트장님 확인, 표준원가는 임시개념이라, 실제 원가를 쓰는게 맞다고 답변 받음*/
-                                 , NVL(STOCK_COST,0) AS STOCK_COST
+                                 , NVL(STOCK_COST,0) AS STOCK_COST   /*22.06.17 김인수 파트장님 확인, 표준원가는 임시개념이라, 실제 원가를 쓰는게 맞다고 답변 받음*/
                                  , (CASE WHEN PLANT = '2106' THEN 1  /*2106 합병후 교원웰스본사*/
                                          WHEN PLANT = '2108' THEN 2  /*2108 합병후 교원파주물류 */
                                          WHEN PLANT = '1102' THEN 3  /*1102 합병전 교원웰스본사*/
@@ -112,7 +114,13 @@
                AND S1.APY_YM = SUBSTR(#{startDt}, 1,6)
             </if>
              <if test="@MybatisUtils@isNotEmpty(wareDvCd)">
+               <if test='@MybatisUtils@equals(wareDvCd, "2")'>
                AND S1.WARE_DV_CD = #{wareDvCd}
+               AND (S1.WARE_NO = #{wareNoD} OR S1.HGR_WARE_NO = #{wareNoM})
+               </if>
+               <if test='@MybatisUtils@equals(wareDvCd, "1")'>
+               AND (S1.WARE_DV_CD IN ('2', '3') OR S1.WARE_NO = '100002')
+               </if>
              </if>
              <if test="@MybatisUtils@isNotEmpty(wareNoM) and @MybatisUtils@isEmpty(wareNoD) and @MybatisUtils@isEmpty(wareDtlDvCd)">
                AND S1.HGR_WARE_NO = #{wareNoM}
@@ -255,10 +263,13 @@
                AND S1.STR_WARE_NO NOT LIKE '1%'  /*물류센터가 아니고 창고 지점 창고가 지정 되어 있다면 이동수량 아니면 0*/
                AND S1.STR_TP_CD = '123'   /*110 구매입고, 117 기타입고, 121 정상입고, 122 물량배정, 123 물량이동, 161 반품입고(내부), 162 반품입고(외부)*/
                /*조회조건에 창고 선택시*/
-             <if test='@MybatisUtils@equals(wareDvCd, "2") and @MybatisUtils@equals(wareDtlDvCd, "20") or @MybatisUtils@equals(wareDtlDvCd, "21")'>
-               AND S1.STR_WARE_NO = '200001'
+             <if test="@MybatisUtils@isNotEmpty(wareNoD)">
+               /*AND S1.STR_WARE_NO = '200001' */
+               AND S1.STR_WARE_NO = #{wareNoD}
+             </if>
+             <if test="!@MybatisUtils@isNotEmpty(wareNoD)">
                /*창고선택시에만 값을 추출하기 위해*/
-               AND (CASE WHEN '200001' IS NULL THEN '2' ELSE '1' END) = '1'
+               AND '2' = '1'
              </if>
              GROUP BY S1.ITM_PD_CD
          )
@@ -276,13 +287,18 @@
              <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
                AND S1.ITM_GD_CD = #{itmGdCd}  /*조회 등급*/
              </if>
-               AND S1.OSTR_WARE_NO NOT LIKE '1%'  /*물류센터가 아니고 창고 지점 창고가 지정 되어 있다면 이동수량 아니면 0*/
+             /*물류센터가 아니고 창고 지점 창고가 지정 되어 있다면 이동수량 아니면 0*/
+               AND S1.OSTR_WARE_NO NOT LIKE '1%'
                AND S1.OSTR_TP_CD = '223'
                /*조회조건에 창고 선택시*/
-             <if test='@MybatisUtils@equals(wareDvCd, "2") and @MybatisUtils@equals(wareDtlDvCd, "20") or @MybatisUtils@equals(wareDtlDvCd, "21")'>
-               AND S1.STR_WARE_NO = '200001'
+             <if test="@MybatisUtils@isNotEmpty(wareNoD)">
+               /*AND S1.OSTR_WARE_NO = '200001' */
+               AND S1.OSTR_WARE_NO = #{wareNoD}
+             </if>
+             <if test="!@MybatisUtils@isNotEmpty(wareNoD)">
+               /*AND S1.OSTR_WARE_NO = '200001'*/
                /*창고선택시에만 값을 추출하기 위해*/
-               AND (CASE WHEN '200001' IS NULL THEN '2' ELSE '1' END) = '1'
+               AND '2' = '1'
              </if>
             GROUP BY S1.ITM_PD_CD
          )
