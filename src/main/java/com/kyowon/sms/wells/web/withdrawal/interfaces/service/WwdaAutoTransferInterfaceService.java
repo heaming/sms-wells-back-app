@@ -157,7 +157,7 @@ public class WwdaAutoTransferInterfaceService {
         List<WwdaAutoTransferInfoEvidenceInfoInterfaceDvo> selectResults = mapper.selectEvidenceInfos(dto);
         for (WwdaAutoTransferInfoEvidenceInfoInterfaceDvo selectResult : selectResults) {
             selectResult
-                .setMpno(selectResult.getCralLocaraTno() + selectResult.getMexnoEncr() + selectResult.getCralIdvTno());
+                .setMpno(selectResult.getMpno());
         }
         List<WwdaAutoTransferInterfaceDto.SearchEvidenceInfoRes> results = converter
             .mapWwdaAutoTransferDvoToSearcEvidenceInfohRes(selectResults);
