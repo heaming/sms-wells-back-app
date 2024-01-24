@@ -152,7 +152,12 @@ public class WsncBsManagerScheduleDto {
 
         String puPart5, // 투입부품5
 
-        String puPart6 // 투입부품6
+        String puPart6, // 투입부품6
+        String istYm, // 설치년월
+        Integer cntrNmnN, // 사용차월
+        Integer stplPtrm, // 약정기간
+        Long fnlAmt, // 렌탈료
+        Integer svHshdCnt // 사용계정수
 
     ) {}
 }
