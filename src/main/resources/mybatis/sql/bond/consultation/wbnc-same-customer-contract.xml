@@ -400,9 +400,11 @@
 
     <!-- 동일고객 계약 입금내역 조회 -->
     <select id="selectDeposits" resultType="com.kyowon.sms.wells.web.bond.consultation.dto.WbncSameCustomerContractDto$FindDepositDtlRes">
-        SELECT TB1.*
+        SELECT
+            ROW_NUMBER() OVER(ORDER BY RVE_DT ASC) AS RN /* 번호 */
+            , TB1.*
         FROM (
-            SELECT ROW_NUMBER() OVER(ORDER BY RVE_DT ASC) AS RN /* 번호 */
+            SELECT ROW_NUMBER() OVER(PARTITION BY RVE_NO ORDER BY RVE_DT, RVE_NO, RVE_SN ASC) AS CN /* 수납번호당 중복제거를 위한 번호 */
                , T1.RVE_NO  /* 입금번호 */
                  , T1.RVE_DT /* 수납일자 */
                  , T1.PERF_DT /* 실적일자 */
@@ -414,7 +416,7 @@
                  , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T3.SELL_TP_CD) AS SELL_TP_NM  /* 입금종류명 */
                  , T1.DP_TP_CD /* 입금유형코드 */
                  , F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', T1.DP_TP_CD) AS DP_TP_NM  /* 입금유형명 */
-                 , (SELECT SUM(RVE_AMT) FROM TB_RVDW_RVE_DTL WHERE RVE_NO = T1.RVE_NO AND CNTR_NO = T1.CNTR_NO AND CNTR_SN = T1.CNTR_SN AND RVE_DV_CD IN ('02','03','04','05','07','08','19','13','14','18','97')) AS RVE_AMT /* 수납금액 */
+                 , CASE WHEN T1.DP_DV_CD IN ('2','4') THEN SUM(RVE_AMT) OVER(PARTITION BY RVE_NO) * -1 ELSE SUM(RVE_AMT) OVER(PARTITION BY RVE_NO) END AS RVE_AMT /* 수납금액 */
                  , T1.DP_MES_CD /* 입금수단코드 */
                  , CASE WHEN T1.DP_MES_CD = '01' THEN F_CMZ_CD_NM('TNT_WELLS', 'DP_MES_CD', T1.DP_MES_CD)
                         WHEN T1.DP_MES_CD = '02' THEN (SELECT FNIT_NM FROM TB_RVDW_FNIT_CD WHERE FNIT_CD = T2.CRDCD_FNIT_CD AND DTA_DL_YN = 'N')
@@ -439,8 +441,8 @@
               AND T1.CNTR_NO = #{cntrNo}
               AND T1.RVE_DV_CD IN ('02','03','04','05','07','08','19','13','14','18','97')
               AND T1.DTA_DL_YN = 'N'
-            ORDER BY T1.RVE_DT DESC
         ) TB1
+        WHERE CN = 1
         ORDER BY RVE_DT DESC
     </select>
 </mapper>
