@@ -52,8 +52,7 @@ public class WsncRoutineBsPsicAssignStateController {
     @GetMapping("/paging")
     public PagingResult<SearchRes> getRoutineBsPsicAssignStates(
         @Valid
-        SearchReq dto,
-        PageInfo pageInfo
+        SearchReq dto, PageInfo pageInfo
     ) {
         return service.getRoutineBsPsicAssignStates(dto, pageInfo);
     }
