@@ -154,11 +154,11 @@ public class WsnaBsRegularShippingMgtDto {
         public SearchRes {
             if (StringUtil.isNotBlank(locaraTno) && StringUtil.isNotBlank(exnoEncr)
                 && StringUtil.isNotBlank(idvTno)) {
-                tno = locaraTno + "-" + exnoEncr + "-" + idvTno;
+                tno = locaraTno + exnoEncr + idvTno;
             } else if (StringUtil.isNotBlank(locaraTno) && StringUtil.isNotBlank(idvTno)) {
-                tno = locaraTno + "-" + idvTno;
+                tno = locaraTno + idvTno;
             }
-            mpno = cralLocaraTno + "-" + mexnoEncr + "-" + cralIdvTno;
+            mpno = cralLocaraTno + mexnoEncr + cralIdvTno;
         }
     }
 
