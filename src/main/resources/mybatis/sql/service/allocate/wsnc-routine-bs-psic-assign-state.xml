@@ -4,7 +4,7 @@
     <resultMap id="cstSignCn" type="hashMap">
         <result column="CST_SIGN_CN" jdbcType="BLOB" javaType="byte[]"></result>
     </resultMap>
-    <select id="selectRoutineBsPsicAssignState" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncRoutineBsPsicAssignStateDvo">
+    <select id="selectRoutineBsPsicAssignState" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncRoutineBsPsicAssignStateDto$SearchRes">
         SELECT '' AS CHK
              , (CASE WHEN B1.CNTR_NO IS NOT NULL OR B2.CNTR_NO IS NOT NULL
                      THEN 'Y'
@@ -13,13 +13,14 @@
              , CS1.CST_GD_CD                /*고객등급*/
              , F_CMZ_CD_NM('TNT_WELLS', 'CST_GD_CD',CS1.CST_GD_CD, 'ko') AS CST_GD_NM  /*고객등급, 1 일반, 2 VIP, 3 엘로우*//*고객등급명*/
              , (CASE WHEN CN1.CST_SV_ASN_NO IS NOT NULL THEN 'Y' ELSE '' END) AS CST_CNTT_YN    /*컨택완료*/
+             , SV1.CST_SV_ASN_NO
              , SV2.VST_PRGS_STAT_CD
              , F_CMZ_CD_NM('TNT_WELLS', 'WK_PRGS_STAT_CD',SV2.VST_PRGS_STAT_CD, 'ko') AS VST_PRGS_STAT_NM
-             , (CASE -- 철거일자 유무에 따라 표시
+             , (CASE /*철거일자 유무에 따라 표시*/
                      WHEN C6.RSG_FSH_DT IS NOT NULL THEN '취소'
-                     -- 만료 유무 표시
+                     /*만료 유무 표시*/
                      WHEN C1.CNTR_PD_STRTDT IS NOT NULL AND ((ROUND(MONTHS_BETWEEN(TO_CHAR(SYSDATE,'YYYYMM')||'01' , SUBSTR(C1.CNTR_PD_STRTDT,1,6)||'01'),0) BETWEEN '57' AND '60') AND C1.SELL_TP_CD = '2') THEN '만료'
-                     -- 컨택 코드 값에 따라 표시
+                     /*컨택 코드 값에 따라 표시*/
                      WHEN CN1.ABSNC_RSON_CD = '11' THEN '판매'
                      WHEN CN1.ABSNC_RSON_CD = '12' THEN '안내'
                      WHEN CN1.ABSNC_RSON_CD = '13' THEN '문자'
@@ -32,21 +33,21 @@
                      WHEN CN1.ABSNC_RSON_CD = '27' THEN '익월'
                      WHEN CN1.ABSNC_RSON_CD = '31' THEN '이관'
                      WHEN CN1.ABSNC_RSON_CD = '32' THEN 'A/S'
-                     -- 방문예정일자 값에 따라 표시 (연수기가 아니면 '월초', '월중', '월말' 로 표시, 연수기 일반 이라면 '일상', '일하'로 표시, 연수기 특별이라면 '특상', '특하'로 표시)
+                     /*방문예정일자 값에 따라 표시 (연수기가 아니면 '월초', '월중', '월말' 로 표시, 연수기 일반 이라면 '일상', '일하'로 표시, 연수기 특별이라면 '특상', '특하'로 표시)*/
                      WHEN ((CASE WHEN P1.PD_PRP_VAL20 IS NULL THEN SUBSTR(P1.PD_PRP_VAL01,2,1) ELSE P1.PD_PRP_VAL20 END) != '4'
                         AND SUBSTR(SV1.VST_DUEDT,7,8) >= 00 AND SUBSTR(SV1.VST_DUEDT,7,8) <![CDATA[ <= ]]> 10) THEN '월초'
                      WHEN ((CASE WHEN P1.PD_PRP_VAL20 IS NULL THEN SUBSTR(P1.PD_PRP_VAL01,2,1) ELSE P1.PD_PRP_VAL20 END) != '4'
                         AND SUBSTR(SV1.VST_DUEDT,7,8) >= 11 AND SUBSTR(SV1.VST_DUEDT,7,8) <![CDATA[ <= ]]> 20) THEN '월중'
                      WHEN ((CASE WHEN P1.PD_PRP_VAL20 IS NULL THEN SUBSTR(P1.PD_PRP_VAL01,2,1) ELSE P1.PD_PRP_VAL20 END) != '4'
                         AND SUBSTR(SV1.VST_DUEDT,7,8) >= 21) THEN '월말'
-                     --2017년 이후 AC201_USGE = '2' 인 상품이 없고, 차세대에서는 SV_PD_TP_CD 값으로 전환되었는데 의미가 다름
+                     /*2017년 이후 AC201_USGE = '2' 인 상품이 없고, 차세대에서는 SV_PD_TP_CD 값으로 전환되었는데 의미가 다름*/
                      WHEN ((CASE WHEN P1.PD_PRP_VAL20 IS NULL THEN SUBSTR(P1.PD_PRP_VAL01,2,1) ELSE P1.PD_PRP_VAL20 END) = '4'
                         AND SUBSTR(SV1.VST_DUEDT,7,8) >= 01 AND SUBSTR(SV1.VST_DUEDT,7,8) <![CDATA[ <= ]]> 14) THEN '일상'
                      WHEN ((CASE WHEN P1.PD_PRP_VAL20 IS NULL THEN SUBSTR(P1.PD_PRP_VAL01,2,1) ELSE P1.PD_PRP_VAL20 END) = '4'
                         AND SUBSTR(SV1.VST_DUEDT,7,8) >= 15) THEN '일하'
                      ELSE ''
                 END) AS STAT_DTL
-             , SV2.CNTR_NO || '-' ||SV2.CNTR_SN AS CNTR_NO_SN   /*계약번호+계약일련번호*/
+             , SV2.CNTR_NO || '-' ||SV2.CNTR_SN AS CNTR_DTL_NO   /*계약번호+계약일련번호*/
              , SV2.CNTR_NO                  /*계약번호*/
              , SV2.CNTR_SN                  /*계약일련번호*/
              , C4.RCGVP_KNM                 /**설치자명*/
@@ -64,7 +65,7 @@
              , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', C1.SELL_TP_DTL_CD , 'ko') AS SELL_TP_DTL_NM  /*판매유형상세코드명*/
              , SV2.MNGER_RGLVL_DV_CD        /*매니저급지구분코드*/
              , F_CMZ_CD_NM('TNT_WELLS', 'MNGER_RGLVL_DV_CD', SV2.MNGER_RGLVL_DV_CD , 'ko') AS MNGER_RGLVL_DV_NM  /*매니저급지구분코드, 1 정상, 3 1급지, 4 2급지*/
-             --배정자료 생성 시 주소
+             /*배정자료 생성 시 주소*/
              , C5.NEW_ADR_ZIP
              , C5.RNADR || ' ' || C5.RDADR AS RNDADR
              , SV1.RLTD_SV_BIZ_DCLSF_CD
@@ -77,10 +78,7 @@
              , SV3.VST_FSH_HH               /*작업완료시간*/
              , CN2.CST_UNUITM_CN            /*고객특이사항*/
              , CN2.FST_RGST_DTM             /*고객특이사항등록일시*/
-             --소속정보
-        --     , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR1_LEVL_OG_ID WHEN O1.OG_TP_CD IN ('W06') THEN '71314' ELSE O1.OG_ID END) AS L1_HGR_OG_ID
-        --     , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR2_LEVL_OG_ID ELSE O1.OG_ID END) AS L2_HGR_OG_ID
-        --     , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR3_LEVL_OG_ID ELSE O1.OG_ID END) AS L3_HGR_OG_ID
+             /*소속정보*/
              , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR1_LEVL_OG_CD WHEN O1.OG_TP_CD IN ('W06') THEN '71314' ELSE O1.OG_CD END) AS L1_HGR_OG_CD
              , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR2_LEVL_OG_CD ELSE O1.OG_CD END) AS L2_HGR_OG_CD
              , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR3_LEVL_OG_CD ELSE O1.OG_CD END) AS L3_HGR_OG_CD
@@ -119,13 +117,13 @@
                    AND F1.PD_GRP_CD = (CASE WHEN P1.PD_PRP_VAL20 IS NULL THEN SUBSTR(P1.PD_PRP_VAL01,2,1) ELSE P1.PD_PRP_VAL20 END)
                    AND F1.SV_TP_CD = SUBSTR(SV1.SV_BIZ_MCLSF_CD,1,1)
                    AND F1.SITE_AW_ATC_CD = SV2.SITE_AW_ATC_CD
-                   AND F1.RGLVL_DV_CD = '1'   --엔지니어 급지는 1급지로 정리됨
+                   AND F1.RGLVL_DV_CD = '1'   /*엔지니어 급지는 1급지로 정리됨*/
                    AND SV3.VST_FSH_DT BETWEEN F1.APY_STRTDT AND F1.APY_ENDDT
                    AND F1.DTA_DL_YN = 'N'
-             ) AS AW_AMT  --현장수당
+             ) AS AW_AMT  /*현장수당*/
              , SV3.SV_PROCS_CN              /*서비스처리내용*/
              , SV3.CST_SIGN_CN              /*고객서명*/
-             --BD26	방문취소사유, 매니저 작업 취소를 위해 만들었으나, BS는 취소가 안 되어 미사용, BS를 취소 할 수 있는 기능이 필요한지 사업본부에 확인 필요, 10 고객사유,20 고객이사,30 고객탈퇴,40 매출취소,50 방문중지,90 기타사유
+             /*BD26	방문취소사유, 매니저 작업 취소를 위해 만들었으나, BS는 취소가 안 되어 미사용, BS를 취소 할 수 있는 기능이 필요한지 사업본부에 확인 필요, 10 고객사유,20 고객이사,30 고객탈퇴,40 매출취소,50 방문중지,90 기타사유*/
              , (CASE WHEN C6.RSG_FSH_DT IS NOT NULL THEN '고객탈퇴' /*해지고객*/
                      WHEN C1.CNTR_DTL_STAT_CD = '202' THEN '방문중지'   /*연체중지*/
                      ELSE '' END
@@ -150,15 +148,6 @@
            AND O1.OG_TP_CD = O2.OG_TP_CD
            AND O1.OG_ID = O2.OG_ID
            AND O2.DTA_DL_YN = 'N'
-        <if test="@MybatisUtils@isNotEmpty(dgr1LevlOgId)">
-           AND O2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}   /* 총괄단조건(1차레벨조직코드) */
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
-           AND O2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}   /* 지역단조건(2차레벨조직코드)*/
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
-           AND O2.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}   /* 지점조건(3차레벨조직코드)*/
-        </if>
     LEFT OUTER JOIN (SELECT *
                        FROM (
                             SELECT OO3.OG_TP_CD
@@ -182,7 +171,7 @@
            AND P1.DTA_DL_YN = 'N'
          INNER JOIN WSMDBS.TB_PDBS_PD_BAS P2
             ON P1.PD_CD = P2.PD_CD
-         --AND P2.PD_TP_CD = 'M'    /*상품유형코드 : C 복합상품, P 기준상품, S 서비스, M 교재제품, Y 융합상품*/
+           /*AND P2.PD_TP_CD = 'M'*/    /*상품유형코드 : C 복합상품, P 기준상품, S 서비스, M 교재제품, Y 융합상품*/
            AND P2.DTA_DL_YN = 'N'
     LEFT OUTER JOIN WSMDBS.TB_SVPD_BC_RPBL_AK_CST_IZ B1          /*차세대 오픈전 바코드재발행요청고객내역*/
             ON SV1.CNTR_NO = B1.CNTR_NO
@@ -224,7 +213,7 @@
     LEFT OUTER JOIN WSMDBS.TB_CUBS_CST_DTL CS1                   /*고객상세*/
             ON C2.CNTR_CST_NO = CS1.CST_NO
            AND CS1.DTA_DL_YN = 'N'
-    LEFT OUTER JOIN (--고객컨택
+    LEFT OUTER JOIN (/*고객컨택*/
                     SELECT *
                       FROM (
                            SELECT S1.*
@@ -237,7 +226,7 @@
                      WHERE 1=1
                        AND CST_SV_ASN_NO_RNK = 1) CN1
             ON SV1.CST_SV_ASN_NO = CN1.CST_SV_ASN_NO
-    LEFT OUTER JOIN (----고객특이사항
+    LEFT OUTER JOIN (/*고객특이사항*/
                     SELECT V1.CNTR_NO
                          , V1.CNTR_SN
                          , V1.DTL_SN
@@ -263,49 +252,56 @@
            AND SV1.ASN_OJ_YM = #{baseYm}
            AND SV1.DTA_DL_YN = 'N'
         <if test='@MybatisUtils@isNotEmpty(rgsnExcdYn) and @MybatisUtils@equals(rgsnExcdYn, "Y")'>
-           --퇴사자제외 조건 선택 시
+           /*퇴사자제외 조건 선택 시*/
            AND O1.CLTN_DT IS NULL     /* 퇴사자 제외 */
         </if>
         <if test="@MybatisUtils@isNotEmpty(mngrDvCd)">
           AND SV2.CNFM_PSIC_DV_CD = #{mngrDvCd}
             <if test='@MybatisUtils@equals(mngrDvCd, "2")'>
-           --엔지니어조회시
+           /*엔지니어조회시*/
            AND SV1.VST_DV_CD NOT LIKE '2%'
             </if>
             <if test='@MybatisUtils@equals(mngrDvCd, "1")'>
-            --매니저조회시
+            /*매니저조회시*/
            AND SV1.VST_DV_CD IN ('10', '11')
             </if>
         </if>
-           --조직코드조회시
-           --AND O1.OG_CD = '71350'
         <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-           --담당자조회시
+           /*담당자조회시*/
            AND SV2.CNFM_PSIC_PRTNR_NO = #{prtnrNo}    /* 엔지니어/매니저 파트너번호 */
         </if>
         <if test='@MybatisUtils@isNotEmpty(pdGrpCd)'>
-           --상품그룹조회시
+           /*상품그룹조회시*/
            AND (CASE WHEN P1.PD_PRP_VAL20 IS NULL THEN SUBSTR(P1.PD_PRP_VAL01,2,1) ELSE P1.PD_PRP_VAL20 END)  = #{pdGrpCd} /*AS_MAT_ITM_GRP_CD 값이 없을 경우 기존 KIWI 코드의 2번째자리 사용*/
         </if>
         <if test='@MybatisUtils@isNotEmpty(pdCd)'>
-           --상품조회시
+           /*상품조회시*/
            AND P1.PD_CD = #{pdCd}
         </if>
         <if test='@MybatisUtils@isNotEmpty(svTpCd)'>
-           --서비스유형조회시
+           /*서비스유형조회시*/
            AND SV2.SV_BIZ_MCLSF_CD = #{svTpCd}   /*21 정기, 22 비정기*/
         </if>
         <if test='@MybatisUtils@isNotEmpty(prgsStatCd)'>
-           --진행구분조회시
+           /*진행구분조회시*/
            AND SV2.VST_PRGS_STAT_CD = #{prgsStatCd}
         </if>
         <if test="@MybatisUtils@isNotEmpty(startDt) and @MybatisUtils@isNotEmpty(endDt)">
-           --약속일자 선택 값 존재 시
+           /*약속일자 선택 값 존재 시*/
            AND SV2.VST_CNFMDT  BETWEEN #{startDt} AND #{endDt}
         </if>
         <if test='@MybatisUtils@isNotEmpty(vacManaYn) and @MybatisUtils@equals(vacManaYn, "Y")'>
-           --가상매니저조회시
+           /*가상매니저조회시*/
            AND O1.PSTN_DV_CD = '4' /*직급구분코드, 가상매니저 현재 유지되고 있는지 박광진파트장에게 확인 필요*/
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(dgr1LevlOgId)">
+           AND O2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}   /* 총괄단조건(1차레벨조직코드) */
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
+           AND O2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}   /* 지역단조건(2차레벨조직코드)*/
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">
+           AND O2.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}   /* 지점조건(3차레벨조직코드)*/
         </if>
     </select>
 

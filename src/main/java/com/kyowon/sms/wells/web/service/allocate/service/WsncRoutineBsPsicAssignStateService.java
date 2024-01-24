@@ -21,16 +21,13 @@ import lombok.extern.slf4j.Slf4j;
 public class WsncRoutineBsPsicAssignStateService {
     private final WsncRoutineBsPsicAssignStateMapper mapper;
 
-    public PagingResult<SearchRes> getRoutineBsPsicAssignStates(
-        SearchReq req, PageInfo pageInfo
-    ) {
+    public PagingResult<SearchRes> getRoutineBsPsicAssignStates(SearchReq req, PageInfo pageInfo) {
         return mapper.selectRoutineBsPsicAssignState(req, pageInfo);
     }
 
     public List<SearchRes> getRoutineBsPsicAssignStatesForExcelDownload(SearchReq req) {
         return mapper.selectRoutineBsPsicAssignState(req);
     }
-    // getWellsManagerList
 
     public List<HashMap<String, String>> getWellsManager(String dgr2LevlOgId) {
         return mapper.selectWellsManager(dgr2LevlOgId);
