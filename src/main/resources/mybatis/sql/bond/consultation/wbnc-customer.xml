@@ -69,7 +69,7 @@
 		             , CNTR_NO /* 계약번호 */
 		             , CNTR_SN /* 계약일련번호 */
 		          FROM (
-		                SELECT
+		                SELECT /*+ push_pred(T9) push_pred(T14) use_nl(T9) use_nl(T14) */
 		                       CASE WHEN T2.FST_RGST_DTM > T1.BND_ASN_DT AND SUBSTR( T2.TEL_CNSL_RS_CD , 1 ,1 ) = 1 THEN '○'
 		                            WHEN T2.FST_RGST_DTM > T1.BND_ASN_DT AND SUBSTR( T2.TEL_CNSL_RS_CD , 1 ,1 ) = 2 THEN '△'
 		                            ELSE 'Ｘ'
@@ -110,12 +110,12 @@
 		                     , NVL(T8.RENTAL_DSC_AMT2, 0) AS RTLFE_ISTM2 /* 렌탈료2할 */
 		                     , T1.CLCTAM_PRTNR_NO /* 집금번호 */
 		                     , (SELECT DISTINCT PRTNR_KNM FROM TB_CBBO_CLCTAM_PRTNR_DTL WHERE PRTNR_NO = T1.CLCTAM_PRTNR_NO) AS CLCTAM_ICHR   /* 집급담당 */
-		                     , (SELECT TT1.CRAL_LOCARA_TNO FROM TB_SSCT_CNTR_ADRPC_BAS TT1 WHERE TT1.CNTR_ADRPC_ID = T14.CNTR_ADRPC_ID)  AS CRAL_LOCARA_TNO /* 계약휴대전화번호1 */
-				             , (SELECT TT1.MEXNO_ENCR FROM TB_SSCT_CNTR_ADRPC_BAS TT1 WHERE TT1.CNTR_ADRPC_ID = T14.CNTR_ADRPC_ID)  AS MEXNO_ENCR /* 계약휴대전화번호2 */
-				             , (SELECT TT1.CRAL_IDV_TNO FROM TB_SSCT_CNTR_ADRPC_BAS TT1 WHERE TT1.CNTR_ADRPC_ID = T14.CNTR_ADRPC_ID)  AS CRAL_IDV_TNO /* 계약휴대전화번호3 */
-		                     , (SELECT TT1.CRAL_LOCARA_TNO FROM TB_SSCT_CNTR_ADRPC_BAS TT1 WHERE TT1.CNTR_ADRPC_ID = T9.CNTR_ADRPC_ID)  AS IST_CRAL_LOCARA_TNO /* 설치휴대전화번호1 */
-				             , (SELECT TT1.MEXNO_ENCR FROM TB_SSCT_CNTR_ADRPC_BAS TT1 WHERE TT1.CNTR_ADRPC_ID = T9.CNTR_ADRPC_ID)  AS IST_MEXNO_ENCR /* 설치휴대전화번호2 */
-				             , (SELECT TT1.CRAL_IDV_TNO FROM TB_SSCT_CNTR_ADRPC_BAS TT1 WHERE TT1.CNTR_ADRPC_ID = T9.CNTR_ADRPC_ID)  AS IST_CRAL_IDV_TNO /* 설치휴대전화번호3 */
+		                     , T14.CRAL_LOCARA_TNO AS CRAL_LOCARA_TNO /* 계약휴대전화번호1 */
+				             , T14.MEXNO_ENCR AS MEXNO_ENCR /* 계약휴대전화번호2 */
+				             , T14.CRAL_IDV_TNO AS CRAL_IDV_TNO /* 계약휴대전화번호3 */
+		                     , T9.CRAL_LOCARA_TNO AS IST_CRAL_LOCARA_TNO /* 설치휴대전화번호1 */
+				             , T9.MEXNO_ENCR AS IST_MEXNO_ENCR /* 설치휴대전화번호2 */
+				             , T9.CRAL_IDV_TNO AS IST_CRAL_IDV_TNO /* 설치휴대전화번호3 */
                              , (SELECT TT3.FNIT_NM FROM TB_RVDW_FNIT_CD TT3 WHERE FNIT_DV_CD = '1' AND TT3.FNIT_CD = T10.VAC_BNK_CD) AS VT_AC_BNK   /* 가상계좌은행 */
 		                     , T10.VT_AC_NO /* 가상계좌번호 */
 		                     , T4.SFK_VAL AS SFK /* 세이프키*/
@@ -182,8 +182,9 @@
 		                   AND T8.CNTR_SN = T1.CNTR_SN
 		                  LEFT OUTER JOIN LATERAL (
 		                                    SELECT
-			                                       CR.CNTR_ADRPC_ID
-		                                         , CB.ADR_ID
+			                                       CB.CRAL_LOCARA_TNO
+		                                         , CB.MEXNO_ENCR
+		                                         , CB.CRAL_IDV_TNO
 		                                      FROM TB_SSCT_CNTR_ADR_REL CR /* 계약주소관계 */
 				                              LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS CB /* 계약주소지기본 */
 				                                ON CB.CNTR_ADRPC_ID = CR.CNTR_ADRPC_ID
@@ -217,8 +218,9 @@
 		                    ON T1.CNTR_NO = T13.CNTR_NO
 		                 LEFT OUTER JOIN LATERAL (
 		                                    SELECT
-		                                           CR.CNTR_ADRPC_ID
-		                                         , CB.ADR_ID
+		                                           CB.CRAL_LOCARA_TNO
+		                                         , CB.MEXNO_ENCR
+		                                         , CB.CRAL_IDV_TNO
 		                                      FROM TB_SSCT_CNTR_ADR_REL CR /* 계약주소관계 */
 				                              LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS CB /* 계약주소지기본 */
 				                                ON CB.CNTR_ADRPC_ID = CR.CNTR_ADRPC_ID
