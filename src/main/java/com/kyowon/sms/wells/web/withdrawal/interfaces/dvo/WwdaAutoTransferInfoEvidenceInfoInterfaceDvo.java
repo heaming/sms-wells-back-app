@@ -18,6 +18,7 @@ public class WwdaAutoTransferInfoEvidenceInfoInterfaceDvo {
     private String sellTpCd; /*판매유형코드*/
     private String sellTpCdNm; /*판매유형코드명*/
     private String pdNm; /*상품명*/
+    private String fntEvidDrmVal; /*이체증빙식별값*/
     private String mpno; /*휴대전화번호*/
     private String bfchFnitNm; /*변경전금융기관명*/
     private String bfchAcnoCdno; /*변경전계좌카드번호*/
@@ -30,8 +31,9 @@ public class WwdaAutoTransferInfoEvidenceInfoInterfaceDvo {
     private String aftnEvidFshDt; /*자동이체증빙완료일자*/
     private String aftnEvidFshYn; /*자동이체증빙완료여부*/
     private String fnitAprRsCd; /*금융기관승인결과코드*/
-    private String cralLocaraTno; /*휴대지역전화번호*/
-    @DBDecField
-    private String mexnoEncr; /*휴대전화국번호암호화*/
-    private String cralIdvTno; /*휴대개별전화번호*/
+
+    //    private String cralLocaraTno; /*휴대지역전화번호*/
+    //    @DBDecField
+    //    private String mexnoEncr; /*휴대전화국번호암호화*/
+    //    private String cralIdvTno; /*휴대개별전화번호*/
 }

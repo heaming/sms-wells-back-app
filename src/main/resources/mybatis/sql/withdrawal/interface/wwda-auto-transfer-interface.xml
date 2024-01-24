@@ -776,12 +776,8 @@
             resultType="com.kyowon.sms.wells.web.withdrawal.interfaces.dvo.WwdaAutoTransferInfoEvidenceInfoInterfaceDvo">
            SELECT TO_CHAR(TO_DATE(A1.CNTR_CH_RCP_DTM, 'YYYYMMDDHH24MISS'), 'YYYYMMDD') RCT_DT /*접수일자*/
                 , TO_CHAR(TO_DATE(A1.CNTR_CH_RCP_DTM, 'YYYYMMDDHH24MISS'), 'HH24MISS') RCT_TM /*접수시간*/
-                , A1.CH_RCP_USR_ID /*변경접수사용자ID*/
-                , (
-                   SELECT USR_NM
-                     FROM T_CMP_USR_ACO_M
-                     WHERE USR_ID = A1.CH_RCP_USR_ID
-                  ) PSIC_NM /*담당자명*/
+                , F1.EPNO AS CH_RCP_USR_ID /*변경접수사용자ID*/
+                , F1.USR_NM AS PSIC_NM /*담당자명*/
                 , B1.DTL_CNTR_NO CNTR_NO /*계약번호*/
                 , B1.DTL_CNTR_SN CNTR_SN /*계약일련번호*/
                 , (
@@ -800,10 +796,15 @@
                       AND A2.CNTR_NO = B1.DTL_CNTR_NO
                       AND A2.CNTR_SN = B1.DTL_CNTR_SN
                   ) PD_NM /*상품명*/
-                , SUBSTR(D1.FNT_EVID_DRM_VAL,4,3) AS CRAL_LOCARA_TNO /*휴대지역전화번호*/
-                , SUBSTR(D1.FNT_EVID_DRM_VAL,7,4) AS MEXNO_ENCR /*휴대전화국번호암호화*/
-                , SUBSTR(D1.FNT_EVID_DRM_VAL,11,4) AS CRAL_IDV_TNO /*휴대개별전화번호*/
-                , '' MPNO /*휴대전화번호*/
+                , D1.FNT_EVID_DRM_VAL
+                , CASE WHEN D1.FNT_EVID_DRM_VAL != 'P0100' AND D1.FNT_EVID_DRM_VAL != 'P01nullnullnullnull' THEN SUBSTR(D1.FNT_EVID_DRM_VAL,4,3) || '-' || SUBSTR(D1.FNT_EVID_DRM_VAL,7,4) || '-' || SUBSTR(D1.FNT_EVID_DRM_VAL,11,4)
+                       ELSE ''
+                  END AS MPNO /*휴대전화번호*/
+
+<!--                , SUBSTR(D1.FNT_EVID_DRM_VAL,4,3) AS CRAL_LOCARA_TNO /*휴대지역전화번호*/-->
+<!--                , SUBSTR(D1.FNT_EVID_DRM_VAL,7,4) AS MEXNO_ENCR /*휴대전화국번호암호화*/-->
+<!--                , SUBSTR(D1.FNT_EVID_DRM_VAL,11,4) AS CRAL_IDV_TNO /*휴대개별전화번호*/-->
+<!--                , '' MPNO /*휴대전화번호*/-->
                 , (
                    SELECT AA1.FNIT_NM
                      FROM (
@@ -912,6 +913,8 @@
                    AND E1.APR_DT = TO_CHAR(TO_DATE(A1.CNTR_CH_RCP_DTM, 'YYYYMMDDHH24MISS'), 'YYYYMMDD')
                    AND E1.BNK_CD = D1.BNK_CD
                   )
+       LEFT OUTER JOIN T_CMP_USR_ACO_M F1
+              ON F1.USR_ID = A1.CH_RCP_USR_ID
            WHERE 1=1
              AND A1.CNTR_CH_TP_CD = '301' /*자동이체변경*/
         <if test='@MybatisUtils@isNotEmpty(rctDt)'>
