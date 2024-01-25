@@ -5,7 +5,8 @@
         <result column="CST_SIGN_CN" jdbcType="BLOB" javaType="byte[]"></result>
     </resultMap>
     <select id="selectRoutineBsPsicAssignState" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncRoutineBsPsicAssignStateDto$SearchRes">
-        SELECT '' AS CHK
+        SELECT /*+INDEX (B2 IX_SVPD_PD_BC_RPBL_APLC_IZ_01) */
+               '' AS CHK
              , (CASE WHEN B1.CNTR_NO IS NOT NULL OR B2.CNTR_NO IS NOT NULL
                      THEN 'Y'
                 ELSE '' END) AS SN_RPBL_YN  /*제품시리얼 재발행 여부*/
@@ -13,7 +14,7 @@
              , CS1.CST_GD_CD                /*고객등급*/
              , F_CMZ_CD_NM('TNT_WELLS', 'CST_GD_CD',CS1.CST_GD_CD, 'ko') AS CST_GD_NM  /*고객등급, 1 일반, 2 VIP, 3 엘로우*//*고객등급명*/
              , (CASE WHEN CN1.CST_SV_ASN_NO IS NOT NULL THEN 'Y' ELSE '' END) AS CST_CNTT_YN    /*컨택완료*/
-             , SV1.CST_SV_ASN_NO
+             , CN1.CST_SV_ASN_NO
              , SV2.VST_PRGS_STAT_CD
              , F_CMZ_CD_NM('TNT_WELLS', 'WK_PRGS_STAT_CD',SV2.VST_PRGS_STAT_CD, 'ko') AS VST_PRGS_STAT_NM
              , (CASE /*철거일자 유무에 따라 표시*/
@@ -78,7 +79,6 @@
              , SV3.VST_FSH_HH               /*작업완료시간*/
              , CN2.CST_UNUITM_CN            /*고객특이사항*/
              , CN2.FST_RGST_DTM             /*고객특이사항등록일시*/
-             /*소속정보*/
              , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR1_LEVL_OG_CD WHEN O1.OG_TP_CD IN ('W06') THEN '71314' ELSE O1.OG_CD END) AS L1_HGR_OG_CD
              , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR2_LEVL_OG_CD ELSE O1.OG_CD END) AS L2_HGR_OG_CD
              , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR3_LEVL_OG_CD ELSE O1.OG_CD END) AS L3_HGR_OG_CD
@@ -94,32 +94,33 @@
              , SV2.SITE_AW_ATC_CD           /*현장수당항목코드*/
              , F_CMZ_CD_NM('TNT_WELLS', 'SITE_AW_ATC_CD', SV2.SITE_AW_ATC_CD , 'ko') AS SITE_AW_ATC_NM  /*현장수당항목명*/
              , O3.ENG_PRTNR_GD_CD           /*엔지니어수당등급*/
-             , (SELECT (CASE WHEN O3.ENG_PRTNR_GD_CD = '11' THEN F1.FULEY_AW_AMT
-                             WHEN O3.ENG_PRTNR_GD_CD = '21' THEN F1.ROL_LYR1_TOPMR_AW_AMT
-                             WHEN O3.ENG_PRTNR_GD_CD = '22' THEN F1.ROL_LYR1_UPLR_AW_AMT
-                             WHEN O3.ENG_PRTNR_GD_CD = '23' THEN F1.ROL_LYR1_MDLYR_AW_AMT
-                             WHEN O3.ENG_PRTNR_GD_CD = '24' THEN F1.ROL_LYR1_LOLYR_AW_AMT
-                             WHEN O3.ENG_PRTNR_GD_CD = '31' THEN F1.ROL_L2_UPLR_AW_AMT
-                             WHEN O3.ENG_PRTNR_GD_CD = '32' THEN F1.ROL_L2_MDLYR_AW_AMT
-                             WHEN O3.ENG_PRTNR_GD_CD = '33' THEN F1.ROL_L2_LOLYR_AW_AMT
-                             WHEN O3.ENG_PRTNR_GD_CD = '41' THEN F1.ROL_L3_AW_AMT
-                             WHEN O3.ENG_PRTNR_GD_CD = '51' THEN F1.CRWK_AW_AMT
-                             WHEN O1.HIR_FOM_CD = '3' THEN FULEY_AW_AMT
-                             WHEN O1.HIR_FOM_CD = '3' AND O1.PSTN_DV_CD = '86' THEN F1.ROL_LYR1_MDLYR_AW_AMT
-                             WHEN O1.HIR_FOM_CD = '3' AND O1.PSTN_DV_CD = '87' THEN F1.ROL_L2_MDLYR_AW_AMT
-                             WHEN O1.HIR_FOM_CD = '3' AND O1.PSTN_DV_CD = '88' THEN F1.ROL_L3_AW_AMT
-                             WHEN O1.HIR_FOM_CD = '2' THEN F1.CRWK_AW_AMT
-                             WHEN O1.HIR_FOM_CD = '1' THEN F1.INDV_ENTRP_AW_AMT
-                             ELSE 0
-                           END)
-                  FROM WSMDBS.TB_FEAM_SITE_AW_DSB_BASE_BAS F1 /*현장수당지급기준기본*/
-                 WHERE 1=1
-                   AND F1.PD_GRP_CD = (CASE WHEN P1.PD_PRP_VAL20 IS NULL THEN SUBSTR(P1.PD_PRP_VAL01,2,1) ELSE P1.PD_PRP_VAL20 END)
-                   AND F1.SV_TP_CD = SUBSTR(SV1.SV_BIZ_MCLSF_CD,1,1)
-                   AND F1.SITE_AW_ATC_CD = SV2.SITE_AW_ATC_CD
-                   AND F1.RGLVL_DV_CD = '1'   /*엔지니어 급지는 1급지로 정리됨*/
-                   AND SV3.VST_FSH_DT BETWEEN F1.APY_STRTDT AND F1.APY_ENDDT
-                   AND F1.DTA_DL_YN = 'N'
+             , (
+                 SELECT (CASE WHEN O3.ENG_PRTNR_GD_CD = '11' THEN F1.FULEY_AW_AMT
+                              WHEN O3.ENG_PRTNR_GD_CD = '21' THEN F1.ROL_LYR1_TOPMR_AW_AMT
+                              WHEN O3.ENG_PRTNR_GD_CD = '22' THEN F1.ROL_LYR1_UPLR_AW_AMT
+                              WHEN O3.ENG_PRTNR_GD_CD = '23' THEN F1.ROL_LYR1_MDLYR_AW_AMT
+                              WHEN O3.ENG_PRTNR_GD_CD = '24' THEN F1.ROL_LYR1_LOLYR_AW_AMT
+                              WHEN O3.ENG_PRTNR_GD_CD = '31' THEN F1.ROL_L2_UPLR_AW_AMT
+                              WHEN O3.ENG_PRTNR_GD_CD = '32' THEN F1.ROL_L2_MDLYR_AW_AMT
+                              WHEN O3.ENG_PRTNR_GD_CD = '33' THEN F1.ROL_L2_LOLYR_AW_AMT
+                              WHEN O3.ENG_PRTNR_GD_CD = '41' THEN F1.ROL_L3_AW_AMT
+                              WHEN O3.ENG_PRTNR_GD_CD = '51' THEN F1.CRWK_AW_AMT
+                              WHEN O1.HIR_FOM_CD = '3' THEN FULEY_AW_AMT
+                              WHEN O1.HIR_FOM_CD = '3' AND O1.PSTN_DV_CD = '86' THEN F1.ROL_LYR1_MDLYR_AW_AMT
+                              WHEN O1.HIR_FOM_CD = '3' AND O1.PSTN_DV_CD = '87' THEN F1.ROL_L2_MDLYR_AW_AMT
+                              WHEN O1.HIR_FOM_CD = '3' AND O1.PSTN_DV_CD = '88' THEN F1.ROL_L3_AW_AMT
+                              WHEN O1.HIR_FOM_CD = '2' THEN F1.CRWK_AW_AMT
+                              WHEN O1.HIR_FOM_CD = '1' THEN F1.INDV_ENTRP_AW_AMT
+                              ELSE 0
+                        END)
+                   FROM WSMDBS.TB_FEAM_SITE_AW_DSB_BASE_BAS F1 /*현장수당지급기준기본*/
+                  WHERE 1=1
+                    AND F1.PD_GRP_CD = (CASE WHEN P1.PD_PRP_VAL20 IS NULL THEN SUBSTR(P1.PD_PRP_VAL01,2,1) ELSE P1.PD_PRP_VAL20 END)
+                    AND F1.SV_TP_CD = SUBSTR(SV1.SV_BIZ_MCLSF_CD,1,1)
+                    AND F1.SITE_AW_ATC_CD = SV2.SITE_AW_ATC_CD
+                    AND F1.RGLVL_DV_CD = '1'   /*엔지니어 급지는 1급지로 정리됨*/
+                    AND SV3.VST_FSH_DT BETWEEN F1.APY_STRTDT AND F1.APY_ENDDT
+                    AND F1.DTA_DL_YN = 'N'
              ) AS AW_AMT  /*현장수당*/
              , SV3.SV_PROCS_CN              /*서비스처리내용*/
              , SV3.CST_SIGN_CN              /*고객서명*/
@@ -148,44 +149,47 @@
            AND O1.OG_TP_CD = O2.OG_TP_CD
            AND O1.OG_ID = O2.OG_ID
            AND O2.DTA_DL_YN = 'N'
-    LEFT OUTER JOIN (SELECT *
-                       FROM (
-                            SELECT OO3.OG_TP_CD
-                                 , OO3.PRTNR_NO
-                                 , OO3.PRTNR_GD_CD AS ENG_PRTNR_GD_CD
-                                 , ROW_NUMBER() OVER(PARTITION BY OO3.OG_TP_CD, OO3.PRTNR_NO ORDER BY APY_SEQN DESC) AS RN
-                              FROM WSMDBS.TB_OGPS_EGER_GD_RGST_IZ OO3 /*엔지니어등급등록내역*/
-                             WHERE 1=1
-                               AND #{baseYm} || '01' BETWEEN OO3.APY_STRTDT AND OO3.APY_ENDDT
-                               AND OO3.DTA_DL_YN = 'N'
+    LEFT OUTER JOIN LATERAL ( /*엔지니어등급*/
+                              SELECT OO3.OG_TP_CD
+                                   , OO3.PRTNR_NO
+                                   , OO3.PRTNR_GD_CD AS ENG_PRTNR_GD_CD
+                                FROM WSMDBS.TB_OGPS_EGER_GD_RGST_IZ OO3 /*엔지니어등급등록내역*/
+                               WHERE 1=1
+                                 AND OO3.DTA_DL_YN = 'N'
+                                 AND SV2.CNFM_PSIC_PRTNR_OG_TP_CD = OO3.OG_TP_CD
+                                 AND SV2.CNFM_PSIC_PRTNR_NO = OO3.PRTNR_NO
+                                 AND SV2.ASN_OJ_YM BETWEEN OO3.APY_STRTDT AND OO3.APY_ENDDT
+                                 AND OO3.APY_SEQN = (
+                                                      SELECT MAX(APY_SEQN)
+                                                        FROM WSMDBS.TB_OGPS_EGER_GD_RGST_IZ OO4
+                                                       WHERE 1=1
+                                                         AND OO4.DTA_DL_YN = 'N'
+                                                         AND SV2.CNFM_PSIC_PRTNR_OG_TP_CD = OO4.OG_TP_CD
+                                                         AND SV2.CNFM_PSIC_PRTNR_NO = OO4.PRTNR_NO
+                                                         AND SV2.ASN_OJ_YM BETWEEN OO4.APY_STRTDT AND OO4.APY_ENDDT
+                                                    )
                             ) O3
-                      WHERE 1=1
-                        AND RN =1
-                    ) O3
-            ON O1.OG_TP_CD = O3.OG_TP_CD
-           AND O1.PRTNR_NO = O3.PRTNR_NO
-           AND O3.RN = 1
+            ON 1=1
          INNER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL P1                 /*상품각사속성상세*/
             ON SV1.PDCT_PD_CD = P1.PD_CD
            AND P1.PD_EXTS_PRP_GRP_CD = 'PART'
            AND P1.DTA_DL_YN = 'N'
          INNER JOIN WSMDBS.TB_PDBS_PD_BAS P2
             ON P1.PD_CD = P2.PD_CD
-           /*AND P2.PD_TP_CD = 'M'*/    /*상품유형코드 : C 복합상품, P 기준상품, S 서비스, M 교재제품, Y 융합상품*/
+         --AND P2.PD_TP_CD = 'M'    /*상품유형코드 : C 복합상품, P 기준상품, S 서비스, M 교재제품, Y 융합상품*/
            AND P2.DTA_DL_YN = 'N'
     LEFT OUTER JOIN WSMDBS.TB_SVPD_BC_RPBL_AK_CST_IZ B1          /*차세대 오픈전 바코드재발행요청고객내역*/
             ON SV1.CNTR_NO = B1.CNTR_NO
            AND SV1.CNTR_SN = B1.CNTR_SN
            AND (CASE WHEN B1.FNL_PBL_DT IS NOT NULL THEN SUBSTR(B1.FNL_PBL_DT,1,6)
                      ELSE SUBSTR(B1.FST_PBL_DT,1,6)
-                 END) = SV1.ASN_OJ_YM
+                END) = SV1.ASN_OJ_YM
            AND B1.DTA_DL_YN = 'N'
     LEFT OUTER JOIN WSMDBS.TB_SVPD_PD_BC_RPBL_APLC_IZ B2         /*상품바코드재발행신청내역, KWAS.ATEMP_LYJ_BARCODE*/
             ON SV1.CNTR_NO = B1.CNTR_NO
            AND SV1.CNTR_SN = B1.CNTR_SN
            AND SUBSTR(SV1.CST_SV_ASN_NO,2,6) <![CDATA[ < ]]> SV1.ASN_OJ_YM
-           AND (B2.RPBL_DT IS NULL
-            OR SUBSTR(B2.RPBL_DT,1,6) >= SV1.ASN_OJ_YM)
+           AND (B2.RPBL_DT IS NULL OR SUBSTR(B2.RPBL_DT,1,6) >= SV1.ASN_OJ_YM)
            AND B2.DTA_DL_YN = 'N'
          INNER JOIN WSMDBS.TB_SSCT_CNTR_DTL C1                        /*계약상세*/
             ON SV1.CNTR_NO = C1.CNTR_NO
@@ -213,41 +217,38 @@
     LEFT OUTER JOIN WSMDBS.TB_CUBS_CST_DTL CS1                   /*고객상세*/
             ON C2.CNTR_CST_NO = CS1.CST_NO
            AND CS1.DTA_DL_YN = 'N'
-    LEFT OUTER JOIN (/*고객컨택*/
-                    SELECT *
-                      FROM (
-                           SELECT S1.*
-                                , ROW_NUMBER() OVER(PARTITION BY S1.CST_SV_ASN_NO ORDER BY S1.CST_SV_ASN_NO, CNTC_DT DESC , CNTC_HH DESC) AS CST_SV_ASN_NO_RNK
-                             FROM WSMDBS.TB_SVPD_CST_SV_CNTC_IZ S1 /*고객서비스접촉내역, VS101TB*/
-                            WHERE 1=1
-                              AND CST_SV_ASN_NO LIKE '2' || #{baseYm} || '%'
-                              AND S1.DTA_DL_YN = 'N'
-                           )
-                     WHERE 1=1
-                       AND CST_SV_ASN_NO_RNK = 1) CN1
-            ON SV1.CST_SV_ASN_NO = CN1.CST_SV_ASN_NO
-    LEFT OUTER JOIN (/*고객특이사항*/
-                    SELECT V1.CNTR_NO
-                         , V1.CNTR_SN
-                         , V1.DTL_SN
-                         , V1.CST_UNUITM_CN
-                         , V1.FST_RGST_DTM
-                      FROM (
-                           SELECT S1.CNTR_NO
-                                , S1.CNTR_SN
-                                , S1.DTL_SN
-                                , S1.CST_UNUITM_CN
-                                , S1.FST_RGST_DTM
-                                , ROW_NUMBER() OVER(PARTITION BY S1.CNTR_NO, S1.CNTR_SN ORDER BY S1.CNTR_NO, S1.CNTR_SN, S1.DTL_SN DESC) AS CST_UNUITM_RNK
-                             FROM WSMDBS.TB_SVPD_CNTR_CST_UNUITM_DTL S1  /*계약고객특이사항상세, KWAS.ATEMP_LYJ_ABNORMALITY*/
-                            WHERE 1=1
-                              AND S1.DTA_DL_YN = 'N'
-                           ) V1
-                     WHERE 1=1
-                       AND CST_UNUITM_RNK = 1
-                    ) CN2
-            ON SV1.CNTR_NO = CN2.CNTR_NO
-           AND SV1.CNTR_SN = CN2.CNTR_SN
+    LEFT OUTER JOIN LATERAL ( /*고객컨택*/
+                              SELECT *
+                                FROM WSMDBS.TB_SVPD_CST_SV_CNTC_IZ S1
+                               WHERE 1=1
+                                 AND S1.CST_SV_ASN_NO = SV1.CST_SV_ASN_NO
+                                 AND S1.DTA_DL_YN = 'N'
+                                 AND (CNTC_DT||CNTC_HH) IN (
+                                                             SELECT MAX(CNTC_DT||CNTC_HH)
+                                                               FROM WSMDBS.TB_SVPD_CST_SV_CNTC_IZ S2
+                                                              WHERE 1=1
+                                                                AND S2.CST_SV_ASN_NO = SV1.CST_SV_ASN_NO
+                                                                AND S2.DTA_DL_YN = 'N'
+                                                           )
+                            ) CN1
+            ON 1=1
+    LEFT OUTER JOIN LATERAL ( /*고객특이사항*/
+                              SELECT *
+                                FROM WSMDBS.TB_SVPD_CNTR_CST_UNUITM_DTL S1  /*계약고객특이사항상세, KWAS.ATEMP_LYJ_ABNORMALITY*/
+                               WHERE 1=1
+                                 AND S1.DTA_DL_YN = 'N'
+                                 AND SV1.CNTR_NO = S1.CNTR_NO
+                                 AND SV1.CNTR_SN = S1.CNTR_SN
+                                 AND S1.DTL_SN = (
+                                                   SELECT MAX(S2.DTL_SN)
+                                                     FROM WSMDBS.TB_SVPD_CNTR_CST_UNUITM_DTL S2
+                                                    WHERE 1=1
+                                                      AND SV1.CNTR_NO = S2.CNTR_NO
+                                                      AND SV1.CNTR_SN = S2.CNTR_SN
+                                                      AND S2.DTA_DL_YN = 'N'
+                                                 )
+                            ) CN2
+            ON 1=1
          WHERE 1=1
            AND SV1.ASN_OJ_YM = #{baseYm}
            AND SV1.DTA_DL_YN = 'N'
