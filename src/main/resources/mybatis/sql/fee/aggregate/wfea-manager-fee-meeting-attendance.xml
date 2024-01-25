@@ -209,7 +209,8 @@
                   GROUP BY T1.BASE_YM, T1.OG_TP_CD, T1.PRTNR_NO
                 UNION ALL
                 /* 배출건수 */
-                SELECT T1.PRTNR_NO
+                SELECT /*+ USE_HASH(T3 T4) */
+                        T1.PRTNR_NO
                       , 'W02P00092' AS PERF_ATC_CD   /* 배출수 */
                       , '' AS FEE_PERF_ATC_VAL
                       , SUM(CASE WHEN T2.OJ_PRTNR_PSTN_DV_CD <![CDATA[<=]]> 4 THEN 1	/* 피배출자 4직급(지역단장) 이상이면 인정 */
@@ -236,6 +237,7 @@
                     --AND T2.ACKMT_YN = 'Y'	/* 인정여부 */
                    LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL T3	/* 순주문파트너 실적월마감 (피배출자 실적) */
                      ON T2.MNGT_YM = T3.BASE_YM
+                    AND T2.MNGT_YM = T3.PERF_YM
                     AND T2.OJ_OG_TP_CD = T3.OG_TP_CD 	/* 피배출자 조직코드 */
                     AND T2.OJ_PRTNR_NO = T3.PRTNR_NO 	/* 피배출자 */
                     AND T3.FEE_TCNT_DV_CD = #{feeTcntDvCd}
@@ -244,6 +246,7 @@
                     AND T3.PERF_DV_CD = '2'	/* 지점판매실적 */
                    LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL T4	/* 순주문파트너 실적월마감 (피배출자 실적) */
                      ON T2.MNGT_YM = T4.BASE_YM
+                    AND T2.MNGT_YM = T4.PERF_YM
                     AND T2.OJ_OG_TP_CD = T4.OG_TP_CD 	/* 피배출자 조직코드 */
                     AND T2.OJ_PRTNR_NO = T4.PRTNR_NO 	/* 피배출자 */
                     AND T4.FEE_TCNT_DV_CD = #{feeTcntDvCd}
@@ -299,7 +302,8 @@
                                  , SUM(CASE WHEN X1.SELL_CNT >= 3 AND X1.BS_CNT >= 50 AND X1.PERF_VAL > 0 THEN 1 ELSE 0 END) PERF_VAL
                               FROM TB_OGBS_MM_OG_IZ O1
                              INNER JOIN (
-                                         SELECT O1.BASE_YM
+                                         SELECT /*+ USE_HASH(P1 P2) */
+                                                O1.BASE_YM
                                               , O1.OG_TP_CD
                                               , O1.PRTNR_NO
                                               , MAX(O1.OG_ID) OG_ID
@@ -362,7 +366,8 @@
                <if test='@MybatisUtils@equals(rsbTpCd, "W0205")'>
                   /* 2023.07~ 개인실황동인원수 (W02P00111) 지점과 동일함 */
                   UNION ALL
-                 SELECT O1.PRTNR_NO
+                 SELECT /*+ USE_HASH(P1 P2) */
+                        O1.PRTNR_NO
                       , 'W02P00111' AS PERF_ATC_CD   /* 지점실활동인원수 실적코드 */
                       , '' AS FEE_PERF_ATC_VAL
                       , CASE WHEN NVL(P1.PERF_VAL , 0) >= 3 AND NVL(P2.PERF_VAL , 0) >= 50
