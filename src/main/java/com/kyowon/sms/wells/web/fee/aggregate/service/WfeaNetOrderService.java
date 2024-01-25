@@ -5,8 +5,10 @@ import java.util.List;
 import java.util.Map;
 
 import com.kyowon.sflex.common.common.dvo.BatchCallReqDvo;
+import com.kyowon.sms.common.web.fee.common.dto.ZfezFeeNetOrderStatusDto;
 import com.kyowon.sms.common.web.fee.common.dvo.ZfezFeeBatchStatusDetailsDvo;
 import com.kyowon.sms.common.web.fee.common.service.ZfezFeeBatchStatusDetailsService;
+import com.kyowon.sms.common.web.fee.common.service.ZfezFeeNetOrderStatusService;
 import com.kyowon.sms.wells.web.fee.aggregate.converter.WfeaNetOrderConverter;
 import com.kyowon.sms.wells.web.fee.aggregate.dvo.WfeaNetOrderDvo;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
@@ -39,6 +41,7 @@ public class WfeaNetOrderService {
     private final BatchCallService batchCallService;
 
     private final ZfezFeeBatchStatusDetailsService zfezFeeBatchStatusDetailsService;
+    private final ZfezFeeNetOrderStatusService zfezFeeNetOrderStatusService;
 
     /**
      * WELLS 월순주문 집계 데이터 조회
@@ -82,8 +85,18 @@ public class WfeaNetOrderService {
 
     @Transactional
     public String saveByNetOrders(SaveReq dto) throws Exception {
-        BatchCallReqDvo batchCallReqDvo = new BatchCallReqDvo();
+
+        String jobKey = "WSM_FE_OA0005";
+
         UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
+
+        ZfezFeeNetOrderStatusDto.SearchRes searchRes = zfezFeeNetOrderStatusService
+            .getFeeNetOrderCntrStat(dto.perfYm(), dto.feeTcntDvCd(), "02");
+
+        BizAssert
+            .isTrue(!(searchRes != null && "02".equals(searchRes.ntorCnfmStatCd())), "MSG_ALT_CRSP_TCNT_ORD_AGRG_CNFM");
+
+        BatchCallReqDvo batchCallReqDvo = new BatchCallReqDvo();
 
         // 배치 parameter
         Map<String, String> params = new HashMap<String, String>();
@@ -92,23 +105,23 @@ public class WfeaNetOrderService {
         params.put("userId", userSession.getEmployeeIDNumber());
         params.put("deptId", userSession.getDepartmentId());
 
-        batchCallReqDvo.setJobKey("WSM_FE_OA0005");
+        batchCallReqDvo.setJobKey(jobKey);
         batchCallReqDvo.setParams(params);
 
         String runId = batchCallService.runJob(batchCallReqDvo);
         BizAssert.isTrue(StringUtils.isNotEmpty(runId), "MSG_ALT_SVE_ERR");
 
-        /*수수료배치상태내역 저장*/
-        ZfezFeeBatchStatusDetailsDvo zfezFeeBatchStatusDetailsDvo = new ZfezFeeBatchStatusDetailsDvo();
-        zfezFeeBatchStatusDetailsDvo.setBaseYm(dto.perfYm());
-        zfezFeeBatchStatusDetailsDvo.setFeeTcntDvCd(dto.feeTcntDvCd());
-        zfezFeeBatchStatusDetailsDvo.setFeeBatWkId(batchCallReqDvo.getJobKey());
-        zfezFeeBatchStatusDetailsDvo.setFeeBatPrtcId(runId);
-        zfezFeeBatchStatusDetailsDvo.setOgTpCd("W01"); //전체주문별배치라 의미x
-        zfezFeeBatchStatusDetailsDvo.setFeeBatTpCd("01"); //수수료배치유형코드 = 01 : 주문별배치-생성
-        zfezFeeBatchStatusDetailsDvo.setFeeBatStatCd("01"); //수수료배치상태코드 = 01 : 시작
-
-        zfezFeeBatchStatusDetailsService.createFeeBatchStatusDetails(zfezFeeBatchStatusDetailsDvo);
+        //        /*수수료배치상태내역 저장*/
+        //        ZfezFeeBatchStatusDetailsDvo zfezFeeBatchStatusDetailsDvo = new ZfezFeeBatchStatusDetailsDvo();
+        //        zfezFeeBatchStatusDetailsDvo.setBaseYm(dto.perfYm());
+        //        zfezFeeBatchStatusDetailsDvo.setFeeTcntDvCd(dto.feeTcntDvCd());
+        //        zfezFeeBatchStatusDetailsDvo.setFeeBatWkId(batchCallReqDvo.getJobKey());
+        //        zfezFeeBatchStatusDetailsDvo.setFeeBatPrtcId(runId);
+        //        zfezFeeBatchStatusDetailsDvo.setOgTpCd("W01"); //전체주문별배치라 의미x
+        //        zfezFeeBatchStatusDetailsDvo.setFeeBatTpCd("01"); //수수료배치유형코드 = 01 : 주문별배치-생성
+        //        zfezFeeBatchStatusDetailsDvo.setFeeBatStatCd("01"); //수수료배치상태코드 = 01 : 시작
+        //
+        //        zfezFeeBatchStatusDetailsService.createFeeBatchStatusDetails(zfezFeeBatchStatusDetailsDvo);
 
         return StringUtils.isNotBlank(runId) ? "S" : "E";
     }
@@ -120,13 +133,38 @@ public class WfeaNetOrderService {
      */
 
     @Transactional
-    public int updateByNetOrders(SaveReq dto) {
+    public int updateByNetOrders(SaveReq dto) throws Exception {
+
+        String jobKey = "WSM_FE_OA0005";
 
         int processCount = 0;
+
+        ZfezFeeNetOrderStatusDto.SearchRes searchRes = zfezFeeNetOrderStatusService
+            .getFeeNetOrderCntrStat(dto.perfYm(), dto.feeTcntDvCd(), "02");
+
+        BizAssert
+            .isTrue(!(searchRes != null && "02".equals(searchRes.ntorCnfmStatCd())), "MSG_ALT_CRSP_TCNT_ORD_AGRG_CNFM");
+
+        // 배치 dvo 생성
+        BatchCallReqDvo batchCallReqDvo = new BatchCallReqDvo();
+
+        // 배치 parameter
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("perfYm", dto.perfYm());
+        params.put("tcntDvCd", dto.feeTcntDvCd());
+
+        batchCallReqDvo.setJobKey(jobKey);
+        batchCallReqDvo.setParams(params);
+
+        String jobStatus = batchCallService.getLastestJobStatusByQuery(batchCallReqDvo);
+
+        BizAssert.isTrue(("COMPLETED").equals(jobStatus), "MSG_ALT_ONDEMAND_ALREAY_EXECUTING");
 
         WfeaNetOrderDvo dvo = converter.mapSaveReqToWfeaNetOrderDvo(dto);
 
         processCount = mapper.updateNetOrders(dvo);
+
+        BizAssert.isTrue(processCount > 0, "MSG_ALT_CNFM_FAIL");
 
         return processCount;
     }
