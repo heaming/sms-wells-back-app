@@ -16,7 +16,7 @@
 	    WITH PART_INF AS (
             /*품목정보*/
             SELECT P1.PD_CD
-                 , P2.SAP_MAT_CD    /*SAP자재코드*/
+                 , TO_CHAR(TO_NUMBER(P2.SAP_MAT_CD)) AS SAP_MAT_CD    /*SAP자재코드*/
                  , P2.PD_ABBR_NM AS PD_NM         /*품목명*/
                  , P1.PD_PRP_VAL15  /*기초자재*/
                  , P1.PD_PRP_VAL17  /*자재관리유형, AS_MAT_MNG_TP_CD, MAT_MNGT_DV_CD*/
@@ -46,20 +46,7 @@
                AND P1.PD_PRP_VAL17 = #{stockTpCd}
                </if>
                <if test='@MybatisUtils@isNotEmpty(strtSapCd) or @MybatisUtils@isNotEmpty(endSapCd)'>
-                   <choose>
-                       <when test='@MybatisUtils@isNotEmpty(strtSapCd) and @MybatisUtils@isNotEmpty(endSapCd)'>
-                           AND P2.SAP_MAT_CD <![CDATA[>=]]> LPAD(#{strtSapCd}, 18, '0')
-                           AND P2.SAP_MAT_CD <![CDATA[<=]]> LPAD(#{endSapCd}, 18, '0')
-                       </when>
-                       <otherwise>
-                           <if test='@MybatisUtils@isNotEmpty(strtSapCd)'>
-                               AND P2.SAP_MAT_CD LIKE #{strtSapCd} ||'%'
-                           </if>
-                           <if test='@MybatisUtils@isNotEmpty(endSapCd)'>
-                               AND P2.SAP_MAT_CD LIKE #{endSapCd} ||'%'
-                           </if>
-                       </otherwise>
-                   </choose>
+                   AND TO_NUMBER(P2.SAP_MAT_CD) BETWEEN TO_NUMBER(NVL(#{strtSapCd}, #{endSapCd})) AND TO_NUMBER(NVL(#{endSapCd}, #{strtSapCd}))
                </if>
                <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
                AND P1.PD_CD = #{itmPdCd}  /* 품목코드 */
@@ -149,7 +136,7 @@
        , BASE AS (
            SELECT B1.WARE_NO
                 , P1.PD_CD
-                , P1.SAP_MAT_CD                                        /*SAP자재코드*/
+                , TO_CHAR(TO_NUMBER(P1.SAP_MAT_CD)) AS SAP_MAT_CD                                       /*SAP자재코드*/
                 , P1.PD_NM                                             /*품목명*/
                 , P1.PD_PRP_VAL15 AS ORDNY_HV_MAT_YN                   /*기초자재 필터*/
                 , P1.PD_PRP_VAL17 AS AS_MAT_MNG_TP_CD                  /*자재관리유형, AS_MAT_MNG_TP_CD, MAT_MNGT_DV_CD*/
@@ -178,7 +165,7 @@
         , BASE_GROUP  AS (
             SELECT  T1.WARE_NO
                   , T1.PD_CD
-                  , T1.SAP_MAT_CD
+                  , TO_CHAR(TO_NUMBER(T1.SAP_MAT_CD)) AS SAP_MAT_CD
                   , T1.PD_NM
                   , T1.ORDNY_HV_MAT_YN
                   , T1.AS_MAT_MNG_TP_CD
