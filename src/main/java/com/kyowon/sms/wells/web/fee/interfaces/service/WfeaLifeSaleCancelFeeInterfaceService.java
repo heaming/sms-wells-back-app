@@ -71,9 +71,6 @@ public class WfeaLifeSaleCancelFeeInterfaceService {
             }
             String cnfmYn = mapper.selectLifeFeeValidKey(saveDvo);
             // 2024.01.24 예상확정구분코드 들어오는게 00이아니면 에러
-            if (!"00".equals(item.etCnfmDvCd())) {
-                 throw new BizException("MSG_ALT_NOT_CNFM_STAT"); // 확정상태가 아닙니다.
-            }
             // 1.1 마감여부? 체크 후 마감이면 에러 CNFM_YN = 'Y'면 에러
             if ("Y".equals(cnfmYn)) {
                 throw new BizException("MSG_ALT_CNFM_NO_RENEW_DATA"); // 확정된 DATA는 갱인이 불가능합니다.
