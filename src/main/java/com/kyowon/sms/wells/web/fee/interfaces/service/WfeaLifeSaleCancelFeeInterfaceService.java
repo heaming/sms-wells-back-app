@@ -3,15 +3,12 @@ package com.kyowon.sms.wells.web.fee.interfaces.service;
 import com.kyowon.sms.wells.web.fee.interfaces.dto.WfeaLifeSaleCancelFeeInterfaceDto;
 import com.kyowon.sms.wells.web.fee.interfaces.dto.WfeaLifeSaleCancelFeeInterfaceDto.IfRequest;
 import com.kyowon.sms.wells.web.fee.interfaces.dvo.WfeaLifeSaleCancelFeenterfaceDvo;
-
 import com.kyowon.sms.wells.web.fee.interfaces.mapper.WfeaLifeSaleCancelFeeInterfaceMapper;
 import com.sds.sflex.system.config.exception.BizException;
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +19,8 @@ public class WfeaLifeSaleCancelFeeInterfaceService {
     @Transactional
     public String[] updateLifeFeeSync(WfeaLifeSaleCancelFeeInterfaceDto.SaveReq dto) throws Exception {
         // 배치형
+        int index = 0;
+        String baseYmCheck = "";
         for (IfRequest item : dto.list()) {
             // DTO > DVO
             WfeaLifeSaleCancelFeenterfaceDvo saveDvo = new WfeaLifeSaleCancelFeenterfaceDvo();
@@ -69,17 +68,30 @@ public class WfeaLifeSaleCancelFeeInterfaceService {
                 }
                 saveDvo.setOgTpCd(ogTpCd);
             }
-            String cnfmYn = mapper.selectLifeFeeValidKey(saveDvo);
-            // 1.1 마감여부? 체크 후 마감이면 에러 CNFM_YN = 'Y'면 에러
-            if ("Y".equals(cnfmYn)) {
-                throw new BizException("MSG_ALT_CNFM_NO_RENEW_DATA"); // 확정된 DATA는 갱인이 불가능합니다.
-            } else {
-                // 1.2 그외 처리한다.
-                int resultCnt = mapper.updateLifeFeeSync(saveDvo);
-                if (resultCnt <= 0) {
-                    throw new BizException("MSG_ALT_SVE_ERR"); // 응 서버에러
+            // 1. 첫 item만 정합성 체크한다.
+            if (index == 0) {
+                baseYmCheck = saveDvo.getBaseYm(); // 첫row 년월 체크용
+                // 1.2 예상확정구분코드가 00상태면 확정건수 체크후 있으면 에러 없으면 삭제후 데이터저장진행
+                if ("00".equals(saveDvo.getEtCnfmDvCd())) {
+                    int count = mapper.selectLifeFeeValidKeyCount(saveDvo); // 이미 확정된 건수 체크
+                    if (count > 0) {
+                        throw new BizException("MSG_ALT_CNFM_NO_RENEW_DATA"); // 확정된 DATA는 갱인이 불가능합니다.
+                    } else {
+                        mapper.deleteLifeFeeSync(saveDvo);
+                    }
+                }
+                // 1.3 예상확정구분코드가 01상태면 전부 지우고 데이터 저장 진행
+                if ("01".equals(saveDvo.getEtCnfmDvCd())) {
+                    mapper.deleteLifeFeeSync(saveDvo);
                 }
             }
+            // 1.4 첫row의 baseym과 저장하는 baseym이 다르면 에러
+            if (!baseYmCheck.equals(saveDvo.getBaseYm())) {
+                throw new BizException("MSG_ALT_CHK_DT"); // 날짜를 확인해 주세요.
+            }
+            // 1.5 데이터 저장
+            mapper.insertLifeFeeSync(saveDvo);
+            index++;
         }
         return new String[]{"S", "데이터 등록이 성공하였습니다."};
     }
