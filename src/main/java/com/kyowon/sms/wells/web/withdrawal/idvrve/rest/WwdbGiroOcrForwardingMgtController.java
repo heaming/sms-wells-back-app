@@ -99,6 +99,23 @@ public class WwdbGiroOcrForwardingMgtController {
     }
 
     /**
+     * 지로OCR발송관리 대상 조회
+     * @param cntrNo 계약번호
+     * @param cntrSn 계약일련번호
+     * @return SearchGiroCntractRes
+     */
+    @ApiOperation(value = "지로OCR발송관리 대상 계약정보 조회", notes = "지로OCR발송관리 대상 계약정보를 조회한다.")
+    @GetMapping("/objects/contract/{cntrno}/{cntrsn}")
+    public WwdbGiroOcrForwardingMgtDto.SearchGiroCntractRes getGiroOcrForwardingObjectContractInfo(
+        @PathVariable("cntrno")
+        String cntrNo,
+        @PathVariable("cntrsn")
+        String cntrSn
+    ) {
+        return service.getGiroOcrForwardingObjectContractInfo(cntrNo, cntrSn);
+    }
+
+    /**
      * 지로OCR발송관리 저장
      * @param dto
      * @return SaveResponse
@@ -171,11 +188,11 @@ public class WwdbGiroOcrForwardingMgtController {
     public SaveResponse saveGiroOcrForwardingPrints(
         @RequestBody
         @Valid
-        SavePrintReq dto ,
+        SavePrintReq dto,
         HttpServletResponse response
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(service.saveGiroOcrForwardingPrints(dto,response))
+            .processCount(service.saveGiroOcrForwardingPrints(dto, response))
             .build();
     }
 
