@@ -35,17 +35,12 @@ public class WfeaLifeSaleCancelFeeInterfaceService {
             saveDvo.setBrmgrPrtnrNo(item.brmgrPrtnrNo());
             saveDvo.setLifPdCd(item.lifPdCd());
             saveDvo.setLifPdNm(item.lifPdNm());
-            saveDvo.setRcpdt(item.rcpdt());
-            saveDvo.setCntrDt(item.cntrDt());
-            saveDvo.setCanDt(item.canDt());
             saveDvo.setTotDsbOjDvCd(item.totDsbOjDvCd());
             saveDvo.setSlOcAcuAmt(item.slOcAcuAmt());
             saveDvo.setDpAcuAmt(item.dpAcuAmt());
             saveDvo.setFlpymTn(item.flpymTn());
             saveDvo.setCntrNo(item.welsCntrNo());
             saveDvo.setCntrSn(item.welsCntrSn());
-            saveDvo.setFeeDsbYm(item.feeDsbYm());
-            saveDvo.setFeeRedfYm(item.feeRedfYm());
             saveDvo.setCnfmYn(item.cnfmYn());
             saveDvo.setDtaDlYn(item.dtaDlYn());
             saveDvo.setFstRgstDtm(item.fstRgstDtm());
@@ -56,6 +51,13 @@ public class WfeaLifeSaleCancelFeeInterfaceService {
             saveDvo.setFnlMdfcUsrId(item.fnlMdfcUsrId());
             saveDvo.setFnlMdfcPrgId(item.fnlMdfcPrgId());
             saveDvo.setFnlMdfcDeptId(item.fnlMdfcDeptId());
+            /* 2024.01.26 일자필드 0으로 들어오면 null처리 */
+            saveDvo.setRcpdt("0".equals(item.rcpdt()) ? "" : item.rcpdt());
+            saveDvo.setCntrDt("0".equals(item.cntrDt()) ? "" : item.cntrDt());
+            saveDvo.setCanDt("0".equals(item.canDt()) ? "" : item.canDt());
+            saveDvo.setFeeDsbYm("0".equals(item.feeDsbYm()) ? "" : item.feeDsbYm());
+            saveDvo.setFeeRedfYm("0".equals(item.feeRedfYm()) ? "" : item.feeRedfYm());
+
             if (StringUtils.isNotEmpty(item.ogTpCd())) {
                 String ogTpCd = item.ogTpCd();
                 if ("1".equals(item.ogTpCd())) {
