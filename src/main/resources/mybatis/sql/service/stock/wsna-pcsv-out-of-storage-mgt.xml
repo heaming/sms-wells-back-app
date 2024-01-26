@@ -96,6 +96,11 @@
            ON L2.REL_NO = L1.OSTR_AK_NO
            AND L2.DTA_DL_YN = 'N'
            AND ROWNUM = 1
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P1         /*상품각사속성상세*/
+            ON S6.PDCT_PD_CD = P1.PD_CD
+           AND P1.PD_PRP_VAL20 != '11'
+           AND P1.DTA_DL_YN = 'N'
+           
          WHERE 1=1
           /* 출고구분 */
           AND S1.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}  /*서비스 업무 세분류 코드 : 1112 제품배송, 1113 제품재배송, 2250 웰컴BS, 3460 택배반품*/
@@ -122,62 +127,105 @@
        , INQRY_LIST2 AS
        (
           SELECT DISTINCT
-                 I1.CST_SV_ASN_NO
-               , I1.CNTR_NO
-               , I1.CNTR_SN
-               , COUNT(1) OVER (PARTITION BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN
-                                ORDER BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN
+                 V1.CST_SV_ASN_NO
+               , V1.CNTR_NO
+               , V1.CNTR_SN
+               , COUNT(1) OVER (PARTITION BY V1.CST_SV_ASN_NO, V1.CNTR_NO, V1.CNTR_SN
+                                ORDER BY V1.CST_SV_ASN_NO, V1.CNTR_NO, V1.CNTR_SN
                                 RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS PART_CNT_TOTAL
-               , LISTAGG(C2.OJ_PD_CD , ',')
-                 WITHIN GROUP(ORDER BY C2.OJ_PD_CD) OVER (PARTITION BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN) AS PART_LIST
-               , LISTAGG(NVL(P0.PD_NM, P1.PD_PRP_VAL33), '|')
-                 WITHIN GROUP (ORDER BY C2.OJ_PD_CD) OVER (PARTITION BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN) AS PART_NM_LIST
-               , LISTAGG(C2.PD_QTY, ',')
-                 WITHIN GROUP (ORDER BY C2.OJ_PD_CD) OVER (PARTITION BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN) AS PART_QTY_LIST
-               , MIN(CASE WHEN P1.PD_PRP_VAL20 IN ('97') THEN 'WE13' /*고객판매_일시불판매 (뷰티기기)*/
-                          WHEN P1.PD_PRP_VAL20 IN ('98') THEN 'WE14' /*고객판매_일시불판매 (커피)*/
-                          WHEN P1.PD_PRP_VAL20 IN ('12') THEN 'WE15' /*고객판매_일시불판매 (홈카페캡슐)*/
-                          WHEN P1.PD_PRP_VAL20 IN ('13', '15', '16') THEN 'WE16' /*고객판매_일시불판매 (건강식품)*/
-                          WHEN P1.PD_PRP_VAL20 IN ('14') THEN 'WE17' /*고객판매_일시불판매 (화장품)*/
-                          WHEN P1.PD_PRP_VAL20 IN ('1', '2', '3', '4') THEN 'WE25'   /*고객판매_환경가전 택배*/
+               , LISTAGG(V1.OJ_PD_CD , ',')
+                 WITHIN GROUP(ORDER BY V1.OJ_PD_CD) OVER (PARTITION BY V1.CST_SV_ASN_NO, V1.CNTR_NO, V1.CNTR_SN) AS PART_LIST
+               , LISTAGG(NVL(V1.PD_NM, V1.PD_PRP_VAL33), '|')
+                 WITHIN GROUP (ORDER BY V1.OJ_PD_CD) OVER (PARTITION BY V1.CST_SV_ASN_NO, V1.CNTR_NO, V1.CNTR_SN) AS PART_NM_LIST
+               , LISTAGG(V1.PD_QTY, ',')
+                 WITHIN GROUP (ORDER BY V1.OJ_PD_CD) OVER (PARTITION BY V1.CST_SV_ASN_NO, V1.CNTR_NO, V1.CNTR_SN) AS PART_QTY_LIST
+               , MIN(CASE WHEN V1.PD_PRP_VAL20 IN ('97') THEN 'WE13' /*고객판매_일시불판매 (뷰티기기)*/
+                          WHEN V1.PD_PRP_VAL20 IN ('98') THEN 'WE14' /*고객판매_일시불판매 (커피)*/
+                          WHEN V1.PD_PRP_VAL20 IN ('12') THEN 'WE15' /*고객판매_일시불판매 (홈카페캡슐)*/
+                          WHEN V1.PD_PRP_VAL20 IN ('13', '15', '16') THEN 'WE16' /*고객판매_일시불판매 (건강식품)*/
+                          WHEN V1.PD_PRP_VAL20 IN ('14') THEN 'WE17' /*고객판매_일시불판매 (화장품)*/
+                          WHEN V1.PD_PRP_VAL20 IN ('1', '2', '3', '4') THEN 'WE25'   /*고객판매_환경가전 택배*/
                           ELSE 'WE99'    /*Wells기타*/
-                     END) OVER (PARTITION BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN
-                                ORDER BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN
+                     END) OVER (PARTITION BY V1.CST_SV_ASN_NO, V1.CNTR_NO, V1.CNTR_SN
+                                ORDER BY V1.CST_SV_ASN_NO, V1.CNTR_NO, V1.CNTR_SN
                                 RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
                      ) AS MIN_LGST_WK_MTHD_CD
-               , MAX(CASE WHEN P1.PD_PRP_VAL20 IN ('97') THEN 'WE13' /*고객판매_일시불판매 (뷰티기기)*/
-                          WHEN P1.PD_PRP_VAL20 IN ('98') THEN 'WE14' /*고객판매_일시불판매 (커피)*/
-                          WHEN P1.PD_PRP_VAL20 IN ('12') THEN 'WE15' /*고객판매_일시불판매 (홈카페캡슐)*/
-                          WHEN P1.PD_PRP_VAL20 IN ('13', '15', '16') THEN 'WE16' /*고객판매_일시불판매 (건강식품)*/
-                          WHEN P1.PD_PRP_VAL20 IN ('14') THEN 'WE17' /*고객판매_일시불판매 (화장품)*/
-                          WHEN P1.PD_PRP_VAL20 IN ('1', '2', '3', '4') THEN 'WE25'   /*고객판매_환경가전 택배*/
+               , MAX(CASE WHEN V1.PD_PRP_VAL20 IN ('97') THEN 'WE13' /*고객판매_일시불판매 (뷰티기기)*/
+                          WHEN V1.PD_PRP_VAL20 IN ('98') THEN 'WE14' /*고객판매_일시불판매 (커피)*/
+                          WHEN V1.PD_PRP_VAL20 IN ('12') THEN 'WE15' /*고객판매_일시불판매 (홈카페캡슐)*/
+                          WHEN V1.PD_PRP_VAL20 IN ('13', '15', '16') THEN 'WE16' /*고객판매_일시불판매 (건강식품)*/
+                          WHEN V1.PD_PRP_VAL20 IN ('14') THEN 'WE17' /*고객판매_일시불판매 (화장품)*/
+                          WHEN V1.PD_PRP_VAL20 IN ('1', '2', '3', '4') THEN 'WE25'   /*고객판매_환경가전 택배*/
                           ELSE 'WE99'    /*Wells기타*/
-                     END) OVER (PARTITION BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN
-                                ORDER BY I1.CST_SV_ASN_NO, I1.CNTR_NO, I1.CNTR_SN
+                     END) OVER (PARTITION BY V1.CST_SV_ASN_NO, V1.CNTR_NO, V1.CNTR_SN
+                                ORDER BY V1.CST_SV_ASN_NO, V1.CNTR_NO, V1.CNTR_SN
                                 RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
                      ) AS MAX_LGST_WK_MTHD_CD
-          FROM TB_SSCT_CNTR_PD_REL C2             /*계약상품관계*/
-          INNER JOIN TB_PDBS_PD_BAS P0         /*상품각사속성상세*/
-           ON P0.PD_CD = C2.OJ_PD_CD
-           AND P0.DTA_DL_YN = 'N'
-          INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P1         /*상품각사속성상세*/
-           ON P1.PD_CD = C2.OJ_PD_CD
-           AND P1.PD_EXTS_PRP_GRP_CD = 'PART'
-           AND P1.DTA_DL_YN = 'N'
-          INNER JOIN INQRY_LIST1 I1
-           ON C2.CNTR_NO = I1.CNTR_NO
-           AND C2.CNTR_SN = I1.CNTR_SN
-           AND SV_BIZ_DCLSF_CD != '1410' 
-           /*01 복합-기준, 02 기준-기준, 03 기준-서비스, 04 서비스-서비스,
-             05 기준-제품, 06 대체품(Substitution), 07 상품-필터, 08 패키지(Package),
-             09 번들(Bundle), 10 프로모션상품-상품, 11 추가구매, 12 동시구매/기계약상품, 13 혼식불가,
-             14 AS부품, 15 대체모종, 16 멤버십기준상품, 17 구매 불가상품, 18 정기배송 제품명(BS),
-             19 동시구매선택상품, 20 동시구매선택번들상품, 21 패키지구성제품, 22 스마트체인지상품, 23 사은품,
-             24 BS투입제품, 25 구성품*/
-          WHERE  1=1
-            AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')  BETWEEN C2.VL_STRT_DTM AND C2.VL_END_DTM
-           AND C2.DTA_DL_YN = 'N'
-           AND C2.PD_REL_TP_CD = '05' 
+            FROM (
+                 SELECT  /* 제품 */
+                         DISTINCT
+                         I1.CST_SV_ASN_NO
+                       , I1.CNTR_NO
+                       , I1.CNTR_SN
+                       , C2.OJ_PD_CD
+                       , C2.PD_QTY
+                       , P0.PD_NM
+                       , P1.PD_PRP_VAL20
+                       , P1.PD_PRP_VAL33
+                    FROM TB_SSCT_CNTR_PD_REL C2             /*계약상품관계*/
+                   INNER JOIN TB_PDBS_PD_BAS P0         /*상품각사속성상세*/
+                      ON P0.PD_CD = C2.OJ_PD_CD
+                     AND P0.DTA_DL_YN = 'N'
+                   INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P1         /*상품각사속성상세*/
+                      ON P1.PD_CD = C2.OJ_PD_CD
+                     AND P1.PD_EXTS_PRP_GRP_CD = 'PART'
+                     AND P1.DTA_DL_YN = 'N'
+                   INNER JOIN INQRY_LIST1 I1
+                      ON C2.CNTR_NO = I1.CNTR_NO
+                     AND C2.CNTR_SN = I1.CNTR_SN
+                     AND SV_BIZ_DCLSF_CD != '1410'
+                          /*01 복합-기준, 02 기준-기준, 03 기준-서비스, 04 서비스-서비스,
+                            05 기준-제품, 06 대체품(Substitution), 07 상품-필터, 08 패키지(Package),
+                            09 번들(Bundle), 10 프로모션상품-상품, 11 추가구매, 12 동시구매/기계약상품, 13 혼식불가,
+                            14 AS부품, 15 대체모종, 16 멤버십기준상품, 17 구매 불가상품, 18 정기배송 제품명(BS),
+                            19 동시구매선택상품, 20 동시구매선택번들상품, 21 패키지구성제품, 22 스마트체인지상품, 23 사은품,
+                            24 BS투입제품, 25 구성품*/
+                   WHERE 1=1
+                     AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')  BETWEEN C2.VL_STRT_DTM AND C2.VL_END_DTM
+                     AND C2.DTA_DL_YN = 'N'
+                     AND C2.PD_REL_TP_CD = '05'
+
+                   UNION ALL
+
+                  SELECT  /* 투입자재 */
+                         DISTINCT
+                         I1.CST_SV_ASN_NO
+                       , I1.CNTR_NO
+                       , I1.CNTR_SN
+                       , S1.PU_ITM_PD_CD AS OJ_PD_CD
+                       , S1.ITM_QTY AS PD_QTY
+                       , P0.PD_NM
+                       , P1.PD_PRP_VAL20
+                       , P1.PD_PRP_VAL33
+                    FROM WSMDBS.TB_SVST_SV_BIZ_BYTP_PU_ITM_IZ S1    /*서비스업무유형투입품목내역, ST165TB*/
+                   INNER JOIN INQRY_LIST1 I1
+                      ON I1.PDCT_PD_CD = S1.PDCT_PD_CD
+                     AND S1.ITM_PU_TP_CD = 'I'
+                     AND I1.SV_BIZ_DCLSF_CD LIKE S1.SV_BIZ_DCLSF_CD
+                     AND (I1.BASE_PD_CD = S1.BASE_PD_CD OR S1.BASE_PD_CD = 'ALL')
+                     AND (I1.SV_PD_CD = S1.SV_PD_CD OR S1.SV_PD_CD = 'ALL')
+                     AND TO_CHAR(SYSDATE , 'YYYYMMDD') BETWEEN S1.APY_STRTDT AND S1.APY_ENDDT
+                     AND S1.DTA_DL_YN = 'N'
+                   INNER JOIN TB_PDBS_PD_BAS P0                               /*상품각사속성상세*/
+                      ON P0.PD_CD = S1.PU_ITM_PD_CD
+                     AND P0.DTA_DL_YN = 'N'
+                    LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL P1                      /*상품각사속성상세*/
+                      ON P1.PD_CD = S1.PU_ITM_PD_CD
+                     AND P1.PD_EXTS_PRP_GRP_CD = 'PART'
+                     AND P1.DTA_DL_YN = 'N'
+                   WHERE 1=1
+                 ) V1
+           WHERE 1=1
           UNION ALL
 
           SELECT DISTINCT
@@ -217,7 +265,7 @@
                      ) AS MAX_LGST_WK_MTHD_CD
           FROM TB_SSCT_FGPT_RCP_IZ  C2                                      /*사은품접수내역*/
          INNER JOIN TB_PDBS_PD_BAS P0                               /*상품각사속성상세*/
-            ON P0.PD_CD = C2.FGPT_PD_CD 
+            ON P0.PD_CD = C2.FGPT_PD_CD
            AND P0.DTA_DL_YN = 'N'
           LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL P1                      /*상품각사속성상세*/
             ON P1.PD_CD = C2.FGPT_PD_CD
@@ -227,7 +275,7 @@
              ON C2.DTL_CNTR_NO = I1.CNTR_NO
             AND C2.DTL_CNTR_SN = I1.CNTR_SN
             AND SV_BIZ_DCLSF_CD = '1410'
-          WHERE  1=1 
+          WHERE  1=1
        )
        , INQRY_LIST AS
        (  /* 택배 대상 */
