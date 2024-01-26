@@ -1,6 +1,6 @@
 package com.kyowon.sms.wells.web.closing.payment.service;
 
-import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,10 +16,14 @@ class ZdcaEtcProfitSlipCreateServiceTest extends SpringTestSupport {
 
     @Test
     @Transactional
-    @DisplayName("잡이익 입금전표생성 테스트")
+    @DisplayName("잡이익 입금전표생성 테스트(Wells)")
     void createSlip() {
-        String result = zdcaEtcProfitSlipCreateService.createSlip("202312", "2000");
+        String beforeMonth = "202312";
+        String kwGrpCoCd = "2000";
+        int atamDv = 2;
 
-        Assertions.assertThat(result).isEqualTo("SUCCESS");
+        String result = zdcaEtcProfitSlipCreateService.createSlip(beforeMonth, kwGrpCoCd, atamDv);
+
+        Assertions.assertEquals("SUCCESS", result);
     }
 }
