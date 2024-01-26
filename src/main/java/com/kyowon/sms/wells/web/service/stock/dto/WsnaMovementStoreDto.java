@@ -15,7 +15,7 @@ import lombok.Builder;
  */
 public class WsnaMovementStoreDto {
     @Builder
-    @ApiModel("WsnaMovementStrControllerDto-SearchReq")
+    @ApiModel("WsnaMovementStoreDto-SearchReq")
     public record SearchReq(
         @NotBlank
         String stStrDt, /* 시작일자FROM */
@@ -27,7 +27,7 @@ public class WsnaMovementStoreDto {
 
     ) {}
 
-    @ApiModel("WsnaMovementStrControllerDto-SearchRes")
+    @ApiModel("WsnaMovementStoreDto-SearchRes")
     public record SearchRes(
         String strTpCd, /* 입고유형코드 */
         String strTpNm, /* 입고유형명 */
@@ -49,7 +49,7 @@ public class WsnaMovementStoreDto {
 
     ) {}
 
-    @ApiModel("WsnaMovementStrControllerDto-MovementRes")
+    @ApiModel("WsnaMovementStoreDto-MovementRes")
     public record MovementRes(
         String strTpCd, /*입고구분코드*/
         String strRgstDt, /*입고일자*/
@@ -64,7 +64,7 @@ public class WsnaMovementStoreDto {
         String strHopDt, /* 입고희망일자 */
         String wareDtlDvCd /* 입고창고상세구분 */
     ) {}
-    @ApiModel("WsnaMovementStrControllerDto-MovementOstrRes")
+    @ApiModel("WsnaMovementStoreDto-MovementOstrRes")
     public record MovementOstrRes(
         String itmOstrNo, /* 품목출고번호 */
         String wareMngtPrtnrNo, /* 창고관리파트너번호 */
@@ -81,7 +81,7 @@ public class WsnaMovementStoreDto {
         String pdNm /* 품목명 */
     ) {}
 
-    @ApiModel("WsnaMovementStrControllerDto-MovementOstrMngtReq")
+    @ApiModel("WsnaMovementStoreDto-MovementOstrMngtReq")
     public record MovementOstrMngtReq(
         String stckNoStdGb, /* 표준창고구분 */
         String itmStrNo, /* 품목입고번호 */
@@ -96,7 +96,7 @@ public class WsnaMovementStoreDto {
         String strSn /* 입고순번 */
     ) {}
 
-    @ApiModel("WsnaMovementStrControllerDto-MovementOstrMngtRes")
+    @ApiModel("WsnaMovementStoreDto-MovementOstrMngtRes")
     public record MovementOstrMngtRes(
         String itmStrNo, /* 품목입고번호 */
         String sapMatCd, /* SAP자재코드 */
@@ -126,7 +126,7 @@ public class WsnaMovementStoreDto {
         String ostrSn /* 출고순번 */
     ) {}
 
-    @ApiModel("WsnaMovementStrControllerDto-MovementStrSaveReq")
+    @ApiModel("WsnaMovementStoreDto-MovementStrSaveReq")
     public record MovementStrSaveReq(
         String itmStrNo, /* 품목입고번호 */
         int strSn, /* 입고순번 */
@@ -136,7 +136,7 @@ public class WsnaMovementStoreDto {
         int strQty /* 입고수량 */
     ) {}
 
-    @ApiModel("WsnaMovementStrControllerDto-WarehouseMonthlyReq")
+    @ApiModel("WsnaMovementStoreDto-WarehouseMonthlyReq")
     public record WarehouseMonthlyReq(
         String apyYm, /* 적용년월 */
         String wareNo /* 창고번호 */

@@ -1,8 +1,8 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
-import io.swagger.annotations.ApiModel;
-
 import java.math.BigDecimal;
+
+import io.swagger.annotations.ApiModel;
 
 /**
  * <pre>
@@ -53,25 +53,5 @@ public class WsnaEtcOutOfStorageRsonDto {
         String sortDvVal, /* 정렬구분 */
         String deptNm, /* 부서명 */
         String rmkCn /*비고*/
-    ) {}
-
-    @ApiModel(value = "WsnaEtcOutOfStorageRsonDto-CenterRes")
-    public record CenterRes(
-        // CODEID
-        String codeId,
-        // CODENAME
-        String codeName,
-        // 창고관리파트너번호
-        String wareMngtPrtnrNo
-    ) {}
-
-    @ApiModel(value = "WsnaEtcOutOfStorageRsonDto-BusinessRes")
-    public record BusinessRes(
-        // CODEID
-        String codeId,
-        // CODENAME
-        String codeName,
-        // 창고구분코드
-        String wareDvCd
     ) {}
 }
