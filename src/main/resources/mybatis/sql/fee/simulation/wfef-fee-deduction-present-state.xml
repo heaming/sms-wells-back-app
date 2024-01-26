@@ -40,18 +40,22 @@
                   FROM (
                     SELECT D1.PRTNR_NO
                          , SUM(NVL(D1.PNPYAM_OC_AMT, 0)) AS PNPYAM_OC_AMT_SUM
-                      FROM VW_GBS_FEDD_PNPY_OC_BAS_01 D1 /*가지급발생기본*/
+                      FROM TB_FEDD_PNPY_OC_BAS D1 /*가지급발생기본*/
                      WHERE D1.DTA_DL_YN = 'N'
                        AND D1.PRTNR_NO = T.PRTNR_NO  --파트너번호
-                       AND D1.PNPYAM_OC_YM <![CDATA[ <= ]]> TO_CHAR(SYSDATE, 'YYYYMM')
+                       AND D1.OG_TP_CD = #{ogTpCd}  /* 조직유형코드 */
+                       AND D1.PNPYAM_OC_YM <![CDATA[ <= ]]> #{perfYm}
+                       AND D1.CO_CD IN ('2000','P0')
                      GROUP BY D1.PRTNR_NO) D1
                   LEFT OUTER JOIN (
                     SELECT D2.PRTNR_NO
                          , SUM(NVL(D2.PNPYAM_DDCTAM, 0)) AS PNPYAM_DDCTAM_SUM
-                      FROM VW_GBS_FEDD_PNPY_DDTN_IZ_01 D2 /*가지급공제내역*/
+                      FROM TB_FEDD_PNPY_DDTN_IZ D2 /*가지급공제내역*/
                      WHERE D2.DTA_DL_YN = 'N'
                        AND D2.PRTNR_NO = T.PRTNR_NO  --파트너번호
-                       AND D2.DDTN_YM <![CDATA[ <= ]]> TO_CHAR(SYSDATE, 'YYYYMM')
+                       AND D2.OG_TP_CD = #{ogTpCd}  /* 조직유형코드 */
+                       AND D2.DDTN_YM <![CDATA[ <= ]]> #{perfYm}
+                       AND D2.CO_CD IN ('2000','P0')
                      GROUP BY D2.PRTNR_NO) D2
                     ON D1.PRTNR_NO = D2.PRTNR_NO
              ), 0) AS PNPYAM_BLAM    --가지급금 잔액

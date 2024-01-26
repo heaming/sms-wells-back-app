@@ -12,7 +12,7 @@ public class WsnaItemReceivingAndPayingDto {
     // *********************************************************
     // 품목별수불현황 조회 Search Request Dto
     @Builder
-    @ApiModel("WsnaReceiptsAndPaymentsDto-SearchReq")
+    @ApiModel("WsnaItemReceivingAndPayingDto-SearchReq")
     public record SearchReq(
         // 입고창고구분
         String strWareDvCd,
@@ -53,7 +53,7 @@ public class WsnaItemReceivingAndPayingDto {
     // Result Dto
     // *********************************************************
     // 품목별수불현황 조회 Search Result Dto
-    @ApiModel("WsnaReceiptsAndPaymentsDto-SearchRes")
+    @ApiModel("WsnaItemReceivingAndPayingDto-SearchRes")
     public record SearchRes(
         // 품목코드
         String itmPdCd,
@@ -124,7 +124,7 @@ public class WsnaItemReceivingAndPayingDto {
 
     ) {}
 
-    @ApiModel("WsnaReceiptsAndPaymentsDto-SearchDateReq")
+    @ApiModel("WsnaItemReceivingAndPayingDto-SearchDateReq")
     public record SearchDateReq(
         // 품목코드
         String itmPdCd,
@@ -136,7 +136,7 @@ public class WsnaItemReceivingAndPayingDto {
         String strRgstTo
     ) {}
 
-    @ApiModel("WsnaReceiptsAndPaymentsDto-SearchDateRes")
+    @ApiModel("WsnaItemReceivingAndPayingDto-SearchDateRes")
     public record SearchDateRes(
         // 일자
         String ymd,

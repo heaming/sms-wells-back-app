@@ -194,7 +194,7 @@ public class WsnaBsCsmbDeliveryBaseDto {
         String pdAbbrNm
     ) {}
 
-    @ApiModel(value = "WsnaBsCsmbDeliveryBaseDto-CreateReq")
+    @ApiModel(value = "WsnaBsCsmbDeliveryBaseDto-EditReq")
     public record EditReq(
         // 관리년월
         String mngtYm,
