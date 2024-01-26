@@ -21,6 +21,7 @@ public class WfeaLifeSaleCancelFeeInterfaceService {
         // 배치형
         int index = 0;
         String baseYmCheck = "";
+        String ogTpCdCheck = "";
         for (IfRequest item : dto.list()) {
             // DTO > DVO
             WfeaLifeSaleCancelFeenterfaceDvo saveDvo = new WfeaLifeSaleCancelFeenterfaceDvo();
@@ -71,6 +72,7 @@ public class WfeaLifeSaleCancelFeeInterfaceService {
             // 1. 첫 item만 정합성 체크한다.
             if (index == 0) {
                 baseYmCheck = saveDvo.getBaseYm(); // 첫row 년월 체크용
+                ogTpCdCheck = saveDvo.getOgTpCd(); // 첫row 조직 유형 체크용
                 // 1.2 예상확정구분코드가 00상태면 확정건수 체크후 있으면 에러 없으면 삭제후 데이터저장진행
                 if ("00".equals(saveDvo.getEtCnfmDvCd())) {
                     int count = mapper.selectLifeFeeValidKeyCount(saveDvo); // 이미 확정된 건수 체크
@@ -85,11 +87,16 @@ public class WfeaLifeSaleCancelFeeInterfaceService {
                     mapper.deleteLifeFeeSync(saveDvo);
                 }
             }
+
             // 1.4 첫row의 baseym과 저장하는 baseym이 다르면 에러
             if (!baseYmCheck.equals(saveDvo.getBaseYm())) {
                 throw new BizException("MSG_ALT_CHK_DT"); // 날짜를 확인해 주세요.
             }
-            // 1.5 데이터 저장
+            // 1.5 첫row의 ogTpCd와 저장하는 ogTpCd가 다르면 에러
+            if (!ogTpCdCheck.equals(saveDvo.getOgTpCd())) {
+                throw new BizException("MSG_TXT_OG_TP_CD_ERROR"); // 조직유형코드가 올바르지 않습니다.
+            }
+            // 1.6 데이터 저장
             mapper.insertLifeFeeSync(saveDvo);
             index++;
         }
