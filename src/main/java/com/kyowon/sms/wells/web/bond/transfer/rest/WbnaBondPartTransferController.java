@@ -44,11 +44,8 @@ public class WbnaBondPartTransferController {
     })
     public List<SearchRes> getPartTransferAggregation(
         @Valid
-        SearchReq reqDto,
-        PageInfo pageInfo
+        SearchReq reqDto
     ) {
-        log.debug("call getAggregateParts");
-        log.debug("reqDto: " + reqDto.toString());
         return service.getPartTransferAggregation(reqDto);
     }
 
@@ -63,8 +60,6 @@ public class WbnaBondPartTransferController {
         SearchDetailReq reqDto,
         PageInfo pageInfo
     ) {
-        log.debug("call getPartAggregationDetails");
-        log.debug("reqDto: " + reqDto.toString());
         return service.getPartTransferDetails(reqDto, pageInfo);
     }
 
@@ -78,9 +73,6 @@ public class WbnaBondPartTransferController {
         @Valid
         SearchDetailReq reqDto
     ) {
-        log.debug("call getPartAggregationDetailSummary");
-        log.debug("reqDto: " + reqDto.toString());
-
         return service.getPartTransferDetailSummary(reqDto);
     }
 
@@ -110,8 +102,6 @@ public class WbnaBondPartTransferController {
         @RequestBody
         CreateReq dto
     ) {
-        // TODO 멩세서 내용 확인 후 추가 작업 예정 그 전에는 임시 갱신 건수 전달
-        log.debug("call createPartTransfer");
         return SaveResponse.builder()
             .processCount(service.createPartTransfer(dto))
             .build();
@@ -125,25 +115,9 @@ public class WbnaBondPartTransferController {
         @NotEmpty
         List<EditReq> dtos
     ) {
-        // TODO 멩세서 내용 확인 후 추가 작업 예정 그 전에는 임시 갱신 건수 전달
-        log.debug("call editPartTransferDetails");
         return SaveResponse.builder()
             .processCount(service.editPartTransferDetails(dtos))
             .build();
-    }
-
-    @ApiOperation(value = "채권 배정 이력 확인", notes = "기준년월 정보를 입력 받아 채권 배정 내역 등록 여부를 조회 한다")
-    @GetMapping("/has-part-transfer")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", required = true)
-    })
-    public Boolean hasPartTransfer(
-        @RequestParam
-        String baseYm
-    ) {
-        log.debug("call hasPartTransfer");
-        log.debug("baseYm: " + baseYm);
-        return service.hasPartTransfer(baseYm);
     }
 
     @ApiOperation(value = "채권 이관 배정 수행내역 확인", notes = "기준년월 정보를 입력 받아 채권 배정 내역 등록 여부를 조회 한다")
@@ -156,7 +130,6 @@ public class WbnaBondPartTransferController {
         @Valid
         SearchDetailReq reqDto
     ) {
-        log.debug("call hasPartTransferDetail");
         return service.hasPartTransferDetail(reqDto);
     }
 }

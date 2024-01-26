@@ -173,24 +173,6 @@ public class WbnaBondPartTransferService {
     }
 
     /**
-     * 채권 배정 이력 확인(해당 년월 기준 배정 내역 존재 여부 확인)
-     * @param baseYm 기준년월
-     * @return 조회 결과 true:배정내역존재, false:배정내역미존재
-     * @throws BizException 정상 조회 결과 아닌 경우 Exception 처리
-     */
-    public boolean hasPartTransfer(
-        String baseYm
-    ) throws BizException {
-
-        //조회된 정보가 true, false에 해당하지 않는 경우 exception발생을 위해 switch 처리
-        return switch (mapper.selectHasPartTransfer(baseYm)) {
-            case 1 -> true;
-            case 0 -> false;
-            default -> throw new BizException("MSG_ALT_ERR_CONTACT_ADMIN");
-        };
-    }
-
-    /**
      * 파트이관 생성전 기존 생성 이력 확인
      * @param dto 검색 조건(기준년월,사업부구분)
      * @return 조회 결과 true:생성이력존재, false:생성이력미존재
@@ -201,7 +183,8 @@ public class WbnaBondPartTransferService {
     ) throws BizException {
 
         //조회된 정보가 true, false에 해당하지 않는 경우 exception발생을 위해 switch 처리
-        return switch (mapper.selectHasPartTransferDetail(dto)) {
+        return switch (bondTransferAssignMgtService
+            .getBondTransferAssign(dto.baseYm(), dto.bzHdqDvCd(), BnBondConst.TfBizDvCd.PART_TRANSFER.getValue())) {
             case 1 -> true;
             case 0 -> false;
             default -> throw new BizException("MSG_ALT_ERR_CONTACT_ADMIN");
