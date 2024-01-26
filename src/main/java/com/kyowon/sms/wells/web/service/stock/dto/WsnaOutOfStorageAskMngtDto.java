@@ -40,7 +40,8 @@ public class WsnaOutOfStorageAskMngtDto {
         String ostrOjWareNo, //출고대상창고번호
         String ostrAkRgstDt, //출고요청등록일자
         String strOjWareNo, //입고대상창고번호
-        String lgstOstrAkNo //물류출고요청번호
+        String lgstOstrAkNo, //물류출고요청번호
+        String fstRgstDtm // 최초등록일시
     ) {}
 
     @ApiModel(value = "WsnaOutOfStorageAskMngtDto-FindReq")
