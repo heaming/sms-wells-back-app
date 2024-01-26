@@ -38,14 +38,6 @@ public interface WbnaBondPartTransferMapper {
         SearchDetailReq dto
     );
 
-    Integer selectHasPartTransfer(
-        String baseYm
-    );
-
-    Integer selectHasPartTransferDetail(
-        SearchDetailReq dto
-    );
-
     int insertPartTransfers(WbnaBondPartTransferDvo dvo);
 
     int deletePartTransfers(WbnaBondPartTransferDvo dvo);
