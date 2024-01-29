@@ -19,7 +19,7 @@ import io.swagger.annotations.ApiModel;
  */
 
 public class WsnaBuildingBsConsumableDto {
-    @ApiModel(value = "WsnaBldBfsvcCsmbDdlvDto-SearchReq")
+    @ApiModel(value = "WsnaBuildingBsConsumableDto-SearchReq")
     public record SearchReq(
         // 관리년월
         @NotBlank
@@ -28,7 +28,7 @@ public class WsnaBuildingBsConsumableDto {
         List<String> bldCds
     ) {}
 
-    @ApiModel(value = "WsnaBldBfsvcCsmbDdlvDto-SearchItmRes")
+    @ApiModel(value = "WsnaBuildingBsConsumableDto-SearchItmRes")
     public record SearchItmRes(
         // 유형코드
         String bfsvcCsmbDdlvTpCd,
@@ -52,7 +52,7 @@ public class WsnaBuildingBsConsumableDto {
         BigDecimal qty
     ) {}
 
-    @ApiModel(value = "WsnaBldBfsvcCsmbDdlvDto-FindTmlmRes")
+    @ApiModel(value = "WsnaBuildingBsConsumableDto-FindTmlmRes")
     public record FindTmlmRes(
         // 시작일자
         String bizStrtdt,
@@ -64,7 +64,7 @@ public class WsnaBuildingBsConsumableDto {
         String bizEndHh
     ) {}
 
-    @ApiModel(value = "WsnaBldBfsvcCsmbDdlvDto-CreateTmlmReq")
+    @ApiModel(value = "WsnaBuildingBsConsumableDto-CreateTmlmReq")
     public record CreateTmlmReq(
         // 관리년월
         @NotBlank
@@ -85,7 +85,7 @@ public class WsnaBuildingBsConsumableDto {
         String bizEndHh
     ) {}
 
-    @ApiModel(value = "WsnaBldBfsvcCsmbDdlvDto-SearchBldRes")
+    @ApiModel(value = "WsnaBuildingBsConsumableDto-SearchBldRes")
     public record SearchBldRes(
         // 빌딩코드
         String bldCd,
@@ -93,7 +93,7 @@ public class WsnaBuildingBsConsumableDto {
         String bldNm
     ) {}
 
-    @ApiModel(value = "WsnaBldBfsvcCsmbDdlvDto-CreateReq")
+    @ApiModel(value = "WsnaBuildingBsConsumableDto-CreateReq")
     public record CreateReq(
         // 관리년월
         @NotBlank
@@ -117,7 +117,7 @@ public class WsnaBuildingBsConsumableDto {
         String bfsvcCsmbDdlvStatCd
     ) {}
 
-    @ApiModel(value = "WsnaBldBfsvcCsmbDdlvDto-SearchLmQtyRes")
+    @ApiModel(value = "WsnaBuildingBsConsumableDto-SearchLmQtyRes")
     public record SearchLmQtyRes(
         // SAP코드
         String sapMatCd,

@@ -20,14 +20,14 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
     @ApiModel(value = "WsnaPcsvOutOfStorageMgtDto-SearchReq")
     public record SearchReq(
-        String startDt,
-        String endDt,
-        String lgstWkMthdCd,
-        String svBizDclsfCd,
-        String wkWareNo,
-        String vstFshDt,
-        String findGb,
-        String selCnt
+        String startDt, // 계약시작일자
+        String endDt, // 계약종료일자
+        String lgstWkMthdCd, // 물류작업코드
+        String svBizDclsfCd, // 출고구분
+        String wkWareNo, // 창고번호
+        String vstFshDt, // 출고확정일자
+        String findGb, // 조회구분
+        String selCnt// 조회제한건수
     ) {}
 
     @ApiModel(value = "WsnaPcsvOutOfStorageMgtDto-SearchRes")
@@ -295,9 +295,13 @@ public class WsnaPcsvOutOfStorageMgtDto {
         /* 물류 인터페이스 필수 */
         String rcgvpKnm,
 
-        String cralIdvTno,
+        String cralLocaraTno, // 핸드폰1
+        String mexnoEncr, // 핸드폰2
+        String cralIdvTno, // 핸드폰3
 
-        String idvTno,
+        String locaraTno, // 전화번호1
+        String exnoEncr, // 전화번호2
+        String idvTno, // 전화번호3
 
         String newAdrZip, // 우편번호
 

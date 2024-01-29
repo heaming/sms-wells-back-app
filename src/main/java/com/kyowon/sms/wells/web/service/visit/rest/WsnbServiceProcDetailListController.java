@@ -3,12 +3,15 @@ package com.kyowon.sms.wells.web.service.visit.rest;
 import java.util.List;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.sds.sflex.system.config.response.SaveResponse;
+import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcDetailListDto.SearchReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcDetailListDto.CttIzReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcDetailListDto.SaveCttNwRgstReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcDetailListDto.SaveWkCanRgstReq;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbServiceProcDetailBilItemDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbServiceProcDetailListDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbServiceProcDetailPuPartDvo;
@@ -91,6 +94,47 @@ public class WsnbServiceProcDetailListController {
         SearchReq dto
     ) {
         return service.getServiceProcDetailPuParts(dto);
+    }
 
+    @ApiOperation(value = "컨택 신규 등록", notes = "서비스처리상세내역 > 외주직원 인 경우 컨택신규 등록 처리를 한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cttRcpDtm", value = "컨택일[컨택접수일시]", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cttDuedt", value = "방문예정일[컨택예정일]", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cttAkCn", value = "전달사항[컨택요청내용]", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cttOjId", value = "컨택대상ID", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cttSn", value = "컨택일련번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "wkKnd", value = "작업종류[insert or update]", paramType = "query", required = true),
+        @ApiImplicitParam(name = "beforeRcpDtm", value = "기등록된 컨택일", paramType = "query"),
+        @ApiImplicitParam(name = "beforeDuedt", value = "기등록된 방문예정일", paramType = "query"),
+        @ApiImplicitParam(name = "beforeMoCn", value = "기등록된 메모", paramType = "query"),
+    })
+    @PostMapping("/save-ctt")
+    public SaveResponse saveCttNwRgst(@RequestBody @Valid @NotEmpty SaveCttNwRgstReq dto) throws Exception{
+        return SaveResponse.builder()
+            .processCount(this.service.saveCttNwRgst(dto))
+            .build();
+    }
+
+    @ApiOperation(value = "컨택 내용 조회", notes = "외주직원인 경우 컨택내용을 조회한다.")
+    @GetMapping("/ctt-iz")
+    public CttIzReq getServiceProcDetailCttDatas(@Valid SearchReq dto) {
+        return service.getServiceProcDetailCttDatas(dto);
+    }
+
+    @ApiOperation(value = "작업취소 등록", notes = "서비스처리상세내역 > 외주직원 인 경우 작업취소 등록 처리를 한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "canDv", value = "취소구분", paramType = "query", required = true),
+        @ApiImplicitParam(name = "canRson", value = "취소사유", paramType = "query", required = true),
+        @ApiImplicitParam(name = "charFw", value = "문자발송여부", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
+    })
+    @PostMapping("/save-wk-can")
+    public SaveResponse saveCttNwRgst(@RequestBody @Valid @NotEmpty SaveWkCanRgstReq dto) throws Exception{
+        return SaveResponse.builder()
+            .processCount(this.service.saveWkCanRgst(dto))
+            .build();
     }
 }

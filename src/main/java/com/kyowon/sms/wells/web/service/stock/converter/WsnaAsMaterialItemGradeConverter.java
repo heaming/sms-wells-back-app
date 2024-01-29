@@ -19,7 +19,6 @@ public interface WsnaAsMaterialItemGradeConverter {
     @Mapping(source = "mngtYm", target = "baseYm")
     WsnaAsMaterialItemGradeDvo mapSaveReqToWsnaAsMaterialItemGradeDvo(SaveReq dto);
 
-    @Mapping(source = "mngtYm", target = "baseYm")
     List<WsnaAsMaterialItemGradeDvo> mapAllSaveReqToWsnaAsMaterialItemGradeDvo(List<SaveReq> dtos);
 
 }

@@ -71,7 +71,7 @@ public class WbndRentalCbMgtObjectService {
             this.historyMapper.selectRentalCbDlqIzSendThisMonthCount(baseYm) == 0, "당월에 알림톡 발송한 내역이 있습니다."
         );
 
-        int processCount = this.mapper.updateMessageObjectYn();
+        int processCount = this.mapper.updateMessageObjectYn(baseYm);
         int resultHist = this.mapper.insertMessageObjectHist(baseYm);
 
         return processCount + resultHist;

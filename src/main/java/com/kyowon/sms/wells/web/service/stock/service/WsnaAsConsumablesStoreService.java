@@ -163,7 +163,6 @@ public class WsnaAsConsumablesStoreService {
                     }
                 }
             }
-
         }
 
         return UploadRes.builder()
@@ -179,96 +178,95 @@ public class WsnaAsConsumablesStoreService {
     @Transactional
     public int saveAsConsumablesStores(List<SaveReq> dtos) {
         int processCount = 0;
-        String itmStrNo = null;
-        String strTpCd = ETC_STR;
 
-        SaveReq saveReq = dtos.get(0);
-        String strRgstDtParam = saveReq.strRgstDt().replaceAll("[^0-9]", "");
-        if (StringUtils.isEmpty(saveReq.itmStrNo())) {
-            itmStrNo = this.mapper.selectNextItmStrNo(strTpCd, strRgstDtParam);
+        String curYm = StringUtils.substring(DateUtil.getNowDayString(), 0, 6);
 
-        }
+        // 신규
+        List<SaveReq> createDtos = dtos.stream().filter(dto -> CommConst.ROW_STATE_CREATED.equals(dto.rowState()))
+            .toList();
 
-        for (SaveReq dto : dtos) {
-            WsnaAsConsumablesStoreDvo dvo = this.converter.mapSaveReqToAsConsumablesStoreDvo(dto);
+        List<String> strRgstDts = createDtos.stream().map(SaveReq::strRgstDt).distinct().toList();
 
-            //STEP01 : 입고등록일자 검증진행
-            if (BnBondUtils.checkDate(dvo.getStrRgstDt())) {
-                String strRgstDt = dvo.getStrRgstDt().replaceAll("[^0-9]", "");
-                dvo.setStrRgstDt(strRgstDt);
-            }
+        for (String strRgstDt : strRgstDts) {
+            List<SaveReq> crtDtos = createDtos.stream().filter(data -> strRgstDt.equals(data.strRgstDt())).toList();
 
-            //STEP02 : 창고마감일자 체크
-            int chkWareClose = this.mapper.selectChkWareClose(dvo);
-            String strWareMngtPrtnrNo = mapper.selectWareMngtPrtnrNo(dvo);
-            dvo.setWareMngtPrtnrNo(strWareMngtPrtnrNo);
-            //해당 입고년월은 이미 마감이 완료되어, 입고작업이 불가능합니다.
-            BizAssert.isTrue(chkWareClose == 0, "MSG_ALT_STR_YM_CL_FSH_STR_WK_IMP");
+            String newItmStrNo = this.mapper.selectNextItmStrNo(ETC_STR, strRgstDt);
 
-            //STEP03 : 현재사용중인 창고인지 체크
-            if (StringUtil.isNotBlank(dvo.getStrWareNo())) {
+            for (SaveReq dto : crtDtos) {
+                WsnaAsConsumablesStoreDvo dvo = this.converter.mapSaveReqToAsConsumablesStoreDvo(dto);
+
+                //STEP01 : 입고등록일자 검증진행
+                if (BnBondUtils.checkDate(strRgstDt)) {
+                    String convertStrRgstDt = strRgstDt.replaceAll("[^0-9]", "");
+                    dvo.setStrRgstDt(convertStrRgstDt);
+                }
+
+                //STEP02 : 창고마감일자 체크
+                int chkWareClose = this.mapper.selectChkWareClose(dvo);
+
+                //해당 입고년월은 이미 마감이 완료되어, 입고작업이 불가능합니다.
+                BizAssert.isTrue(chkWareClose == 0, "MSG_ALT_STR_YM_CL_FSH_STR_WK_IMP");
+
+                //STEP03 : 현재사용중인 창고인지 체크
                 int strCount = mapper.selectMcbyWareIzCount(dvo);
                 //잘못된 창고번호입니다.
                 BizAssert.isTrue(strCount != 0, "MSG_ALT_INVLD_WARE_NO");
-            }
-            //STEP03 : 정상적인 품목상품코드인지 확인
-            if (StringUtil.isNotBlank(dvo.getItmPdCd())) {
+
+                //STEP04 : 정상적인 품목상품코드인지 확인
                 int strItmPdCdCount = mapper.selectItmPdCdCount(dvo);
-                String mgtUnt = mapper.selectMgtUntFind(dvo);
-                dvo.setMngtUnit(mgtUnt);
                 // 잘못된 품목상품코드 입니다.
                 BizAssert.isTrue(strItmPdCdCount != 0, "MSG_ALT_INVLD_ITM_PD_CD");
-            }
 
-            //STEP04 : 입고등록일자가 당월이 아닌경우 체크
-            if (StringUtil.isNotBlank(dvo.getStrRgstDt())) {
-                int strRgstDt = Integer
-                    .parseInt(StringUtils.substring(dvo.getStrRgstDt().replaceAll("[^0-9]", ""), 0, 6));
-                int toMonthsRgstDt = Integer.parseInt(StringUtils.substring(DateUtil.getNowDayString(), 0, 6));
+                String mgtUnt = mapper.selectMgtUntFind(dvo);
+                dvo.setMngtUnit(mgtUnt);
+
+                //STEP05 : 입고등록일자가 당월이 아닌경우 체크
+                String strRgstYm = dvo.getStrRgstDt().replaceAll("[^0-9]", "").substring(0, 6);
+
                 // 입고등록일자가 당월인 건만 등록 가능합니다.
-                BizAssert.isTrue(strRgstDt == toMonthsRgstDt, "MSG_ALT_STR_DT_THM_RGST");
-            }
+                BizAssert.isTrue(strRgstYm.equals(curYm), "MSG_ALT_STR_DT_THM_RGST");
 
-            //STEP05 : 입고수량이 마이너스 이거나 0일경우 체크
-            if (StringUtil.isNotBlank(dvo.getStrQty())) {
+                //STEP06 : 입고수량이 마이너스 이거나 0일경우 체크
                 int validStrQty = Integer.parseInt(dvo.getStrQty());
                 //값이 0이거나 마이너스입니다.
                 BizAssert.isTrue(validStrQty > 0, "MSG_ALT_MINUS_ZR_VAL_INC");
+
+                dvo.setItmStrNo(newItmStrNo);
+                dvo.setStrTpCd(ETC_STR);
+                int result = this.mapper.insertLineAsConsumablesStore(dvo);
+                BizAssert.isTrue(result == 1, MSG_ALT_SVE_ERR);
+
+                dvo.setProcsYm(StringUtils.substring(dvo.getStrRgstDt(), 0, 6));
+                dvo.setProcsDt(dvo.getStrRgstDt());
+                dvo.setWareDv("2");
+                dvo.setIostTp(ETC_STR);
+                dvo.setWorkDiv("A");
+                dvo.setWareNo(dvo.getStrWareNo());
+                dvo.setItemGd(dvo.getItmGdCd());
+                dvo.setQty(dvo.getStrQty());
+                String strWareMngtPrtnrNo = mapper.selectWareMngtPrtnrNo(dvo);
+                dvo.setWareMngtPrtnrNo(strWareMngtPrtnrNo);
+
+                WsnaItemStockItemizationReqDvo itemDvo = this.converter.mapItemAsConsumablesStoreDvo(dvo);
+                int processResult = itemStockservice.createStock(itemDvo);
+                BizAssert.isTrue(processResult == 1, MSG_ALT_SVE_ERR);
+                processCount += result;
             }
+        }
 
-            switch (dto.rowState()) {
-                case CommConst.ROW_STATE_CREATED -> {
-                    if (!StringUtils.isEmpty(itmStrNo)) {
-                        dvo.setItmStrNo(itmStrNo);
-                    }
-                    dvo.setStrTpCd(strTpCd);
-                    int result = this.mapper.insertLineAsConsumablesStore(dvo);
-                    BizAssert.isTrue(result == 1, MSG_ALT_SVE_ERR);
-                    //TODO : 품목재고내역 create 붙여야함(서비스로 변경 후 서비스호출예정)
-                    dvo.setProcsYm(StringUtils.substring(dvo.getStrRgstDt(), 0, 6));
-                    dvo.setProcsDt(dvo.getStrRgstDt());
-                    dvo.setWareDv("2");
-                    dvo.setIostTp(ETC_STR);
-                    dvo.setWorkDiv("A");
-                    dvo.setWareNo(dvo.getStrWareNo());
-                    dvo.setItemGd(dvo.getItmGdCd());
-                    dvo.setQty(dvo.getStrQty());
+        // 수정
+        List<SaveReq> editDtos = dtos.stream().filter(dto -> CommConst.ROW_STATE_UPDATED.equals(dto.rowState()))
+            .toList();
+        for (SaveReq dto : editDtos) {
+            WsnaAsConsumablesStoreDvo dvo = this.converter.mapSaveReqToAsConsumablesStoreDvo(dto);
 
-                    WsnaItemStockItemizationReqDvo itemDvo = this.converter.mapItemAsConsumablesStoreDvo(dvo);
-                    int processResult = itemStockservice.createStock(itemDvo);
-                    BizAssert.isTrue(processResult == 1, MSG_ALT_SVE_ERR);
-                    processCount += result;
+            int chkWareClose = this.mapper.selectChkWareClose(dvo);
+            //해당 입고년월은 이미 마감이 완료되어, 입고작업이 불가능합니다.
+            BizAssert.isTrue(chkWareClose == 0, "MSG_ALT_STR_YM_CL_FSH_STR_WK_IMP");
 
-                }
-
-                case CommConst.ROW_STATE_UPDATED -> {
-                    int result = this.mapper.updateAsConsumablesStore(dvo);
-                    BizAssert.isTrue(result == 1, MSG_ALT_SVE_ERR);
-                    processCount += result;
-
-                }
-                default -> throw new BizException("MSG_ALT_UNHANDLE_ROWSTATE");
-            }
+            int result = this.mapper.updateAsConsumablesStore(dvo);
+            BizAssert.isTrue(result == 1, MSG_ALT_SVE_ERR);
+            processCount += result;
         }
 
         return processCount;

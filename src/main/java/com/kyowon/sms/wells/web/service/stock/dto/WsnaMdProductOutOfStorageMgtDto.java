@@ -20,33 +20,33 @@ public class WsnaMdProductOutOfStorageMgtDto {
 
     @ApiModel(value = "WsnaMdProductOutOfStorageMgtDto-SearchReq")
     public record SearchReq(
-        String startDt,
+        String startDt, // 계약시작일자
 
-        String endDt,
+        String endDt, // 계약종료일자
 
-        String findGb,
+        String findGb, // 조회구분
 
-        String firstSppGb,
+        String firstSppGb, // 첫배송여부구분
 
-        String selCnt,
+        String selCnt, // 조회제한건수
 
-        String wkStartDt,
+        String wkStartDt, // 작업시작일자
 
-        String wkEndDt,
+        String wkEndDt, // 작업종료일자
 
-        String prtnrBzsCd,
+        String prtnrBzsCd, // 파트너업체코드
 
-        String cntrDtlNo,
+        String cntrDtlNo, // 계약상세번호
 
-        String rcgvpKnm,
+        String rcgvpKnm, // 고객명
 
-        String serialNo,
+        String serialNo, // 시리얼번호
 
-        String cralLocaraTno,
+        String cralLocaraTno, // 휴대지역전화번호
 
-        String mexnoEncr,
+        String mexnoEncr, // 휴대전화국번호암호화
 
-        String cralIdvTno
+        String cralIdvTno // 휴대개별전화번호
 
     ) {}
     @ApiModel(value = "WsnaMdProductOutOfStorageMgtDto-SearchRes")

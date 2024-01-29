@@ -110,8 +110,8 @@ public class WsnaBsRegularShippingMgtService {
             List<WsnaBsRegularShippingMaterialDvo> materialDvos = this.transferShippingMaterials(dvo);
 
             // 암호화 이전 값 따로 세팅.
-            String tno = materialDvos.get(0).getTno();
-            String mpno = materialDvos.get(0).getMpno();
+            String tno = dvo.getTno().replaceAll("[^0-9]", "");
+            String mpno = dvo.getMpno().replaceAll("[^0-9]", "");
 
             for (WsnaBsRegularShippingMaterialDvo materialDvo : materialDvos) {
                 materialDvo.setWkWareNo("100002"); /* 파주물류센터 */
