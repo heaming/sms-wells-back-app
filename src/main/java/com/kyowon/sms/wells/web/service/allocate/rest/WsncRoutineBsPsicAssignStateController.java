@@ -1,14 +1,15 @@
 package com.kyowon.sms.wells.web.service.allocate.rest;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
+import com.sds.sflex.common.common.dto.ExcelBulkDownloadDto;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRoutineBsPsicAssignStateDto.SearchReq;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRoutineBsPsicAssignStateDto.SearchRes;
@@ -97,8 +98,16 @@ public class WsncRoutineBsPsicAssignStateController {
     })
     @GetMapping("/manager-info")
     public WsncRoutineBsPsicAssignStateMngrInfoDvo getManagerInfo(SearchReq dto) {
-
         return service.getManagerInfo(dto);
     }
 
+    @ApiOperation(value = "[WSNC] 정기B/S담당자배정 현황 엑셀 대용량 다운로드", notes = "검색조건을 입력 받아 엑셀 대용량 다운로드한다.")
+    @PostMapping("/bulk-excel-download")
+    public void getRoutineBsPsicAssignStateBulkExcelDownload(
+        @RequestBody
+        ExcelBulkDownloadDto.DownloadReq req,
+        HttpServletResponse response
+    ) throws IOException {
+        this.service.getRoutineBsPsicAssignStateBulkExcelDownload(req, response);
+    }
 }
