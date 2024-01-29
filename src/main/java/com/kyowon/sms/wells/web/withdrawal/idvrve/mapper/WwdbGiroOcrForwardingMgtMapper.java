@@ -39,6 +39,16 @@ public interface WwdbGiroOcrForwardingMgtMapper {
     List<SearchObjectRes> selectGiroOcrForwardingObjects(WwdbGiroOcrForwardingMgtDto.SearchCntrReq cntr);
 
     /**
+     * 지로OCR발송관리 대상 계약정보 조회
+     * @param cntrNo
+     * @param cntrSn
+     * @return
+     */
+    SearchGiroCntractRes selectGiroOcrForwardingObjectContractInfo(
+        String cntrNo, String cntrSn
+    );
+
+    /**
      * 지로OCR발송관리 등록
      * @param dvo
      * @return

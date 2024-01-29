@@ -18,7 +18,7 @@ public class WwdbGiroOcrForwardingMgtDto {
     public record SearchReq(
         String wkDt, // 작업일자
         String giroRglrDvCd //정기구분
-    ) { }
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -47,7 +47,7 @@ public class WwdbGiroOcrForwardingMgtDto {
         String exnNmnAmt, //만료차월금액
         String ltpayYn, //후납여부
         String giroRglrDvCd //정기구분
-    ) { }
+    ) {}
 
     // *********************************************************
     // Request Dto
@@ -77,12 +77,12 @@ public class WwdbGiroOcrForwardingMgtDto {
         String sellTam, // 판매총액
         String subscAmt, // 청약금액
         String tkAmt, // 계약인수금액
-        String cshBlam,  // 현금잔액
+        String cshBlam, // 현금잔액
         String giroFeeAmt, // 지로수수료금액
         String cntrTam, // 계약총액
         String giroBizDvCd, //지로업무구분코드
         String giroBizTpCd //지로업무유형코드
-    ) { }
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -114,7 +114,7 @@ public class WwdbGiroOcrForwardingMgtDto {
         String cshBlam, // 현금잔액
         String giroFeeAmt, // 지로수수료금액
         String cntrTam // 계약총액
-    ) { }
+    ) {}
 
     // *********************************************************
     // Request Dto
@@ -125,7 +125,7 @@ public class WwdbGiroOcrForwardingMgtDto {
         String wkDt, // 작업일자
         @NotBlank
         String wkSn // 작업일련번호
-    ) { }
+    ) {}
 
     // *********************************************************
     // Request Dto
@@ -135,7 +135,7 @@ public class WwdbGiroOcrForwardingMgtDto {
         String giroOcrPblDtm, // 지로OCR발행일시
         String giroOcrPrntStatus,
         String giroRglrDvCd //정기비정기
-    ) { }
+    ) {}
 
     // *********************************************************
     // Result Dto
@@ -154,7 +154,7 @@ public class WwdbGiroOcrForwardingMgtDto {
         String giroOcrPrnt, //출력
         String giroOcrDlDt, // 지로OCR삭제일자
         String dtaDlYn // 삭제여부
-    ) { }
+    ) {}
 
     // *********************************************************
     // Request Dto
@@ -163,7 +163,7 @@ public class WwdbGiroOcrForwardingMgtDto {
     public record SearchDateSeq(
         String giroOcrPblDtm, // 지로OCR발행일시
         int giroOcrPblSeqn // 지로OCR발행순번
-    ) { }
+    ) {}
 
     // *********************************************************
     // Request Dto
@@ -176,7 +176,7 @@ public class WwdbGiroOcrForwardingMgtDto {
         @NotBlank
         String giroOcrPblOjStrtdt, // 지로OCR발행대상시작일자
         String giroRglrDvCd //정기구분
-    ) { }
+    ) {}
 
     // *********************************************************
     // Request Dto
@@ -185,7 +185,7 @@ public class WwdbGiroOcrForwardingMgtDto {
     public record removePrintReq(
         String giroOcrPblDtm, // 지로OCR발행일시
         String giroOcrPblSeqn // 지로OCR발행순번
-    ) { }
+    ) {}
 
     // *********************************************************
     // Request Dto
@@ -194,7 +194,7 @@ public class WwdbGiroOcrForwardingMgtDto {
     public record saveGiroPrintReq(
         String giroOcrPblDtm, // 지로OCR발행일시
         String giroOcrPblSeqn // 지로OCR발행순번
-    ) { }
+    ) {}
 
     // *********************************************************
     // Request Dto
@@ -205,15 +205,23 @@ public class WwdbGiroOcrForwardingMgtDto {
         String cntrSn,
         String cntr,
         String wkDt // 작업일자
-    ) { }
+    ) {}
 
     // *********************************************************
     // Result Dto
     // *********************************************************
     // 지로OCR발송관리 출력 등록 Result Dto
     public record SearchPrintCreateRes(
-        String c1 ,
-        String c2 ,
+        String c1,
+        String c2,
         String c3
-    ){ }
+    ) {}
+
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 지로OCR 입금유형이지로인지확인 출력 등록 Result Dto
+    public record SearchGiroCntractRes(
+        String cntrStlmId
+    ) {}
 }

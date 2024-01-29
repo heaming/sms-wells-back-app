@@ -20,14 +20,14 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
     @ApiModel(value = "WsnaPcsvOutOfStorageMgtDto-SearchReq")
     public record SearchReq(
-        String startDt,
-        String endDt,
-        String lgstWkMthdCd,
-        String svBizDclsfCd,
-        String wkWareNo,
-        String vstFshDt,
-        String findGb,
-        String selCnt
+        String startDt, // 계약시작일자
+        String endDt, // 계약종료일자
+        String lgstWkMthdCd, // 물류작업코드
+        String svBizDclsfCd, // 출고구분
+        String wkWareNo, // 창고번호
+        String vstFshDt, // 출고확정일자
+        String findGb, // 조회구분
+        String selCnt// 조회제한건수
     ) {}
 
     @ApiModel(value = "WsnaPcsvOutOfStorageMgtDto-SearchRes")
