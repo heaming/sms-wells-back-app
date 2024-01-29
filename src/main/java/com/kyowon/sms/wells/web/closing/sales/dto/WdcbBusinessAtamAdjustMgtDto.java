@@ -48,7 +48,9 @@ public class WdcbBusinessAtamAdjustMgtDto {
         String baseYm,
         String slBndAlrpyAmt,
         String dpBlam,
-        String ucAmt
+        String ucAmt,
+        String slBndAlrpySlipTrsNo,
+        String sapAlrpySlpno
     ) {}
 
     // *********************************************************
