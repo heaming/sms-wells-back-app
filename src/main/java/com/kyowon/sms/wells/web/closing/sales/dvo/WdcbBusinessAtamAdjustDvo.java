@@ -22,4 +22,5 @@ public class WdcbBusinessAtamAdjustDvo {
     private String slBndAlrpyAmt;
     private String bktxt;
     private String orglFnlMdfcDtm;
+    private String baseYm;
 }

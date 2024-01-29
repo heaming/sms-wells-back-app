@@ -110,11 +110,11 @@ public class WdcbBusinessAtamAdjustMgtService {
 
     /**
      * 채권반제 조회
-     * @param sapAlrpySlpno
+     * @param dto
      * @return
      */
-    public List<SearchSlpnoRes> getSapAlrpySlpnos(String sapAlrpySlpno) {
-        return mapper.selectSapAlrpySlpnos(sapAlrpySlpno);
+    public List<SearchSlpnoRes> getSapAlrpySlpnos(SearchSlpnoReq dto) {
+        return mapper.selectSapAlrpySlpnos(dto);
     }
 
     /**
