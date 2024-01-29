@@ -23,7 +23,7 @@ public interface WdcbBusinessAtamAdjustMgtMapper {
 
     PagingResult<SearchDetailRes> selectBusinessAtamDetails(SearchReq dto, PageInfo pageInfo);
 
-    List<SearchSlpnoRes> selectSapAlrpySlpnos(String sapAlrpySlpno);
+    List<SearchSlpnoRes> selectSapAlrpySlpnos(SearchSlpnoReq dto);
 
     int updateAllRepaymentBase(WdcbBusinessAtamAdjustDvo dvo);
 

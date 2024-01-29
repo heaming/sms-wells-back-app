@@ -45,7 +45,8 @@ public class WfebMutualAidFeeManagerMgtDto {
         Integer curAmt, /* 당월지급 */
         String etCnfmDvNm, /* 라이프 확정 */
         String feeDsbYm, /* 수수료 지급월 */
-        String feeRedfYm /* 수수료 되물림월 */
+        String feeRedfYm, /* 수수료 되물림월 */
+        String cnfmYn /* 확정여부 */
     ) {}
 
     public record AidGroup(
@@ -59,7 +60,8 @@ public class WfebMutualAidFeeManagerMgtDto {
         Integer brchAmt, /* 금액 지점 */
         String feeDsbYm, /* 수수료 지급월 */
         String feeRedfYm, /* 수수료 되물림월 */
-        String etCnfmDvNm /* 라이프 확정 */
+        String etCnfmDvNm, /* 라이프 확정 */
+        String cnfmYn /* 확정여부 */
     ) {}
 
     public record SearchAidOrderReq(

@@ -48,7 +48,9 @@ public class WdcbBusinessAtamAdjustMgtDto {
         String baseYm,
         String slBndAlrpyAmt,
         String dpBlam,
-        String ucAmt
+        String ucAmt,
+        String slBndAlrpySlipTrsNo,
+        String sapAlrpySlpno
     ) {}
 
     // *********************************************************
@@ -101,6 +103,16 @@ public class WdcbBusinessAtamAdjustMgtDto {
     // Result Dto
     // *********************************************************
     // 영업선수금정산관리-전표초기화 Search Result Dto
+    @ApiModel("EdcbBusinessAtamAdjustMgtDto-SearchSlpnoReq")
+    public record SearchSlpnoReq(
+        String sapAlrpySlpno,
+        String baseYm
+    ) {}
+
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 영업선수금정산관리-전표초기화 Search Result Dto
     @ApiModel("EdcbBusinessAtamAdjustMgtDto-SearchSlpnoRes")
     public record SearchSlpnoRes(
         String sellTpCd,
@@ -121,6 +133,7 @@ public class WdcbBusinessAtamAdjustMgtDto {
         String sapAlrpySlpno,
         String slBndAlrpyAmt,
         String bktxt,
-        String fnlMdfcDtm
+        String fnlMdfcDtm,
+        String baseYm
     ) {}
 }
