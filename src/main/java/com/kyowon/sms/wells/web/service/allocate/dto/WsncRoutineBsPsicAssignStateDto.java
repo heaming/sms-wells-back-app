@@ -112,7 +112,13 @@ public class WsncRoutineBsPsicAssignStateDto {
         String cntrDtlStatCd,
         String cntrDtlStatNm,
 
-        String cstSvAsnNo
+        String cstSvAsnNo,
+        String pdAbbrNm,
+        String ogNm,
+        String ogCd,
+        String prtnrNo,
+
+        String fstRgstTm
     ) {
         @AutomapConstructor
         public SearchRes(
@@ -188,7 +194,13 @@ public class WsncRoutineBsPsicAssignStateDto {
             String cntrDtlStatCd,
             String cntrDtlStatNm,
 
-            String cstSvAsnNo
+            String cstSvAsnNo,
+            String pdAbbrNm,
+            String ogNm,
+            String ogCd,
+            String prtnrNo,
+
+            String fstRgstTm
         ) {
             this(
                 chk,
@@ -263,7 +275,13 @@ public class WsncRoutineBsPsicAssignStateDto {
                 cntrDtlStatCd,
                 cntrDtlStatNm,
 
-                cstSvAsnNo
+                cstSvAsnNo,
+                pdAbbrNm,
+                ogNm,
+                ogCd,
+                prtnrNo,
+
+                fstRgstTm
             );
         }
     }
