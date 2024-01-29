@@ -47,6 +47,22 @@ public class WfefEstimateFeeMgtService {
         );
     }
 
+    /**
+     * 추가실적 입력 예상 수수료 조회 - P조직
+     *
+     * 가전실적(개인) :
+     * 가전외실적(개인) :
+     * 가전실적(조직) :
+     * 가전외실적(조직) :
+     * 상조429실적(개인) :
+     * 상조599실적(개인) :
+     * 상조429실적(조직) :
+     * 상조599실적(조직) :
+     *
+     * @param req
+     * @param addPerformances
+     * @return
+     */
     @Transactional
     public SearchOgPRes getEstimateFeeOgP(SearchEstimateReq req, List<Map<String, Object>> addPerformances) {
         /* 추가실적이 있다면 실적을 DB에 넣고, 시뮬레이션 계산을 수행 */
@@ -101,6 +117,35 @@ public class WfefEstimateFeeMgtService {
         );
     }
 
+    /**
+     * 추가실적 입력 예상수수료 조회 - M추진단
+     *
+     * 가전인정건수(개인) :
+     * 가전인정건수(조직) :
+     * 렌탈기준가(개인) :
+     * 렌탈기준가(조직) :
+     * 일시불기준가(개인) :
+     * 일시불기준가(조직) :
+     * 가전외인정실적(개인) :
+     * 가전외인정실적(조직) :
+     * 순증(개인) :
+     * 순증(조직) :
+     * BS정수기1완료건수 :
+     * BS정수기2완료건수 :
+     * BS정수기3완료건수 :
+     * BS정수기4완료건수 :
+     * BS비정수기완료건수 :
+     * BS청정기1완료건수 :
+     * BS청정기2완료건수 :
+     * BS아웃소싱류완료건수 :
+     * BS비데,연수기완료건수 :
+     * W1급지 :
+     * W2급지 :
+     * 조직BS완료건수 :
+     * @param req
+     * @param addPerformances
+     * @return
+     */
     @Transactional
     public SearchOgMRes getEstimateFeeOgM(SearchEstimateReq req, List<Map<String, Object>> addPerformances) {
         /* 추가실적이 있다면 실적을 DB에 넣고, 시뮬레이션 계산을 수행 */
@@ -144,6 +189,19 @@ public class WfefEstimateFeeMgtService {
         return new SearchHomeRes(mapper.selectBaseHome(req), mapper.selectPerformanceHome(req), mapper.selectEstimateHome(req) ,mapper.selectSaleHome(req));
     }
 
+    /**
+     * 추가실적 입력 예상수수료 조회 - 홈마스터
+     *
+     * 가전인정건수 :
+     * 일시불 :
+     * 전체처리건 :
+     * 가전처리건 :
+     * 교육수료 :
+     *
+     * @param req
+     * @param addPerformances
+     * @return
+     */
      @Transactional
     public SearchHomeRes getEstimateFeeHome(SearchEstimateReq req, List<Map<String, Object>> addPerformances) {
         /* 추가실적이 있다면 실적을 DB에 넣고, 시뮬레이션 계산을 수행 */
