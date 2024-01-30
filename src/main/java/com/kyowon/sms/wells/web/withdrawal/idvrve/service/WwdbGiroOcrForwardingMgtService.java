@@ -89,6 +89,18 @@ public class WwdbGiroOcrForwardingMgtService {
     }
 
     /**
+     * 지로OCR발송관리 대상 정보 조회
+     * @param cntrNo 계약번호
+     * @param cntrSn 계약일련번호
+     * @return String
+     */
+    @Transactional
+    public SearchGiroCntractRes getGiroOcrForwardingObjectContractInfo(String cntrNo, String cntrSn) {
+
+        return mapper.selectGiroOcrForwardingObjectContractInfo(cntrNo, cntrSn);
+    }
+
+    /**
      * 지로OCR발송관리 저장
      * @param dtos
      * @return int processCount

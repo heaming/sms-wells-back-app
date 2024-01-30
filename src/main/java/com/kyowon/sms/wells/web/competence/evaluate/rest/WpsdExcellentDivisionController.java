@@ -31,7 +31,7 @@ public class WpsdExcellentDivisionController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "관리년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "evlOgTpCd", value = "조직유형코드", paramType = "query", required = true),
-        @ApiImplicitParam(name = "evlDvCd", value = "평가구분코드", paramType = "query", required = true),
+        @ApiImplicitParam(name = "awdEvlId", value = "시상평가ID", paramType = "query" ),
         @ApiImplicitParam(name = "cntrPerfDvCd", value = "실적구분", paramType = "query" ),
         @ApiImplicitParam(name = "ctstGrpCd", value = "당월그룹코드", paramType = "query"),
     })
@@ -49,7 +49,7 @@ public class WpsdExcellentDivisionController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "관리년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "evlOgTpCd", value = "조직유형코드", paramType = "query", required = true),
-        @ApiImplicitParam(name = "evlDvCd", value = "평가구분코드", paramType = "query", required = true),
+        @ApiImplicitParam(name = "awdEvlId", value = "시상평가ID", paramType = "query" ),
         @ApiImplicitParam(name = "cntrPerfDvCd", value = "실적구분", paramType = "query" ),
         @ApiImplicitParam(name = "ctstGrpCd", value = "당월그룹코드", paramType = "query"),
     })
@@ -102,14 +102,15 @@ public class WpsdExcellentDivisionController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "기준년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "ogTpCd", value = "조직유형코드", paramType = "query", required = true),
-        @ApiImplicitParam(name = "evlDvCd", value = "평가구분코드", paramType = "query", required = true),
+        @ApiImplicitParam(name = "awdEvlId", value = "시상평가ID", paramType = "query", required = true),
+        @ApiImplicitParam(name = "evlAtcDvCd", value = "시상평가ID", paramType = "query", required = true),
         @ApiImplicitParam(name = "evlRsbDvCd", value = "평가직책구분코드", paramType = "query", required = true),
         @ApiImplicitParam(name = "ctstGrpCd", value = "경진그룹코드", paramType = "query" ),
     })
     @GetMapping("/contest-responsibility")
-    public List<SearchContestRsbRes> getContestResponsibilityGroupList(
+    public List<SearchContestPartnerRes> getContestResponsibilityGroupList(
         @Valid
-        SearchContestRsbReq req
+        SearchContestPartnerReq req
     ){
         return service.getContestResponsibilityGroupList(req);
     }
@@ -119,7 +120,7 @@ public class WpsdExcellentDivisionController {
     public SaveResponse saveContestResponsibilityGroup(
         @Valid
         @RequestBody
-        List<SearchContestRsbRes> reqs
+        List<SaveContestPartnerReq> reqs
     ){
         return SaveResponse.builder().processCount(service.saveContestResponsibilityGroup(reqs))
             .build();

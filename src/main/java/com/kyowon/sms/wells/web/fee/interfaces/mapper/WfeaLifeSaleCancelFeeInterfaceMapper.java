@@ -11,7 +11,11 @@ import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface WfeaLifeSaleCancelFeeInterfaceMapper {
+    int selectLifeFeeValidKeyCount(WfeaLifeSaleCancelFeenterfaceDvo dvo);
+    int deleteLifeFeeSync(WfeaLifeSaleCancelFeenterfaceDvo dvo);
+    int insertLifeFeeSync(WfeaLifeSaleCancelFeenterfaceDvo dvo);
 
+    // 2024.01.25 미사용
     String selectLifeFeeValidKey(WfeaLifeSaleCancelFeenterfaceDvo dvo);
     int updateLifeFeeSync(WfeaLifeSaleCancelFeenterfaceDvo dvo);
 

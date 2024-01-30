@@ -25,6 +25,8 @@
              , SUM(SL_BND_ALRPY_AMT) AS SL_BND_ALRPY_AMT
              , SUM(DP_BLAM) AS DP_BLAM
              , SUM(UC_AMT) AS UC_AMT
+             , SL_BND_ALRPY_SLIP_TRS_NO
+             , SAP_ALRPY_SLPNO
           FROM (SELECT (CASE WHEN A.SELL_TP_CD = '2' AND A.SELL_TP_DTL_CD IN ('21', '23') AND E.REF_PD_CLSF_VAL IS NOT NULL THEN '6'
                              ELSE A.SELL_TP_CD END) AS SELL_TP_CD /* 판매유형 */
                     , A.SELL_TP_DTL_CD AS SELL_TP_DTL_CD /* 판매유형상세 */
@@ -150,7 +152,7 @@
               <if test="@MybatisUtils@isNotEmpty(sapPdDvCd) and !@MybatisUtils@equals(sapPdDvCd, 'ALL')">
               AND T1.SAP_PD_DV_CD = #{sapPdDvCd}
               </if>
-     GROUP BY T1.SELL_TP_CD, T1.SELL_TP_DTL_CD, T1.DG_CST_ID, T1.SAP_PD_DV_CD, T1.BASE_YM
+     GROUP BY T1.SELL_TP_CD, T1.SELL_TP_DTL_CD, T1.DG_CST_ID, T1.SAP_PD_DV_CD, T1.BASE_YM, T1.SL_BND_ALRPY_SLIP_TRS_NO, T1.SAP_ALRPY_SLPNO
      ORDER BY T1.DG_CST_ID, T1.SELL_TP_CD, T1.SELL_TP_DTL_CD, T1.SAP_PD_DV_CD, T1.BASE_YM  /*포인트선수금 뒤에다 놓기위함. */
     </select>
 
@@ -393,24 +395,27 @@
     </select>
 
     <select id="selectSapAlrpySlpnos" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbBusinessAtamAdjustMgtDto$SearchSlpnoRes">
-        SELECT SELL_TP_CD  /*판매유형코드*/
+        SELECT SELL_TP_CD /*판매유형코드*/
              , SELL_TP_DTL_CD /*판매유형상세*/
-             , SAP_ALRPY_SLPNO             /*SAP반제전표번호*/
-             , SL_BND_ALRPY_AMT            /*채권반제금액*/
-             , (SELECT BKTXT FROM TB_IFIN_DP_SLIP_BAS WHERE BELNR = T1.SAP_ALRPY_SLPNO) AS BKTXT /*전표적요*/
+             , SAP_ALRPY_SLPNO /*SAP반제전표번호*/
+             , SUM(SL_BND_ALRPY_AMT) AS SL_BND_ALRPY_AMT /*채권반제금액*/
+             , MAX(SAP_SLIP_MSG) AS BKTXT /*전표메시지*/
           FROM TB_CBCL_SL_BND_ALRPY_BAS T1 /*채권반제기본*/
          WHERE 1=1
-           AND SAP_ALRPY_SLPNO = #{sapAlrpySlpno}
-         ORDER BY SELL_TP_CD, SELL_TP_DTL_CD, SAP_ALRPY_SLPNO
+           AND SAP_ALRPY_SLPNO = #{sapAlrpySlpno} /*SAP전표번호 : 20239800009716 */
+           AND BASE_YM = #{baseYm}
+         GROUP BY SELL_TP_CD, SELL_TP_DTL_CD ,SAP_ALRPY_SLPNO
+         ORDER BY SELL_TP_CD, SELL_TP_DTL_CD ,SAP_ALRPY_SLPNO
     </select>
 
     <update id="updateAllRepaymentBase">
-        UPDATE TB_CBCL_SL_BND_ALRPY_BAS /*반제기본테이블*/
-           SET SL_BND_ALRPY_SLIP_TRS_NO = '' /*매출채권반제전표전송번호*/
-             , SAP_ALRPY_SLPNO = '' /*SAP반제전표번호*/
-             , SAP_SLIP_MSG = '' /*SAP전표메시지*/
-        <include refid="COMMON.updateSystemField"/>
-         WHERE SAP_ALRPY_SLPNO = #{sapAlrpySlpno}
+         UPDATE TB_CBCL_SL_BND_ALRPY_BAS
+            SET SAP_ALRPY_SLPNO = '' /*SAP반제전표번호*/
+              , SAP_SLIP_MSG = '' /*SAP전표메시지*/
+              , SL_BND_ALRPY_SLIP_TRS_NO = '' /*매출채권반제전표전송번호*/
+              <include refid="COMMON.updateSystemField"/>
+         WHERE BASE_YM = #{baseYm}
+           AND SAP_ALRPY_SLPNO = #{sapAlrpySlpno}
     </update>
 
     <update id="updateDepositSlip">

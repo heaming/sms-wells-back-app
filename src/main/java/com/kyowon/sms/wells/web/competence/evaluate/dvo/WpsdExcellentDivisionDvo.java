@@ -10,7 +10,8 @@ public class WpsdExcellentDivisionDvo {
     private String evlOgTpCd;
     private String evlPdDvCd;
     private String evlDvCd;
-    private String evlDvNm;
+    private String awdEvlId;
+    private String awdEvlNm;
     private String ogId;
     private String ogNm;
     private String evlAtcDvCd;

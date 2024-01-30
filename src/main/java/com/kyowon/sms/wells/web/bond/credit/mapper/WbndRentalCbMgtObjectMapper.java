@@ -45,7 +45,7 @@ public interface WbndRentalCbMgtObjectMapper {
      *
      * @return int
      */
-    int updateMessageObjectYn();
+    int updateMessageObjectYn(String baseYm);
 
     /**
      * 렌탈CB 연체대상 관리 이력 insert

@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRoutineBsPsicAssignStateDto.SearchReq;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncRoutineBsPsicAssignStateDto.SearchRes;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncRoutineBsPsicAssignStateDto.BulkExcelSearchRes;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRoutineBsPsicAssignStateMngrInfoDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -14,12 +15,10 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 @Mapper
 public interface WsncRoutineBsPsicAssignStateMapper {
 
-    PagingResult<SearchRes> selectRoutineBsPsicAssignState(
-        SearchReq dto,
-        PageInfo pageInfo
-    );
+    PagingResult<SearchRes> selectRoutineBsPsicAssignState(SearchReq dto, PageInfo pageInfo);
 
     List<SearchRes> selectRoutineBsPsicAssignState(SearchReq dto);
+    List<BulkExcelSearchRes> selectRoutineBsPsicAssignStateBulkExcelDownload(SearchReq dto);
 
     List<HashMap<String, String>> selectWellsManager(String dgr2LevlOgId);
 

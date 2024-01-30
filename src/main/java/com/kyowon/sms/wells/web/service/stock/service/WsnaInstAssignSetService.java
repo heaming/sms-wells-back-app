@@ -29,7 +29,6 @@ public class WsnaInstAssignSetService {
     public int createInstAssignSetDatas(List<WsnaInstAssignSetDto.CreateReq> dtos) {
         int cnt = -1;
         for (WsnaInstAssignSetDto.CreateReq dto : dtos) {
-            cnt = 0;
 
             WsnaInstAssignSetDvo dvo = this.converter.mapCreateReqToInstAssignSetDvo(dto);
             dvo.setRstrCndtSn(dto.rstrCndtSn());
