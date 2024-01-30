@@ -461,6 +461,17 @@
          ORDER BY CD.CTT_SN DESC
     </select>
 
+    <select id="selectServiceProcDetailWkCanDatas" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcDetailListDto$WkCanReq">
+        SELECT WK_CAN_RSON_CD
+             , WK_CAN_MO_CN
+             , WK_PRGS_STAT_CD
+          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ
+         WHERE 1=1
+           AND CST_SV_ASN_NO=#{cstSvAsnNo}
+           AND CNTR_NO=#{cntrNo}
+           AND CNTR_SN=#{cntrSn}
+    </select>
+
     <select id="selectCttBeforeDatas" resultType="hashmap">
         SELECT CTT_RCP_DTM
              , CST_NO
@@ -469,6 +480,13 @@
           FROM TB_SSOP_CTT_BAS
          WHERE 1=1
            AND CTT_OJ_ID=#{cttOjId}
+    </select>
+
+    <select id="selectWkCanBeforeDatas" resultType="hashmap">
+        SELECT WK_CAN_RSON_CD
+          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ
+         WHERE 1=1
+           AND CST_SV_ASN_NO=#{cstSvAsnNo}
     </select>
 
     <insert id="insertCttChHistRgst">
@@ -553,6 +571,63 @@
            AND CNTR_SN=#{cntrSn}
     </insert>
 
+    <insert id="insertUpdateWkCanIz">
+        MERGE
+         INTO TB_SVPD_CST_SVAS_IST_ASN_IZ A
+        USING DUAL
+           ON (A.CST_SV_ASN_NO=#{cstSvAsnNo}
+          AND A.CNTR_NO=#{cntrNo}
+          AND A.CNTR_SN=#{cntrSn})
+         WHEN MATCHED THEN
+       UPDATE
+          SET A.WK_CAN_RSON_CD=#{wkCanRsonCd}
+            , A.WK_CAN_MO_CN=#{wkCanMoCn}
+            <include refid="COMMON.updateSystemField"/>
+         WHEN NOT MATCHED THEN
+       INSERT
+            (
+              A.CST_SV_ASN_NO
+            , A.CNTR_NO
+            , A.CNTR_SN
+            , A.CNTR_CST_NO
+            , A.WK_CAN_RSON_CD
+            , A.WK_CAN_MO_CN
+            <include refid="COMMON.insertSystemField" />
+            )
+       VALUES
+            (
+              #{cstSvAsnNo}
+            , #{cntrNo}
+            , #{cntrSn}
+            , (
+                SELECT TO_CHAR(CNTR_CST_NO)
+                  FROM (
+                         SELECT T2.CNTR_CST_NO
+                           FROM TB_SSCT_CNTR_DTL T1
+                          INNER JOIN TB_SSCT_CNTR_BAS T2
+                             ON T2.CNTR_NO = T1.CNTR_NO
+                          WHERE 1=1
+                            AND T1.CNTR_NO=#{cntrNo}
+                            AND T1.CNTR_SN=#{cntrSn}
+                            AND T2.DTA_DL_YN = 'N'
+                    )
+            )
+            , #{wkCanRsonCd}
+            , #{wkCanMoCn}
+            <include refid="COMMON.insertSystemFieldValue" />
+            )
+    </insert>
+
+    <select id="selectWkStatData" resultType="hashmap">
+        SELECT CST_SV_ASN_NO
+             , WK_PRGS_STAT_CD
+          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ
+         WHERE 1=1
+           AND CST_SV_ASN_NO=#{cstSvAsnNo}
+           AND CNTR_NO=#{cntrNo}
+           AND CNTR_SN=#{cntrSn}
+    </select>
+
     <insert id="insertWkCanHist">
         INSERT
           INTO TB_SVPD_CST_SVAS_IST_ASN_HIST
@@ -578,8 +653,8 @@
                    FROM TB_SSCT_CNTR_BAS
                   WHERE CNTR_NO=#{cntrNo}
              )
-             , #{canDv}
-             , #{canRson}
+            , #{wkCanRsonCd}
+            , #{wkCanMoCn}
              , 'N'
              <include refid="COMMON.insertSystemFieldValue" />
              )

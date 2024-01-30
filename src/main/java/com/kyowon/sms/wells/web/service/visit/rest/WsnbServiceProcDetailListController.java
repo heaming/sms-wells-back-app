@@ -12,6 +12,8 @@ import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcDetailListDto.S
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcDetailListDto.CttIzReq;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcDetailListDto.SaveCttNwRgstReq;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcDetailListDto.SaveWkCanRgstReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcDetailListDto.WkCanReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcDetailListDto.WkCanRes;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbServiceProcDetailBilItemDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbServiceProcDetailListDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbServiceProcDetailPuPartDvo;
@@ -121,6 +123,12 @@ public class WsnbServiceProcDetailListController {
     @GetMapping("/ctt-iz")
     public CttIzReq getServiceProcDetailCttDatas(@Valid SearchReq dto) {
         return service.getServiceProcDetailCttDatas(dto);
+    }
+
+    @ApiOperation(value = "작업취소 여부 조회", notes = "외주직원인 경우 작업취소햇는지를 조회한다.")
+    @GetMapping("/wk-can")
+    public WkCanReq getServiceProcDetailWkCanDatas(@Valid WkCanRes dto) {
+        return service.getServiceProcDetailWkCanDatas(dto);
     }
 
     @ApiOperation(value = "작업취소 등록", notes = "서비스처리상세내역 > 외주직원 인 경우 작업취소 등록 처리를 한다.")
