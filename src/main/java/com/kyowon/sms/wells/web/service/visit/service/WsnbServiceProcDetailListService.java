@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.service.visit.service;
 import java.util.HashMap;
 import java.util.List;
 
+import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.ValidAssert;
 import org.apache.commons.codec.binary.StringUtils;
 import org.springframework.stereotype.Service;
@@ -46,6 +47,10 @@ public class WsnbServiceProcDetailListService {
 
     public CttIzReq getServiceProcDetailCttDatas(SearchReq dto){
         return mapper.selectServiceProcDetailCttDatas(dto);
+    }
+
+    public WkCanReq getServiceProcDetailWkCanDatas(WkCanRes dto){
+        return mapper.selectServiceProcDetailWkCanDatas(dto);
     }
 
     @Transactional
@@ -94,13 +99,28 @@ public class WsnbServiceProcDetailListService {
     public int saveWkCanRgst(SaveWkCanRgstReq dto) throws Exception{
         ValidAssert.notNull(dto);
 
+        HashMap<String, String> wkStatData = mapper.selectWkStatData(dto);
+        if(StringUtils.equals("2", wkStatData.get("CST_SV_ASN_NO").substring(0, 1))){
+            throw new BizException("해당 작업은 B/S 입니다.");
+        }
+        if(!StringUtils.equals("00", wkStatData.get("WK_PRGS_STAT_CD"))){
+            throw new BizException("작업대기 상태가 아닙니다.");
+        }
+
         int processCount = 0;
 
+        WsnbServiceProcDetailBilItemDvo dvo = new WsnbServiceProcDetailBilItemDvo();
+        dvo.setWkCanRsonCd(dto.canRson());
+        dvo.setWkCanMoCn(dto.canRsonDtlIz());
+        dvo.setCstSvAsnNo(dto.cstSvAsnNo());
+        dvo.setCntrNo(dto.cntrNo());
+        dvo.setCntrSn(dto.cntrSn());
+
         // 고객서비스AS설치배정내역 저장
-        processCount += mapper.updateWkCanIz(dto);
+        processCount += mapper.insertUpdateWkCanIz(dvo);
 
         // 고객서비스AS설치배정이력 저장
-        processCount += mapper.insertWkCanHist(dto);
+        processCount += mapper.insertWkCanHist(dvo);
 
         return processCount;
     }
