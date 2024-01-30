@@ -62,23 +62,43 @@ public class WpsdExcellentDivisionBaseMgtDto {
         String baseYm,
         @NotBlank
         String evlOgTpCd,
-        String evlDvCd
+        String awdEvlId
     ) {}
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // 우수사업부 기준관리 - 시상구분 Search Result Dto
+    @ApiModel("WpsdExcellentDivisionBaseMgtDto-EvlAwardRes")
+    public record EvlAwardRes(
+        String baseYm,
+        String evlOgTpCd,
+        String awdEvlId,
+        String awdEvlNm,
+        String evlRsbRelId,
+        String evlAtcCn,
+        String ctstGrpUseYn,
+        String evlWtcfUseYn,
+        String awdEvlGdUseYn,
+        String dtaDlYn
+    ){
 
+    }
     // *********************************************************
     // Result Dto
     // *********************************************************
     // 우수사업부 기준관리 - 평가기준 Search Result Dto
     @ApiModel("WpsdExcellentDivisionBaseMgtDto-EvlSearchRes")
     public record EvlSearchRes(
-        String baseYm,
-        String evlOgTpCd,
+        String baseYm,           /* 기준년월 */
+        String evlOgTpCd,        /* 평가조직유형코드 */
+        String awdEvlId,         /* 시상평가ID */
+        String awdEvlNm,         /* 시상평가명 */
+        String evlRsbRelId,      /* 평가직책관계ID */
+        String evlAtcCn,         /* 평가항목내용 */
+        String ctstGrpUseYn,     /* 경진그룹사용여부 */
+        String evlWtcfUseYn,     /* 평가가중치사용여부 */
+        String awdEvlGdUseYn,    /* 시상평가등급사용여부 */
         String evlOgTpNm,
-        String evlDvCd,
-        String evlDvNm,
-        String evlRsbRelId,
-        String ctstGrpUseYn,
-        String evlAtcCn,
         String dtaDlYn,
         String rsbDvCds,
         String rsbDvNms,
@@ -92,24 +112,29 @@ public class WpsdExcellentDivisionBaseMgtDto {
     // 우수사업부 기준관리 - 평가기준 Save Request Dto
     @ApiModel("WpsdExcellentDivisionBaseMgtDto-EvlSaveReq")
     public record EvlSaveReq(
-        String baseYm,
-        String evlOgTpCd,
-        String evlOgTpNm,
-        String evlDvCd,
-        String evlDvNm,
-        String evlRsbRelId,
-        String ctstGrpUseYn,
-        String evlAtcCn,
+        String baseYm,           /* 기준년월 */
+        String evlOgTpCd,        /* 평가조직유형코드 */
+        String awdEvlId,         /* 시상평가ID */
+        String awdEvlNm,         /* 시상평가명 */
+        String evlRsbRelId,      /* 평가직책관계ID */
+        String evlAtcCn,         /* 평가항목내용 */
+        String ctstGrpUseYn,     /* 경진그룹사용여부 */
         String dtaDlYn,
-        String calfCn,
-        String cexpCn,
         String rsbDvCds,
         String rsbDvNms,
         String[] rsbDvCdList,
         String qlfDvNm,
         String qlfDvCd,
-
         String rowState
+    ) {}
+
+        // *********************************************************
+    // Request Dto
+    // *********************************************************
+    // 우수사업부 기준관리 - 평가기준 Save Request Dto
+    @ApiModel("WpsdExcellentDivisionBaseMgtDto-EvlDeleteReq")
+    public record EvlDeleteReq(
+        String awdEvlId         /* 시상평가ID */
     ) {}
 
     // *********************************************************
@@ -118,16 +143,18 @@ public class WpsdExcellentDivisionBaseMgtDto {
     // 우수사업부 기준관리 - 평가기준 Search Result Dto
     @ApiModel("WpsdExcellentDivisionBaseMgtDto-EvlDetailSearchRes")
     public record EvlDetailSearchRes(
-        String baseYm, /* 기준년월 */
-        String evlOgTpCd, /* 평가조직유형코드 */
-        String evlDvCd, /* 평가구분코드 */
-        String evlDvNm, /* 평가구분코드 */
-        String evlAtcDvCd, /* 평가항목구분코드 */
-        String evlPdDvCd, /* 평가상품구분코드 */
-        double evlBaseUnitN, /* 평가기준단위수 */
-        double cvtBasePc, /* 환산기준점수 */
-        double trgBasePc, /* 목표기준점수 */
-        String dtaDlYn /* 데이터삭제여부 */
+        String baseYm,          /* 기준년월 */
+        String evlOgTpCd,       /* 평가조직유형코드 */
+        String awdEvlId,        /* 평가구분코드 */
+        String awdEvlNm,        /* 시상평가명 */
+        String evlRsbRelId,      /* 평가직책관계ID */
+        String evlAtcDvCd,      /* 평가항목구분코드 */
+        String evlAtcDvNm,      /* 평가항목구분명*/
+        String evlPdDvCd,       /* 평가상품구분코드 */
+        int sortOdr,            /* 정렬순서 */
+        double evlBaseUnitN,    /* 평가기준단위수 */
+        double cvtBasePc,       /* 환산기준점수 */
+        String dtaDlYn         /* 데이터삭제여부 */
     ) {}
 
     // *********************************************************
@@ -136,14 +163,16 @@ public class WpsdExcellentDivisionBaseMgtDto {
     // 우수사업부 기준관리 - 상세 평가기준 Save Request Dto
     @ApiModel("WpsdExcellentDivisionBaseMgtDto-EvlDetailSaveReq")
     public record EvlDetailSaveReq(
-        String baseYm, /* 기준년월 */
-        String evlOgTpCd, /* 평가조직유형코드 */
-        String evlDvCd, /* 평가구분코드 */
-        String evlAtcDvCd, /* 평가항목구분코드 */
-        String evlPdDvCd, /* 평가상품구분코드 */
-        double evlBaseUnitN, /* 평가기준단위수 */
-        double cvtBasePc, /* 환산기준점수 */
-        double trgBasePc, /* 목표기준점수 */
+        String baseYm,      /* 기준년월 */
+        String evlOgTpCd,   /* 평가조직유형코드 */
+        String awdEvlId,    /* 시상평가ID */
+        String evlRsbRelId, /* 평가직책관계ID */
+        String evlAtcDvCd,  /* 평가항목구분코드 */
+        String evlAtcDvNm,  /* 평가항목구분명*/
+        String evlPdDvCd,   /* 평가상품구분코드 */
+        double evlBaseUnitN,/* 평가기준단위수 */
+        double cvtBasePc,   /* 환산기준점수 */
+        double trgBasePc,   /* 목표기준점수 */
         String dtaDlYn,
         String rowState
     ) {}
@@ -169,9 +198,8 @@ public class WpsdExcellentDivisionBaseMgtDto {
     // 우수사업부 기준관리 - 상세 평가기준 Delete Request Dto
     @ApiModel("WpsdExcellentDivisionBaseMgtDto-EvlDetailDeleteReq")
     public record EvlDetailDeleteReq(
-        String baseYm,
-        String evlOgTpCd, /* 평가조직유형코드 */
-        String evlDvCd, /* 평가구분코드 */
+        @NotBlank
+        String awdEvlId, /* 평가구분코드 */
         String evlAtcDvCd /* 평가항목구분코드 */
     ) {}
 
@@ -182,10 +210,14 @@ public class WpsdExcellentDivisionBaseMgtDto {
     @Builder
     @ApiModel("WpsdExcellentDivisionBaseMgtDto-TrgSearchReq")
     public record TrgSearchReq(
+        @NotBlank
         String baseYm,
         @NotBlank
         String evlOgTpCd,
-        String evlDvCd
+        @NotBlank
+        String awdEvlId,
+        @NotBlank
+        String evlAtcDvCd
     ) {}
 
     // *********************************************************
@@ -195,38 +227,65 @@ public class WpsdExcellentDivisionBaseMgtDto {
     @ApiModel("WpsdExcellentDivisionBaseMgtDto-TrgSearchRes")
     public record TrgSearchRes(
         String baseYm,
-        String trgUseYn,
-        String evlDvNm,
+        String awdEvlId,
+        String awdEvlNm,
+        String evlRsbRelId,
+        String evlAtcCn,
+        String ctstGrpUseYn,
+        String evlWtcfUseYn,
+        String awdEvlGdUseYn,
+        double evlBaseUnitN,
+        double cvtBasePc,
+        int sortOdr,
+        Integer absltEvlBasePc,
+        Integer ptyEvlMaxPc,
+        Integer ptyEvlMinPc,
+        String awdPtyEvlDvCd,
+        Integer ptyEvlItrvPc,
         String evlOgTpCd,
-        String evlDvCd,
         String evlAtcDvCd,
         String evlAtcDvNm,
         String evlPdDvCd,
-        double evlBaseUnitN,
-        double cvtBasePc,
+        String trgUseYn,
+        String prtnrNo,
         double trgBasePc,
-        String dtaDlYn
+        String ctstGrpCd,
+        String prtnrKnm
     ) {}
+
     // *********************************************************
     // Result Dto
     // *********************************************************
-    // 우수사업부 기준관리 - 목표기준 Save Result Dto
+    // 우수사업부 기준관리 - 목표기준 Save Request Dto
     @ApiModel("WpsdExcellentDivisionBaseMgtDto-TrgSaveReq")
     public record TrgSaveReq(
         String baseYm,
-        String trgUseYn,
-        String evlDvNm,
+        String awdEvlId,
+        String awdEvlNm,
+        String evlRsbRelId,
+        String evlAtcCn,
+        String ctstGrpUseYn,
+        String evlWtcfUseYn,
+        String awdEvlGdUseYn,
+        double evlBaseUnitN,
+        double cvtBasePc,
+        int sortOdr,
+        Integer absltEvlBasePc,
+        Integer ptyEvlMaxPc,
+        Integer ptyEvlMinPc,
+        String awdPtyEvlDvCd,
+        Integer ptyEvlItrvPc,
         String evlOgTpCd,
-        String evlDvCd,
         String evlAtcDvCd,
         String evlAtcDvNm,
         String evlPdDvCd,
-        double evlBaseUnitN,
-        double cvtBasePc,
+        String trgUseYn,
+        String prtnrNo,
         double trgBasePc,
         String ctstGrpCd,
-        String dtaDlYn
+        String prtnrKnm
     ) {}
+
     @ApiModel("WpsdExcellentDivisionBaseMgtDto-DeadlineSearchReq")
     public record DeadlineSearchReq(
         @NotBlank
