@@ -38,13 +38,17 @@
      	     , T.MCHN_CH_TP_CD /*기변유형*/
      	     , T.FEE_FXAM_YN /*정액여부*/
      	     , T.FEE_ACKMT_CT /*인정건수*/
-     	     , T.PERF_VAL1
-             , T.PERF_VAL2
+     	     , NVL(T.PERF_VAL1, 0) AS PERF_VAL1
+             , NVL(T.PERF_VAL2, 0) AS PERF_VAL2
+             , CASE WHEN T.PERF_VAL1 >= 1 OR T.PERF_VAL2 >= 1 THEN 'Y'
+     	     		ELSE ''
+     	     	  END PERF_VAL_YN /*BS여부*/
  	     	 , T.SELL_DSC_DV_CD /*할인구분*/
  	     	 , NVL(T.SELL_DSCR_CD, DECODE(T.STPL_PTRM, '12', '1', '24', '2', '36', '3', '48', '4', '60', '5', '72', '6')) AS SELL_DSCR_CD /*판매할인율코드(할인유형)*/
  	     	 , T.SELL_DSC_TP_CD /*프로모션코드(할인제도)*/
  	     	 , T.PAK_SN
  	     	 , T.FEE_ACKMT_BASE_AMT /*수수료기준금액, WELLS-M 일 때*/
+             , NVL(T.PERF_VAL3, 0) AS PERF_VAL3 /*가전외 인정실적, WELLS-M 일 때*/
  	     	 , T.ACKMT_PERF_AMT /*수수료인정실적 WELLS-P 일 때*/
  	     	 , T.BOO_YN /*예약여부*/
  	 		 , T.OG_CD /*지점*/
@@ -105,24 +109,33 @@
      	     , M.MCHN_CH_TP_CD /*기변유형*/
      	     , A.FEE_FXAM_YN /*정액여부*/
      	     , M.ACKMT_PERF_CT AS FEE_ACKMT_CT /*인정건수*/
-     	     <!--, '' AS PERF_VAL1 /*BS인정건수*/-->
-     	     <!--, '' AS PERF_VAL2 /*BS신규건수*/-->
-     	     , (SELECT SUM(NVL((CASE WHEN X.PERF_ATC_CD = 'W00P00011' THEN X.PERF_VAL END), 0)) AS PERF_VAL
+     	     , (SELECT NVL(SUM((CASE WHEN X.PERF_ATC_CD = 'W00P00011' THEN X.PERF_VAL END)), 0) AS PERF_VAL
      	          FROM TB_FEAM_NTORP_CNTR_MM_CL X
      	         WHERE M.CNTR_NO = X.CNTR_NO
      	           AND M.CNTR_SN = X.CNTR_SN
-     	           AND M.BASE_YM = X.BASE_YM
+     	           AND X.PERF_YM = X.BASE_YM
      	           AND M.PERF_YM = X.PERF_YM
      	           AND X.PERF_ATC_CD = 'W00P00011' /*BS인정건수*/
+     	           AND X.PERF_AGRG_CRT_DV_CD = '201'
      	         ) AS PERF_VAL1
-             , (SELECT SUM(NVL((CASE WHEN X.PERF_ATC_CD = 'W00P00010' THEN X.PERF_VAL END), 0)) AS PERF_VAL
+             , (SELECT NVL(SUM((CASE WHEN X.PERF_ATC_CD = 'W00P00010' THEN X.PERF_VAL END)), 0) AS PERF_VAL
      	          FROM TB_FEAM_NTORP_CNTR_MM_CL X
      	         WHERE M.CNTR_NO = X.CNTR_NO
      	           AND M.CNTR_SN = X.CNTR_SN
-     	           AND M.BASE_YM = X.BASE_YM
+     	           AND X.PERF_YM = X.BASE_YM
      	           AND M.PERF_YM = X.PERF_YM
      	           AND X.PERF_ATC_CD = 'W00P00010' /*BS신규판매건수*/
+     	           AND X.PERF_AGRG_CRT_DV_CD = '201'
      	         ) AS PERF_VAL2
+             , (SELECT NVL(SUM((CASE WHEN X.PERF_ATC_CD = 'W02P00112' THEN X.PERF_VAL END)), 0) AS PERF_VAL
+     	          FROM TB_FEAM_NTORP_CNTR_MM_CL X
+     	         WHERE M.CNTR_NO = X.CNTR_NO
+     	           AND M.CNTR_SN = X.CNTR_SN
+     	           AND X.PERF_YM = X.BASE_YM
+     	           AND M.PERF_YM = X.PERF_YM
+     	           AND X.PERF_ATC_CD = 'W02P00112' /*BS신규판매건수*/
+     	           AND X.PERF_AGRG_CRT_DV_CD = '201'
+     	         ) AS PERF_VAL3
  	     	 , A.SELL_DSC_DV_CD /*할인구분*/
  	     	 , A.SELL_DSCR_CD /*판매할인율코드(할인유형)*/
  	     	 , A.SELL_DSC_TP_CD /*프로모션코드(할인제도)*/
