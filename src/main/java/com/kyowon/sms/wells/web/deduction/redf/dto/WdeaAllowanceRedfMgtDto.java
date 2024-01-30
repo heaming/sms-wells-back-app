@@ -62,11 +62,13 @@ public class WdeaAllowanceRedfMgtDto {
         String feeAckmtCt, /*인정건수*/
         String perfVal1, /*BS인정건수*/
         String perfVal2, /*BS신규건수*/
+        String perfValYn, /*BS대상*/
         String sellDscDvCd, /*할인구분*/
         String sellDscrCd, /*할인유형*/
         String sellDscTpCd, /*할인제도*/
         String pakSn, /*패키지 일련번호*/
         String feeAckmtBaseAmt, /*수수료 인정기준금액 - wells M용*/
+        String perfVal3, /*가전외 인정실적 - wells M용*/
         String ackmtPerfAmt, /*인정실적금액 - wells P 용*/
         String booYn, /*예약여부*/
         String ogCd, /*지점*/
