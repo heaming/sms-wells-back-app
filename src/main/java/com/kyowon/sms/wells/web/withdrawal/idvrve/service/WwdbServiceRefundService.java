@@ -180,8 +180,9 @@ public class WwdbServiceRefundService {
         rendInfo.setKwGrpCoCd(serviceRefundDvo.getKwGrpCoCd());
         rendInfo.setItgDpNo(serviceRefundDvo.getItgDpNo());
         rendInfo.setRveAkNo(rveAkNo);
-        withdrawalService
-            .NAAfterDepositComparisonComfirmation(rendInfo);
+        withdrawalService.NAAfterDepositComparisonComfirmation(rendInfo);
+
+        withdrawalService.NAAftercallMileageUseService(rendInfo);
 
         return serviceRefundDvo;
     }
