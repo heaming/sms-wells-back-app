@@ -78,7 +78,7 @@ public class WfebRedemptionFeeService {
             saveDlqRedemptionOfFees(baseYm, ogTpCd, cntrPerfCrtDvCd);
         }
 
-        if("W05".equals(ogTpCd)) {
+        if ("W05".equals(ogTpCd)) {
             /* 총판인 경우 총판전용 되물림테이블 데이터 생성 호출 */
             soleDistributorMgtService.saveSoleDistributorB2bRedfAmt(baseYm);
         }
@@ -119,7 +119,7 @@ public class WfebRedemptionFeeService {
                     getFeeRedemptionDetailIdSql(defaultTenantId, redfAdsbDvCd, baseYm, redfAdsbTpCd)
                 );
 
-                /* P조직 상조 연체되물림 생성 */
+                /* M조직 상조 연체되물림 생성 */
                 insertCount += redemptionFeeMapper.insertLifeContractRedf(
                     baseYm, ogTpCd, getFeeRedemptionDetailIdSql(defaultTenantId, redfAdsbDvCd, baseYm, redfAdsbTpCd),
                     "W020125", "W020127", "W020126"
