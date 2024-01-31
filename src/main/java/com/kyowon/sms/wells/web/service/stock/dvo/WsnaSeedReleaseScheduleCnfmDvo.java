@@ -40,7 +40,7 @@ public class WsnaSeedReleaseScheduleCnfmDvo {
     private String sdingPkgPdCd;
 
     /**
-     * 모종 1~5 정보
+     * 모종 1~10 정보
      */
     // 모종1
     private String sdingPdCd1;
@@ -72,6 +72,36 @@ public class WsnaSeedReleaseScheduleCnfmDvo {
     private BigDecimal sdingQty5;
     // 파종일자5
     private String sdingSowDt5;
+    // 모종6
+    private String sdingPdCd6;
+    // 수량6
+    private BigDecimal sdingQty6;
+    // 파종일자6
+    private String sdingSowDt6;
+    // 모종7
+    private String sdingPdCd7;
+    // 수량7
+    private BigDecimal sdingQty7;
+    // 파종일자7
+    private String sdingSowDt7;
+    // 모종8
+    private String sdingPdCd8;
+    // 수량8
+    private BigDecimal sdingQty8;
+    // 파종일자8
+    private String sdingSowDt8;
+    // 모종9
+    private String sdingPdCd9;
+    // 수량9
+    private BigDecimal sdingQty9;
+    // 파종일자9
+    private String sdingSowDt9;
+    // 모종10
+    private String sdingPdCd10;
+    // 수량10
+    private BigDecimal sdingQty10;
+    // 파종일자10
+    private String sdingSowDt10;
 
     // 접수일자
     private String rcpDt;
