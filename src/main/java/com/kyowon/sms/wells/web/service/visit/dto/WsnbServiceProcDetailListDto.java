@@ -71,4 +71,18 @@ public class WsnbServiceProcDetailListDto {
         String cntrNo,
         String cntrSn
     ){}
+
+    @ApiModel(value = "WsnbServiceProcDetailListDto-WkCanRes")
+    public record WkCanRes(
+        String cntrNo,
+        String cntrSn,
+        String cstSvAsnNo
+    ) {}
+
+    @ApiModel(value = "WsnbServiceProcDetailListDto-WkCanReq")
+    public record WkCanReq(
+        String wkCanRsonCd,
+        String wkCanMoCn,
+        String wkPrgsStatCd
+    ) {}
 }

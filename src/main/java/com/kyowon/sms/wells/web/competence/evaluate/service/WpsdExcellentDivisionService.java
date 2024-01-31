@@ -82,7 +82,7 @@ public class WpsdExcellentDivisionService {
      * @param req
      * @return List<SearchContestRes>
      */
-    public List<SearchContestRsbRes> getContestResponsibilityGroupList(SearchContestRsbReq req) {
+    public List<SearchContestPartnerRes> getContestResponsibilityGroupList(SearchContestPartnerReq req) {
         return mapper.selectContestResponsibilityGroupList(req);
     }
     /**
@@ -90,9 +90,9 @@ public class WpsdExcellentDivisionService {
      * @param reqs
      * @return int
      */
-    public int saveContestResponsibilityGroup(List<SearchContestRsbRes> reqs) {
+    public int saveContestResponsibilityGroup(List<SaveContestPartnerReq> reqs) {
         int processCount = 0;
-        for(SearchContestRsbRes req : reqs){
+        for(SaveContestPartnerReq req : reqs){
             WpsdExcellentDivisionDvo dvo = converter.mapToDvo(req);
             int resultCnt = mapper.updateContestResponsibilityGroup(dvo);
             BizAssert.isTrue(resultCnt > 0, SAVE_ERROR_MESSAGE);

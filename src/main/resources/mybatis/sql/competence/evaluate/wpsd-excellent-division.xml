@@ -3,8 +3,7 @@
 <mapper namespace="com.kyowon.sms.wells.web.competence.evaluate.mapper.WpsdExcellentDivisionMapper">
     <select id="selectContestGroupList" resultType="com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdExcellentDivisionDto$SearchContestRes">
         SELECT EVL_OG_TP_CD         /* 조직유형코드 */
-             , EVL_DV_CD
-             , F_CMZ_CD_NM(#{session.tenantId}, 'EVL_DV_CD', EVL_DV_CD) AS EVL_DV_NM
+             , AWD_EVL_ID
              , CTST_GRP_CD      /* 경진그룹코드 */
              , VL_STRTDT        /* 유효시작일자 */
              , VL_ENDDT         /* 유효종료일자 */
@@ -22,10 +21,10 @@
           FROM TB_PSEV_CTST_GRP_CD_MNGT_BAS /* 경진그룹코드관리기본 */
          WHERE 1 = 1
            <if test='@MybatisUtils@isNotEmpty(evlOgTpCd)'>
-           AND EVL_OG_TP_CD         = #{evlOgTpCd}           /* 조직유형코드 */
+           AND EVL_OG_TP_CD         = #{evlOgTpCd}
            </if>
-           <if test='@MybatisUtils@isNotEmpty(evlDvCd)'>
-           AND EVL_DV_CD            = #{evlDvCd}
+           <if test='@MybatisUtils@isNotEmpty(awdEvlId)'>
+           AND AWD_EVL_ID           = #{awdEvlId}
            </if>
            <if test='@MybatisUtils@isNotEmpty(ctstGrpCd)'>
            AND CTST_GRP_CD          = #{ctstGrpCd}
@@ -35,8 +34,8 @@
 
     <select id="selectGridConfigList" resultType="camelMap">
         SELECT EVL_OG_TP_CD
-             , EVL_DV_CD
-             , EVL_DV_NM
+             , AWD_EVL_ID
+             , AWD_EVL_NM
              , EVL_ATC_DV_CD
              , LOWER(EVL_ATC_DV_CD) AS L_EVL_ATC_DV_CD
              , EVL_ATC_DV_NM
@@ -60,9 +59,9 @@
                     WHEN DV_CD = 3 AND NUM = 3 THEN 'rate'
                END AS DATA_TYPE
           FROM
-             ( SELECT T2.EVL_OG_TP_CD
-                    , T2.EVL_DV_CD
-                    , F_CMZ_CD_NM(#{session.tenantId}, 'EVL_DV_CD', T2.EVL_DV_CD) AS EVL_DV_NM
+             ( SELECT T1.EVL_OG_TP_CD
+             		, T1.AWD_EVL_ID
+             		, T1.AWD_EVL_NM
                     , T2.EVL_ATC_DV_CD    /* 평가항목구분코드 */
                     , F_CMZ_CD_NM(#{session.tenantId}, 'EVL_ATC_DV_CD', T2.EVL_ATC_DV_CD) AS EVL_ATC_DV_NM
                     , T3.TRG_USE_YN
@@ -71,37 +70,16 @@
                     , CASE WHEN TRG_USE_YN = 'Y' THEN '3' ELSE '1' END AS  DV_CD
                     , T2.SORT_ODR
                FROM TB_PSEV_AWD_EVL_BASE_BAS T1
-               INNER JOIN
-           	       ( SELECT BASE_YM
-                          , EVL_OG_TP_CD
-                          , EVL_DV_CD
-                          , EVL_ATC_DV_CD
-                          , EVL_PD_DV_CD
-                          , EVL_BASE_UNIT_N
-                          , CVT_BASE_PC
-                          , TRG_BASE_PC
-           	              , SORT_ODR
-           	          FROM TB_PSEV_AWD_EVL_BASE_DTL
-           	         WHERE DTA_DL_YN = 'N'
-           	         GROUP BY BASE_YM
-						 , EVL_OG_TP_CD
-						 , EVL_DV_CD
-						 , EVL_ATC_DV_CD
-						 , EVL_PD_DV_CD
-						 , EVL_BASE_UNIT_N
-						 , CVT_BASE_PC
-						 , TRG_BASE_PC
-           	             , SORT_ODR
-				   ) T2
-                  ON T2.EVL_DV_CD = T1.EVL_DV_CD
-                 AND T2.EVL_OG_TP_CD = T1.EVL_OG_TP_CD
-                 AND T2.BASE_YM = T1.BASE_YM
+               INNER JOIN TB_PSEV_AWD_EVL_BASE_DTL T2
+		          ON T2.BASE_YM 		= T1.BASE_YM
+		         AND T2.EVL_OG_TP_CD 	= T1.EVL_OG_TP_CD
+		         AND T2.AWD_EVL_ID 	= T1.AWD_EVL_ID
                INNER JOIN TB_PSEV_AWD_EVL_ATC_BASE_BAS T3
                   ON T3.EVL_OG_TP_CD = T2.EVL_OG_TP_CD
                  AND T3.EVL_ATC_DV_CD = T2.EVL_ATC_DV_CD
-               WHERE T1.EVL_DV_CD = #{evlDvCd}
+               WHERE T1.BASE_YM = #{baseYm}
                  AND T1.EVL_OG_TP_CD = #{evlOgTpCd}
-                 AND T1.BASE_YM = #{baseYm}
+                 AND T1.AWD_EVL_ID = #{awdEvlId}
              ) T1
          INNER JOIN
              ( SELECT LEVEL NUM
@@ -120,14 +98,17 @@
              , CALF_CN
              , CEXP_CN
           FROM TB_PSEV_AWD_EVL_RSB_REL
-         WHERE EVL_RSB_REL_ID = (#{evlOgTpCd}||#{evlDvCd}||LPAD('1', 5, '0'))
+         WHERE EVL_RSB_REL_ID = ( SELECT EVL_RSB_REL_ID
+                                    FROM TB_PSEV_AWD_EVL_BASE_BAS
+                                   WHERE AWD_EVL_ID = #{awdEvlId}
+                                  )
            AND DTA_DL_YN = 'N'
            AND CALF_CN IS NOT NULL
     </select>
 
     <select id="selectExcellentDivisionPages" resultType="camelMap" >
         WITH TARGET_LIST AS (
-            SELECT PRTNR_NO
+            SELECT DISTINCT PRTNR_NO
               FROM
                  (
                  <foreach collection="target" item="item" separator=" UNION ALL ">
@@ -141,198 +122,127 @@
                      </if>
                  </foreach>
                  )
-             GROUP BY PRTNR_NO
         )
-        <choose>
-            <when test="@MybatisUtils@isNotEmpty(param.evlDvCd) and @MybatisUtils@equals('M03', param.evlDvCd)">
-                SELECT T2.BASE_YM
-                     , T2.OG_TP_CD AS EVL_OG_TP_CD
-                     , T2.PRTNR_NO
-                     , T2.PRTNR_KNM
-                     , T2.OG_CD
-                     , T2.OG_NM
-                     , CASE #{param.evlDvCd} WHEN 'M01' THEN T3.DGR1_LEVL_OG_ID
-                                             WHEN 'M02' THEN T3.DGR2_LEVL_OG_ID
-                                             WHEN 'M03' THEN T3.DGR3_LEVL_OG_ID
-                                             ELSE T3.DGR1_LEVL_OG_ID
-                       END AS OG_ID
-                     , #{param.evlDvCd} AS EVL_DV_CD
-                     , ( SELECT MAX(EVL_RFLT_DTM)
-                           FROM TB_PSEV_AWD_EVL_IZ S1
-                          WHERE S1.PRTNR_NO = T1.PRTNR_NO
-                            AND S1.EVL_OG_TP_CD = T2.OG_TP_CD
-                            AND S1.EVL_DV_CD = #{param.evlDvCd}
-                            AND S1.BASE_YM = T2.BASE_YM
-                            AND S1.DTA_DL_YN = 'N' ) AS EVL_RFLT_DTM
-                    <if test='@MybatisUtils@isNotEmpty(config)'>
-                        <foreach collection="config" item="item">
-                            <if test='@MybatisUtils@isNotEmpty(item.dataType)'>
-                                <choose>
-                                    <when test="@MybatisUtils@equals(item.dataType, 'score')">
-                                        , NVL(( SELECT S1.AWD_BASE_CALC_PC
-                                                  FROM TB_PSEV_AWD_EVL_IZ S1
-                                                 WHERE S1.PRTNR_NO = T1.PRTNR_NO
-                                                   AND S1.EVL_OG_TP_CD = T2.OG_TP_CD
-                                                   AND S1.BASE_YM = T2.BASE_YM
-                                                   AND S1.EVL_DV_CD = #{param.evlDvCd}
-                                                   AND S1.EVL_ATC_DV_CD = #{item.evlAtcDvCd}
-                                                   AND S1.DTA_DL_YN = 'N'
-                                                   <if test='@MybatisUtils@isNotEmpty(param.cntrPerfDvCd)'>
-                                                   AND S1.CNTR_PERF_DV_CD = #{param.cntrPerfDvCd}
-                                                   </if>
-                                                    ), 0) AS ${item.fieldName}
-                                    </when>
-                                    <when test="@MybatisUtils@equals(item.dataType, 'trg')">
-                                        , NVL(( SELECT TRG_BASE_PC
-                                                  FROM TB_PSEV_AWD_EVL_IZ S1
-                                                 WHERE S1.PRTNR_NO = T1.PRTNR_NO
-                                                   AND S1.EVL_OG_TP_CD = T2.OG_TP_CD
-                                                   AND S1.BASE_YM = T2.BASE_YM
-                                                   AND S1.EVL_DV_CD = #{param.evlDvCd}
-                                                   AND S1.EVL_ATC_DV_CD = #{item.evlAtcDvCd}
-                                                   AND S1.DTA_DL_YN = 'N'
-                                                   <if test='@MybatisUtils@isNotEmpty(param.cntrPerfDvCd)'>
-                                                   AND S1.CNTR_PERF_DV_CD = #{param.cntrPerfDvCd}
-                                                   </if>
-                                                    ), 0) AS ${item.fieldName}
-                                    </when>
-                                    <when test="@MybatisUtils@equals(item.dataType, 'rate')">
-                                        , NVL(( SELECT (S1.AWD_BASE_CALC_PC / TRG_BASE_PC) * 100
-                                                      FROM TB_PSEV_AWD_EVL_IZ S1
-                                                 WHERE S1.PRTNR_NO = T1.PRTNR_NO
-                                                   AND S1.EVL_OG_TP_CD = T2.OG_TP_CD
-                                                   AND S1.BASE_YM = T2.BASE_YM
-                                                   AND S1.EVL_DV_CD = #{param.evlDvCd}
-                                                   AND S1.EVL_ATC_DV_CD = #{item.evlAtcDvCd}
-                                                   AND S1.DTA_DL_YN = 'N'
-                                                   <if test='@MybatisUtils@isNotEmpty(param.cntrPerfDvCd)'>
-                                                   AND S1.CNTR_PERF_DV_CD = #{param.cntrPerfDvCd}
-                                                   </if>
-                                                    ), 0) AS ${item.fieldName}
-                                    </when>
-                                    <otherwise>
-                                        , ${item.dataType} AS  ${item.fieldName}
-                                    </otherwise>
-                                </choose>
-                            </if>
-                        </foreach>
+        SELECT A.PRTNR_NO
+             , A.BASE_YM
+             , A.EVL_OG_TP_CD
+             , A.AWD_EVL_NM
+             , A.AWD_EVL_ID
+             , A.OG_CD
+             , A.OG_NM
+             , A.PRTNR_KNM
+             , ( SELECT MAX(EVL_RFLT_DTM)
+                   FROM TB_PSEV_AWD_EVL_IZ S1
+                  WHERE S1.PRTNR_NO = A.PRTNR_NO
+                    AND S1.EVL_OG_TP_CD = A.EVL_OG_TP_CD
+                    AND S1.AWD_EVL_ID = A.AWD_EVL_ID
+                    AND S1.BASE_YM = A.BASE_YM
+                    AND S1.DTA_DL_YN = 'N' ) AS EVL_RFLT_DTM
+            <if test='@MybatisUtils@isNotEmpty(config)'>
+                <foreach collection="config" item="item">
+                    <if test='@MybatisUtils@isNotEmpty(item.dataType)'>
+                        <choose>
+                            <when test="@MybatisUtils@equals(item.dataType, 'score')">
+                                , NVL(( SELECT S1.AWD_BASE_CALC_PC
+                                          FROM TB_PSEV_AWD_EVL_IZ S1
+                                         WHERE S1.PRTNR_NO = A.PRTNR_NO
+                                           AND S1.EVL_OG_TP_CD = A.EVL_OG_TP_CD
+                                           AND S1.BASE_YM = A.BASE_YM
+                                           AND S1.AWD_EVL_ID = A.AWD_EVL_ID
+                                           AND S1.EVL_ATC_DV_CD = #{item.evlAtcDvCd}
+                                           AND S1.DTA_DL_YN = 'N'
+                                           <if test='@MybatisUtils@isNotEmpty(param.cntrPerfDvCd)'>
+                                           AND S1.CNTR_PERF_DV_CD = #{param.cntrPerfDvCd}
+                                           </if>
+                                            ), 0) AS ${item.fieldName}
+                            </when>
+                            <when test="@MybatisUtils@equals(item.dataType, 'trg')">
+                                , NVL(( SELECT TRG_BASE_PC
+                                          FROM TB_PSEV_AWD_EVL_IZ S1
+                                         WHERE S1.PRTNR_NO = A.PRTNR_NO
+                                           AND S1.EVL_OG_TP_CD = A.EVL_OG_TP_CD
+                                           AND S1.BASE_YM = A.BASE_YM
+                                           AND S1.AWD_EVL_ID = A.AWD_EVL_ID
+                                           AND S1.EVL_ATC_DV_CD = #{item.evlAtcDvCd}
+                                           AND S1.DTA_DL_YN = 'N'
+                                           <if test='@MybatisUtils@isNotEmpty(param.cntrPerfDvCd)'>
+                                           AND S1.CNTR_PERF_DV_CD = #{param.cntrPerfDvCd}
+                                           </if>
+                                            ), 0) AS ${item.fieldName}
+                            </when>
+                            <when test="@MybatisUtils@equals(item.dataType, 'rate')">
+                                , NVL(( SELECT DECODE(TRG_BASE_PC, 0 , 0, AWD_BASE_CALC_PC/TRG_BASE_PC) * 100
+                                              FROM TB_PSEV_AWD_EVL_IZ S1
+                                         WHERE S1.PRTNR_NO = A.PRTNR_NO
+                                           AND S1.EVL_OG_TP_CD = A.EVL_OG_TP_CD
+                                           AND S1.BASE_YM = A.BASE_YM
+                                           AND S1.AWD_EVL_ID = A.AWD_EVL_ID
+                                           AND S1.EVL_ATC_DV_CD = #{item.evlAtcDvCd}
+                                           AND S1.DTA_DL_YN = 'N'
+                                           <if test='@MybatisUtils@isNotEmpty(param.cntrPerfDvCd)'>
+                                           AND S1.CNTR_PERF_DV_CD = #{param.cntrPerfDvCd}
+                                           </if>
+                                            ), 0) AS ${item.fieldName}
+                            </when>
+                            <otherwise>
+                                , ${item.dataType} AS  ${item.fieldName}
+                            </otherwise>
+                        </choose>
                     </if>
-                  FROM TARGET_LIST T1
-                 INNER JOIN TB_OGBS_MM_PRTNR_IZ T2
-                    ON T2.PRTNR_NO = T1.PRTNR_NO
-                   AND T2.DTA_DL_YN = 'N'
-                 INNER JOIN TB_OGBS_MM_OG_IZ T3
-                    ON T3.BASE_YM = T2.BASE_YM /* 기준년월 */
-                   AND T3.OG_TP_CD = T2.OG_TP_CD /* 조직유형코드 */
-                   AND T3.OG_ID = T2.OG_ID /* 조직ID */
-                   AND T3.DTA_DL_YN = 'N'
-                 WHERE 1=1
-                   AND T2.BASE_YM = #{param.baseYm}
-                 ORDER BY T2.OG_CD, T1.PRTNR_NO
-            </when>
-            <otherwise>
-                SELECT T2.BASE_YM
-                     , T2.OG_TP_CD AS EVL_OG_TP_CD
-                     , T2.PRTNR_NO
-                     , T2.PRTNR_KNM
-                     , T2.OG_CD
-                     , T2.OG_NM
-                     , CASE #{param.evlDvCd} WHEN 'M01' THEN T3.DGR1_LEVL_OG_ID
-                                             WHEN 'M02' THEN T3.DGR2_LEVL_OG_ID
-                                             WHEN 'P01' THEN T3.DGR1_LEVL_OG_ID
-                                             WHEN 'P02' THEN T3.DGR2_LEVL_OG_ID
-                                             WHEN 'P03' THEN T3.DGR2_LEVL_OG_ID
-                                             WHEN 'P04' THEN T3.DGR2_LEVL_OG_ID
-                                             ELSE T3.DGR3_LEVL_OG_ID
-                       END AS OG_ID
-                     , #{param.evlDvCd} AS EVL_DV_CD
-                     , ( SELECT MAX(EVL_RFLT_DTM)
-                           FROM TB_PSEV_AWD_EVL_IZ S1
-                          WHERE S1.PRTNR_NO = T1.PRTNR_NO
-                            AND S1.EVL_DV_CD = #{param.evlDvCd}
-                            AND S1.EVL_OG_TP_CD = T2.OG_TP_CD
-                            AND S1.BASE_YM = T2.BASE_YM
-                            AND S1.DTA_DL_YN = 'N' ) AS EVL_RFLT_DTM
-                    <if test='@MybatisUtils@isNotEmpty(config)'>
-                        <foreach collection="config" item="item">
-                            <if test='@MybatisUtils@isNotEmpty(item.dataType)'>
-                                <choose>
-                                    <when test="@MybatisUtils@equals(item.dataType, 'score')">
-                                        , NVL(( SELECT S1.AWD_BASE_CALC_PC
-                                                  FROM TB_PSEV_AWD_EVL_IZ S1
-                                                 WHERE S1.PRTNR_NO = T1.PRTNR_NO
-                                                   AND S1.EVL_OG_TP_CD = T2.OG_TP_CD
-                                                   AND S1.BASE_YM = T2.BASE_YM
-                                                   AND S1.EVL_DV_CD = #{param.evlDvCd}
-                                                   AND S1.EVL_ATC_DV_CD = #{item.evlAtcDvCd}
-                                                   AND S1.DTA_DL_YN = 'N'
-                                                   <if test='@MybatisUtils@isNotEmpty(param.cntrPerfDvCd)'>
-                                                   AND S1.CNTR_PERF_DV_CD = #{param.cntrPerfDvCd}
-                                                   </if>
-                                                    ), 0) AS ${item.fieldName}
-                                    </when>
-                                    <when test="@MybatisUtils@equals(item.dataType, 'trg')">
-                                        , NVL(( SELECT TRG_BASE_PC
-                                                  FROM TB_PSEV_AWD_EVL_IZ S1
-                                                 WHERE S1.PRTNR_NO = T1.PRTNR_NO
-                                                   AND S1.EVL_OG_TP_CD = T2.OG_TP_CD
-                                                   AND S1.BASE_YM = T2.BASE_YM
-                                                   AND S1.EVL_DV_CD = #{param.evlDvCd}
-                                                   AND S1.EVL_ATC_DV_CD = #{item.evlAtcDvCd}
-                                                   AND S1.DTA_DL_YN = 'N'
-                                                   <if test='@MybatisUtils@isNotEmpty(param.cntrPerfDvCd)'>
-                                                   AND S1.CNTR_PERF_DV_CD = #{param.cntrPerfDvCd}
-                                                   </if>
-                                                    ), 0) AS ${item.fieldName}
-                                    </when>
-                                    <when test="@MybatisUtils@equals(item.dataType, 'rate')">
-                                        , NVL(( SELECT (S1.AWD_BASE_CALC_PC / DECODE(TRG_BASE_PC, 0, NULL, TRG_BASE_PC)) * 100
-                                                      FROM TB_PSEV_AWD_EVL_IZ S1
-                                                 WHERE S1.PRTNR_NO = T1.PRTNR_NO
-                                                   AND S1.EVL_OG_TP_CD = T2.OG_TP_CD
-                                                   AND S1.BASE_YM = T2.BASE_YM
-                                                   AND S1.EVL_DV_CD = #{param.evlDvCd}
-                                                   AND S1.EVL_ATC_DV_CD = #{item.evlAtcDvCd}
-                                                   AND S1.DTA_DL_YN = 'N'
-                                                   <if test='@MybatisUtils@isNotEmpty(param.cntrPerfDvCd)'>
-                                                   AND S1.CNTR_PERF_DV_CD = #{param.cntrPerfDvCd}
-                                                   </if>
-                                                    ), 0) AS ${item.fieldName}
-                                    </when>
-                                    <otherwise>
-                                        , ${item.dataType} AS  ${item.fieldName}
-                                    </otherwise>
-                                </choose>
-                            </if>
-                        </foreach>
-                    </if>
-                  FROM TARGET_LIST T1
-                 INNER JOIN TB_OGBS_MM_PRTNR_IZ T2
-                    ON T2.PRTNR_NO = T1.PRTNR_NO
-                   AND T2.DTA_DL_YN = 'N'
-                 INNER JOIN TB_OGBS_MM_OG_IZ T3
-                    ON T3.BASE_YM = T2.BASE_YM /* 기준년월 */
-                   AND T3.OG_TP_CD = T2.OG_TP_CD /* 조직유형코드 */
-                   AND T3.OG_ID = T2.OG_ID /* 조직ID */
-                   AND T3.DTA_DL_YN = 'N'
-                 WHERE 1=1
-                   AND T2.BASE_YM = #{param.baseYm}
-                   AND T2.OG_TP_CD = #{param.evlOgTpCd}
-                   <if test='@MybatisUtils@isNotEmpty(param.ctstGrpCd)'>
-                   AND EXISTS ( SELECT 1
-                                  FROM TB_PSEV_AWD_EVL_BASE_DTL
-                                 WHERE CTST_GRP_CD = #{param.ctstGrpCd}
-                                   AND DTA_DL_YN = 'N'
-                                   AND OG_ID = CASE 'M04' WHEN 'M01' THEN T3.DGR1_LEVL_OG_ID
-                                                          WHEN 'M02' THEN T3.DGR2_LEVL_OG_ID
-                                                          WHEN 'M03' THEN T3.DGR3_LEVL_OG_ID
-                                                          ELSE T3.DGR1_LEVL_OG_ID
-                                               END
-                       )
-                   </if>
-                 ORDER BY T2.OG_CD, T1.PRTNR_NO
-            </otherwise>
-        </choose>
+                </foreach>
+            </if>
+          FROM
+             ( SELECT T4.PRTNR_NO
+                    , T1.BASE_YM
+                    , T1.EVL_OG_TP_CD
+                    , T1.AWD_EVL_NM
+                    , T1.AWD_EVL_ID
+                    , NVL(MAX(T6.PRTNR_KNM), MAX(T7.PRTNR_KNM)) AS PRTNR_KNM
+                    , NVL(MAX(T6.OG_CD), MAX(T7.OG_CD)) AS OG_CD
+                    , NVL(MAX(T6.OG_NM), MAX(T7.OG_NM)) AS OG_NM
+                 FROM TB_PSEV_AWD_EVL_BASE_BAS T1
+                INNER JOIN TB_PSEV_AWD_EVL_BASE_DTL T2
+                   ON T2.BASE_YM = T1.BASE_YM
+                  AND T2.EVL_OG_TP_CD = T1.EVL_OG_TP_CD
+                  AND T2.AWD_EVL_ID = T1.AWD_EVL_ID
+                  AND T2.DTA_DL_YN = 'N'
+                INNER JOIN TB_PSEV_AWD_EVL_ATC_BASE_BAS T3
+                   ON T3.EVL_OG_TP_CD = T2.EVL_OG_TP_CD
+                  AND T3.EVL_ATC_DV_CD = T2.EVL_ATC_DV_CD
+                  AND T3.DTA_DL_YN = 'N'
+                INNER JOIN TB_PSEV_AWD_EVL_ATC_BASE_DTL T4
+                   ON T4.BASE_YM = T2.BASE_YM
+                  AND T4.EVL_OG_TP_CD = T2.EVL_OG_TP_CD
+                  AND T4.AWD_EVL_ID = T2.AWD_EVL_ID
+                  AND T4.EVL_ATC_DV_CD = T2.EVL_ATC_DV_CD
+                  AND T4.DTA_DL_YN = 'N'
+                INNER JOIN TARGET_LIST T5
+                   ON T5.PRTNR_NO = T4.PRTNR_NO
+                 LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T6
+                   ON T6.PRTNR_NO = T5.PRTNR_NO
+                  AND T6.OG_TP_CD = T4.EVL_OG_TP_CD
+                  AND T6.BASE_YM  = T1.BASE_YM
+                 LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T7
+                   ON T7.PRTNR_NO = T5.PRTNR_NO
+                  AND T7.OG_TP_CD = 'HR1'
+                  AND T7.BASE_YM  = T1.BASE_YM
+                WHERE 1=1
+                  AND T1.BASE_YM = #{param.baseYm}
+                  AND T1.EVL_OG_TP_CD = #{param.evlOgTpCd}
+                  AND T1.DTA_DL_YN = 'N'
+                  <if test='@MybatisUtils@isNotEmpty(param.ctstGrpCd)'>
+                  AND EXISTS ( SELECT 1
+                                 FROM TB_PSEV_AWD_EVL_BASE_DTL
+                                WHERE CTST_GRP_CD = #{param.ctstGrpCd}
+                                  AND AWD_EVL_ID = #{awdEvlId}
+                                  AND DTA_DL_YN = 'N' )
+                  </if>
+                GROUP BY T4.PRTNR_NO
+                    , T1.BASE_YM
+                    , T1.EVL_OG_TP_CD
+                    , T1.AWD_EVL_NM
+                    , T1.AWD_EVL_ID ) A
+         ORDER BY A.OG_CD, A.PRTNR_NO
 
     </select>
 
@@ -342,88 +252,76 @@
            <include refid="COMMON.updateSystemField"/>
          WHERE BASE_YM = #{baseYm}
            AND EVL_OG_TP_CD = #{evlOgTpCd}
-           AND EVL_DV_CD = #{evlDvCd}
+           AND AWD_EVL_ID = #{awdEvlId}
            AND EVL_ATC_DV_CD = UPPER(#{evlAtcDvCd})
-           AND OG_ID = #{ogId}
            AND PRTNR_NO = #{prtnrNo}
     </update>
 
-    <select id="selectEvaluationResponsibility"
-            resultType="com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdExcellentDivisionDto$SearchEvlRsbRes">
+    <select id="selectEvaluationResponsibility" resultType="com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdExcellentDivisionDto$SearchEvlRsbRes">
         SELECT EVL_OG_TP_CD
              , EVL_RSB_DV_CD
              , F_CMZ_CD_NM(#{session.tenantId}, 'EVL_RSB_DV_CD', EVL_RSB_DV_CD) AS EVL_RSB_DV_NM
           FROM TB_PSEV_AWD_EVL_RSB_REL
          WHERE DTA_DL_YN = 'N'
            AND EVL_OG_TP_CD = #{evlOgTpCd}
-           AND EVL_RSB_REL_ID = (#{evlOgTpCd}||#{evlDvCd}||LPAD('1', 5, '0'))
+           AND EVL_RSB_REL_ID = SUBSTR(#{baseYm}, 0, 4)||'0'||#{evlOgTpCd}||#{awdEvlId}
+         ORDER BY RGST_SN ASC
     </select>
 
-    <select id="selectContestResponsibilityGroupList" resultType="com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdExcellentDivisionDto$SearchContestRsbRes">
-        SELECT BASE_YM
-             , EVL_OG_TP_CD
-             , EVL_DV_CD
-             , EVL_DV_NM
-             , OG_ID
-             , OG_NM
-             , CTST_GRP_CD
-             , EVL_RSB_DV_CD
-             , EVL_RSB_DV_NM
-          FROM
-             ( SELECT T1.BASE_YM
-                    , T1.EVL_OG_TP_CD
-                    , T1.EVL_DV_CD
-                    , F_CMZ_CD_NM(#{session.tenantId}, 'EVL_DV_CD', T1.EVL_DV_CD) AS EVL_DV_NM
-                    , T1.EVL_ATC_DV_CD
-                    , F_CMZ_CD_NM(#{session.tenantId}, 'EVL_ATC_DV_CD', T1.EVL_ATC_DV_CD) AS EVL_ATC_DV_NM
-                    , T1.OG_ID
-                    , T3.OG_NM
-                    , T1.CTST_GRP_CD
-                    , T2.EVL_RSB_DV_CD
-                    , F_CMZ_CD_NM(#{session.tenantId}, 'EVL_RSB_DV_CD', T2.EVL_RSB_DV_CD) AS EVL_RSB_DV_NM
-                 FROM TB_PSEV_AWD_EVL_BASE_DTL T1
-                INNER JOIN TB_PSEV_AWD_EVL_RSB_REL T2
-                   ON T2.EVL_OG_TP_CD      = T1.EVL_OG_TP_CD
-                  AND T2.EVL_RSB_REL_ID    = (T1.EVL_OG_TP_CD||EVL_DV_CD||LPAD('1', 5, '0'))
-                  AND T2.DTA_DL_YN         = 'N'
-                INNER JOIN TB_OGBS_MM_OG_IZ T3
-                   ON T3.OG_ID             = T1.OG_ID
-                  AND T3.BASE_YM           = T1.BASE_YM
-                WHERE T1.DTA_DL_YN         = 'N'
-                  <if test='@MybatisUtils@isNotEmpty(evlOgTpCd)'>
-                  AND T1.EVL_OG_TP_CD      = #{evlOgTpCd}
-                  </if>
-                  <if test='@MybatisUtils@isNotEmpty(evlDvCd)'>
-                  AND T1.EVL_DV_CD         = #{evlDvCd}
-                  </if>
-                  <if test='@MybatisUtils@isNotEmpty(evlRsbDvCd)'>
-                  AND T2.EVL_RSB_DV_CD     = #{evlRsbDvCd}
-                  </if>
-                  <if test='@MybatisUtils@isNotEmpty(ctstGrpCd)'>
-                  AND T1.CTST_GRP_CD       = #{ctstGrpCd}
-                  </if>
-                  <if test='@MybatisUtils@isNotEmpty(baseYm)'>
-                  AND T1.BASE_YM           = #{baseYm}
-                  </if>
-             )
-         GROUP BY BASE_YM
-             , EVL_OG_TP_CD
-             , EVL_DV_CD
-             , EVL_DV_NM
-             , OG_ID
-             , OG_NM
-             , CTST_GRP_CD
-             , EVL_RSB_DV_CD
-             , EVL_RSB_DV_NM
+    <select id="selectContestResponsibilityGroupList" resultType="com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdExcellentDivisionDto$SearchContestPartnerRes">
+         SELECT /*+ INDEX(T2 PK_OGBS_MM_PRTNR_IZ) INDEX(T3 PK_OGBS_MM_PRTNR_IZ) */
+                T1.BASE_YM
+              , T1.EVL_OG_TP_CD
+              , T1.AWD_EVL_ID
+              , T1.EVL_ATC_DV_CD
+              , F_CMZ_CD_NM(#{session.tenantId}, 'EVL_ATC_DV_CD', T1.EVL_ATC_DV_CD) AS EVL_ATC_DV_NM
+              , T1.PRTNR_NO
+              , T1.EVL_PD_DV_CD
+              , T1.TRG_BASE_PC
+              , T1.CTST_GRP_CD
+              , T1.SORT_ODR
+              , NVL(T2.PRTNR_KNM, T3.PRTNR_KNM) AS PRTNR_KNM
+              , NVL(T2.OG_CD, T3.OG_CD) AS OG_CD
+              , NVL(T2.OG_NM, T3.OG_NM) AS OG_NM
+           FROM TB_PSEV_AWD_EVL_ATC_BASE_DTL T1
+           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T2
+             ON T2.PRTNR_NO  = T1.PRTNR_NO
+            AND T2.OG_TP_CD  = T1.EVL_OG_TP_CD
+            AND T2.BASE_YM           = #{baseYm}
+           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T3
+             ON T3.PRTNR_NO          = T1.PRTNR_NO
+            AND T3.OG_TP_CD          = 'HR1'
+            AND T3.BASE_YM           = #{baseYm}
+          WHERE T1.DTA_DL_YN         = 'N'
+            <if test='@MybatisUtils@isNotEmpty(evlOgTpCd)'>
+            AND T1.EVL_OG_TP_CD      = #{evlOgTpCd}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(baseYm)'>
+            AND T1.BASE_YM           = #{baseYm}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(evlRsbDvCd)'>
+            AND T2.RSB_DV_CD         = #{evlRsbDvCd}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(awdEvlId)'>
+            AND T1.AWD_EVL_ID        = #{awdEvlId}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(evlAtcDvCd)'>
+            AND T1.EVL_ATC_DV_CD     = #{evlAtcDvCd}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(ctstGrpCd)'>
+            AND T1.CTST_GRP_CD       = #{ctstGrpCd}
+            </if>
+
     </select>
 
     <update id="updateContestResponsibilityGroup">
-        UPDATE TB_PSEV_AWD_EVL_BASE_DTL
+        UPDATE TB_PSEV_AWD_EVL_ATC_BASE_DTL
            SET CTST_GRP_CD = #{ctstGrpCd}
            <include refid="COMMON.updateSystemField"/>
-         WHERE BASE_YM = #{baseYm}
-           AND EVL_OG_TP_CD = #{evlOgTpCd}
-           AND EVL_DV_CD = #{evlDvCd}
-           AND OG_ID = #{ogId}
+         WHERE BASE_YM          = #{baseYm}
+           AND EVL_OG_TP_CD     = #{evlOgTpCd}
+           AND AWD_EVL_ID       = #{awdEvlId}
+           AND EVL_ATC_DV_CD    = #{evlAtcDvCd}
+           AND PRTNR_NO         = #{prtnrNo}
     </update>
 </mapper>

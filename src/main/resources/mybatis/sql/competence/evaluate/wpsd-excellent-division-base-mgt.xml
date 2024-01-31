@@ -64,44 +64,30 @@
     </update>
 
     <select id="selectEvaluationBaseMgtPages" resultType="com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdExcellentDivisionBaseMgtDto$EvlSearchRes">
-		SELECT NVL(T2.BASE_YM, #{baseYm}) AS BASE_YM          /* 기준년월 */
-             , NVL(T2.EVL_OG_TP_CD, #{evlOgTpCd}) AS EVL_OG_TP_CD     /* 평가조직유형코드 */
-		     , F_CMZ_CD_NM(#{session.tenantId}, 'EVL_OG_TP_CD', NVL(T2.EVL_OG_TP_CD, #{evlOgTpCd})) AS EVL_OG_TP_NM
-             , NVL(T2.EVL_DV_CD, T1.CD_VLD_VAL) AS EVL_DV_CD        /* 평가구분코드 */
-             , T1.CD_CNTN AS  EVL_DV_NM
-             , T2.EVL_RSB_REL_ID
-             , T2.CTST_GRP_USE_YN
-             , T2.EVL_ATC_CN
-             , T2.DTA_DL_YN
-             , T2.FST_RGST_DTM
-             , T2.FST_RGST_USR_ID
-             , T2.FST_RGST_PRG_ID
-             , T2.FST_RGST_DEPT_ID
-             , T2.FNL_MDFC_DTM
-             , T2.FNL_MDFC_USR_ID
-             , T2.FNL_MDFC_PRG_ID
-             , T2.FNL_MDFC_DEPT_ID
-			 , T3.RSB_DV_NMS
-		     , T3.RSB_DV_CDS
-		     , T3.QLF_DV_CD
-             , F_CMZ_CD_NM(#{session.tenantId}, 'QLF_DV_CD', T3.QLF_DV_CD) AS QLF_DV_NM
-          FROM
-             ( SELECT D.CD_VLD_VAL,
-                      D.CD_CNTN
-                 FROM T_CMZ_CD_M M
-                 JOIN T_CMZ_CD_D D
-                   ON M.TENANT_ID = D.TENANT_ID
-                  AND M.CD_ID = D.CD_ID
-                WHERE M.CD_ID = 'EVL_DV_CD'
-                  AND M.TENANT_ID =#{session.tenantId}
-                  AND D.PRTS_CD_VLD_VAL = #{evlOgTpCd}
-                  AND D.DEL_YN = 'N'
-                  AND D.CD_USE_YN = 'Y'
-             ) T1
-          LEFT OUTER JOIN TB_PSEV_AWD_EVL_BASE_BAS T2 /* 시상평가기준기본 */
-            ON T2.EVL_DV_CD = T1.CD_VLD_VAL
-           AND T2.BASE_YM          = #{baseYm}         /* 기준년월 */
-           AND T2.EVL_OG_TP_CD     = #{evlOgTpCd}   /* 평가조직유형코드 */
+		SELECT T1.BASE_YM
+			 , T1.EVL_OG_TP_CD
+		     , F_CMZ_CD_NM(#{session.tenantId}, 'EVL_OG_TP_CD', NVL(T1.EVL_OG_TP_CD, #{evlOgTpCd})) AS EVL_OG_TP_NM
+			 , T1.AWD_EVL_ID
+			 , T1.AWD_EVL_NM
+			 , T1.EVL_RSB_REL_ID
+			 , T1.EVL_ATC_CN
+			 , T1.CTST_GRP_USE_YN
+			 , T1.EVL_WTCF_USE_YN
+			 , T1.AWD_EVL_GD_USE_YN
+			 , T1.DTA_DL_YN
+             , T1.FST_RGST_DTM
+             , T1.FST_RGST_USR_ID
+             , T1.FST_RGST_PRG_ID
+             , T1.FST_RGST_DEPT_ID
+             , T1.FNL_MDFC_DTM
+             , T1.FNL_MDFC_USR_ID
+             , T1.FNL_MDFC_PRG_ID
+             , T1.FNL_MDFC_DEPT_ID
+			 , T2.RSB_DV_NMS
+		     , T2.RSB_DV_CDS
+		     , T2.QLF_DV_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, 'QLF_DV_CD', T2.QLF_DV_CD) AS QLF_DV_NM
+          FROM TB_PSEV_AWD_EVL_BASE_BAS T1 /* 시상평가기준기본 */
           LEFT OUTER JOIN
           	 ( SELECT EVL_OG_TP_CD
                     , QLF_DV_CD
@@ -112,60 +98,62 @@
           	    WHERE DTA_DL_YN     = 'N'
           	      AND EVL_OG_TP_CD  = #{evlOgTpCd}
           	    GROUP BY EVL_OG_TP_CD, EVL_RSB_REL_ID, QLF_DV_CD
-          	 ) T3
-            ON T3.EVL_OG_TP_CD = T2.EVL_OG_TP_CD
-           AND T3.EVL_RSB_REL_ID = T2.EVL_RSB_REL_ID
+          	 ) T2
+            ON T2.EVL_OG_TP_CD = T1.EVL_OG_TP_CD
+           AND T2.EVL_RSB_REL_ID = T1.EVL_RSB_REL_ID
          WHERE 1 = 1
-		 ORDER BY T1.CD_VLD_VAL
-
-    </select>
-
-    <select id="selectEvaluationBase" resultType="java.lang.Integer">
-        SELECT COUNT(1)
-          FROM TB_PSEV_AWD_EVL_BASE_BAS
-         WHERE 1 = 1
-           AND BASE_YM          = #{baseYm}           /* 기준년월 */
-           AND EVL_OG_TP_CD     = #{evlOgTpCd}        /* 평가조직유형코드 */
-           AND EVL_DV_CD        = #{evlDvCd}          /* 평가구분코드 */
+           AND T1.DTA_DL_YN = 'N'
+           AND T1.BASE_YM = #{baseYm}
+           AND T1.EVL_OG_TP_CD = #{evlOgTpCd}
+		 ORDER BY T1.AWD_EVL_ID ASC
     </select>
 
     <insert id="insertEvaluationBase">
+        <selectKey keyProperty="dvo.awdEvlId" resultType="String" order="BEFORE">
+            SELECT LPAD((NVl(MAX(AWD_EVL_ID),0)+1),5,0) FROM TB_PSEV_AWD_EVL_BASE_BAS
+        </selectKey>
+
         INSERT INTO TB_PSEV_AWD_EVL_BASE_BAS (  /* 시상평가기준기본 */
-               BASE_YM          /* 기준년월 */
-             , EVL_OG_TP_CD     /* 평가조직유형코드 */
-             , EVL_DV_CD        /* 평가구분코드 */
-             , EVL_RSB_REL_ID   /* 평가직책관계ID */
-             , CTST_GRP_USE_YN  /* 경진그룹사용여부 */
+               BASE_YM
+             , EVL_OG_TP_CD
+             , AWD_EVL_ID
+             , AWD_EVL_NM
+             , EVL_RSB_REL_ID
              , EVL_ATC_CN
-             , DTA_DL_YN        /* 데이터삭제여부 */
+             , CTST_GRP_USE_YN
+             , EVL_WTCF_USE_YN
+             , AWD_EVL_GD_USE_YN
+             , DTA_DL_YN
              <include refid="COMMON.insertSystemField" />)
         VALUES (
-               #{baseYm}
-             , #{evlOgTpCd}
-             , #{evlDvCd}
-             , #{evlOgTpCd}||#{evlDvCd}||LPAD('1', 5, '0')
-             , NVL(#{ctstGrpUseYn}, 'N')
-             , #{evlAtcCn}
+               #{dvo.baseYm}
+             , #{dvo.evlOgTpCd}
+             , #{dvo.awdEvlId}
+             , #{dvo.awdEvlNm}
+             , SUBSTR(#{dvo.baseYm}, 0, 4)||'0'||#{dvo.evlOgTpCd}||#{dvo.awdEvlId}
+             , #{dvo.evlAtcCn}
+             , NVL(#{dvo.ctstGrpUseYn}, 'N')
+             , 'N'
+             , 'N'
              , 'N'
              <include refid="COMMON.insertSystemFieldValue" /> )
     </insert>
 
     <update id="updateEvaluationBase">
         UPDATE TB_PSEV_AWD_EVL_BASE_BAS /* 시상평가기준기본 */
-           SET EVL_RSB_REL_ID   = #{evlOgTpCd}||#{evlDvCd}||LPAD('1', 5, '0')
+           SET AWD_EVL_NM       = #{awdEvlNm}
              , CTST_GRP_USE_YN  = NVL(#{ctstGrpUseYn},'N')     /* 경진그룹사용여부 */
              , EVL_ATC_CN       = #{evlAtcCn}         /* 평가항목내용 */
              <include refid="COMMON.updateSystemField"/>
          WHERE 1 = 1
-           AND BASE_YM          = #{baseYm}           /* 기준년월 */
-           AND EVL_OG_TP_CD     = #{evlOgTpCd}        /* 평가조직유형코드 */
-           AND EVL_DV_CD        = #{evlDvCd}          /* 평가구분코드 */
+           AND AWD_EVL_ID       = #{awdEvlId}
     </update>
 
     <update id="removeEvaluationResponsibility">
         UPDATE TB_PSEV_AWD_EVL_RSB_REL
            SET DTA_DL_YN = 'Y'
-         WHERE EVL_RSB_REL_ID   =  (#{evlOgTpCd}||#{evlDvCd}||LPAD('1', 5, '0'))
+               <include refid="COMMON.updateSystemField"/>
+         WHERE EVL_RSB_REL_ID   =  #{evlRsbRelId}
     </update>
 
     <insert id="insertEvaluationResponsibility">
@@ -183,12 +171,10 @@
                )
           VALUES
                ( #{evlOgTpCd}
-               , (SELECT NVL(MAX(RGST_SN)+(1+#{idx}),1)
-                    FROM TB_PSEV_AWD_EVL_RSB_REL
-                 )
+               , (SELECT NVL(MAX(RGST_SN)+(1+#{idx}),1) FROM TB_PSEV_AWD_EVL_RSB_REL)
                , #{item}
                , #{qlfDvCd}
-               , (#{evlOgTpCd}||#{evlDvCd}||LPAD('1', 5, '0'))
+               , SUBSTR(#{baseYm}, 0, 4)||'0'||#{evlOgTpCd}||#{awdEvlId}
                , ( SELECT CALF_CN
                      FROM TB_PSEV_AWD_EVL_RSB_REL
                     WHERE RGST_SN = ( SELECT MAX(RGST_SN)
@@ -212,34 +198,23 @@
     <select id="selectEvaluationDetailPages" resultType="com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdExcellentDivisionBaseMgtDto$EvlDetailSearchRes">
             SELECT T1.BASE_YM          /* 기준년월 */
                  , T1.EVL_OG_TP_CD     /* 평가조직유형코드 */
-                 , T1.EVL_DV_CD        /* 평가구분코드 */
-                 , F_CMZ_CD_NM(#{session.tenantId}, 'EVL_DV_CD', T1.EVL_DV_CD) AS EVL_DV_NM
+                 , T1.AWD_EVL_ID       /* 시상평가ID */
                  , T1.EVL_ATC_DV_CD    /* 평가항목구분코드 */
+                 , F_CMZ_CD_NM(#{session.tenantId}, 'EVL_ATC_DV_CD', T1.EVL_ATC_DV_CD) AS EVL_ATC_DV_NM
                  , T1.EVL_PD_DV_CD     /* 평가상품구분코드 */
                  , NVL(T1.EVL_BASE_UNIT_N, 0) AS EVL_BASE_UNIT_N /* 평가기준단위수 */
                  , NVL(T1.CVT_BASE_PC, 0) AS CVT_BASE_PC    /* 환산기준점수 */
-                 , NVL(T1.TRG_BASE_PC, 0) AS TRG_BASE_PC    /* 목표기준점수 */
-                 , T1.DTA_DL_YN        /* 데이터삭제여부 */
                  , T1.SORT_ODR
+                 , T1.DTA_DL_YN        /* 데이터삭제여부 */
+                 , T2.AWD_EVL_NM
+                 , T2.EVL_RSB_REL_ID
               FROM TB_PSEV_AWD_EVL_BASE_DTL T1
              INNER JOIN TB_PSEV_AWD_EVL_BASE_BAS T2
-                ON T2.BASE_YM = T1.BASE_YM
-               AND T2.EVL_OG_TP_CD = T1.EVL_OG_TP_CD
-               AND T2.EVL_DV_CD = T1.EVL_DV_CD
+                ON T2.AWD_EVL_ID = T1.AWD_EVL_ID
+               AND T2.DTA_DL_YN = 'N'
              WHERE 1 = 1
-               AND T1.BASE_YM          = #{baseYm}           /* 기준년월 */
-               AND T1.EVL_OG_TP_CD     = #{evlOgTpCd}        /* 평가조직유형코드 */
-               AND T1.EVL_DV_CD        = #{evlDvCd}          /* 평가구분코드 */
-             GROUP BY T1.BASE_YM
-                 , T1.EVL_OG_TP_CD
-                 , T1.EVL_DV_CD
-                 , T1.EVL_ATC_DV_CD
-                 , T1.EVL_PD_DV_CD
-                 , T1.EVL_BASE_UNIT_N
-                 , T1.CVT_BASE_PC
-                 , T1.TRG_BASE_PC
-                 , T1.DTA_DL_YN
-                 , T1.SORT_ODR
+               AND T1.AWD_EVL_ID = #{awdEvlId}
+               AND T1.DTA_DL_YN = 'N'
              ORDER BY T1.SORT_ODR ASC
     </select>
 
@@ -270,51 +245,70 @@
     </select>
 
     <select id="selectTargetBaseMgtPages" resultType = "com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdExcellentDivisionBaseMgtDto$TrgSearchRes">
-		SELECT T2.BASE_YM          /* 기준년월 */
-		     , T1.TRG_USE_YN
-             , F_CMZ_CD_NM(#{session.tenantId}, 'EVL_DV_CD', T2.EVL_DV_CD) AS EVL_DV_NM
-		     , T2.EVL_OG_TP_CD     /* 평가조직유형코드 */
-             , T2.EVL_DV_CD        /* 평가구분코드 */
-             , T2.EVL_ATC_DV_CD    /* 평가항목구분코드 */
+        SELECT T1.BASE_YM
+             , T1.AWD_EVL_ID
+             , T1.AWD_EVL_NM
+             , T1.EVL_RSB_REL_ID
+             , T1.EVL_ATC_CN
+             , T1.CTST_GRP_USE_YN
+             , T1.EVL_WTCF_USE_YN
+             , T1.AWD_EVL_GD_USE_YN
+             , NVL(T2.EVL_BASE_UNIT_N,0) AS EVL_BASE_UNIT_N
+             , NVL(T2.CVT_BASE_PC,0) AS CVT_BASE_PC
+             , NVL(T2.SORT_ODR,0) AS SORT_ODR
+             , NVL(T2.ABSLT_EVL_BASE_PC,0) AS ABSLT_EVL_BASE_PC
+             , NVL(T2.PTY_EVL_MAX_PC,0) AS PTY_EVL_MAX_PC
+             , NVL(T2.PTY_EVL_MIN_PC,0) AS PTY_EVL_MIN_PC
+             , T2.AWD_PTY_EVL_DV_CD
+             , NVL(T2.PTY_EVL_ITRV_PC,0) AS PTY_EVL_ITRV_PC
+             , T3.EVL_OG_TP_CD
+             , T3.EVL_ATC_DV_CD
              , F_CMZ_CD_NM(#{session.tenantId}, 'EVL_ATC_DV_CD', T2.EVL_ATC_DV_CD) AS EVL_ATC_DV_NM
-             , T2.EVL_PD_DV_CD     /* 평가상품구분코드 */
-             , NVL(T2.EVL_BASE_UNIT_N,0) AS EVL_BASE_UNIT_N /* 평가기준단위수 */
-             , NVL(T2.CVT_BASE_PC,0) AS CVT_BASE_PC     /* 환산기준점수 */
-             , NVL(T2.TRG_BASE_PC,0) AS TRG_BASE_PC     /* 목표기준점수 */
-             , T2.DTA_DL_YN        /* 데이터삭제여부 */
-		     , T2.SORT_ODR
-          FROM TB_PSEV_AWD_EVL_ATC_BASE_BAS T1
-         INNER JOIN TB_PSEV_AWD_EVL_BASE_DTL T2 /* 시상평가기준상세 */
-            ON T1.EVL_OG_TP_CD = T2.EVL_OG_TP_CD
-           AND T1.EVL_ATC_DV_CD = T2.EVL_ATC_DV_CD
+             , T3.EVL_PD_DV_CD
+             , T3.TRG_USE_YN
+             , T4.PRTNR_NO
+             , NVL(T4.TRG_BASE_PC, 0) AS TRG_BASE_PC
+             , T4.CTST_GRP_CD
+             , NVL(T5.PRTNR_KNM, T6.PRTNR_KNM) AS PRTNR_KNM
+          FROM TB_PSEV_AWD_EVL_BASE_BAS T1
+         INNER JOIN TB_PSEV_AWD_EVL_BASE_DTL T2
+            ON T2.BASE_YM 		= T1.BASE_YM
+           AND T2.EVL_OG_TP_CD 	= T1.EVL_OG_TP_CD
+           AND T2.AWD_EVL_ID 	= T1.AWD_EVL_ID
+         INNER JOIN TB_PSEV_AWD_EVL_ATC_BASE_BAS T3
+            ON T3.EVL_OG_TP_CD 	= T2.EVL_OG_TP_CD
+           AND T3.EVL_ATC_DV_CD = T2.EVL_ATC_DV_CD
+         INNER JOIN TB_PSEV_AWD_EVL_ATC_BASE_DTL T4
+            ON T4.BASE_YM 		= T2.BASE_YM
+           AND T4.EVL_OG_TP_CD 	= T3.EVL_OG_TP_CD
+           AND T4.EVL_ATC_DV_CD = T3.EVL_ATC_DV_CD
+           AND T4.AWD_EVL_ID 	= T2.AWD_EVL_ID
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T5
+            ON T5.PRTNR_NO      = T4.PRTNR_NO
+           AND T5.BASE_YM       = T4.BASE_YM
+           AND T5.OG_TP_CD		= T4.EVL_OG_TP_CD
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T6
+            ON T6.PRTNR_NO      = T4.PRTNR_NO
+           AND T6.BASE_YM       = T4.BASE_YM
+           AND T6.OG_TP_CD		= 'HR1'
          WHERE 1 = 1
-           AND BASE_YM          = #{baseYm}           /* 기준년월 */
-           AND T2.EVL_OG_TP_CD  = #{evlOgTpCd}        /* 평가조직유형코드 */
-           AND T2.EVL_DV_CD     = #{evlDvCd}          /* 평가구분코드 */
-         GROUP BY T2.BASE_YM
-             , T1.TRG_USE_YN
-             , T2.EVL_OG_TP_CD
-             , T2.EVL_DV_CD
-             , T2.EVL_ATC_DV_CD
-             , T2.EVL_PD_DV_CD
-             , T2.EVL_BASE_UNIT_N
-             , T2.CVT_BASE_PC
-             , T2.TRG_BASE_PC
-             , T2.DTA_DL_YN
-             , T2.SORT_ODR
-		 ORDER BY SORT_ODR ASC
+           AND T2.BASE_YM       = #{baseYm}
+           AND T2.EVL_OG_TP_CD  = #{evlOgTpCd}
+           AND T2.AWD_EVL_ID    = #{awdEvlId}
+           AND T2.EVL_ATC_DV_CD = #{evlAtcDvCd}
+		 ORDER BY T2.SORT_ODR ASC
     </select>
 
     <update id="updateTargetBase">
-        UPDATE TB_PSEV_AWD_EVL_BASE_DTL
-           SET TRG_BASE_PC = #{trgBasePc}
+        UPDATE TB_PSEV_AWD_EVL_ATC_BASE_DTL
+           SET TRG_BASE_PC   = #{trgBasePc}
              <include refid="COMMON.updateSystemField"/>
-         WHERE BASE_YM = #{baseYm}
-           AND EVL_OG_TP_CD = #{evlOgTpCd}
-           AND EVL_DV_CD = #{evlDvCd}
+         WHERE BASE_YM       = #{baseYm}
+           AND AWD_EVL_ID    = #{awdEvlId}
+           AND EVL_OG_TP_CD  = #{evlOgTpCd}
            AND EVL_ATC_DV_CD = #{evlAtcDvCd}
+           AND PRTNR_NO      = #{prtnrNo}
     </update>
-
 
     <select id="selectTargetList" resultType="camelMap">
         SELECT EVL_OG_TP_CD
@@ -325,7 +319,7 @@
              , CALF_CN
              , CEXP_CN
           FROM TB_PSEV_AWD_EVL_RSB_REL
-         WHERE EVL_RSB_REL_ID = (#{evlOgTpCd}||#{evlDvCd}||LPAD('1', 5, '0'))
+         WHERE EVL_RSB_REL_ID = #{evlRsbRelId}
            AND DTA_DL_YN = 'N'
            AND CALF_CN IS NOT NULL
     </select>
@@ -334,127 +328,115 @@
         INSERT INTO TB_PSEV_AWD_EVL_BASE_DTL
              ( BASE_YM
              , EVL_OG_TP_CD
-             , OG_ID
-             , EVL_DV_CD
+             , AWD_EVL_ID
              , EVL_ATC_DV_CD
              , EVL_BASE_UNIT_N
              , CVT_BASE_PC
-             , DTA_DL_YN
              , SORT_ODR
-                <include refid="COMMON.insertSystemField" />
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />
              )
+        VALUES
+             ( #{baseYm}
+             , #{evlOgTpCd}
+             , #{awdEvlId}
+             , #{evlAtcDvCd}
+             , #{evlBaseUnitN}
+             , #{cvtBasePc}
+             , ( SELECT NVL(MAX(SORT_ODR), 0) + 1
+                   FROM TB_PSEV_AWD_EVL_BASE_DTL
+                  WHERE EVL_OG_TP_CD = #{evlOgTpCd}
+                    AND AWD_EVL_ID = #{awdEvlId}
+                )
+             , 'N'
+              <include refid="COMMON.insertSystemFieldValue" />
+             )
+    </insert>
 
+    <insert id="insertEvaluationArticleDetail">
+        INSERT INTO TB_PSEV_AWD_EVL_ATC_BASE_DTL (  /* 시상평가항목상세 */
+               BASE_YM          /* 기준년월 */
+             , EVL_OG_TP_CD     /* 평가조직유형코드 */
+             , AWD_EVL_ID       /* 시상평가ID */
+             , EVL_ATC_DV_CD    /* 평가항목구분코드 */
+             , PRTNR_NO         /* 파트너번호 */
+             , EVL_PD_DV_CD     /* 평가상품구분코드 */
+             , SORT_ODR         /* 정렬순서 */
+             , DTA_DL_YN        /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField" />)
         WITH TARGET_LIST AS (
-           <choose>
-                <when test="@MybatisUtils@isNotEmpty(param.evlDvCd) and @MybatisUtils@equals('M03', param.evlDvCd)">
-                    SELECT PRTNR_NO
-                      FROM
-                         (
-                            <foreach collection="target" item="item" separator=" UNION ALL ">
-                                <if test='@MybatisUtils@isNotEmpty(item.calfCn)'>
-                                ${item.calfCn}
-                                </if>
-                                <if test='@MybatisUtils@isNotEmpty(item.cexpCn)'>
-                                    <where>${item.cexpCn}</where>
-                                </if>
-                            </foreach>
-                         )
-                     GROUP BY PRTNR_NO
-                </when>
-                <otherwise>
-                    SELECT OG_ID
-                      FROM
-                         ( SELECT CASE #{param.evlDvCd} WHEN 'M01' THEN T3.DGR1_LEVL_OG_ID
-                                                        WHEN 'M02' THEN T3.DGR2_LEVL_OG_ID
-                                                        WHEN 'P01' THEN T3.DGR1_LEVL_OG_ID
-                                                        WHEN 'P02' THEN T3.DGR2_LEVL_OG_ID
-                                   ELSE T3.DGR1_LEVL_OG_ID
-                                  END AS OG_ID
-                             FROM
-                                ( SELECT PRTNR_NO
-                                    FROM
-                                       (
-                                        <foreach collection="target" item="item" separator=" UNION ALL ">
-                                            <if test='@MybatisUtils@isNotEmpty(item.calfCn)'>
-                                            ${item.calfCn}
-                                            </if>
-                                            <if test='@MybatisUtils@isNotEmpty(item.cexpCn)'>
-                                               <where>
-                                                   ${item.cexpCn}
-                                               </where>
-                                            </if>
-                                            <if test='@MybatisUtils@isNotEmpty(item.qlfDvCd)'>
-                                            AND QLF_DV_CD = #{item.qlfDvCd}
-                                            </if>
-                                        </foreach>
-                                       )
-                                   GROUP BY PRTNR_NO
-                                ) T1
-                            INNER JOIN TB_OGBS_MM_PRTNR_IZ T2
-                               ON T2.PRTNR_NO = T1.PRTNR_NO
-                            INNER JOIN TB_OGBS_MM_OG_IZ T3
-                               ON T3.BASE_YM = T2.BASE_YM /* 기준년월 */
-                              AND T3.OG_TP_CD = T2.OG_TP_CD /* 조직유형코드 */
-                              AND T3.OG_ID = T2.OG_ID /* 조직ID */
-                              AND T3.DTA_DL_YN = 'N'
-                            WHERE T3.BASE_YM = #{param.baseYm}
-                         )
-                     GROUP BY OG_ID
-                </otherwise>
-           </choose>
+            SELECT PRTNR_NO
+              FROM
+                 (
+                    <foreach collection="target" item="item" separator=" UNION ALL ">
+                        <if test='@MybatisUtils@isNotEmpty(item.calfCn)'>
+                        ${item.calfCn}
+                        </if>
+                        <if test='@MybatisUtils@isNotEmpty(item.cexpCn)'>
+                            <where>${item.cexpCn}</where>
+                        </if>
+                    </foreach>
+                 )
+             GROUP BY PRTNR_NO
         )
-        <choose>
-            <when test="@MybatisUtils@isNotEmpty(param.evlDvCd) and @MybatisUtils@equals('M03', param.evlDvCd)">
-                SELECT #{param.baseYm} AS BASE_YM          /* 기준년월 */
-                     , #{param.evlOgTpCd} AS EVL_OG_TP_CD     /* 평가조직유형코드 */
-                     , T2.OG_ID
-                     , #{param.evlDvCd} AS EVL_DV_CD        /* 평가구분코드 */
-                     , #{param.evlAtcDvCd} AS EVL_ATC_DV_CD    /* 평가항목구분코드 */
-                     , #{param.evlBaseUnitN} AS EVL_BASE_UNIT_N  /* 평가기준단위수 */
-                     , #{param.cvtBasePc} AS CVT_BASE_PC      /* 환산기준점수 */
-                     , #{param.dtaDlYn} AS DTA_DL_YN        /* 데이터삭제여부 */
-                     , ( SELECT NVL(MAX(SORT_ODR), 0) + 1
-                           FROM TB_PSEV_AWD_EVL_BASE_DTL
-                          WHERE EVL_OG_TP_CD = #{param.evlOgTpCd}
-                            AND EVL_DV_CD = #{param.evlDvCd}
-                        ) AS SORT_ODR
-                     <include refid="COMMON.insertSystemFieldValue" />
-                  FROM TARGET_LIST T1
-                 INNER JOIN TB_OGBS_SPPT_OG_IZ T2
-                    ON T2.OG_TP_CD = 'W02'
-                   AND T2.PRTNR_NO = T1.PRTNR_NO
-                   AND ( #{article.baseYm} BETWEEN T2.MNGT_STRT_DT AND  T2.MNGT_END_DT
-                          OR  TO_CHAR(LAST_DAY(#{param.baseYm}||'01'),'YYYYMMDD') BETWEEN T2.MNGT_STRT_DT AND  T2.MNGT_END_DT )
-                 GROUP BY T2.OG_ID
-            </when>
-            <otherwise>
-                SELECT #{param.baseYm} AS BASE_YM          /* 기준년월 */
-                     , #{param.evlOgTpCd} AS EVL_OG_TP_CD     /* 평가조직유형코드 */
-                     , OG_ID
-                     , #{param.evlDvCd} AS EVL_DV_CD        /* 평가구분코드 */
-                     , #{param.evlAtcDvCd} AS EVL_ATC_DV_CD    /* 평가항목구분코드 */
-                     , #{param.evlBaseUnitN} AS EVL_BASE_UNIT_N  /* 평가기준단위수 */
-                     , #{param.cvtBasePc} AS CVT_BASE_PC      /* 환산기준점수 */
-                     , #{param.dtaDlYn} AS DTA_DL_YN        /* 데이터삭제여부 */
-                     , ( SELECT NVL(MAX(SORT_ODR), 0) + 1
-                           FROM TB_PSEV_AWD_EVL_BASE_DTL
-                          WHERE EVL_OG_TP_CD = #{param.evlOgTpCd}
-                            AND EVL_DV_CD = #{param.evlDvCd}
-                        ) AS SORT_ODR
-                     <include refid="COMMON.insertSystemFieldValue" />
-                  FROM TARGET_LIST T1
-            </otherwise>
-        </choose>
-
+        SELECT #{param.baseYm} AS BASE_YM           /* 기준년월 */
+             , #{param.evlOgTpCd} AS EVL_OG_TP_CD   /* 평가조직유형코드 */
+             , #{param.awdEvlId} AS AWD_EVL_ID      /* 시상평가ID */
+             , #{param.evlAtcDvCd} AS EVL_ATC_DV_CD    /* 평가항목구분코드 */
+             , PRTNR_NO
+             , #{param.evlPdDvCd} AS EVL_PD_DV_CD
+             , ( SELECT NVL(MAX(S1.SORT_ODR), 0) + 1
+                   FROM TB_PSEV_AWD_EVL_ATC_BASE_DTL S1
+                  WHERE S1.EVL_OG_TP_CD = #{param.evlOgTpCd}
+                    AND S1.BASE_YM = #{param.baseYm}
+                    AND S1.AWD_EVL_ID = #{param.awdEvlId}
+                    AND S1.PRTNR_NO = T1.PRTNR_NO
+                ) AS SORT_ODR
+             , 'N' AS DTA_DL_YN
+             <include refid="COMMON.insertSystemFieldValue" />
+          FROM TARGET_LIST T1
     </insert>
 
     <delete id="deleteEvaluationDetail">
-        DELETE FROM TB_PSEV_AWD_EVL_BASE_DTL
-         WHERE BASE_YM = #{baseYm}
-           AND EVL_OG_TP_CD = #{evlOgTpCd}
-           AND EVL_DV_CD = #{evlDvCd}
+        UPDATE TB_PSEV_AWD_EVL_BASE_DTL
+           SET DTA_DL_YN = 'Y'
+           <include refid="COMMON.updateSystemField"/>
+         WHERE AWD_EVL_ID = #{awdEvlId}
            AND EVL_ATC_DV_CD = #{evlAtcDvCd}
     </delete>
+
+    <delete id="deleteEvaluationArticleDetail">
+        UPDATE TB_PSEV_AWD_EVL_ATC_BASE_DTL
+           SET DTA_DL_YN = 'Y'
+           <include refid="COMMON.updateSystemField"/>
+         WHERE AWD_EVL_ID = #{awdEvlId}
+           AND EVL_ATC_DV_CD = #{evlAtcDvCd}
+    </delete>
+
+    <select id="selectMonthAwardTypeList" resultType="com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdExcellentDivisionBaseMgtDto$EvlAwardRes">
+        SELECT BASE_YM
+             , EVL_OG_TP_CD
+             , AWD_EVL_ID
+             , AWD_EVL_NM
+             , EVL_RSB_REL_ID
+             , EVL_ATC_CN
+             , CTST_GRP_USE_YN
+             , EVL_WTCF_USE_YN
+             , AWD_EVL_GD_USE_YN
+             , DTA_DL_YN
+          FROM TB_PSEV_AWD_EVL_BASE_BAS
+         WHERE BASE_YM      = #{baseYm}
+           AND EVL_OG_TP_CD = #{evlOgTpCd}
+           AND DTA_DL_YN    = 'N'
+    </select>
+
+
+    <update id="removeEvaluationBase">
+        UPDATE TB_PSEV_AWD_EVL_BASE_BAS
+           SET DTA_DL_YN = 'Y'
+               <include refid="COMMON.updateSystemField"/>
+         WHERE AWD_EVL_ID = #{awdEvlId}
+    </update>
 
     <select id="selectExcellentDivisionDeadline" resultType="com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdExcellentDivisionBaseMgtDto$DeadlineSearchRes">
         SELECT #{ogTpCd} AS OG_TP_CD
@@ -490,6 +472,7 @@
            AND T2.DDLN_DV_ID = 'DLD_'||#{ogTpCd}||'_EVL_PERF_CL'
     </select>
 
+
     <update id="updateExcellentDivisionDeadline">
         UPDATE T_CMS_DDLN_D
            SET START_DT = #{startDt}
@@ -502,6 +485,7 @@
            AND DDLN_DV_ID = 'DLD_'||#{ogTpCd}||'_EVL_PERF_CL'
            AND TENANT_ID = #{session.tenantId}
     </update>
+
 
     <insert id="insertExcellentDivisionDeadline">
         INSERT INTO T_CMS_DDLN_D
@@ -527,6 +511,7 @@
              , 'N'
              <include refid="COMMON.insertSystemFieldValue" /> )
     </insert>
+
 
 
 </mapper>

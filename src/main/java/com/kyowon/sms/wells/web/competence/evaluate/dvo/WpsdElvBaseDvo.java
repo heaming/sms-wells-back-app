@@ -9,8 +9,8 @@ public class WpsdElvBaseDvo {
     private String baseYm;
     private String evlOgTpCd;
     private String evlOgTpNm;
-    private String evlDvCd;
-    private String evlDvNm;
+    private String awdEvlId;
+    private String awdEvlNm;
     private String evlRsbRelId;
     private String ctstGrpUseYn;
     private String evlAtcCn;
