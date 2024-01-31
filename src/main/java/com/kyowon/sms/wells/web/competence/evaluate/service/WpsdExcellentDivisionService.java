@@ -49,12 +49,20 @@ public class WpsdExcellentDivisionService {
         return mapper.selectExcellentDivisionPages(req, config, target);
     }
 
+    /**
+     * 우수사업부 현황 - 목표 저장
+     * @param reqs
+     * @return int
+     */
     public int saveExcellentDivision(List<SaveReq> reqs) {
         int processCount = 0;
         for(SaveReq req : reqs){
             WpsdExcellentDivisionDvo dvo = converter.mapToDvo(req);
-            int result = mapper.updateExcellentDivision(dvo);
-            processCount += result;
+            int resultCnt = mapper.updateExcellentDivisionBaseDtl(dvo);
+            BizAssert.isTrue(resultCnt > 0, SAVE_ERROR_MESSAGE);
+            resultCnt = mapper.updateExcellentDivisionItemization(dvo);
+            BizAssert.isTrue(resultCnt > 0, SAVE_ERROR_MESSAGE);
+            processCount++;
         }
         return processCount;
     }
