@@ -32,35 +32,35 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
     @ApiModel(value = "WsnaPcsvOutOfStorageMgtDto-SearchRes")
     public record SearchRes(
-        String cntrNo,
+        String cntrNo,  // 계약번호
 
-        String cntrSn,
+        String cntrSn,  // 계약일련번호
 
         String cntrCstNo, // 계약자 고객번호
 
-        String sellTpCd,
+        String sellTpCd,  // 판매유형코드
 
-        String sellTpNm,
+        String sellTpNm,  // 판매유형명
 
-        String sellTpDtlCd,
+        String sellTpDtlCd,  // 판매유형상세코드
 
-        String sellTpDtlNm,
+        String sellTpDtlNm,  // 판매유형상세코드명
 
-        String cntrDtlStatCd,
+        String cntrDtlStatCd,  // 계약상세상태코드
 
-        String cntrDtlStatNm,
+        String cntrDtlStatNm,  // 멤버십상태
 
-        String rcgvpKnm,
+        String rcgvpKnm,     // 고객한글명
 
-        String basePdCd,
+        String basePdCd,   // 판매상품코드
 
-        String basePdNm,
+        String basePdNm,   // 상품명
 
         String cntrRcpFshDtm, //CONT_DT 계약일자
 
-        String adrId,
+        String adrId,   // 주소ID
 
-        String newAdrZip,
+        String newAdrZip,  // 우편번호
 
         String rnadr, //주소
 
@@ -82,65 +82,65 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
         String rsgFshDt,
 
-        String cstSvAsnNo,
+        String cstSvAsnNo,  // 고객서비스배정번호
 
-        String pdctPdCd,
+        String pdctPdCd,  // 제품코드
 
         String pdctPdNm,
 
-        String svPdCd,
+        String svPdCd,     // 서비스상품코드
 
-        String svPdNm,
+        String svPdNm,     // 서비스상품코드명
 
-        String pdGdCd,
+        String pdGdCd,     // 상품등급코드
 
-        String svBizHclsfCd,
+        String svBizHclsfCd,  // 서비스업무대분류코드
 
-        String svBizDclsfCd,
+        String svBizDclsfCd,  // 서비스업무세분류코드
 
         String svBizDclsfNm,
 
-        String wkPrgsStatCd,
+        String wkPrgsStatCd,  // 작업진행상태코드
 
         String wkPrgsStatNm,
 
-        String istDt,
+        String istDt,        // 설치일
 
         String reqdDt,
 
-        String ogId,
+        String ogId,     // 조직ID
 
-        String ogTpCd,
+        String ogTpCd,  // 조직유형코드
 
-        String prtnrNo,
+        String prtnrNo,        // 파트너번호
 
-        String prtnrKnm,
+        String prtnrKnm,       // 판매자명
 
-        String vstFshDt,
+        String vstFshDt,       // 출고확정일자
 
-        String wkWareNo,
+        String wkWareNo,       // 작업창고번호
 
-        String wareMngtPrtnrNo,
+        String wareMngtPrtnrNo,   // 창고관리파트너번호
 
-        String wareMngtPrtnrOgTpCd,
+        String wareMngtPrtnrOgTpCd,  // 창고관리파트너조직유형코드
 
         String rpbLocaraCd, //VST_LOCARA_CD 방문지역코드
 
-        String siteAwSvTpCd,
+        String siteAwSvTpCd,  // 현장수당항목코드
 
-        String siteAwAtcCd,
+        String siteAwAtcCd, // 현장수당항목코드
 
-        String pdUswyCd,
+        String pdUswyCd, // 최초상품용도코드
 
-        String asRefriDvCd,
+        String asRefriDvCd,  // AS유무상구분코드
 
-        String bfsvcRefriDvCd,
+        String bfsvcRefriDvCd,  // BS유무상구분코드
 
-        String urgtDvCd,
+        String urgtDvCd,  // 긴급구분코드 (1: 고객센터 당일 접수 건, NULL: 그외)
 
-        String ostrAkNo,
+        String ostrAkNo,  // 출고요청번호
 
-        String lgstOstrAkNo,
+        String lgstOstrAkNo,  // 물류요청번호
 
         String ostrNo,
 
@@ -155,9 +155,9 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
         /* 물류인터페이스 필수 코드  */
 
-        String lgstWkMthdCd,
+        String lgstWkMthdCd,  // 물류작업방식코드
 
-        int mpacSn,
+        int mpacSn,   // 합포장 일련번호
 
         /* 상품 */
 
@@ -228,72 +228,72 @@ public class WsnaPcsvOutOfStorageMgtDto {
     @ApiModel(value = "WsnaPcsvOutOfStorageMgtDto-SaveReq")
     public record SaveReq(
         @NotBlank
-        String cstSvAsnNo,
+        String cstSvAsnNo,   // 고객서비스배정번호
 
         @NotBlank
-        String svBizDclsfCd,
+        String svBizDclsfCd,  // 서비스업무세분류코드
 
         @NotBlank
-        String svBizHclsfCd,
+        String svBizHclsfCd,  // 서비스업무대분류코드
 
         @NotBlank
-        String cntrNo,
+        String cntrNo,  // 계약번호
 
         @NotBlank
-        String pdGrpCd,
+        String pdGrpCd,  // 상품그룹코드
 
         @NotBlank
-        String prtnrNo,
+        String prtnrNo,  // 파트너번호
 
         @NotBlank
-        String ogTpCd,
+        String ogTpCd,  // 조직유형코드
 
         @NotBlank
-        String cntrSn,
+        String cntrSn,  // 계약일련번호
 
         @NotBlank
-        String urgtDvCd,
+        String urgtDvCd,  // 긴급구분코드 (1: 고객센터 당일 접수 건, NULL: 그외)
 
         @NotBlank
-        String ogId,
+        String ogId,  // 조직ID
 
         @NotBlank
         String lgstWkMthdCd, //물류작업방식코드
 
         int mpacSn, // 합포장 일련번호
 
-        String pdctPdCd,
+        String pdctPdCd,              // 제품코드
 
-        String pdGdCd,
+        String pdGdCd,                // 상품등급코드
 
-        String rpbLocaraCd,
+        String rpbLocaraCd,           // 책임지역코드
 
-        String asLctCd,
+        String asLctCd,               // AS위치코드
 
-        String asPhnCd,
+        String asPhnCd,               // AS현상코드
 
-        String asCausCd,
+        String asCausCd,              // AS원인코드
 
-        String pdUswyCd,
+        String pdUswyCd,              // 최초상품용도코드
 
-        String sellTpCd,
+        String sellTpCd,              // 판매유형코드
 
-        String asRefriDvCd,
+        String asRefriDvCd,           // AS유무상구분코드
 
-        String bfsvcRefriDvCd,
+        String bfsvcRefriDvCd,        // BS유무상구분코드
 
-        String wkWareNo,
+        String wkWareNo,              // 작업창고번호
 
-        String wareMngtPrtnrNo,
+        String wareMngtPrtnrNo,       // 창고관리파트너번호
 
-        String siteAwSvTpCd,
+        String siteAwSvTpCd,          // 현장수당서비스유형코드
 
-        String siteAwAtcCd,
+        String siteAwAtcCd,           // 현장수당항목코드
 
-        String istDt,
+        String istDt,                 // 설치일
 
         /* 물류 인터페이스 필수 */
-        String rcgvpKnm,
+        String rcgvpKnm,    // 설치자명
 
         String cralLocaraTno, // 핸드폰1
         String mexnoEncr, // 핸드폰2
