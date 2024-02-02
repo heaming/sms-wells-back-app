@@ -38,5 +38,7 @@ public interface WpsdExcellentDivisionMapper {
 
     int updateContestResponsibilityGroup(WpsdExcellentDivisionDvo req);
 
-    int updateExcellentDivision(WpsdExcellentDivisionDvo dvo);
+    int updateExcellentDivisionBaseDtl(WpsdExcellentDivisionDvo dvo);
+
+    int updateExcellentDivisionItemization(WpsdExcellentDivisionDvo dvo);
 }
