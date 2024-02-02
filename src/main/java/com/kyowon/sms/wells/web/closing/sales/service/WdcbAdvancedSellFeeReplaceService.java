@@ -1,8 +1,13 @@
 package com.kyowon.sms.wells.web.closing.sales.service;
 
 import java.text.ParseException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.kyowon.sflex.common.common.dvo.BatchCallReqDvo;
+import com.kyowon.sflex.common.common.service.BatchCallService;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +23,7 @@ import com.kyowon.sms.wells.web.closing.sales.dto.WdcbAdvancedSellFeeReplaceDto.
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbAdvancedSellFeeReplaceDto.SearchPopRes;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbAdvancedSellFeeReplaceDto.SearchReq;
 import com.kyowon.sms.wells.web.closing.sales.dto.WdcbAdvancedSellFeeReplaceDto.SearchRes;
+import com.kyowon.sms.wells.web.closing.sales.dto.WdcbAdvancedSellFeeReplaceDto.CreateReq;
 import com.kyowon.sms.wells.web.closing.sales.dvo.WdcbAdvancedSellFeeReplaceDvo;
 import com.kyowon.sms.wells.web.closing.sales.mapper.WdcbAdvancedSellFeeReplaceMapper;
 import com.sds.sflex.common.utils.DateUtil;
@@ -35,6 +41,7 @@ public class WdcbAdvancedSellFeeReplaceService {
     private final WdcbAdvancedSellFeeReplaceConverter converter;
 
     private final ZdcbPiaFeeReplaceSlipCreateService createService;
+    private final BatchCallService batchCallService;
 
     /**
     * 선급판매수수료 비용 대체 관리 - 조회
@@ -103,5 +110,23 @@ public class WdcbAdvancedSellFeeReplaceService {
         int result = mapper.updatePop(dvo);
         BizAssert.isTrue(result > 1, "MSG_ALT_SVE_ERR");
         return result;
+    }
+
+    @Transactional
+    public String createCostReplace(CreateReq dto) throws Exception{
+        String jobkey = "WSM_DC_OA0020";
+        BatchCallReqDvo batchCallReqDvo = new BatchCallReqDvo();
+        batchCallReqDvo.setJobKey(jobkey);
+
+        Map<String, String> params = new HashMap<>();
+        params.put("beforeMonth", dto.beforeMonth());
+        params.put("currentMonth", dto.currentMonth());
+        params.put("feeTcnt", dto.feeTcnt());
+        batchCallReqDvo.setParams(params);
+
+        String oldBondBatchJobRunId = batchCallService.runJob(batchCallReqDvo); //결과값으로 Control-M 에서 run-id를 받는다.
+        BizAssert.isTrue(StringUtils.isNotEmpty(oldBondBatchJobRunId), "MSG_ALT_SVE_ERR");
+
+        return oldBondBatchJobRunId;
     }
 }
