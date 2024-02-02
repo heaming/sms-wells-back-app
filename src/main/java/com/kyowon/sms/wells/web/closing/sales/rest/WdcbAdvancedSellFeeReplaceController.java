@@ -81,9 +81,9 @@ public class WdcbAdvancedSellFeeReplaceController {
 
     @GetMapping("/info-pop")
     public SearchPopRes getPop(
-        String kwGrpCoCd
+        String kwGrpCoCd, String currentMonth
     ) {
-        return service.getPop(kwGrpCoCd);
+        return service.getPop(kwGrpCoCd, currentMonth);
     }
 
     @ApiOperation(value = "전표 생성", notes = "전표 생성")

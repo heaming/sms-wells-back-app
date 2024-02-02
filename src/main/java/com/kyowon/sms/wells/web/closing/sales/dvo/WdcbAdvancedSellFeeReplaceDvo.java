@@ -19,4 +19,6 @@ public class WdcbAdvancedSellFeeReplaceDvo {
     private String piaSellFeeSmry;
     private String kwGrpCoCd;
     private String orglFnlMdfcDtm;
+    private int feeTcnt;
+    private String baseYm;
 }

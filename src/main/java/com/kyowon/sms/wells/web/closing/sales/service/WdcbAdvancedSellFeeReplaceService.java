@@ -85,9 +85,9 @@ public class WdcbAdvancedSellFeeReplaceService {
     }
 
     public SearchPopRes getPop(
-        String kwGrpCoCd
+        String kwGrpCoCd, String currentMonth
     ) {
-        return mapper.selectPop(kwGrpCoCd);
+        return mapper.selectPop(kwGrpCoCd, currentMonth);
     }
 
     /**
@@ -99,14 +99,13 @@ public class WdcbAdvancedSellFeeReplaceService {
     @Transactional
     public int saveSlipCreate(SaveReq dto) throws ParseException {
         WdcbAdvancedSellFeeReplaceDvo dvo = converter.mapSaveReqToWdcbAdvancedSellFeeReplaceDvo(dto);
-        log.info("saveSlipCreate:" + dvo);
-
-        String baseYm = DateUtil.addMonths(DateUtil.getNowDayString(), -1).substring(0, 6);
         ZdcbPiaFeeReplaceSlipDvo slip = new ZdcbPiaFeeReplaceSlipDvo();
-        slip.setBaseYm(baseYm);
+        slip.setBaseYm(dvo.getBaseYm());
         slip.setKwGrpCoCd(dvo.getKwGrpCoCd());
+        slip.setFeeTcnt(dvo.getFeeTcnt());
         createService.createPiaFeeReplaceSlipCreate(slip);
 
+        log.info("saveSlipCreate:" + dvo);
         int result = mapper.updatePop(dvo);
         BizAssert.isTrue(result > 1, "MSG_ALT_SVE_ERR");
         return result;
