@@ -87,9 +87,11 @@ public class WwdbRefundCurrentStatusDto {
     // 환불 내역 목록 Search Result Dto
     @ApiModel(value = "WwdbRefundCurrentStatusDto-SearchRefundHistoryTotalRes")
     public record SearchRefundHistoryTotalRes(
-        String dpAmtSum,
+        //        String dpAmtSum,
         String rveAmtSum,
-        String rfndDsbAmtSum
+        String rfndDsbAmtSum,
+        String rfndDsbPspIntSum, // 지연이자 합계
+        String rfndDdtnAmtSum // 카드공제 합계
     ) {
 
     }
