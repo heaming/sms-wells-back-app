@@ -58,19 +58,6 @@ public class WsnaPcsvOutOfStorageMgtController {
             .build();
     }
 
-    @ApiOperation(value = "택배설치상품 출고관리 저장(물류연동)", notes = "출고관리 정보를 저장한다.")
-    @PostMapping("/test")
-    public SaveResponse savePcsvOutOfStorageTest(
-        @Valid
-        @RequestBody
-        @NotEmpty
-        List<SaveReq> dtos
-    ) throws Exception {
-        return SaveResponse.builder()
-            .processCount(service.savePcsvOutOfStorageTest(dtos))
-            .build();
-    }
-
     @ApiOperation(value = "택배 물류센터 목록 조회", notes = "조회조건에 일치하는 정보를 조회한다.")
     @GetMapping("/logistics-centers")
     public List<FindLogisticsCentersRes> getPcsvLogisticsCenters() {
