@@ -95,4 +95,14 @@ public class WdcbAdvancedSellFeeReplaceController {
     ) throws Exception {
         return SaveResponse.builder().processCount(service.saveSlipCreate(dto)).build();
     }
+
+    @ApiOperation(value = "비용대체 생성", notes = "비용대체 생성 온디멘드 배치 호출")
+    @PostMapping("/cost-replace-create")
+    public String saveCostReplace(
+        @RequestBody
+        @Valid
+        CreateReq dto
+    ) throws Exception {
+        return service.createCostReplace(dto);
+    }
 }

@@ -163,4 +163,11 @@ public class WdcbAdvancedSellFeeReplaceDto {
         String kwGrpCoCd,
         String fnlMdfcDtm
     ) {}
+
+    @ApiModel("WdcbAdvancedSellFeeReplaceDto-CreateReq")
+    public record CreateReq(
+        String beforeMonth,
+        String currentMonth,
+        String feeTcnt
+    ) {}
 }
