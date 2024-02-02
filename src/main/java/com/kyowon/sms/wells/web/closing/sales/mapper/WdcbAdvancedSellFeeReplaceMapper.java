@@ -32,7 +32,7 @@ public interface WdcbAdvancedSellFeeReplaceMapper {
     List<SearchCodeRes> selectFeeGubunCodes();
 
     SearchPopRes selectPop(
-        String kwGrpCoCd
+        String kwGrpCoCd, String currentMonth
     );
 
     int updatePop(WdcbAdvancedSellFeeReplaceDvo dvo);
