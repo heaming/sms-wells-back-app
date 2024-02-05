@@ -5,7 +5,7 @@
         WITH PD_INF AS (
                     SELECT P1.PD_CD
                          , P2.SAP_MAT_CD    /*SAP자재코드*/
-                         , P2.PD_NM /*품목명*/
+                         , P2.PD_ABBR_NM /*품목명*/
                          , P1.PD_PRP_VAL06 AS AS_LDTM /*리드타임, AS_LDTM*/
                          , P1.PD_PRP_VAL21 AS AS_MAT_CMN_CLSF_CD /*AS자재 공통분류, AS_MAT_CMN_CLSF_CD, CMN_PART_DV_CD*/
                          , P1.PD_PRP_VAL30 AS TRNOVR_RT_OJ_YN /* 회전율 */
@@ -111,7 +111,7 @@
         )
         SELECT PD_INF.SAP_MAT_CD /* SAP */
              , PD_INF.PD_CD /* 코드 */
-             , PD_INF.PD_NM /* 품목명 */
+             , PD_INF.PD_ABBR_NM /* 품목명 */
              , PD_INF.AS_LDTM /* 리드타임 */
              , PD_INF.MIN_GO_QTY /* MOQ */
              , NVL(LAST_1Y_PREV_3M, 0) AS LAST_1Y_PREV_3M /* 전년 -3M */
@@ -164,7 +164,7 @@
           FROM
                (/* 이전 출고량 집계 */
                SELECT PD_INF.PD_CD
-                    , PD_INF.PD_NM
+                    , PD_INF.PD_ABBR_NM
                     , SUM(CASE WHEN T1.ITM_GD_CD = 'A' THEN T1.QTY END) AS LAST_3M
                     , SUM(CASE WHEN T1.ITM_GD_CD = 'A' AND T1.OSTR_DT BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM')||'01' AND TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM')||'31' THEN T1.QTY END) AS LAST_PREV_1M
                     , SUM(CASE WHEN T1.ITM_GD_CD = 'B' AND T1.OSTR_DT BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYear}-1||#{baseMonth}, 'YYYYMM'), -3), 'YYYYMM')||'01' AND TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYear}-1||#{baseMonth}, 'YYYYMM'), -1), 'YYYYMM')||'31' THEN T1.QTY END) AS LAST_1Y_PREV_3M
@@ -264,11 +264,11 @@
                                   </if>
                                  ) T1
                         ON PD_INF.PD_CD = T1.ITM_PD_CD
-                     GROUP BY PD_INF.PD_CD, PD_INF.PD_NM
+                     GROUP BY PD_INF.PD_CD, PD_INF.PD_ABBR_NM
                ) PREV_OSTR
              , ( /* 기준월 출고 집계 */
                SELECT ITM_PD_CD
-                    , PD_NM
+                    , PD_ABBR_NM
                     , SUM(CASE WHEN SUBSTR(OSTR_DT,7,2) = '01' THEN QTY END) QTY_01
                     , SUM(CASE WHEN SUBSTR(OSTR_DT,7,2) = '02' THEN QTY END) QTY_02
                     , SUM(CASE WHEN SUBSTR(OSTR_DT,7,2) = '03' THEN QTY END) QTY_03
@@ -304,7 +304,7 @@
                  FROM (SELECT *
                          FROM (
                               SELECT O1.ITM_PD_CD
-                                   , PD_INF.PD_NM
+                                   , PD_INF.PD_ABBR_NM
                                    , O1.OSTR_QTY AS QTY
                                    , WARE_INF.HGR_WARE_NO
                                    , O1.OSTR_DT
@@ -324,7 +324,7 @@
 
                               SELECT /*+ INDEX(O2 IX_SVST_SV_WK_OSTR_IZ_08) */
                                      O2.ITM_PD_CD
-                                   , PD_INF.PD_NM
+                                   , PD_INF.PD_ABBR_NM
                                    , O2.USE_QTY AS QTY
                                    , WARE_INF.HGR_WARE_NO
                                    , O2.FNL_VST_FSH_DT AS OSTR_DT
@@ -349,7 +349,7 @@
                             AND WRK_CD = #{svBizHclsfCd}
                         </if>
                        )
-                 GROUP BY ITM_PD_CD , PD_NM
+                 GROUP BY ITM_PD_CD , PD_ABBR_NM
              ) BASMM_OSTR
              , ( /* 재고 구하기 */
                SELECT ITM_PD_CD
