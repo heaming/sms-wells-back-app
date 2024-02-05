@@ -212,4 +212,6 @@ public class WsnaSeedReleaseScheduleSearchDvo {
     private String vstDuedt;
     // 서비스상품코드
     private String svPdCd;
+    // 패키지 구분코드
+    private String pkgDvCd;
 }

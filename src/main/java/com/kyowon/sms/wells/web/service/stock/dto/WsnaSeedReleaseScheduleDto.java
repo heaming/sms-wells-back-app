@@ -233,7 +233,9 @@ public class WsnaSeedReleaseScheduleDto {
         // 고객휴대개별전화번호
         String cstCralIdvTno,
         // 서비스상품코드
-        String svPdCd
+        String svPdCd,
+        // 패키지구분코드
+        String pkgDvCd
     ) {}
 
     @Builder
@@ -399,7 +401,9 @@ public class WsnaSeedReleaseScheduleDto {
         // 고객휴대개별전화번호
         String cstCralIdvTno,
         // 서비스상품코드
-        String svPdCd
+        String svPdCd,
+        // 패키지구분코드
+        String pkgDvCd
     ) {}
 
 }
