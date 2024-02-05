@@ -103,10 +103,12 @@ public class WwdbGiroDepositMgtController {
     public SaveResponse saveBillingCreateDocument(
         @RequestBody @Valid
         SaveIntegrationReq dto
-    ) throws Exception {
-        return SaveResponse.builder()
-            .processCount(service.saveBillingCreateDocument(dto))
-            .build();
+    ) {
+        return service.saveBillingCreateDocument2(dto);
+
+        //            SaveResponse.builder()
+        //            .processCount(service.saveBillingCreateDocument2(dto))
+        //            .build();
     }
 
     /**
