@@ -1,9 +1,11 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaStockContinueMonthAgrgStateConverter;
@@ -23,7 +25,6 @@ public class WsnaStockContinueMonthAgrgStateService {
     private final WsnaStockContinueMonthAgrgStateConverter converter;
 
     public List<HashMap<String, String>> getStockContinueMonthAgrgState(SearchReq dto) {
-
         WsnaStockContinueMonthAgrgStateDvo dvo = convertPivotStockContinueMonthAgrgStateDvo(dto);
 
         return mapper.selectStockContinueMonthAgrgState(dvo);
@@ -67,6 +68,17 @@ public class WsnaStockContinueMonthAgrgStateService {
         dvo.setWareNoPitmFields(wareNoPitmFields);
         dvo.setWareNoKeppMmFields(wareNoKeppMmFields);
         dvo.setWareNoPitmSumFields(wareNoPitmSumFields);
+
+        ArrayList<String> pdCds = new ArrayList<String>();
+        if(dto.itmPdCds().size() > 0) {
+            for(int i = 0; i < dto.itmPdCds().size(); i++){
+//                pdCds.add();
+                log.info("itmPdCds ===== {}", dto.itmPdCds().get(i));
+                pdCds.add(dto.itmPdCds().get(i));
+            }
+            dvo.setItmPdCds(pdCds);
+            log.info("dvo.getItmPdCds() ===== {}", dvo.getItmPdCds());
+        }
 
         return dvo;
     }
