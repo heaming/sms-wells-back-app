@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.withdrawal.idvrve.service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.sds.sflex.system.config.response.SaveResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -145,6 +146,249 @@ public class WwdbGiroDepositMgtService {
     }
 
     /**
+         * 지로 입금관리 생성
+         * @param dto
+         * @return
+         * @throws Exception
+         */
+    @Transactional
+    public SaveResponse saveBillingCreateDocument2(SaveIntegrationReq dto) {
+
+        int processCount = 0;
+
+        int TCNT = 0; // 자료　건수
+        int RCNT = 0; // 제외　건수
+        int ACNT = 0; // 기　처리건
+        int ECNT = 0; // 오류　건수
+        int WCNT = 0; // 처리　건수
+        int JCNT = 0; // 묶음건수
+        int DCNT = 0; // 단일건수
+        long saveWamt = 0; // 처리총금액
+
+        String rveCd = "70550"; //수납코드
+
+        //오늘 날짜
+        String sysDateYmd = DateUtil.getNowDayString();
+
+        String resultMsgText = "";
+
+        //입금등록 할 데이터 조회
+        SearchReq giroDto = SearchReq.builder().fntDt(dto.fntDt()).rveDt(dto.rveDt()).build();
+        List<SearchRes> insertList = mapper.selectGiroDepositMgt(giroDto);
+
+        Map<String, Object> regMap;
+        Map<String, Object> errorRegMap; //오류건 처리 데이터 입력
+        List<Map<String, Object>> insertGiros = new ArrayList<Map<String, Object>>(); /*입금등록 할 데이터 리스트*/
+        Map<String, Object> insertGiro;
+
+        for (SearchRes list : insertList) {
+
+            TCNT = TCNT + 1; //자료　건수
+
+            /*입금등록에서 제외해야하는 건수들*/
+            if ("R".equals(list.giroRveDvCd()) || "A".equals(list.giroRveDvCd())) {
+                RCNT = RCNT + 1; //제외　건수
+                continue;
+            }
+
+            if ("Y".equals(list.itgDpProcsYn())) { /*이미 대사처리완료*/
+                ACNT = ACNT + 1; //기　처리건
+                continue;
+            }
+
+            if (StringUtil.isEmpty(list.dgCntrNo()) || StringUtil.isNull(list.dgCntrNo())) { /*지로입금 일반건*/
+
+                regMap = new HashMap<String, Object>();
+
+                regMap.put("cntrNo", list.cntrNo());
+                regMap.put("cntrSn", list.cntrSn());
+
+                WwdbGiroDepositMgtDto.SearchContractDetailRes selectContractDetail = mapper
+                    .selectContractDetail(regMap); //렌탈고객 조회
+
+                /*만약 조회된 결과가 없을 시 주문정보 없음*/
+                if (ObjectUtils.isEmpty(selectContractDetail)) {
+                    ECNT = ECNT + 1; // 오류　건수
+
+                    errorRegMap = new HashMap<String, Object>();
+                    errorRegMap.put("procsErrTpCd", "1"); //PROCS_ERR_TP_CD (주문정보없음(1))
+                    errorRegMap.put("itgDpNo", list.itgDpNo()); //통합입금번호
+
+                    processCount += mapper.updateGiroDepositItemization(errorRegMap);//PROCS_ERR_TP_CD (통합발행-오류포함(1))
+
+                } else if (StringUtil.isNotEmpty(selectContractDetail.cntrCanDtm())) { /*만약 취소 건일 경우*/
+                    ECNT = ECNT + 1; // 오류　건수
+
+                    errorRegMap = new HashMap<String, Object>();
+                    errorRegMap.put("procsErrTpCd", "2"); //PROCS_ERR_TP_CD (취소주문(2))
+                    errorRegMap.put("itgDpNo", list.itgDpNo()); //통합입금번호
+
+                    processCount += mapper.updateGiroDepositItemization(errorRegMap);//PROCS_ERR_TP_CD (취소주문(2))
+                } else { /*정산 건 */
+
+                    insertGiro = new HashMap<String, Object>();
+
+                    insertGiro.put("itgDpNo", list.itgDpNo());
+                    insertGiro.put("cstNo", selectContractDetail.cntrCstNo());
+                    insertGiro.put("rveAmt", list.rveAmt());
+                    insertGiro.put("cntrNo", list.cntrNo());
+                    insertGiro.put("cntrSn", list.cntrSn());
+                    insertGiro.put("pdCd", list.pdCd());
+                    insertGiro.put("dpDt", list.dpDt());
+
+                    insertGiros.add(insertGiro);
+
+                    saveWamt = saveWamt + Long.parseLong(list.rveAmt()); // 처리총금액
+                    WCNT = WCNT + 1; // 처리　건수
+                }
+            } else { /*지로입금 통합건*/
+
+                long rveAmt = Long.parseLong(list.pyAmt());
+                long giroSeAmt = Long.parseLong(list.giroAmt());
+
+                /*통합청구쪽 지로 설정금액이랑  렌탈금액이 다른경우*/
+                if (rveAmt != giroSeAmt) {
+
+                    ECNT = ECNT + 1; // 오류　건수
+                    errorRegMap = new HashMap<String, Object>();
+                    errorRegMap.put("procsErrTpCd", "4"); //PROCS_ERR_TP_CD (통합청구 오류)
+                    errorRegMap.put("itgDpNo", list.itgDpNo()); //통합입금번호
+
+                    processCount += mapper.updateGiroDepositItemization(errorRegMap);//PROCS_ERR_TP_CD (통합발행-오류포함(1))
+
+                } else {
+
+                    insertGiro = new HashMap<String, Object>();
+
+                    insertGiro.put("itgDpNo", list.itgDpNo());
+                    insertGiro.put("cstNo", list.cstNo());
+                    insertGiro.put("rveAmt", list.rveAmt());
+                    insertGiro.put("cntrNo", list.cntrNo());
+                    insertGiro.put("cntrSn", list.cntrSn());
+                    insertGiro.put("pdCd", list.pdCd());
+                    insertGiro.put("dpDt", list.dpDt());
+
+                    insertGiros.add(insertGiro);
+
+                    saveWamt = saveWamt + Long.parseLong(list.giroSeAmt()); // 처리총금액
+                    WCNT = WCNT + 1; // 처리　건수
+                    JCNT = JCNT + 1; // 묶음건수
+                }
+
+            }
+
+        }
+
+        if (insertGiros.size() > 0) {
+
+            UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession(); //세션정보
+
+            for (Map<String, Object> insertMap : insertGiros) {
+
+                String ogTpCd = session.getOgTpCd(); /*조직유형*/
+                String employeeIDNumber = session.getEmployeeIDNumber(); /*사번*/
+                String ogId = session.getOgId(); /*조직ID*/
+                String companyCode = session.getCompanyCode(); /*그룹회사코드*/
+
+                String itgDpNo = insertMap.get("itgDpNo").toString(); /*통합입금번호*/
+                String cstNo = insertMap.get("cstNo").toString(); /*고객번호*/
+                String rveAmt = insertMap.get("rveAmt").toString();/*납입금액*/
+                String cntrNo = insertMap.get("cntrNo").toString();/*계약번호*/
+                String cntrSn = insertMap.get("cntrSn").toString();/*계약일련번호*/
+                String pdCd = insertMap.get("pdCd").toString();/*상품코드*/
+                String dpDt = insertMap.get("dpDt").toString();/*실적일자*/
+
+                insertMap.put("ogTpCd", ogTpCd);
+                insertMap.put("prtnrNo", employeeIDNumber);
+                insertMap.put("ogId", ogId);
+                insertMap.put("dpAmt", saveWamt);
+                insertMap.put("itgDpNo", itgDpNo);
+                insertMap.put("cstNo", cstNo);
+
+                /*통합입금기본 데이터 생성 */
+                processCount += mapper.inertIntegrationItemization(insertMap); //통합입금기본 INSERT
+
+                /*정상건*/
+                errorRegMap = new HashMap<String, Object>();
+                errorRegMap.put("procsErrTpCd", "3"); //PROCS_ERR_TP_CD (정상(3))
+                errorRegMap.put("itgDpNo", itgDpNo); //통합입금번호
+
+                processCount += mapper.updateGiroDepositItemization(errorRegMap);//PROCS_ERR_TP_CD (정상(3))
+
+                //수납요청기본 데이터 셋팅
+                ZwdzWithdrawalReceiveAskDvo askDvo = new ZwdzWithdrawalReceiveAskDvo();
+
+                askDvo.setKyowonGroupCompanyCd(companyCode); // 교원그룹회사코드
+                askDvo.setCustomNumber(cstNo); // 고객번호
+                askDvo.setRveAkMthdCd("01"); // 수납요청방식코드 대면
+                askDvo.setRveAkPhCd("18"); //수납요청경로코드(일단 영업부)
+                askDvo.setRvePrtnrOgTpCd(ogTpCd); // 수납요청파트너조직유형코드
+                askDvo.setRvePrtnrNo(employeeIDNumber); // 수납요청파트너번호
+                askDvo.setReceiveAskAmount(rveAmt); // 수납요청금액
+                askDvo.setReceiveAskDate(sysDateYmd); // 수납요청일자
+                askDvo.setReceiveAskStatusCode("01"); //수납요청상태코드
+                askDvo.setReceiveCompanyCode(companyCode); // 수납회사코드
+
+                /*수납요청기본 데이터 생성*/
+                String receiveAskNumber = zwdzWithdrawalService.createReceiveAskBase(askDvo);
+                askDvo.setReceiveAskNumber(receiveAskNumber);
+
+                //수납요청상세 데이터 셋팅
+                /*수납요청상세 데이터 입력*/
+                askDvo.setDepositDivideCode("1");//입금구분코드(입금)
+                askDvo.setDepositMeansCode("04");//입금수단코드(지로)
+                askDvo.setDepositTypeCode("0401");//입금유형코드()
+                askDvo.setReceiveDivideCode("03");//수납구분코드
+                askDvo.setOrganizationId(ogId);//조직ID
+                askDvo.setOrganizationTypeCode(ogTpCd);//조직유형코드
+                askDvo.setPartnerNumber(employeeIDNumber);//파트너번호
+                askDvo.setContractNumber(cntrNo);//계약번호
+                askDvo.setContractSerialNumber(cntrSn); //계약일련번호
+                askDvo.setProductCode(pdCd);//상품코드
+                askDvo.setReceiveAskAmount(rveAmt);//수납요청금액
+                askDvo.setReceiveStatusCode("01"); //수납상태코드
+                askDvo.setIncmdcYn("N"); //소득공제여부
+                askDvo.setReceiveAskObjectDrmNumber1(dpDt);
+                askDvo.setReceiveCode(rveCd);
+                // 수납요청상세 데이터 생성
+                zwdzWithdrawalService.createReceiveAskDetail(askDvo);
+
+                //수납요청상세 이력 생성
+                zwdzWithdrawalService.createReceiveAskDetailHistory(askDvo);
+
+                //지로입금내역 처리
+                mapper.updateIntegrationItemization(itgDpNo);
+
+                //통합입금기본 데이터 수정
+                insertMap = new HashMap<String, Object>();
+                insertMap.put("rveAkNo", receiveAskNumber);
+                insertMap.put("itgDpNo", itgDpNo);
+                insertMap.put("rveCd", rveCd);
+
+                mapper.updateIntegrationDeposit(insertMap);
+
+                if (!StringUtils.isEmpty(itgDpNo)) {
+                    //입금대사 서비스 호출
+                    depositComparisonComfirmationService
+                        .createDepositComparisonComfirmation(itgDpNo, null, "Y");
+                }
+            }
+        }
+
+        DCNT = WCNT - JCNT; // 단일건수
+        resultMsgText = "자료　건수    : " + TCNT + " \n"
+            + "기　처리건    : " + ACNT + " \n"
+            + "오류　건수    : " + ECNT + " \n"
+            + "제외　건수    : " + RCNT + " \n"
+            + "처리　건수    : " + WCNT + " \n"
+            + "처리 단일건수 : " + DCNT + " \n"
+            + "처리 묶음건수 : " + JCNT + " \n"
+            + "처리총금액    : " + saveWamt + " \n";
+
+        return SaveResponse.builder().data(resultMsgText).processCount(processCount).build();
+    }
+
+    /**
      * 지로 입금관리 생성
      * @param dto
      * @return
@@ -158,9 +402,6 @@ public class WwdbGiroDepositMgtService {
         String fntDt = dto.fntDt(); //실적일자
 
         String rveCd = "70550"; //수납코드
-
-        /*입금등록 해야하는 데이터 조회 */
-        //        List<WwdbGiroDepositMgtDto.SearchDepositRes> inserList = mapper.selectGiroDepositList(dto);
 
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession(); //세션정보
 
