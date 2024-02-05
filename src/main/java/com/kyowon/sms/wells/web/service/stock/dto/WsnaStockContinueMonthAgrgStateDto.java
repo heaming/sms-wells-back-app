@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.service.stock.dto;
 
 import io.swagger.annotations.ApiModel;
 
+import java.util.List;
+
 /**
  * <pre>
  * 재고지속월집계현황
@@ -23,8 +25,8 @@ public class WsnaStockContinueMonthAgrgStateDto {
         String strtSapCd,
         String endSapCd,
         String itmKndCd,
-        String itmGrpCd
-
+        String itmGrpCd,
+        List<String> itmPdCds // 품목코드
     ) {}
 
     @ApiModel(value = "WsnaStocKContinueMonthAgrgStateDto-SearchRes")
