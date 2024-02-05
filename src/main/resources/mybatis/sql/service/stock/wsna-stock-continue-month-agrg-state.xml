@@ -38,9 +38,6 @@
                <if test="@MybatisUtils@isNotEmpty(useYn)">
                AND P1.PD_PRP_VAL32 = #{useYn}    /*화면노출여부, UI_EXPSR_YN*/
                </if>
-               <if test="@MybatisUtils@isNotEmpty(itmGrpCd)">
-               AND P1.PD_PRP_VAL20 = #{itmGrpCd}  /* 품목종류 */ /*AS_MAT_ITM_KND_CD*/
-               </if>
                /*관리유형(전체, 기초1, 기초2, 기초3, 기초4, 기초5) 전체 : ALL*/
                <if test="@MybatisUtils@isNotEmpty(stockTpCd)">
                AND P1.PD_PRP_VAL17 = #{stockTpCd}
@@ -50,6 +47,23 @@
                </if>
                <if test="@MybatisUtils@isNotEmpty(itmPdCd)">
                AND P1.PD_CD = #{itmPdCd}  /* 품목코드 */
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(itmGrpCd)">
+               AND (
+                     P1.PD_PRP_VAL20 = #{itmGrpCd}
+                     OR EXISTS (
+                                 SELECT 1
+                                   FROM TB_PDBS_PD_REL T1
+                                  INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+                                     ON T2.PD_CD = T1.BASE_PD_CD
+                                  WHERE T1.DTA_DL_YN          = 'N'
+                                    AND T1.PD_REL_TP_CD       = '14'   /* AS부품 */
+                                    AND T2.DTA_DL_YN          = 'N'
+                                    AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+                                    AND T1.OJ_PD_CD           = P2.PD_CD
+                                    AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
+                                    AND T2.PD_PRP_VAL20       = #{itmGrpCd} )
+                   )
                </if>
 --                AND (P1.PD_PRP_VAL20 IN ('1', '2', '3', '4', '5', '6', '7', '8', '9', '91', '92', '93', '95', '96')
 --                  OR P1.PD_PRP_VAL20 IS NULL)
@@ -88,6 +102,12 @@
                AND S1.WARE_NO = W1.WARE_NO
              WHERE 1=1
                AND S1.BASE_YM = #{baseYm}
+        <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+               AND S1.ITM_PD_CD IN
+            <foreach collection="itmPdCds" item="item" separator=", " open="(" close=")">
+                #{item}
+            </foreach>
+        </if>
                AND S1.DTA_DL_YN = 'N'
              GROUP BY (CASE WHEN W1.WARE_ICHR_NO NOT LIKE '000' THEN W1.HGR_WARE_NO ELSE S1.WARE_NO END), S1.ITM_PD_CD
          )

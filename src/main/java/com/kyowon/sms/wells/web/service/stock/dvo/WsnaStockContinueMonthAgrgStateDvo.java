@@ -3,6 +3,8 @@ package com.kyowon.sms.wells.web.service.stock.dvo;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 
@@ -27,5 +29,5 @@ public class WsnaStockContinueMonthAgrgStateDvo {
     String ordnyHvMatYn;
     String cmnPartDvCd;
     String trnovrRtOjYn;
-
+    List<String> itmPdCds; // 품목코드
 }
