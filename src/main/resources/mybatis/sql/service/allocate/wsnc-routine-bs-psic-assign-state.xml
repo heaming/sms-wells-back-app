@@ -6,8 +6,7 @@
     </resultMap>
     <select id="selectRoutineBsPsicAssignState" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncRoutineBsPsicAssignStateDto$SearchRes">
         SELECT /*+INDEX (B2 IX_SVPD_PD_BC_RPBL_APLC_IZ_01) */
-               '' AS CHK
-             , (CASE WHEN B1.CNTR_NO IS NOT NULL OR B2.CNTR_NO IS NOT NULL
+               (CASE WHEN B1.CNTR_NO IS NOT NULL OR B2.CNTR_NO IS NOT NULL
                      THEN 'Y'
                 ELSE '' END) AS SN_RPBL_YN  /*제품시리얼 재발행 여부*/
              , C2.CNTR_CST_NO               /*고객번호*/
@@ -136,6 +135,8 @@
              , O2.OG_NM
              , O2.OG_CD
              , O1.PRTNR_NO
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', SV1.SV_BIZ_DCLSF_CD, 'ko') AS SV_BIZ_DCLSF_NM
+             , F_CMZ_CD_NM('TNT_WELLS', 'SPC_AS_TP_CD', SV1.SPC_AS_TP_CD, 'ko') AS SPC_AS_TP_CD          /*특별AS유형코드*/
           FROM WSMDBS.TB_SVPD_CST_SV_BFSVC_OJ_IZ SV1                        /*고객서비스BS대상내역, AC251TB*/
          INNER JOIN WSMDBS.TB_SVPD_CST_SV_BFSVC_ASN_IZ SV2            /*고객서비스BS배정내역, AC261TB*/
             ON SV1.CST_SV_ASN_NO = SV2.CST_SV_ASN_NO
@@ -371,7 +372,7 @@
     </select>
 
 
-    <select id="selectRoutineBsPsicAssignStateBulkExcelDownload" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncRoutineBsPsicAssignStateDto$BulkExcelSearchRes" fetchSize="1000">
+    <select id="selectRoutineBsPsicAssignStateBulkExcelDownload" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncRoutineBsPsicAssignStateDto$SearchRes" fetchSize="1000">
         SELECT /*+INDEX (B2 IX_SVPD_PD_BC_RPBL_APLC_IZ_01) */
                (CASE WHEN B1.CNTR_NO IS NOT NULL OR B2.CNTR_NO IS NOT NULL
                      THEN 'Y'
@@ -437,14 +438,8 @@
              , C5.RNADR || ' ' || C5.RDADR AS RNDADR
              , SV1.RLTD_SV_BIZ_DCLSF_CD
              , SV1.CLSF_CD_SRN_PRNT_CN
-             , SV1.BF_VST_DUEDT             /*이정방문예정일자*/
-             , SV1.VST_DUEDT                /*최초방문예정일자-이월전최초배정시예정일자*/
-             , SV2.VST_CNFMDT               /*최종방문약속일자*/
-             , SV2.VST_CNFM_HH              /*최종방문약속시간*/
-             , SV3.VST_FSH_DT               /*작업완료일자*/
-             , SV3.VST_FSH_HH               /*작업완료시간*/
              , CN2.CST_UNUITM_CN            /*고객특이사항*/
-             , CN2.FST_RGST_DTM             /*고객특이사항등록일시*/
+             , REGEXP_REPLACE(SUBSTR(CN2.FST_RGST_DTM, 0, 8), '(.{4})(.{2})(.{2})', '\1-\2-\3') AS FST_RGST_DTM             /*고객특이사항등록일시*/
              , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR1_LEVL_OG_CD WHEN O1.OG_TP_CD IN ('W06') THEN '71314' ELSE O1.OG_CD END) AS L1_HGR_OG_CD
              , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR2_LEVL_OG_CD ELSE O1.OG_CD END) AS L2_HGR_OG_CD
              , (CASE WHEN O1.OG_TP_CD IN ('W02', 'W03') THEN DGR3_LEVL_OG_CD ELSE O1.OG_CD END) AS L3_HGR_OG_CD
@@ -489,6 +484,7 @@
                     AND F1.DTA_DL_YN = 'N'
              ) AS AW_AMT  /*현장수당*/
              , SV3.SV_PROCS_CN              /*서비스처리내용*/
+             , '' AS CST_SIGN_CN
              /*BD26	방문취소사유, 매니저 작업 취소를 위해 만들었으나, BS는 취소가 안 되어 미사용, BS를 취소 할 수 있는 기능이 필요한지 사업본부에 확인 필요, 10 고객사유,20 고객이사,30 고객탈퇴,40 매출취소,50 방문중지,90 기타사유*/
              , (CASE WHEN C6.RSG_FSH_DT IS NOT NULL THEN '고객탈퇴' /*해지고객*/
                      WHEN C1.CNTR_DTL_STAT_CD = '202' THEN '방문중지'   /*연체중지*/
@@ -496,6 +492,19 @@
              ) AS BG_COLO                /*변동사항*/
              , C1.CNTR_DTL_STAT_CD          /*계약상세상태코드*/
              , F_CMZ_CD_NM('TNT_WELLS', 'CNTR_DTL_STAT_CD', C1.CNTR_DTL_STAT_CD, 'ko') AS CNTR_DTL_STAT_NM
+             , REGEXP_REPLACE(SUBSTR(CN2.FST_RGST_DTM, 9, 14), '(.{2})(.{2})(.{2})', '\1:\2:\3') AS FST_RGST_TM            /*고객특이사항등록일시*/
+             , P2.PD_ABBR_NM                /*상품약어명*/
+             , O2.OG_NM
+             , O2.OG_CD
+             , O1.PRTNR_NO
+             , REGEXP_REPLACE(SUBSTR(SV1.BF_VST_DUEDT, 0, 8), '(.{4})(.{2})(.{2})', '\1-\2-\3') AS BF_VST_DUEDT             /*이정방문예정일자*/
+             , REGEXP_REPLACE(SUBSTR(SV1.VST_DUEDT, 0, 8), '(.{4})(.{2})(.{2})', '\1-\2-\3') AS VST_DUEDT             /*최초방문예정일자-이월전최초배정시예정일자*/
+             , REGEXP_REPLACE(SUBSTR(SV2.VST_CNFMDT, 0, 8), '(.{4})(.{2})(.{2})', '\1-\2-\3') AS VST_CNFMDT             /*최종방문약속일자*/
+             , REGEXP_REPLACE(SUBSTR(SV2.VST_CNFM_HH, 0, 8), '(.{2})(.{2})(.{2})', '\1:\2:\3') AS VST_CNFM_HH             /*최종방문약속시간*/
+             , REGEXP_REPLACE(SUBSTR(SV3.VST_FSH_DT, 0, 8), '(.{4})(.{2})(.{2})', '\1-\2-\3') AS VST_FSH_DT             /*작업완료일자*/
+             , REGEXP_REPLACE(SUBSTR(SV3.VST_FSH_HH, 0, 8), '(.{2})(.{2})(.{2})', '\1:\2:\3') AS VST_FSH_HH             /*작업완료시간*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', SV1.SV_BIZ_DCLSF_CD, 'ko') AS SV_BIZ_DCLSF_NM
+             , F_CMZ_CD_NM('TNT_WELLS', 'SPC_AS_TP_CD', SV1.SPC_AS_TP_CD, 'ko') AS SPC_AS_TP_CD          /*특별AS유형코드*/
           FROM WSMDBS.TB_SVPD_CST_SV_BFSVC_OJ_IZ SV1                        /*고객서비스BS대상내역, AC251TB*/
          INNER JOIN WSMDBS.TB_SVPD_CST_SV_BFSVC_ASN_IZ SV2            /*고객서비스BS배정내역, AC261TB*/
             ON SV1.CST_SV_ASN_NO = SV2.CST_SV_ASN_NO

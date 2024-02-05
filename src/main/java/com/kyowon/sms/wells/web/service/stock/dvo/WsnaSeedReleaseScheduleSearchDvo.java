@@ -48,7 +48,7 @@ public class WsnaSeedReleaseScheduleSearchDvo {
     private String shipPkg;
 
     /**
-     * 모종 1~5 정보
+     * 모종 1~10 정보
      */
     // 모종1
     private String sding1;
@@ -70,6 +70,26 @@ public class WsnaSeedReleaseScheduleSearchDvo {
     private String sding5;
     // 수량5
     private BigDecimal qty5;
+    // 모종6
+    private String sding6;
+    // 수량6
+    private BigDecimal qty6;
+    // 모종7
+    private String sding7;
+    // 수량7
+    private BigDecimal qty7;
+    // 모종8
+    private String sding8;
+    // 수량8
+    private BigDecimal qty8;
+    // 모종9
+    private String sding9;
+    // 수량9
+    private BigDecimal qty9;
+    // 모종10
+    private String sding10;
+    // 수량10
+    private BigDecimal qty10;
 
     // 기기철거일자
     private String mchnDemDt;
@@ -143,6 +163,26 @@ public class WsnaSeedReleaseScheduleSearchDvo {
     private String sdingPdCd5;
     // 파종일자5
     private String sowDt5;
+    // 모종6 상품코드
+    private String sdingPdCd6;
+    // 파종일자6
+    private String sowDt6;
+    // 모종7 상품코드
+    private String sdingPdCd7;
+    // 파종일자7
+    private String sowDt7;
+    // 모종8 상품코드
+    private String sdingPdCd8;
+    // 파종일자8
+    private String sowDt8;
+    // 모종9 상품코드
+    private String sdingPdCd9;
+    // 파종일자9
+    private String sowDt9;
+    // 모종10 상품코드
+    private String sdingPdCd10;
+    // 파종일자10
+    private String sowDt10;
 
     // 모종패키지상품코드
     private String sdingPkgPdCd;

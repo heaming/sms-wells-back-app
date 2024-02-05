@@ -22,6 +22,7 @@ public interface WsnbServiceProcDetailListMapper {
 
     List<WsnbServiceProcDetailPuPartDvo> selectServiceProcDetailPuPart(SearchReq dto);
     CttIzReq selectServiceProcDetailCttDatas(SearchReq dto);
+    WkCanReq selectServiceProcDetailWkCanDatas(WkCanRes dto);
     // CTT_OJ_ID 신규 채번
     String selectCttBasKey();
     // 컨택기본 등록
@@ -36,8 +37,10 @@ public interface WsnbServiceProcDetailListMapper {
     int insertCttDchHistRgst(WsnbServiceProcDetailBilItemDvo dvo);
     // 컨택정보 변경시 기존 정보 조회
     HashMap<String, String> selectCttBeforeDatas(SaveCttNwRgstReq dto);
+    // 작업상태 조회
+    HashMap<String, String> selectWkStatData(SaveWkCanRgstReq dto);
 
     // 작업취소 내역 등록
-    int updateWkCanIz(SaveWkCanRgstReq dto);
-    int insertWkCanHist(SaveWkCanRgstReq dto);
+    int insertUpdateWkCanIz(WsnbServiceProcDetailBilItemDvo dvo);
+    int insertWkCanHist(WsnbServiceProcDetailBilItemDvo dvo);
 }

@@ -1,36 +1,33 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.fee.standard.mapper.WfeyFeeSmlCalculationSqlFor201Mapper">
     <insert id="insertSettlementFeesForSeller">
-        /** 정착수수료(판매자) : W020081, 소스 : LC56U114, 컬럼 : AKSD48 */
-        INSERT INTO TB_FEAM_FEE_CALC_BAS (  /* 수수료계산계약상세내역 */
-                                                  BASE_YM            /* 기준년월 */
-                                                , PERF_YM            /* 실적년월 */
-                                                , OJ_DSB_YM          /* 대상지급년월 */
-                                                , CO_CD              /* 회사코드 */
-                                                , OG_TP_CD           /* 조직유형코드 */
-                                                , PRTNR_NO           /* 파트너번호 */
-                                                , FEE_CD             /* 수수료코드 */
-                                                , DTA_CRT_FEE_CD     /* 데이터생성수수료코드 */
-                                                , FEE_TCNT_DV_CD     /* 수수료차수구분코드 */
-                                                , SPMT_DSB_DV_CD     /* 추가지급구분코드 */
-                                                , FEE_CALC_TP_CD     /* 수수료계산유형코드 */
-                                                , FEE_CALC_AMT       /* 수수료계산금액 */
-                                                , FEE_CTR_CNFM_AMT   /* 수수료조정확정금액 */
-                                                , FNL_FEE_YN         /* 최종수수료여부 */
-                                                <include refid="COMMON.insertSystemField" />)
+        /** 정착수수료(판매자) : W020081 소스 : LC56U114, 컬럼 : AKSD48 */
+        INSERT INTO TB_FEAM_FEE_SML_BAS (  /* 수수료시뮬레이션기본 */
+               BASE_YM            /* 기준년월 */
+             , PERF_YM            /* 실적년월 */
+             , OJ_DSB_YM          /* 대상지급년월 */
+             , CO_CD              /* 회사코드 */
+             , OG_TP_CD           /* 조직유형코드 */
+             , PRTNR_NO           /* 파트너번호 */
+             , FEE_CD             /* 수수료코드 */
+             , DTA_CRT_FEE_CD     /* 데이터생성수수료코드 */
+             , FEE_DSB_MTHD_CD    /* 수수료지급방식코드 */
+             , SML_CRT_TP_CD      /* 시뮬레이션생성유형코드 */
+             , FEE_CALC_AMT       /* 수수료계산금액 */
+             , FNL_FEE_YN         /* 최종수수료여부 */
+             <include refid="COMMON.insertSystemField" />
+                                           )
         SELECT RESULT.BASE_YM
-             , RESULT.BASE_YM      AS PERF_YM
-             , RESULT.BASE_YM      AS OJ_DSB_YM
-             , #{coCd}              AS CO_CD
+             , RESULT.BASE_YM     AS PERF_YM
+             , RESULT.BASE_YM     AS OJ_DSB_YM
+             , #{coCd}            AS CO_CD
              , RESULT.OG_TP_CD
              , RESULT.PRTNR_NO
              , #{feeCd}           AS FEE_CD
-             , #{dtaCrtFeeCd}           AS DTA_CRT_FEE_CD
-             , #{feeTcntDvCd}                AS FEE_TCNT_DV_CD -- 수수료차수(변수)
-             , '01'                AS SPMT_DSB_DV_CD -- 추후 확인 필요 01/정상지급, 02/추가지급
-             , '01'                AS FEE_CALC_TP_CD -- 01 / 수수료계산
+             , #{dtaCrtFeeCd}     AS DTA_CRT_FEE_CD
+             , '01'               AS FEE_DSB_MTHD_CD -- 수수료지급방식코드
+             , #{smlCrtTpCd}      AS SML_CRT_TP_CD
              , RESULT.FEE_CALC_AMT
-             , RESULT.FEE_CALC_AMT AS FEE_CTR_CNFM_AMT
              , #{fnlFeeYn} AS FNL_FEE_YN
             <include refid="COMMON.insertSystemFieldValue" />
           FROM (SELECT Z.BASE_YM
@@ -128,11 +125,7 @@
                   FROM (SELECT AA.BASE_YM
                              , AA.OG_TP_CD
                              , AA.PRTNR_NO
-                             , BB.OPNG_CD
-                             --,FF.QLF_DV_CD           AS QLF_DV_CD_NOW
-                             --,CEIL(MONTHS_BETWEEN(TO_DATE(AA.BASE_YM||'01','YYYYMMDD'),TO_DATE(FF.STRTDT,'YYYYMMDD'))) + 1  AS NMN_N_NOW
-                             --,GG.QLF_DV_CD           AS QLF_DV_CD_TO_BD
-                             --,CEIL(MONTHS_BETWEEN(TO_DATE(AA.BASE_YM||'01','YYYYMMDD'),TO_DATE(GG.STRTDT,'YYYYMMDD'))) + 1  AS NMN_N_TO_BE
+                             , NVL(BB.OPNG_CD,NVL(CC.OPNG_CD,'0'))  AS OPNG_CD  -- 당월 없으면, 전월
                              , NVL(FF.QLF_DV_CD, NVL(GG.QLF_DV_CD, '0'))                     AS QLF_DV_CD            -- 자격
                              , NVL(CEIL(MONTHS_BETWEEN(TO_DATE(AA.BASE_YM || '01', 'YYYYMMDD'),
                                                        TO_DATE(FF.STRTDT, 'YYYYMMDD'))) + 1,
@@ -150,12 +143,12 @@
                              , NVL(F04.FEE_PERF_ATC_VAL, 'N')                                AS F04_FEE_PERF_ATC_VAL -- 프리4Wells live(147)수료여부
                              , NVL(F05.FEE_PERF_ATC_VAL, 'N')                                AS F05_FEE_PERF_ATC_VAL -- 프리5Wells live(148)수료여부
                           FROM TB_OGBS_MM_PRTNR_IZ AA
-                               JOIN (SELECT A.BASE_YM, A.OG_TP_CD, A.PRTNR_NO, NVL(A.OPNG_CD, '0') AS OPNG_CD
+                               LEFT OUTER JOIN (SELECT A.BASE_YM, A.OG_TP_CD, A.PRTNR_NO, A.OPNG_CD AS OPNG_CD
                                        FROM TB_FEAM_WELS_MNGER_OPNG_BAS A
                                             JOIN (SELECT B.BASE_YM, B.OG_TP_CD, B.PRTNR_NO, MAX(B.TCNT_DV_CD) AS TCNT_DV_CD
                                                     FROM TB_FEAM_WELS_MNGER_OPNG_BAS B
                                                    WHERE 1 = 1
-                                                     AND B.BASE_YM = #{baseYm} -- 변수 BASE_YM
+                                                     AND B.BASE_YM = #{baseYm}                           -- 변수 BASE_YM
                                                      AND B.OG_TP_CD = #{ogTpCd}
                                                    GROUP BY B.BASE_YM, B.OG_TP_CD, B.PRTNR_NO) B
                                                  ON A.BASE_YM = B.BASE_YM
@@ -165,6 +158,22 @@
                                     ON AA.BASE_YM = BB.BASE_YM
                                         AND AA.OG_TP_CD = BB.OG_TP_CD
                                         AND AA.PRTNR_NO = BB.PRTNR_NO
+                               LEFT OUTER JOIN (SELECT #{baseYm} AS BASE_YM
+                                                      ,A.OG_TP_CD, A.PRTNR_NO, A.OPNG_CD AS OPNG_CD      -- 전월 웰스매니저 정착수당 대상자
+                                       FROM TB_FEAM_WELS_MNGER_OPNG_BAS A
+                                            JOIN (SELECT B.BASE_YM, B.OG_TP_CD, B.PRTNR_NO, MAX(B.TCNT_DV_CD) AS TCNT_DV_CD
+                                                    FROM TB_FEAM_WELS_MNGER_OPNG_BAS B
+                                                   WHERE 1 = 1
+                                                     AND B.BASE_YM = TO_CHAR( ADD_MONTHS( TO_DATE( #{baseYm} ||'01','YYYYMMDD' ) , -1 )  ,'YYYYMM'  )                       -- 변수 BASE_YM
+                                                     AND B.OG_TP_CD = #{ogTpCd}
+                                                   GROUP BY B.BASE_YM, B.OG_TP_CD, B.PRTNR_NO) B
+                                                 ON A.BASE_YM = B.BASE_YM
+                                                     AND A.OG_TP_CD = B.OG_TP_CD
+                                                     AND A.PRTNR_NO = B.PRTNR_NO
+                                                     AND A.TCNT_DV_CD = B.TCNT_DV_CD) CC
+                                    ON AA.BASE_YM = CC.BASE_YM
+                                        AND AA.OG_TP_CD = CC.OG_TP_CD
+                                        AND AA.PRTNR_NO = CC.PRTNR_NO
                                LEFT OUTER JOIN (SELECT A.OG_TP_CD
                                                      , A.PRTNR_NO
                                                      , A.QLF_DV_CD
@@ -198,90 +207,82 @@
                               ) GG
                                                ON AA.OG_TP_CD = GG.OG_TP_CD
                                                    AND AA.PRTNR_NO = GG.PRTNR_NO
-                               LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL T01
+                               LEFT OUTER JOIN TB_FEAM_MACUP_PERF_CL T01
                                                ON AA.BASE_YM = T01.BASE_YM
-                                                   AND AA.BASE_YM = T01.PERF_YM
-                                                   AND #{feeTcntDvCd} = T01.FEE_TCNT_DV_CD -- 변수(차수)
+                                                   AND #{mmAcuPerfAgrgCrtDvCd} = T01.MM_ACU_PERF_AGRG_CRT_DV_CD
                                                    AND AA.OG_TP_CD = T01.OG_TP_CD
                                                    AND AA.PRTNR_NO = T01.PRTNR_NO
                                                    AND 'W02P00002' = T01.PERF_ATC_CD -- 고정 판매건수
                                                    AND '0' = T01.PERF_DV_CD -- 고정 개인실적
-                               LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL T02
+                               LEFT OUTER JOIN TB_FEAM_MACUP_PERF_CL T02
                                                ON AA.BASE_YM = T02.BASE_YM
-                                                   AND AA.BASE_YM = T02.PERF_YM
-                                                   AND #{feeTcntDvCd} = T02.FEE_TCNT_DV_CD -- 변수(차수)
+                                                   AND #{mmAcuPerfAgrgCrtDvCd} = T02.MM_ACU_PERF_AGRG_CRT_DV_CD
                                                    AND AA.OG_TP_CD = T02.OG_TP_CD
                                                    AND AA.PRTNR_NO = T02.PRTNR_NO
                                                    AND 'W02P00098' = T02.PERF_ATC_CD -- 고정 BS차월배정건수
                                                    AND '0' = T02.PERF_DV_CD -- 고정 개인실적
-                               LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL T03
+                               LEFT OUTER JOIN TB_FEAM_MACUP_PERF_CL T03
                                                ON AA.BASE_YM = T03.BASE_YM
-                                                   AND AA.BASE_YM = T03.PERF_YM
-                                                   AND #{feeTcntDvCd} = T03.FEE_TCNT_DV_CD -- 변수(차수)
+                                                   AND #{mmAcuPerfAgrgCrtDvCd} = T03.MM_ACU_PERF_AGRG_CRT_DV_CD
                                                    AND AA.OG_TP_CD = T03.OG_TP_CD
                                                    AND AA.PRTNR_NO = T03.PRTNR_NO
                                                    AND 'W02P00085' = T03.PERF_ATC_CD -- 고정 매니저BS실적건수
                                                    AND '0' = T03.PERF_DV_CD -- 고정 개인실적
-                               LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL M01
-                                               ON AA.BASE_YM = M01.PERF_YM
-                                                   AND AA.BASE_YM = M01.BASE_YM
-                                                   AND #{feeTcntDvCd} = M01.FEE_TCNT_DV_CD -- 변수(차수)
+                               LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_ACU_CL M01
+                                               ON AA.BASE_YM = M01.BASE_YM
+                                                   AND #{mmAcuPerfAgrgCrtDvCd} = M01.MM_ACU_PERF_AGRG_CRT_DV_CD
                                                    AND AA.OG_TP_CD = M01.OG_TP_CD
                                                    AND AA.PRTNR_NO = M01.PRTNR_NO
                                                    AND 'W02P00124' = M01.PERF_ATC_CD -- 고정  매니저정착1(4)수료여부
-                               LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL M02
-                                               ON AA.BASE_YM = M02.PERF_YM
-                                                   AND AA.BASE_YM = M02.BASE_YM
-                                                   AND #{feeTcntDvCd} = M02.FEE_TCNT_DV_CD -- 변수(차수)
+                               LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_ACU_CL M02
+                                               ON  AA.BASE_YM = M02.BASE_YM
+                                                   AND #{mmAcuPerfAgrgCrtDvCd} = M02.MM_ACU_PERF_AGRG_CRT_DV_CD
                                                    AND AA.OG_TP_CD = M02.OG_TP_CD
                                                    AND AA.PRTNR_NO = M02.PRTNR_NO
                                                    AND 'W02P00125' = M02.PERF_ATC_CD -- 고정  매니저정착2(119)수료여부
-                               LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL M03
-                                               ON AA.BASE_YM = M03.PERF_YM
-                                                   AND AA.BASE_YM = M03.BASE_YM
-                                                   AND #{feeTcntDvCd} = M03.FEE_TCNT_DV_CD -- 변수(차수)
+                               LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_ACU_CL M03
+                                               ON  AA.BASE_YM = M03.BASE_YM
+                                                   AND #{mmAcuPerfAgrgCrtDvCd} = M03.MM_ACU_PERF_AGRG_CRT_DV_CD
                                                    AND AA.OG_TP_CD = M03.OG_TP_CD
                                                    AND AA.PRTNR_NO = M03.PRTNR_NO
                                                    AND 'W02P00126' = M03.PERF_ATC_CD -- 고정  매니저정착345(140)수료여부
-                               LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL F01
-                                               ON AA.BASE_YM = F01.PERF_YM
-                                                   AND AA.BASE_YM = F01.BASE_YM
-                                                   AND #{feeTcntDvCd} = F01.FEE_TCNT_DV_CD -- 변수(차수)
+                               LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_ACU_CL F01
+                                               ON  AA.BASE_YM = F01.BASE_YM
+                                                   AND #{mmAcuPerfAgrgCrtDvCd} = F01.MM_ACU_PERF_AGRG_CRT_DV_CD
                                                    AND AA.OG_TP_CD = F01.OG_TP_CD
                                                    AND AA.PRTNR_NO = F01.PRTNR_NO
                                                    AND 'W02P00127' = F01.PERF_ATC_CD -- 고정  프리1정수기(144)수료여부
-                               LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL F02
-                                               ON AA.BASE_YM = F02.PERF_YM
-                                                   AND AA.BASE_YM = F02.BASE_YM
-                                                   AND #{feeTcntDvCd} = F02.FEE_TCNT_DV_CD -- 변수(차수)
+                               LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_ACU_CL F02
+                                               ON  AA.BASE_YM = F02.BASE_YM
+                                                   AND #{mmAcuPerfAgrgCrtDvCd} = F02.MM_ACU_PERF_AGRG_CRT_DV_CD
                                                    AND AA.OG_TP_CD = F02.OG_TP_CD
                                                    AND AA.PRTNR_NO = F02.PRTNR_NO
                                                    AND 'W02P00128' = F02.PERF_ATC_CD -- 고정  프리2비데 기타(145)수료여부
-                               LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL F03
-                                               ON AA.BASE_YM = F03.PERF_YM
-                                                   AND AA.BASE_YM = F03.BASE_YM
-                                                   AND #{feeTcntDvCd} = F03.FEE_TCNT_DV_CD -- 변수(차수)
+                               LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_ACU_CL F03
+                                               ON  AA.BASE_YM = F03.BASE_YM
+                                                   AND #{mmAcuPerfAgrgCrtDvCd} = F03.MM_ACU_PERF_AGRG_CRT_DV_CD
                                                    AND AA.OG_TP_CD = F03.OG_TP_CD
                                                    AND AA.PRTNR_NO = F03.PRTNR_NO
                                                    AND 'W02P00129' = F03.PERF_ATC_CD -- 고정  프리3세일즈(146)수료여부
-                               LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL F04
-                                               ON AA.BASE_YM = F04.PERF_YM
-                                                   AND AA.BASE_YM = F04.BASE_YM
-                                                   AND #{feeTcntDvCd} = F04.FEE_TCNT_DV_CD -- 변수(차수)
+                               LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_ACU_CL F04
+                                               ON  AA.BASE_YM = F04.BASE_YM
+                                                   AND #{mmAcuPerfAgrgCrtDvCd} = F04.MM_ACU_PERF_AGRG_CRT_DV_CD
                                                    AND AA.OG_TP_CD = F04.OG_TP_CD
                                                    AND AA.PRTNR_NO = F04.PRTNR_NO
                                                    AND 'W02P00130' = F04.PERF_ATC_CD -- 고정  프리4Wells live(147)수료여부
-                               LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL F05
-                                               ON AA.BASE_YM = F05.PERF_YM
-                                                   AND AA.BASE_YM = F05.BASE_YM
-                                                   AND #{feeTcntDvCd} = F05.FEE_TCNT_DV_CD -- 변수(차수)
+                               LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_ACU_CL F05
+                                               ON  AA.BASE_YM = F05.BASE_YM
+                                                   AND #{mmAcuPerfAgrgCrtDvCd} = F05.MM_ACU_PERF_AGRG_CRT_DV_CD
                                                    AND AA.OG_TP_CD = F05.OG_TP_CD
                                                    AND AA.PRTNR_NO = F05.PRTNR_NO
                                                    AND 'W02P00131' = F05.PERF_ATC_CD -- 고정  프리5Wells live(148)수료여부
                          WHERE 1 = 1
                            AND AA.BASE_YM = #{baseYm} --  변수  기준년월 BASE_YM  = 202305
+				        <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+				           AND AA.PRTNR_NO = #{prtnrNo}
+				        </if>
                            AND AA.PSTN_DV_CD = '15'
-                           AND BB.OPNG_CD IN ('1', '2', '3', '4')
+                           AND NVL(BB.OPNG_CD,NVL(CC.OPNG_CD,'0'))       IN ('1', '2', '3', '4')    -- 당월 없으면 전월
                            AND NVL(FF.QLF_DV_CD, NVL(GG.QLF_DV_CD, '0')) IN ('3', '6')
                            AND AA.PERF_EXCD_OJ_YN = 'N') Z
                 UNION ALL
@@ -321,8 +322,7 @@
                                LEFT OUTER JOIN ( -- 다음달 자격 구하기
                               SELECT A.OG_TP_CD, A.PRTNR_NO, A.QLF_DV_CD, A.STRTDT
                                 FROM TB_OGPS_PLAR_QLF_CH_IZ A
-                               WHERE A.STRTDT LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm} || '01', 'YYYYMMDD'), 1), 'YYYYMM') ||
-                                                   '%' --  변수  기준년월 BASE_YM  = 202305
+                               WHERE A.STRTDT LIKE TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm} || '01', 'YYYYMMDD'), 1), 'YYYYMM') || '%' --  변수  기준년월 BASE_YM  = 202305
                                  AND A.QLF_DV_CD IN ('3', '6')
                                  AND NVL(A.QLF_APLC_DV_CD,'0') IN ('1','2')  -- 승격,자격해제(과거)  3 : 보류 는 제외
                              ) GG
@@ -337,23 +337,24 @@
                              ) ZZ
                                                ON AA.OG_TP_CD = ZZ.OG_TP_CD
                                                    AND AA.PRTNR_NO = ZZ.PRTNR_NO
-                               LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL T01
+                               LEFT OUTER JOIN TB_FEAM_MACUP_PERF_CL T01
                                                ON AA.BASE_YM = T01.BASE_YM
-                                                   AND AA.BASE_YM = T01.PERF_YM
-                                                   AND #{feeTcntDvCd} = T01.FEE_TCNT_DV_CD -- 변수(차수)
+                                                   AND #{mmAcuPerfAgrgCrtDvCd} = T01.MM_ACU_PERF_AGRG_CRT_DV_CD
                                                    AND AA.OG_TP_CD = T01.OG_TP_CD
                                                    AND AA.PRTNR_NO = T01.PRTNR_NO
                                                    AND 'W02P00002' = T01.PERF_ATC_CD -- 고정 판매건수
                                                    AND '0' = T01.PERF_DV_CD -- 고정 개인실적
-                               LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_CL S01
-                                               ON AA.BASE_YM = S01.PERF_YM
-                                                   AND AA.BASE_YM = S01.BASE_YM
-                                                   AND #{feeTcntDvCd} = S01.FEE_TCNT_DV_CD -- 변수(차수)
+                               LEFT OUTER JOIN TB_FEAM_PRTNR_PERF_MM_ACU_CL S01
+                                               ON  AA.BASE_YM = S01.BASE_YM
+                                                   AND #{mmAcuPerfAgrgCrtDvCd} = S01.MM_ACU_PERF_AGRG_CRT_DV_CD
                                                    AND AA.OG_TP_CD = S01.OG_TP_CD
                                                    AND AA.PRTNR_NO = S01.PRTNR_NO
                                                    AND 'W02P00116' = S01.PERF_ATC_CD -- 고정  보수교육최종(129)수료여부
                          WHERE 1 = 1
                            AND AA.BASE_YM = #{baseYm} --  변수  기준년월 BASE_YM  = 202305
+				        <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+				           AND AA.PRTNR_NO = #{prtnrNo}
+				        </if>
                            AND AA.OG_TP_CD = 'W02'
                            AND AA.PSTN_DV_CD = '15'
                            AND AA.QLF_DV_CD NOT IN ('3', '6') /* 당월 자격 확인  */
@@ -367,22 +368,21 @@
 
     <insert id='insertBsEncouragementFeeForSeller'>
         /* BS장려(판매자)수수료(W020122) 계산 SQL (소스 : LC56U111, 컬럼 : AKSD41) */
-        INSERT INTO TB_FEAM_FEE_CALC_BAS (  /* 수수료계산계약상세내역 */
-                                                  BASE_YM            /* 기준년월 */
-                                                , PERF_YM            /* 실적년월 */
-                                                , OJ_DSB_YM          /* 대상지급년월 */
-                                                , CO_CD              /* 회사코드 */
-                                                , OG_TP_CD           /* 조직유형코드 */
-                                                , PRTNR_NO           /* 파트너번호 */
-                                                , FEE_CD             /* 수수료코드 */
-                                                , DTA_CRT_FEE_CD     /* 데이터생성수수료코드 */
-                                                , FEE_TCNT_DV_CD     /* 수수료차수구분코드 */
-                                                , SPMT_DSB_DV_CD     /* 추가지급구분코드 */
-                                                , FEE_CALC_TP_CD     /* 수수료계산유형코드 */
-                                                , FEE_CALC_AMT       /* 수수료계산금액 */
-                                                , FEE_CTR_CNFM_AMT   /* 수수료조정확정금액 */
-                                                , FNL_FEE_YN         /* 최종수수료여부 */
-                                                <include refid="COMMON.insertSystemField" />)
+        INSERT INTO TB_FEAM_FEE_SML_BAS (  /* 수수료시뮬레이션기본 */
+               BASE_YM            /* 기준년월 */
+             , PERF_YM            /* 실적년월 */
+             , OJ_DSB_YM          /* 대상지급년월 */
+             , CO_CD              /* 회사코드 */
+             , OG_TP_CD           /* 조직유형코드 */
+             , PRTNR_NO           /* 파트너번호 */
+             , FEE_CD             /* 수수료코드 */
+             , DTA_CRT_FEE_CD     /* 데이터생성수수료코드 */
+             , FEE_DSB_MTHD_CD    /* 수수료지급방식코드 */
+             , SML_CRT_TP_CD      /* 시뮬레이션생성유형코드 */
+             , FEE_CALC_AMT       /* 수수료계산금액 */
+             , FNL_FEE_YN         /* 최종수수료여부 */
+             <include refid="COMMON.insertSystemField" />
+                                            )
         SELECT AAA.BASE_YM
              , AAA.BASE_YM      AS PERF_YM
              , AAA.BASE_YM      AS OJ_DSB_YM
@@ -391,11 +391,9 @@
              , AAA.PRTNR_NO
              , #{feeCd}         AS FEE_CD
              , #{dtaCrtFeeCd}   AS DTA_CRT_FEE_CD
-             , #{feeTcntDvCd}   AS FEE_TCNT_DV_CD -- 수수료차수(변수)
-             , '01'             AS SPMT_DSB_DV_CD -- 추후 확인 필요 01/정상지급, 02/추가지급
-             , '01'             AS FEE_CALC_TP_CD -- 01 / 수수료계산
+             , '01'             AS FEE_DSB_MTHD_CD -- 수수료지급방식코드
+             , #{smlCrtTpCd}    AS SML_CRT_TP_CD
              , AAA.FEE_CALC_AMT
-             , AAA.FEE_CALC_AMT AS FEE_CTR_CNFM_AMT
              , #{fnlFeeYn}      AS FNL_FEE_YN
             <include refid="COMMON.insertSystemFieldValue" />
           FROM (SELECT AA.BASE_YM
@@ -453,34 +451,30 @@
                                              ELSE 0.8 END)
                           END                                                                                                AS CNT_RATE
                           FROM TB_OGBS_MM_PRTNR_IZ A /* M조직 기본   */
-                               LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL B
+                               LEFT OUTER JOIN TB_FEAM_MACUP_PERF_CL B
                                                ON A.BASE_YM = B.BASE_YM
-                                                   AND A.BASE_YM = B.PERF_YM
-                                                   AND #{feeTcntDvCd} = B.FEE_TCNT_DV_CD -- 변수(차수)
+                                                   AND #{mmAcuPerfAgrgCrtDvCd} = B.MM_ACU_PERF_AGRG_CRT_DV_CD
                                                    AND A.OG_TP_CD = B.OG_TP_CD
                                                    AND A.PRTNR_NO = B.PRTNR_NO
                                                    AND 'W02P00113' = B.PERF_ATC_CD -- 순증
                                                    AND '0' = B.PERF_DV_CD -- 고정 개인실적
-                               LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL C
+                               LEFT OUTER JOIN TB_FEAM_MACUP_PERF_CL C
                                                ON A.BASE_YM = C.BASE_YM
-                                                   AND A.BASE_YM = C.PERF_YM
-                                                   AND #{feeTcntDvCd} = C.FEE_TCNT_DV_CD -- 변수(차수)
+                                                   AND #{mmAcuPerfAgrgCrtDvCd} = C.MM_ACU_PERF_AGRG_CRT_DV_CD
                                                    AND A.OG_TP_CD = C.OG_TP_CD
                                                    AND A.PRTNR_NO = C.PRTNR_NO
                                                    AND 'W02P00097' = C.PERF_ATC_CD -- 허위방문
                                                    AND '0' = C.PERF_DV_CD -- 고정 개인실적
-                               LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL D
+                               LEFT OUTER JOIN TB_FEAM_MACUP_PERF_CL D
                                                ON A.BASE_YM = D.BASE_YM
-                                                   AND A.BASE_YM = D.PERF_YM
-                                                   AND #{feeTcntDvCd} = D.FEE_TCNT_DV_CD -- 변수(차수)
+                                                   AND #{mmAcuPerfAgrgCrtDvCd} = D.MM_ACU_PERF_AGRG_CRT_DV_CD
                                                    AND A.OG_TP_CD = D.OG_TP_CD
                                                    AND A.PRTNR_NO = D.PRTNR_NO
                                                    AND 'W02P00132' = D.PERF_ATC_CD -- 고정 BS건수
                                                    AND '0' = D.PERF_DV_CD -- 고정 개인실적
-                               LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL E
+                               LEFT OUTER JOIN TB_FEAM_MACUP_PERF_CL E
                                                ON A.BASE_YM = E.BASE_YM
-                                                   AND A.BASE_YM = E.PERF_YM
-                                                   AND #{feeTcntDvCd} = E.FEE_TCNT_DV_CD -- 변수(차수)
+                                                   AND #{mmAcuPerfAgrgCrtDvCd} = E.MM_ACU_PERF_AGRG_CRT_DV_CD
                                                    AND A.OG_TP_CD = E.OG_TP_CD
                                                    AND A.PRTNR_NO = E.PRTNR_NO
                                                    AND 'W02P00002' = E.PERF_ATC_CD -- 고정 판매건수
@@ -505,6 +499,9 @@
                          WHERE 1 = 1
                            AND A.BASE_YM = #{baseYm} -- 변수
                            AND A.OG_TP_CD = #{ogTpCd} -- 변수
+				        <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+				           AND A.PRTNR_NO = #{prtnrNo}
+				        </if>
                            AND A.PSTN_DV_CD = '15'
                            AND A.PERF_EXCD_OJ_YN = 'N') AA) AAA
          WHERE AAA.FEE_CALC_AMT > 0
@@ -524,22 +521,21 @@
                 - 유니폼 신청 당시 활동물품 금액의 50% 수수료 생성
                 - 수수료 기준년월 퇴직(예정)자 제외
         ****/
-        INSERT INTO TB_FEAM_FEE_CALC_BAS (  /* 수수료계산기본 */
-                                                  BASE_YM            /* 기준년월 */
-                                                , PERF_YM            /* 실적년월 */
-                                                , OJ_DSB_YM          /* 대상지급년월 */
-                                                , CO_CD              /* 회사코드 */
-                                                , OG_TP_CD           /* 조직유형코드 */
-                                                , PRTNR_NO           /* 파트너번호 */
-                                                , FEE_CD             /* 수수료코드 */
-                                                , DTA_CRT_FEE_CD     /* 데이터생성수수료코드 */
-                                                , FEE_TCNT_DV_CD     /* 수수료차수구분코드 */
-                                                , SPMT_DSB_DV_CD     /* 추가지급구분코드 */
-                                                , FEE_CALC_TP_CD     /* 수수료계산유형코드 */
-                                                , FEE_CALC_AMT       /* 수수료계산금액 */
-                                                , FEE_CTR_CNFM_AMT   /* 수수료조정확정금액 */
-                                                , FNL_FEE_YN         /* 최종수수료여부 */
-                                                <include refid="COMMON.insertSystemField" />)
+        INSERT INTO TB_FEAM_FEE_SML_BAS (  /* 수수료시뮬레이션기본 */
+               BASE_YM            /* 기준년월 */
+             , PERF_YM            /* 실적년월 */
+             , OJ_DSB_YM          /* 대상지급년월 */
+             , CO_CD              /* 회사코드 */
+             , OG_TP_CD           /* 조직유형코드 */
+             , PRTNR_NO           /* 파트너번호 */
+             , FEE_CD             /* 수수료코드 */
+             , DTA_CRT_FEE_CD     /* 데이터생성수수료코드 */
+             , FEE_DSB_MTHD_CD    /* 수수료지급방식코드 */
+             , SML_CRT_TP_CD      /* 시뮬레이션생성유형코드 */
+             , FEE_CALC_AMT       /* 수수료계산금액 */
+             , FNL_FEE_YN         /* 최종수수료여부 */
+             <include refid="COMMON.insertSystemField" />
+                                            )
         SELECT MST.BASE_YM      AS BASE_YM
              , MST.BASE_YM      AS PERF_YM
              , MST.BASE_YM      AS OJ_DSB_YM
@@ -548,11 +544,9 @@
              , MST.PRTNR_NO     AS PRTNR_NO
              , #{feeCd}        AS FEE_CD
              , #{dtaCrtFeeCd}        AS DTA_CRT_FEE_CD
-             , #{feeTcntDvCd}             AS FEE_TCNT_DV_CD -- 변수 FEE_TCNT_DV_CD
-             , '01'             AS SPMT_DSB_DV_CD
-             , '01'             AS FEE_CALC_TP_CD
+             , '01'             AS FEE_DSB_MTHD_CD -- 수수료지급방식코드
+             , #{smlCrtTpCd}    AS SML_CRT_TP_CD
              , SUM(MST.FEE_AMT) AS FEE_CALC_AMT
-             , SUM(MST.FEE_AMT) AS FEE_CTR_CNFM_AMT
              , #{fnlFeeYn}      AS FNL_FEE_YN
             <include refid="COMMON.insertSystemFieldValue" />
           FROM ( --CASE 1. 6개월
@@ -576,11 +570,10 @@
                                  AND A.PERF_DV_CD = '0'                                                                                                                                  -- 개인
                                UNION ALL
                               SELECT A.BASE_YM, A.OG_TP_CD, A.PRTNR_NO, A.PERF_VAL
-                                FROM TB_FEAM_NTORP_PERF_MM_CL A
+                                FROM TB_FEAM_MACUP_PERF_CL A                                -- 이것만 총주문!!!!!
                                WHERE 1 = 1
                                  AND A.BASE_YM = #{baseYm}          -- 당월   변수 BASE_YM
-                                 AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}       -- 변수 FEE_TCNT_DV_CD
-                                 AND A.PERF_AGRG_CRT_DV_CD = '201' -- 수수료 집계
+                                 AND A.MM_ACU_PERF_AGRG_CRT_DV_CD = #{mmAcuPerfAgrgCrtDvCd}
                                  AND A.PERF_ATC_CD = 'W02P00085'   -- BS건수
                                  AND A.PERF_DV_CD = '0' -- 개인
                         ) AA
@@ -626,6 +619,9 @@
                WHERE 1 = 1
                  AND AAA.OG_TP_CD = BBB.OG_TP_CD
                  AND AAA.PRTNR_NO = BBB.PRTNR_NO
+		        <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+	             AND AAA.PRTNR_NO = #{prtnrNo}
+		        </if>
                UNION ALL
               SELECT AAA.BASE_YM --CASE 2. 12개월
                    , AAA.OG_TP_CD
@@ -647,11 +643,10 @@
                                  AND A.PERF_DV_CD = '0'                                                                                                                                   -- 개인
                                UNION ALL
                               SELECT A.BASE_YM, A.OG_TP_CD, A.PRTNR_NO, A.PERF_VAL
-                                FROM TB_FEAM_NTORP_PERF_MM_CL A
+                                FROM TB_FEAM_MACUP_PERF_CL A                                -- 이것만 총주문!!!!!
                                WHERE 1 = 1
                                  AND A.BASE_YM = #{baseYm}          -- 당월   변수 BASE_YM
-                                 AND A.FEE_TCNT_DV_CD = #{feeTcntDvCd}      -- 변수 FEE_TCNT_DV_CD
-                                 AND A.PERF_AGRG_CRT_DV_CD = '201' -- 수수료 집계
+                                 AND A.MM_ACU_PERF_AGRG_CRT_DV_CD = #{mmAcuPerfAgrgCrtDvCd}
                                  AND A.PERF_ATC_CD = 'W02P00085'   -- BS건수
                                  AND A.PERF_DV_CD = '0' -- 개인
                         ) AA
@@ -696,706 +691,19 @@
                 ) BBB -- 12개월전 유니폼 신청
                WHERE 1 = 1
                  AND AAA.OG_TP_CD = BBB.OG_TP_CD
-                 AND AAA.PRTNR_NO = BBB.PRTNR_NO) MST
+                 AND AAA.PRTNR_NO = BBB.PRTNR_NO
+		        <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+	             AND AAA.PRTNR_NO = #{prtnrNo}
+		        </if>
+            ) MST
          WHERE 1 = 1
          GROUP BY MST.BASE_YM, MST.OG_TP_CD, MST.PRTNR_NO
     </insert>
 
     <insert id="insertSupplementaryEncrgFeeForPlanner">
         /* 추가장려(플래너) : W020124, 소스 : AB80C00, 컬럼 : AKSD06 */
-        INSERT INTO TB_FEAM_FEE_CALC_BAS (  /* 수수료계산기본 */
-                                                  BASE_YM            /* 기준년월 */
-                                                , PERF_YM            /* 실적년월 */
-                                                , OJ_DSB_YM          /* 대상지급년월 */
-                                                , CO_CD              /* 회사코드 */
-                                                , OG_TP_CD           /* 조직유형코드 */
-                                                , PRTNR_NO           /* 파트너번호 */
-                                                , FEE_CD             /* 수수료코드 */
-                                                , DTA_CRT_FEE_CD     /* 데이터생성수수료코드 */
-                                                , FEE_TCNT_DV_CD     /* 수수료차수구분코드 */
-                                                , SPMT_DSB_DV_CD     /* 추가지급구분코드 */
-                                                , FEE_CALC_TP_CD     /* 수수료계산유형코드 */
-                                                , FEE_CALC_AMT       /* 수수료계산금액 */
-                                                , FEE_CTR_CNFM_AMT   /* 수수료조정확정금액 */
-                                                , FNL_FEE_YN         /* 최종수수료여부 */
-                                                <include refid="COMMON.insertSystemField" />)
-        SELECT #{baseYm} AS BASE_YM /* 기준년월 */                     -- 변수 {BASE_YM}
-             , #{baseYm} AS PERF_YM /* 실적년월 */                     -- 변수 {BASE_YM}
-             , #{baseYm} AS OJ_DSB_YM /* 대상지급년월 */                -- 변수 {BASE_YM}
-             , #{coCd} AS CO_CD /* 회사코드 */
-             , OG_TP_CD
-             , PRTNR_NO
-             , #{feeCd} AS FEE_CD /* 수수료코드 */
-             , #{dtaCrtFeeCd} AS DTA_CRT_FEE_CD /* 데이터생성수수료코드 */
-             , #{feeTcntDvCd} AS FEE_TCNT_DV_CD /* 수수료차수구분코드 */           -- 변수 {FEE_TCNT_DV_CD}
-             , '01' AS SPMT_DSB_DV_CD /* 추가지급구분코드 */
-             , '01' AS FEE_CALC_TP_CD /* 수수료계산유형코드 */
-             , FEE_CALC_AMT
-             , FEE_CALC_AMT AS FEE_CTR_CNFM_AMT
-             , #{fnlFeeYn} AS FNL_FEE_YN /* 최종수수료여부 */
-             <include refid="COMMON.insertSystemFieldValue" />
-          FROM (SELECT T01.OG_TP_CD /* 조직유형코드 */
-                     , T01.PRTNR_NO /* 파트너번호 */
-                     , CASE WHEN NVL(T44.QLF_DV_CD,'2') = '1' THEN --  23년 4월 수석플래너
-                                                                   CASE WHEN T20.PERF_VAL >= 20 THEN ( T20.PERF_VAL * 28000 ) + ( T10.PERF_VAL * 0.1 )
-                                                                        WHEN T20.PERF_VAL >= 15 THEN 450000 + ( T10.PERF_VAL * 0.1 )
-                                                                        WHEN T20.PERF_VAL >= 7 THEN 250000 + ( T10.PERF_VAL * 0.09 )
-                                                                        WHEN T20.PERF_VAL >= 3 THEN 80000 + ( T10.PERF_VAL * 0.07 )
-                                                                        ELSE 0 END
-                            WHEN NVL(T44.QLF_DV_CD,'2') = '2' THEN  -- 23년 4월 일반 플래너(프리매니저)
-                                                               CASE WHEN T20.PERF_VAL >= 20 THEN ( T20.PERF_VAL * 28000 ) + ( T10.PERF_VAL * 0.1 )
-                                                                    WHEN T20.PERF_VAL >= 15 THEN 450000 + ( T10.PERF_VAL * 0.1 )
-                                                                    WHEN T20.PERF_VAL >= 7 THEN 250000 + ( T10.PERF_VAL * 0.09 )
-                                                                    ELSE 0 END
-                            ELSE 0 END  AS FEE_CALC_AMT /* 수수료계산금액 */
-                  FROM TB_OGBS_MM_PRTNR_IZ T01 /* 월파트너내역 */
-                  LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL T10
-                    ON (    T01.BASE_YM = T10.PERF_YM
-                        AND T01.BASE_YM = T10.BASE_YM
-                        AND T01.OG_TP_CD = T10.OG_TP_CD
-                        AND T01.PRTNR_NO = T10.PRTNR_NO
-                        AND T10.PERF_ATC_CD = 'W02P00112'
-                        AND T10.PERF_DV_CD = '0'
-                        AND T10.FEE_TCNT_DV_CD = #{feeTcntDvCd}                      -- 변수 {FEE_TCNT_DV_CD}
-                        AND T10.CO_CD = #{coCd})
-                  LEFT OUTER JOIN TB_FEAM_NTORP_PERF_MM_CL T20
-                    ON (    T01.BASE_YM = T20.PERF_YM
-                        AND T01.BASE_YM = T20.BASE_YM
-                        AND T01.OG_TP_CD = T20.OG_TP_CD
-                        AND T01.PRTNR_NO = T20.PRTNR_NO
-                        AND T20.PERF_ATC_CD = 'W02P00002'
-                        AND T20.PERF_DV_CD = '0'
-                        AND T20.FEE_TCNT_DV_CD = #{feeTcntDvCd}                       -- 변수 {FEE_TCNT_DV_CD}
-                        AND T20.CO_CD = #{coCd})
-                  LEFT OUTER JOIN  TB_OGBS_MM_PRTNR_IZ T44
-                    ON (    T44.BASE_YM = '202304'                          -- '202304' 고정   23년4월 자격이 수석 플래너인지 확인용
-                        AND T01.OG_TP_CD = T44.OG_TP_CD
-                        AND T01.PRTNR_NO = T44.PRTNR_NO     )
-                 WHERE T01.BASE_YM = #{baseYm}                               -- 변수 {BASE_YM}
-                   AND T01.OG_TP_CD = 'W02'
-                   AND T01.PSTN_DV_CD = '15'
-                   AND T01.QLF_DV_CD IN ('1','2')
-                   AND T01.PERF_EXCD_OJ_YN = 'N'
-                   AND SUBSTR(T01.CNTR_DT,1,6) <![CDATA[<=]]> '202304'                   -- 4월 포함 이전 계약자만 대상임.  '202304' 고정
-             ) RESULT
-        WHERE RESULT.FEE_CALC_AMT > 0
+
     </insert>
 
-    <insert id="insertSellerSettleFeeRedfForApnTn1">
-        /*
-         * 정착수수료(판매자) : W020081
-         * 기간 : 2019.04 ~ 2023.03
-         * BS매니저,월스매니저,수석플래너
-         */
-        INSERT INTO TB_FEDD_FEE_REDF_ADSB_BAS(
-               FEE_REDF_ADSB_ID   /* 수수료되물림재지급ID */
-             , REDF_ADSB_OC_YM         /* 되물림재지급발생년월 */
-             , PERF_YM                 /* 실적년월 */
-             , PERF_DV_CD              /* 실적구분코드 */
-             , CO_CD                   /* 회사코드 */
-             , OG_TP_CD                /* 조직유형코드 */
-             , PRTNR_NO                /* 파트너번호 */
-             , FEE_CD                  /* 수수료코드 */
-             , DTA_CRT_FEE_CD          /* 데이터생성수수료코드 */
-             , REDF_ADSB_DV_CD         /* 되물림재지급구분코드 */
-             , REDF_ADSB_TP_CD         /* 되물림재지급유형코드 */
-             , REDF_ADSB_OC_AMT        /* 되물림재지급발생금액 */
-             , REDF_ADSB_CTR_CNFM_AMT  /* 되물림재지급조정확정금액 */
-            <include refid="COMMON.insertSystemField" />
-             )
-        SELECT 'WFEDD0500020202' || SRC.BASE_YM || LPAD(SQ_FEDD_FEE_REDF_ADSB_BAS$FEE_REDF_ADSB_ID.NEXTVAL, 9, '0') AS FEE_REDF_ADSB_ID /* 수수료되물림재지급ID */
-             , SRC.BASE_YM AS REDF_ADSB_OC_YM /* 되물림재지급발생년월 */
-             , SRC.PERF_YM /* 실적년월 */
-             , SRC.PERF_DV_CD /* 실적구분코드 */
-             , SRC.CO_CD /* 회사코드 */
-             , SRC.OG_TP_CD /* 조직유형코드 */
-             , SRC.PRTNR_NO /* 파트너번호 */
-             , #{feeCd} AS FEE_CD /* 수수료코드 */
-             , #{dtaCrtFeeCd} AS DTA_CRT_FEE_CD /* 데이터생성수수료코드 */
-             , '02' AS REDF_ADSB_DV_CD /* 되물림재지급구분코드 */
-             , '0202' AS REDF_ADSB_TP_CD /* 되물림재지급유형코드 */
-             , SRC.REDF_ADSB_OC_AMT AS REDF_ADSB_OC_AMT /* 되물림재지급발생금액 */
-             , SRC.REDF_ADSB_OC_AMT AS REDF_ADSB_CTR_CNFM_AMT /* 되물림재지급조정확정금액 */
-            <include refid="COMMON.insertSystemFieldValue" />
-            FROM (
-            /* 23년4월 이전 웰스매니저 기준  */
-                    SELECT WMTOT.BASE_YM
-                          ,WMTOT.PERF_YM
-                          ,WMTOT.PERF_DV_CD
-                          ,WMTOT.CO_CD
-                          ,WMTOT.OG_TP_CD
-                          ,WMTOT.PRTNR_NO
-                          ,WMTOT.FEE_CD
-                          ,WMTOT.PERF_VAL
-                          ,WMTOT.FEE_CTR_CNFM_AMT
-                          ,WMTOT.NMN_N
-                          ,WMTOT.REDF_ADSB_CTR_CNFM_AMT
-                          ,CASE WHEN WMTOT.PERF_YM <![CDATA[<]]>  '201904'    THEN 0
-                                WHEN WMTOT.NMN_YM >= '201905' AND WMTOT.NMN_YM <![CDATA[<]]>= '202207' AND WMTOT.PERF_YM <![CDATA[<]]>= '202002' THEN             /* CASE1. 직급 기준 : 2019.5 ~ 2022.6 까지  단, 실적이 2020.2 기준 앞/뒤로 나뉨앞 */
-                                      CASE WHEN WMTOT.FEE_CTR_CNFM_AMT >  500000 THEN  0 /* 중앙총괄단 - 11/23 중앙총괄단 되물림은 AS-IS에서 기타되물림으로 관리중이라 TO-BE 정착되물림 적용시 이중 발생 우려가 있어 우선 적용안함. 염지혜매니저 및 김창환 매니저와 간단 협의 완료  */
-                                                            /*  CASE WHEN WMTOT.PERF_VAL >= 7  THEN  WMTOT.FEE_CTR_CNFM_AMT - WMTOT.REDF_ADSB_CTR_CNFM_AMT - 1200000
-                                                                   WHEN WMTOT.PERF_VAL >= 5  THEN  WMTOT.FEE_CTR_CNFM_AMT - WMTOT.REDF_ADSB_CTR_CNFM_AMT -  800000
-                                                                   WHEN WMTOT.PERF_VAL >= 3  THEN  WMTOT.FEE_CTR_CNFM_AMT - WMTOT.REDF_ADSB_CTR_CNFM_AMT -  600000
-                                                                                             ELSE WMTOT.FEE_CTR_CNFM_AMT - WMTOT.REDF_ADSB_CTR_CNFM_AMT  END */ /* 중앙총괄단3,5,7건별 추가 수수료 포함  */
-                                           WHEN WMTOT.FEE_CTR_CNFM_AMT >= 300000 THEN  /* 일반 30마넌,50마넌 */
-                                                              CASE WHEN WMTOT.PERF_VAL >= 3  THEN 0
-                                                                                             ELSE WMTOT.FEE_CTR_CNFM_AMT - WMTOT.REDF_ADSB_CTR_CNFM_AMT  END /* 1,2차수 50마넌, 3,4,5차수 30만원  3건미만이면 전체되물림   */
-                                           WHEN WMTOT.FEE_CTR_CNFM_AMT <![CDATA[<]]>  300000 THEN  /* 일반 30만원 미만 !!!!! - 재개시자 1~5차월 50% 지급 경우임. */
-                                                              CASE WHEN WMTOT.PERF_VAL >= 3  THEN 0
-                                                                                             ELSE WMTOT.FEE_CTR_CNFM_AMT - WMTOT.REDF_ADSB_CTR_CNFM_AMT  END /* 3건미만이면 전체되물림   */
-                                                                                 ELSE 0 /* 그외   */
-                                                                                 END /* END  */
-                                WHEN WMTOT.NMN_YM >= '201905' AND WMTOT.NMN_YM <![CDATA[<]]>= '202207' AND WMTOT.PERF_YM >= '202003' THEN              /* CASE2. 직급 기준 : 2019.5 ~ 2022.6 까지  단, 실적이 2020.2 기준 앞/뒤로 나뉨뒤 */
-                                      CASE WHEN WMTOT.PERF_VAL >= 3  THEN 0
-                                                                     ELSE WMTOT.FEE_CTR_CNFM_AMT - WMTOT.REDF_ADSB_CTR_CNFM_AMT  END /* 1,2차수 50마넌, 3,4,5차수 30만원  3건미만이면 전체되물림   */
-                                WHEN WMTOT.NMN_YM >= '202208' AND WMTOT.PERF_YM <![CDATA[<]]>= '202303' THEN              /* CASE3. 직급 기준 : 2022.7 이후 ~  단, 실적이 2023.3 기준 완전분리 나뉨 */
-                                      CASE WHEN WMTOT.OPNG_CD IN ('1','4') AND WMTOT.NMN_N = 1          AND WMTOT.PERF_VAL >= 3  THEN WMTOT.FEE_CTR_CNFM_AMT - WMTOT.REDF_ADSB_CTR_CNFM_AMT - 500000
-                                           WHEN WMTOT.OPNG_CD IN ('1','4') AND WMTOT.NMN_N = 1                                   THEN WMTOT.FEE_CTR_CNFM_AMT - WMTOT.REDF_ADSB_CTR_CNFM_AMT - 200000
-                                           WHEN WMTOT.OPNG_CD IN ('1','4') AND WMTOT.NMN_N IN (2,3,4,5) AND WMTOT.PERF_VAL >= 6  THEN WMTOT.FEE_CTR_CNFM_AMT - WMTOT.REDF_ADSB_CTR_CNFM_AMT - 500000
-                                           WHEN WMTOT.OPNG_CD IN ('1','4') AND WMTOT.NMN_N IN (2,3,4,5) AND WMTOT.PERF_VAL >= 3  THEN WMTOT.FEE_CTR_CNFM_AMT - WMTOT.REDF_ADSB_CTR_CNFM_AMT - 300000
-                                           WHEN WMTOT.OPNG_CD IN ('2','3') AND WMTOT.NMN_N = 1          AND WMTOT.PERF_VAL >= 3  THEN WMTOT.FEE_CTR_CNFM_AMT - WMTOT.REDF_ADSB_CTR_CNFM_AMT - 150000
-                                           WHEN WMTOT.OPNG_CD IN ('2','3') AND WMTOT.NMN_N IN (2,3,4,5) AND WMTOT.PERF_VAL >= 6  THEN WMTOT.FEE_CTR_CNFM_AMT - WMTOT.REDF_ADSB_CTR_CNFM_AMT - 250000
-                                           WHEN WMTOT.OPNG_CD IN ('2','3') AND WMTOT.NMN_N IN (2,3,4,5) AND WMTOT.PERF_VAL >= 3  THEN WMTOT.FEE_CTR_CNFM_AMT - WMTOT.REDF_ADSB_CTR_CNFM_AMT - 150000
-                                           ELSE                                                                                       WMTOT.FEE_CTR_CNFM_AMT - WMTOT.REDF_ADSB_CTR_CNFM_AMT  END
-                                ELSE 0 END AS REDF_ADSB_OC_AMT
-                      FROM (
-                              SELECT A01.BASE_YM
-                                    ,A01.PERF_YM
-                                    ,A01.PERF_DV_CD
-                                    ,A01.CO_CD
-                                    ,A01.OG_TP_CD
-                                    ,A01.PRTNR_NO
-                                    ,A01.PERF_VAL
-                                    ,A.QLF_DV_CD
-                                    ,B.FEE_CD
-                                    ,B.FEE_CTR_CNFM_AMT                                      -- 최초 수수료 금액
-                                    ,NVL(SUBSTR(C.STRTDT,1,6),'199901')  AS NMN_YM
-                                    ,CASE WHEN C.STRTDT= NULL THEN 0
-                                                              ELSE CEIL(MONTHS_BETWEEN(TO_DATE(A01.PERF_YM||'01','YYYYMMDD'),TO_DATE(C.STRTDT,'YYYYMMDD'))) + 1 END AS NMN_N
-                                    ,NVL(D.OPNG_CD,'0') AS OPNG_CD                        -- 1/4 : 최초개시, 2/3 : 재개시
-                                    ,SUM(NVL(Z.REDF_ADSB_CTR_CNFM_AMT,0))  AS REDF_ADSB_CTR_CNFM_AMT     -- 지금까지 되물림된 금액
-                                FROM TB_FEAM_NTORP_PERF_MM_CL A01     -- 파트너별실적 -- W02P00002
-                                     JOIN TB_OGBS_MM_PRTNR_IZ A
-                                       ON A.BASE_YM   = A01.PERF_YM
-                                      AND A.OG_TP_CD  = A01.OG_TP_CD
-                                      AND A.PRTNR_NO  = A01.PRTNR_NO
-                                      AND A.PSTN_DV_CD  = '15'
-                                     JOIN TB_FEAM_FEE_CALC_BAS B    -- 최초 수수료
-                                       ON B.BASE_YM     = A01.PERF_YM  -- 기준과 실적 연동
-                                      AND B.PERF_YM     = A01.PERF_YM
-                                      AND B.OJ_DSB_YM   = A01.PERF_YM
-                                      AND B.CO_CD       = A01.CO_CD
-                                      AND B.OG_TP_CD    = A01.OG_TP_CD
-                                      AND B.PRTNR_NO    = A01.PRTNR_NO
-                                      AND B.FEE_CD      = 'W020081'    -- 고정
-                                      AND B.FEE_TCNT_DV_CD = '02'      -- 고정  / 2차
-                                      AND B.FEE_CALC_TP_CD = '01'      -- 고정  / 수수료
-                                      AND B.FEE_CTR_CNFM_AMT > 0       -- 고정
-                                      AND B.DTA_DL_YN       = 'N'
-                                 LEFT OUTER JOIN TB_OGPS_PLAR_QLF_CH_IZ  C
-                                              ON C.og_tp_Cd    = A01.OG_TP_CD
-                                             AND C.PRTNR_NO    = A01.PRTNR_NO
-                                             AND TO_CHAR(LAST_DAY(TO_DATE(A01.PERF_YM||'01','YYYYMMDD') ),'YYYYMMDD' )  BETWEEN C.STRTDT AND C.ENDDT
-                                             AND C.QLF_DV_CD = '3'
-                                             AND NVL(C.QLF_APLC_DV_CD,'0') IN ('1','2')  -- 승격,자격해제(과거)  3 : 보류 는 제외
-                                             AND C.DTA_DL_YN = 'N'
-                                 LEFT OUTER JOIN (
-                                                 SELECT A1.BASE_YM , A1.OG_TP_CD , A1.PRTNR_NO, NVL(A1.OPNG_CD,'0') AS OPNG_CD
-                                                     FROM TB_FEAM_WELS_MNGER_OPNG_BAS A1
-                                                          JOIN (
-                                                      SELECT B0.BASE_YM,B0.OG_TP_CD ,B0.PRTNR_NO ,MAX(B0.TCNT_DV_CD)  AS TCNT_DV_CD
-                                                        FROM TB_FEAM_WELS_MNGER_OPNG_BAS B0
-                                                       WHERE 1 = 1
-                                                        GROUP BY B0.BASE_YM,B0.OG_TP_CD ,B0.PRTNR_NO
-                                                      ) B1
-                                                      ON A1.BASE_YM    = B1.BASE_YM
-                                                     AND A1.OG_TP_CD   = B1.OG_TP_CD
-                                                     AND A1.PRTNR_NO   = B1.PRTNR_NO
-                                                     AND A1.TCNT_DV_CD = B1.TCNT_DV_CD
-                                                             ) D
-                                              ON D.BASE_YM      = A01.PERF_YM
-                                             AND D.OG_TP_CD     = A01.OG_TP_CD
-                                             AND D.PRTNR_NO     = A01.PRTNR_NO
-                                 LEFT OUTER JOIN TB_FEDD_FEE_REDF_ADSB_BAS Z -- 되물림 실적
-                                              ON Z.REDF_ADSB_OC_YM <![CDATA[<]]> A01.BASE_YM  -- 이전에 되물림된 건들
-                                             AND Z.PERF_YM         = A01.PERF_YM
-                                             AND Z.FEE_CD          = 'W020081'
-                                             AND Z.OG_TP_CD        = A01.OG_TP_CD
-                                             AND Z.PRTNR_NO        = A01.PRTNR_NO
-                                             AND Z.REDF_ADSB_DV_CD = '02'
-                                             AND Z.REDF_ADSB_TP_CD = '0202'
-                                             AND Z.REDF_ADSB_CTR_CNFM_AMT  > 0  -- 실제 반영된 되물림 금액
-                                             AND Z.DTA_DL_YN       = 'N'
-                               WHERE 1 = 1
-                                 AND A01.BASE_YM           =   #{baseYm}       --  변수   변수   변수   변수
-                                 AND A01.PERF_YM BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -60), 'YYYYMM') AND TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM')
-                                 AND A01.PERF_YM           BETWEEN #{apyStrtYm} AND #{apyEndYm}
-                                 AND A01.PERF_AGRG_CRT_DV_CD = #{perfAgrgCrtDvCd}
-                                 AND A01.FEE_TCNT_DV_CD  = '02'         --  고정 / 2차만
-                                 AND A01.PERF_ATC_CD       = 'W02P00002'  --  고정 / 판매인정건수
-                                 AND A01.CO_CD             = '2000'       --  고정
-                                 AND A01.OG_TP_CD          = 'W02'        --  고정
-                                 AND A01.PERF_DV_CD        = '0'          --  고정 /  개인
-                                 AND A01.DTA_DL_YN         = 'N'
-                                 AND A.QLF_DV_CD           = '3'     /* 당월 자격 확인  */
-                            GROUP BY A01.BASE_YM
-                                    ,A01.PERF_YM
-                                    ,A01.PERF_DV_CD
-                                    ,A01.CO_CD
-                                    ,A01.OG_TP_CD
-                                    ,A01.PRTNR_NO
-                                    ,A01.PERF_VAL
-                                    ,A.QLF_DV_CD
-                                    ,B.FEE_CD
-                                    ,B.FEE_CTR_CNFM_AMT                                      -- 최초 수수료 금액
-                                    ,C.STRTDT
-                                    ,D.OPNG_CD
-                        ) WMTOT
-            UNION ALL
-            /* 23년4월 이전 수석플래너 기준  */
-                    SELECT SUTOT.BASE_YM
-                          ,SUTOT.PERF_YM
-                          ,SUTOT.PERF_DV_CD
-                          ,SUTOT.CO_CD
-                          ,SUTOT.OG_TP_CD
-                          ,SUTOT.PRTNR_NO
-                          ,SUTOT.FEE_CD
-                          ,SUTOT.PERF_VAL
-                          ,SUTOT.FEE_CTR_CNFM_AMT
-                          ,NULL  NMN_N
-                          ,NULL  REDF_ADSB_CTR_CNFM_AMT
-                          ,CASE WHEN SUTOT.PERF_YM <![CDATA[<]]> '201904'    THEN 0
-                                WHEN SUTOT.NMN_YM <![CDATA[<]]>= '201912' AND NVL(SUTOT.PERF_VAL,0) >= 6 THEN 0
-                                WHEN SUTOT.NMN_YM <![CDATA[<]]>= '201912' AND NVL(SUTOT.PERF_VAL,0) >= 3 THEN SUTOT.IMSI_AMT - 300000
-                                WHEN SUTOT.NMN_YM <![CDATA[<]]>= '201912' AND NVL(SUTOT.PERF_VAL,0) <![CDATA[<]]>  3 THEN SUTOT.IMSI_AMT
-                                WHEN SUTOT.NMN_YM >= '202001' AND NVL(SUTOT.PERF_VAL,0) >= 6 THEN 0
-                                WHEN SUTOT.NMN_YM >= '202001' AND NVL(SUTOT.PERF_VAL,0) <![CDATA[<]]> 6  THEN SUTOT.IMSI_AMT
-                                ELSE 0 END AS REDF_ADSB_OC_AMT
-                      FROM (
-                              SELECT A01.BASE_YM
-                                    ,A01.PERF_YM
-                                    ,A01.PERF_DV_CD
-                                    ,A01.CO_CD
-                                    ,A01.OG_TP_CD
-                                    ,A01.PRTNR_NO
-                                    ,A01.PERF_VAL
-                                    ,A.QLF_DV_CD
-                                    ,B.FEE_CD
-                                    ,NVL(SUBSTR(C.STRTDT,1,6),'199901')  AS NMN_YM
-                                    ,B.FEE_CTR_CNFM_AMT                                      -- 수수료 금액
-                                    ,SUM(NVL(Z.REDF_ADSB_CTR_CNFM_AMT,0))  AS REDF_ADSB_CTR_CNFM_AMT     -- 지금까지 되물림된 금액
-                                    ,B.FEE_CTR_CNFM_AMT - SUM(NVL(Z.REDF_ADSB_CTR_CNFM_AMT,0))  AS IMSI_AMT
-                                FROM TB_FEAM_NTORP_PERF_MM_CL A01     -- 파트너별실적 -- W02P00002
-                                     JOIN TB_OGBS_MM_PRTNR_IZ A
-                                       ON A.BASE_YM   = A01.PERF_YM
-                                      AND A.OG_TP_CD  = A01.OG_TP_CD
-                                      AND A.PRTNR_NO  = A01.PRTNR_NO
-                                      AND A.PSTN_DV_CD  = '15'
-                                     JOIN TB_FEAM_FEE_CALC_BAS B    -- 최초 수수료
-                                       ON B.BASE_YM     = A01.PERF_YM  -- 기준과 실적 연동
-                                      AND B.PERF_YM     = A01.PERF_YM
-                                      AND B.OJ_DSB_YM   = A01.PERF_YM
-                                      AND B.CO_CD       = A01.CO_CD
-                                      AND B.OG_TP_CD    = A01.OG_TP_CD
-                                      AND B.PRTNR_NO    = A01.PRTNR_NO
-                                      AND B.FEE_CD      = 'W020081'    -- 고정
-                                      AND B.FEE_TCNT_DV_CD = '02'      -- 고정  / 2차
-                                      AND B.FEE_CALC_TP_CD = '01'      -- 고정  / 수수료
-                                      AND B.FEE_CTR_CNFM_AMT > 0       -- 고정
-                                      AND B.DTA_DL_YN       = 'N'
-                                 LEFT OUTER JOIN TB_FEDD_FEE_REDF_ADSB_BAS Z -- 되물림 실적
-                                              ON Z.REDF_ADSB_OC_YM <![CDATA[<]]> A01.BASE_YM  -- 이전에 되물림된 건들
-                                             AND Z.PERF_YM         = A01.PERF_YM
-                                             AND Z.FEE_CD          = 'W020081'
-                                             AND Z.OG_TP_CD        = A01.OG_TP_CD
-                                             AND Z.PRTNR_NO        = A01.PRTNR_NO
-                                             AND Z.REDF_ADSB_DV_CD = '02'
-                                             AND Z.REDF_ADSB_TP_CD = '0202'
-                                             AND Z.REDF_ADSB_CTR_CNFM_AMT  > 0  -- 실제 반영된 되물림 금액
-                                             AND Z.DTA_DL_YN       = 'N'
-                                LEFT OUTER JOIN TB_OGPS_PLAR_QLF_CH_IZ  C
-                                             ON C.og_tp_Cd    = A01.OG_TP_CD
-                                            AND C.PRTNR_NO    = A01.PRTNR_NO
-                                            AND TO_CHAR(LAST_DAY(TO_DATE(A01.PERF_YM||'01','YYYYMMDD') ),'YYYYMMDD' )  BETWEEN C.STRTDT AND C.ENDDT
-                                            AND C.QLF_DV_CD = '1'
-                                            AND NVL(C.QLF_APLC_DV_CD,'0') IN ('1','2')  -- 승격,자격해제(과거)  3 : 보류 는 제외
-                                            AND C.DTA_DL_YN = 'N'
-                               WHERE 1 = 1
-                                 AND A01.BASE_YM             =   #{baseYm}      --  변수   변수   변수   변수
-                                 AND A01.PERF_YM BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -60), 'YYYYMM') AND TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM')
-                                 AND A01.PERF_YM           BETWEEN #{apyStrtYm} AND #{apyEndYm}
-                                 AND A01.PERF_AGRG_CRT_DV_CD = #{perfAgrgCrtDvCd}
-                                 AND A01.FEE_TCNT_DV_CD    = '02'         --  고정 / 2차만
-                                 AND A01.PERF_ATC_CD       = 'W02P00002'  --  고정 / 판매인정건수
-                                 AND A01.CO_CD             = '2000'       --  고정
-                                 AND A01.OG_TP_CD          = 'W02'        --  고정
-                                 AND A01.PERF_DV_CD        = '0'          --  고정 /  개인
-                                 AND A01.DTA_DL_YN         = 'N'
-                                 AND A.QLF_DV_CD           = '1'     /* 당월 자격 확인  */
-                              GROUP BY
-                                     A01.BASE_YM
-                                    ,A01.PERF_YM
-                                    ,A01.PERF_DV_CD
-                                    ,A01.CO_CD
-                                    ,A01.OG_TP_CD
-                                    ,A01.PRTNR_NO
-                                    ,A01.PERF_VAL
-                                    ,A.QLF_DV_CD
-                                    ,NVL(SUBSTR(C.STRTDT,1,6),'199901')
-                                    ,B.FEE_CD
-                                    ,B.FEE_CTR_CNFM_AMT
-                                                         ) SUTOT
-                                  )  SRC
-            WHERE 1 = 1
-              AND SRC.REDF_ADSB_OC_AMT > 0
-    </insert>
 
-    <insert id="insertSellerSettleFeeRedfForApnTn2">
-        /*
-         * 정착수수료(판매자) : W020081
-         * 기간 : 23년 4월 이후
-         * BS매니저,월스매니저,수석플래너
-         */
-        INSERT INTO TB_FEDD_FEE_REDF_ADSB_BAS(
-               FEE_REDF_ADSB_ID   /* 수수료되물림재지급ID */
-             , REDF_ADSB_OC_YM         /* 되물림재지급발생년월 */
-             , PERF_YM                 /* 실적년월 */
-             , PERF_DV_CD              /* 실적구분코드 */
-             , CO_CD                   /* 회사코드 */
-             , OG_TP_CD                /* 조직유형코드 */
-             , PRTNR_NO                /* 파트너번호 */
-             , FEE_CD                  /* 수수료코드 */
-             , DTA_CRT_FEE_CD          /* 데이터생성수수료코드 */
-             , REDF_ADSB_DV_CD         /* 되물림재지급구분코드 */
-             , REDF_ADSB_TP_CD         /* 되물림재지급유형코드 */
-             , REDF_ADSB_OC_AMT        /* 되물림재지급발생금액 */
-             , REDF_ADSB_CTR_CNFM_AMT  /* 되물림재지급조정확정금액 */
-        <include refid="COMMON.insertSystemField" />
-             )
-        SELECT 'WFEDD0500020202' || SRC.BASE_YM || LPAD(SQ_FEDD_FEE_REDF_ADSB_BAS$FEE_REDF_ADSB_ID.NEXTVAL, 9, '0') AS FEE_REDF_ADSB_ID /* 수수료되물림재지급ID */
-             , SRC.BASE_YM AS REDF_ADSB_OC_YM /* 되물림재지급발생년월 */
-             , SRC.PERF_YM /* 실적년월 */
-             , SRC.PERF_DV_CD /* 실적구분코드 */
-             , SRC.CO_CD /* 회사코드 */
-             , SRC.OG_TP_CD /* 조직유형코드 */
-             , SRC.PRTNR_NO /* 파트너번호 */
-             , #{feeCd} AS FEE_CD /* 수수료코드 */
-             , #{dtaCrtFeeCd} AS DTA_CRT_FEE_CD /* 데이터생성수수료코드 */
-             , '02' AS REDF_ADSB_DV_CD /* 되물림재지급구분코드 */
-             , '0202' AS REDF_ADSB_TP_CD /* 되물림재지급유형코드 */
-             , SRC.REDF_ADSB_OC_AMT AS REDF_ADSB_OC_AMT /* 되물림재지급발생금액 */
-             , SRC.REDF_ADSB_OC_AMT AS REDF_ADSB_CTR_CNFM_AMT  /* 되물림재지급조정확정금액 */
-        <include refid="COMMON.insertSystemFieldValue" />
-            FROM (
-          /* 23년4월이후 웰스매니저,BS프리매니저  */
-                    SELECT WMTOT.BASE_YM
-                          ,WMTOT.PERF_YM
-                          ,WMTOT.PERF_DV_CD
-                          ,WMTOT.CO_CD
-                          ,WMTOT.OG_TP_CD
-                          ,WMTOT.PRTNR_NO
-                          ,WMTOT.FEE_CD
-                          ,WMTOT.FEE_CTR_CNFM_AMT - WMTOT.REDF_ADSB_CTR_CNFM_AMT - WMTOT.FEE_CALC_AMT_NEW   AS REDF_ADSB_OC_AMT
-                       FROM (
-                      SELECT WMIMSI.BASE_YM
-                            ,WMIMSI.PERF_YM
-                            ,WMIMSI.PERF_DV_CD
-                            ,WMIMSI.CO_CD
-                            ,WMIMSI.OG_TP_CD
-                            ,WMIMSI.PRTNR_NO
-                            ,WMIMSI.PERF_VAL
-                            ,WMIMSI.FEE_CD
-                            ,WMIMSI.FEE_CTR_CNFM_AMT                -- 수수료 금액
-                            ,WMIMSI.QLF_DV_CD                       -- 자격
-                            ,WMIMSI.NMN_N                           -- 차월수
-                            ,WMIMSI.OPNG_CD
-                            ,SUM(NVL(Z.REDF_ADSB_CTR_CNFM_AMT,0))  AS REDF_ADSB_CTR_CNFM_AMT
-                            ,CASE WHEN WMIMSI.OPNG_CD IN ('1','4') THEN   -- 최초개시
-                                      CASE WHEN WMIMSI.QLF_DV_CD = '3' THEN   -- 웰스매니저
-                                                CASE WHEN WMIMSI.NMN_N = 0 THEN 500000  /* 0 차월 배정 */
-                                                     WHEN WMIMSI.NMN_N = 1 THEN     -- 차수
-                                                          CASE WHEN WMIMSI.PERF_VAL >= 3 THEN 500000
-                                                               ELSE 200000 END
-                                                     WHEN WMIMSI.NMN_N = 2 THEN     -- 차수
-                                                          CASE WHEN WMIMSI.PERF_VAL >= 6 THEN 500000
-                                                               WHEN WMIMSI.PERF_VAL >= 3 THEN 300000
-                                                               ELSE 0 END
-                                                     WHEN WMIMSI.NMN_N IN (3,4,5) THEN     -- 차수
-                                                          CASE WHEN WMIMSI.PERF_VAL >= 6 THEN 500000
-                                                               WHEN WMIMSI.PERF_VAL >= 3 THEN 300000
-                                                               ELSE 0 END
-                                                     ELSE 0 END
-                                           WHEN WMIMSI.QLF_DV_CD = '6' THEN   -- 프리매니저
-                                                CASE WHEN WMIMSI.NMN_N = 0 THEN     -- 차수
-                                                          CASE WHEN WMIMSI.PERF_VAL >= 3 THEN 200000   /* 차월 배정 */
-                                                               ELSE 0 END
-                                                     WHEN WMIMSI.NMN_N = 1 THEN     -- 차수
-                                                          CASE WHEN WMIMSI.PERF_VAL >= 3 THEN 200000
-                                                               ELSE 0 END
-                                                     WHEN WMIMSI.NMN_N = 2 THEN     -- 차수
-                                                          CASE WHEN WMIMSI.PERF_VAL >= 3 THEN 200000
-                                                               ELSE 0 END
-                                                     WHEN WMIMSI.NMN_N = 3 THEN     -- 차수
-                                                          CASE WHEN WMIMSI.PERF_VAL >= 3 THEN 200000
-                                                               ELSE 0 END
-                                                     WHEN WMIMSI.NMN_N = 4 THEN     -- 차수
-                                                          CASE WHEN WMIMSI.PERF_VAL >= 3 THEN 200000
-                                                               ELSE 0 END
-                                                     WHEN WMIMSI.NMN_N = 5 THEN     -- 차수
-                                                          CASE WHEN WMIMSI.PERF_VAL >= 3 THEN 200000
-                                                               ELSE 0 END
-                                                     ELSE 0 END
-                                           ELSE 0 END
-                                  WHEN WMIMSI.OPNG_CD IN ('2','3') THEN   -- 재개시
-                                      CASE WHEN WMIMSI.QLF_DV_CD = '3' THEN   -- 웰스매니저
-                                                CASE WHEN WMIMSI.NMN_N = 1 THEN     -- 차수
-                                                          CASE WHEN WMIMSI.PERF_VAL >= 3 THEN 150000
-                                                               ELSE 0 END
-                                                     WHEN WMIMSI.NMN_N = 2 THEN     -- 차수
-                                                          CASE WHEN WMIMSI.PERF_VAL >= 6 THEN 250000
-                                                               WHEN WMIMSI.PERF_VAL >= 3 THEN 150000
-                                                               ELSE 0 END
-                                                     WHEN WMIMSI.NMN_N IN (3,4,5) THEN     -- 차수
-                                                          CASE WHEN WMIMSI.PERF_VAL >= 6 THEN 250000
-                                                               WHEN WMIMSI.PERF_VAL >= 3 THEN 150000
-                                                               ELSE 0 END
-                                                     ELSE 0 END
-                                           ELSE 0 END
-                                  ELSE  0  END  AS FEE_CALC_AMT_NEW
-                        FROM (
-                              SELECT A01.BASE_YM
-                                    ,A01.PERF_YM
-                                    ,A01.PERF_DV_CD
-                                    ,A01.CO_CD
-                                    ,A01.OG_TP_CD
-                                    ,A01.PRTNR_NO
-                                    ,A01.PERF_VAL
-                                    ,B.FEE_CD
-                                    ,B.FEE_CTR_CNFM_AMT                                      -- 수수료 금액
-                                    ,NVL(FF.QLF_DV_CD,NVL(GG.QLF_DV_CD,'0')) AS QLF_DV_CD   -- 자격
-                                    ,NVL(CEIL(MONTHS_BETWEEN(TO_DATE(A01.PERF_YM||'01','YYYYMMDD'),TO_DATE(FF.STRTDT,'YYYYMMDD'))) + 1, CEIL(MONTHS_BETWEEN(TO_DATE(A01.PERF_YM||'01','YYYYMMDD'),TO_DATE(GG.STRTDT,'YYYYMMDD'))) + 1 )  AS  NMN_N      -- 차월수
-                                    ,NVL(EE.OPNG_CD,'0') AS OPNG_CD
-                                FROM TB_FEAM_NTORP_PERF_MM_CL A01     -- 파트너별실적 -- W02P00002
-                                     JOIN TB_OGBS_MM_PRTNR_IZ A
-                                       ON A.BASE_YM   = A01.PERF_YM
-                                      AND A.OG_TP_CD  = A01.OG_TP_CD
-                                      AND A.PRTNR_NO  = A01.PRTNR_NO
-                                      AND A.PSTN_DV_CD  = '15'
-                                     JOIN TB_FEAM_FEE_CALC_BAS B    -- 최초 수수료
-                                       ON B.BASE_YM     = A01.PERF_YM  -- 기준과 실적 연동
-                                      AND B.PERF_YM     = A01.PERF_YM
-                                      AND B.OJ_DSB_YM   = A01.PERF_YM
-                                      AND B.CO_CD       = A01.CO_CD
-                                      AND B.OG_TP_CD    = A01.OG_TP_CD
-                                      AND B.PRTNR_NO    = A01.PRTNR_NO
-                                      AND B.FEE_CD      = 'W020081'    -- 고정
-                                      AND B.FEE_TCNT_DV_CD = '02'      -- 고정  / 2차
-                                      AND B.FEE_CALC_TP_CD = '01'      -- 고정  / 수수료
-                                      AND B.FEE_CTR_CNFM_AMT > 0       -- 고정
-                                      AND B.DTA_DL_YN       = 'N'
-                                     LEFT OUTER JOIN (
-                                         SELECT A.BASE_YM , A.OG_TP_CD , A.PRTNR_NO, NVL(A.OPNG_CD,'0') AS OPNG_CD
-                                             FROM TB_FEAM_WELS_MNGER_OPNG_BAS A
-                                                  JOIN (
-                                              SELECT B.BASE_YM,B.OG_TP_CD ,B.PRTNR_NO ,MAX(B.TCNT_DV_CD)  AS TCNT_DV_CD
-                                                FROM TB_FEAM_WELS_MNGER_OPNG_BAS B
-                                               WHERE 1 = 1
-                                                GROUP BY B.BASE_YM,B.OG_TP_CD ,B.PRTNR_NO
-                                              ) B
-                                              ON A.BASE_YM    = B.BASE_YM
-                                             AND A.OG_TP_CD   = B.OG_TP_CD
-                                             AND A.PRTNR_NO   = B.PRTNR_NO
-                                             AND A.TCNT_DV_CD = B.TCNT_DV_CD
-                                                     ) EE
-                                              ON A01.PERF_YM    = EE.BASE_YM
-                                             AND A01.OG_TP_CD   = EE.OG_TP_CD
-                                             AND A01.PRTNR_NO   = EE.PRTNR_NO
-                                     LEFT OUTER JOIN (
-                                           SELECT  A00.BASE_YM, A00.PERF_YM, A00.FEE_TCNT_DV_CD, A00.PERF_AGRG_CRT_DV_CD, A00.PERF_ATC_CD, A00.CO_CD
-                                                  ,A.OG_TP_CD,A.PRTNR_NO ,A.QLF_DV_CD,CASE WHEN A.CV_DT IS NOT NULL THEN NVL(B.STRTDT,A.STRTDT) ELSE A.STRTDT END  AS STRTDT
-                                             FROM TB_OGPS_PLAR_QLF_CH_IZ A
-                                                  JOIN TB_FEAM_NTORP_PERF_MM_CL A00
-                                                    ON A00.OG_TP_CD  = A.OG_TP_CD
-                                                   AND A00.PRTNR_NO  = A.PRTNR_NO
-                                                   AND A00.BASE_YM           = #{baseYm}        --  변수   변수   변수   변수
-                                                   AND A00.PERF_YM BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -60), 'YYYYMM') AND TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM')
-                                                   AND A00.PERF_YM           BETWEEN #{apyStrtYm} AND #{apyEndYm}
-                                                   AND A00.PERF_AGRG_CRT_DV_CD = #{perfAgrgCrtDvCd}
-                                                   AND A00.FEE_TCNT_DV_CD    = '02'         --  고정 / 2차만
-                                                   AND A00.PERF_ATC_CD       = 'W02P00002'  --  고정 / 판매인정건수
-                                                   AND A00.CO_CD             = '2000'       --  고정
-                                                   AND A00.OG_TP_CD          = 'W02'        --  고정
-                                                   AND A00.PERF_DV_CD        = '0'          --  고정 /  개인
-                                                   AND A00.DTA_DL_YN         = 'N'
-                                             LEFT OUTER JOIN TB_OGPS_PLAR_QLF_CH_IZ B
-                                                          ON  A.og_tp_Cd  = B.og_tp_Cd
-                                                         AND  A.prtnr_no  = B.prtnr_no
-                                                         AND  A.QLF_DV_CD = '3'           /* BS프리매니저에서 웰스플래너로 바뀐 분들  */
-                                                         AND  B.QLF_DV_CD = '6'
-                                                         AND  A.STRTDT = TO_CHAR(TO_DATE(B.ENDDT,'YYYYMMDD') + 1,'YYYYMMDD')
-                                                         AND  B.ENDDT != '99991231'
-                                                         AND  NVL(B.QLF_APLC_DV_CD,'0') IN ('1','2')  -- 승격,자격해제(과거)  3 : 보류 는 제외
-                                                         AND  B.DTA_DL_YN = 'N'
-                                            WHERE 1 = 1
-                                             AND A.og_tp_Cd = 'W02'
-                                             AND TO_CHAR(LAST_DAY(TO_DATE(A00.PERF_YM||'01','YYYYMMDD') ),'YYYYMMDD' )  BETWEEN A.STRTDT AND A.ENDDT
-                                             AND A.QLF_DV_CD IN ('3','6')
-                                             AND NVL(A.QLF_APLC_DV_CD,'0') IN ('1','2')  -- 승격,자격해제(과거)  3 : 보류 는 제외
-                                             AND A.DTA_DL_YN = 'N'
-                                                      ) FF
-                                              ON A01.BASE_YM             = FF.BASE_YM
-                                             AND A01.PERF_YM             = FF.PERF_YM
-                                             AND A01.FEE_TCNT_DV_CD      = FF.FEE_TCNT_DV_CD
-                                             AND A01.PERF_AGRG_CRT_DV_CD = FF.PERF_AGRG_CRT_DV_CD
-                                             AND A01.PERF_ATC_CD         = FF.PERF_ATC_CD
-                                             AND A01.CO_CD               = FF.CO_CD
-                                             AND A01.OG_TP_CD            = FF.OG_TP_CD
-                                             AND A01.PRTNR_NO            = FF.PRTNR_NO
-                                        LEFT OUTER JOIN TB_OGPS_PLAR_QLF_CH_IZ GG    -- 다음달 자격 구하기
-                                                      ON GG.STRTDT LIKE TO_CHAR(ADD_MONTHS( TO_DATE(A01.PERF_YM||'01','YYYYMMDD'), 1 ) ,'YYYYMM') ||'%'
-                                                     AND GG.QLF_DV_CD IN ('3','6')
-                                                     AND NVL(GG.QLF_APLC_DV_CD,'0') IN ('1','2')  -- 승격,자격해제(과거)  3 : 보류 는 제외
-                                                     AND GG.DTA_DL_YN = 'N'
-                                                     AND A01.OG_TP_CD  = GG.OG_TP_CD
-                                                     AND A01.PRTNR_NO  = GG.PRTNR_NO
-                               WHERE 1 = 1
-                                 AND A01.BASE_YM           =   #{baseYm}      --  변수   변수   변수   변수
-                                 AND A01.PERF_YM BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -60), 'YYYYMM') AND TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM')
-                                 AND A01.PERF_YM           BETWEEN #{apyStrtYm} AND #{apyEndYm}
-                                 AND A01.BASE_YM           > A01.PERF_YM    --  고정 / 되물림 대상만
-                                 AND A01.FEE_TCNT_DV_CD    = '02'         --  고정 / 2차만
-                                 AND A01.PERF_ATC_CD       = 'W02P00002'  --  고정 / 판매인정건수
-                                 AND A01.CO_CD             = '2000'       --  고정
-                                 AND A01.OG_TP_CD          = 'W02'        --  고정
-                                 AND A01.PERF_DV_CD        = '0'          --  고정 /  개인
-                                 AND A01.DTA_DL_YN         = 'N'
-                                 AND NVL(FF.QLF_DV_CD,NVL(GG.QLF_DV_CD,'0')) IN ('3','6')
-                             ) WMIMSI
-                                 LEFT OUTER JOIN TB_FEDD_FEE_REDF_ADSB_BAS Z -- 되물림 실적
-                                              ON Z.REDF_ADSB_OC_YM <![CDATA[<]]> WMIMSI.BASE_YM  -- 이전에 되물림된 건들
-                                             AND Z.PERF_YM         = WMIMSI.PERF_YM
-                                             AND Z.FEE_CD          = 'W020081'
-                                             AND Z.OG_TP_CD        = WMIMSI.OG_TP_CD
-                                             AND Z.PRTNR_NO        = WMIMSI.PRTNR_NO
-                                             AND Z.REDF_ADSB_DV_CD = '02'
-                                             AND Z.REDF_ADSB_TP_CD = '0202'
-                                             AND Z.REDF_ADSB_CTR_CNFM_AMT  > 0  -- 실제 반영된 되물림 금액
-                                             AND Z.DTA_DL_YN       = 'N'
-                       WHERE 1 = 1
-                    GROUP BY WMIMSI.BASE_YM
-                            ,WMIMSI.PERF_YM
-                            ,WMIMSI.PERF_DV_CD
-                            ,WMIMSI.CO_CD
-                            ,WMIMSI.OG_TP_CD
-                            ,WMIMSI.PRTNR_NO
-                            ,WMIMSI.PERF_VAL
-                            ,WMIMSI.QLF_DV_CD
-                            ,WMIMSI.FEE_CD
-                            ,WMIMSI.FEE_CTR_CNFM_AMT                -- 수수료 금액
-                            ,WMIMSI.QLF_DV_CD                       -- 자격
-                            ,WMIMSI.NMN_N                           -- 차월수
-                            ,WMIMSI.OPNG_CD
-                        ) WMTOT
-            UNION ALL
-            /* 23년4월 수석플래너 기준  */
-                    SELECT SUTOT.BASE_YM
-                          ,SUTOT.PERF_YM
-                          ,SUTOT.PERF_DV_CD
-                          ,SUTOT.CO_CD
-                          ,SUTOT.OG_TP_CD
-                          ,SUTOT.PRTNR_NO
-                          ,SUTOT.FEE_CD
-                          ,SUTOT.IMSI_AMT - CASE WHEN SUTOT.PERF_YM <![CDATA[<=]]> '202309' AND NVL(SUTOT.PERF_VAL,0) >= 6 THEN
-                                                                                      CASE WHEN NMN_N IN ( 1, 2, 3, 4) THEN 300000
-                                                                                           WHEN NMN_N IN ( 5, 6, 7, 8) THEN 250000
-                                                                                           WHEN NMN_N IN ( 9,10,11,12) THEN 200000
-                                                                                                                       ELSE 0 END
-                                                                                 ELSE 0 END   AS REDF_ADSB_OC_AMT
-                      FROM (
-                              SELECT A01.BASE_YM
-                                    ,A01.PERF_YM
-                                    ,A01.PERF_DV_CD
-                                    ,A01.CO_CD
-                                    ,A01.OG_TP_CD
-                                    ,A01.PRTNR_NO
-                                    ,A01.PERF_VAL
-                                    ,A.QLF_DV_CD
-                                    ,C.QLF_DV_CD  AS QLF_DV_CD_FOUR
-                                    ,C.STRTDT
-                                    ,CEIL(MONTHS_BETWEEN(TO_DATE(A01.PERF_YM||'01','YYYYMMDD'),TO_DATE(C.STRTDT,'YYYYMMDD'))) + 1  AS NMN_N
-                                    ,B.FEE_CD
-                                    ,B.FEE_CTR_CNFM_AMT                                      -- 수수료 금액
-                                    ,SUM(NVL(Z.REDF_ADSB_CTR_CNFM_AMT,0))  AS REDF_ADSB_CTR_CNFM_AMT     -- 지금까지 되물림된 금액
-                                    ,B.FEE_CTR_CNFM_AMT - SUM(NVL(Z.REDF_ADSB_CTR_CNFM_AMT,0))  AS IMSI_AMT
-                                FROM TB_FEAM_NTORP_PERF_MM_CL A01     -- 파트너별실적 -- W02P00002
-                                     JOIN TB_OGBS_MM_PRTNR_IZ A
-                                       ON A.BASE_YM   = A01.PERF_YM
-                                      AND A.OG_TP_CD  = A01.OG_TP_CD
-                                      AND A.PRTNR_NO  = A01.PRTNR_NO
-                                      AND A.PSTN_DV_CD  = '15'
-                                     JOIN TB_FEAM_FEE_CALC_BAS B    -- 최초 수수료
-                                       ON B.BASE_YM     = A01.PERF_YM  -- 기준과 실적 연동
-                                      AND B.PERF_YM     = A01.PERF_YM
-                                      AND B.OJ_DSB_YM   = A01.PERF_YM
-                                      AND B.CO_CD       = A01.CO_CD
-                                      AND B.OG_TP_CD    = A01.OG_TP_CD
-                                      AND B.PRTNR_NO    = A01.PRTNR_NO
-                                      AND B.FEE_CD      = 'W020081'    -- 고정
-                                      AND B.FEE_TCNT_DV_CD = '02'      -- 고정  / 2차
-                                      AND B.FEE_CALC_TP_CD = '01'      -- 고정  / 수수료
-                                      AND B.FEE_CTR_CNFM_AMT > 0       -- 고정
-                                      AND B.DTA_DL_YN       = 'N'
-                                     JOIN TB_OGPS_PLAR_QLF_CH_IZ C    -- 2023년4월 자격
-                                       ON TO_CHAR(LAST_DAY(TO_DATE('202304','YYYYMM') ),'YYYYMMDD' )  BETWEEN C.STRTDT AND C.ENDDT    -- 고정  2023년4월의 수석플래너 찾기
-                                      AND NVL(C.QLF_APLC_DV_CD,'0') IN ('1','2')  -- 승격,자격해제(과거)  3 : 보류 는 제외
-                                      AND C.DTA_DL_YN = 'N'
-                                      AND C.OG_TP_CD  = A01.OG_TP_CD
-                                      AND C.PRTNR_NO  = A01.PRTNR_NO
-                                     LEFT OUTER JOIN TB_OGPS_PLAR_QLF_CH_IZ D -- 차월 자격
-                                       ON D.STRTDT LIKE TO_CHAR(ADD_MONTHS( TO_DATE(A01.PERF_YM ||'01','YYYYMMDD'), 1 ) ,'YYYYMM') ||'%'    -- 다음달
-                                      AND NVL(D.QLF_APLC_DV_CD,'0') IN ('1','2')
-                                      AND D.DTA_DL_YN = 'N'
-                                      AND D.OG_TP_CD  = A01.OG_TP_CD
-                                      AND D.PRTNR_NO  = A01.PRTNR_NO
-                                 LEFT OUTER JOIN TB_FEDD_FEE_REDF_ADSB_BAS Z -- 되물림 실적
-                                              ON Z.REDF_ADSB_OC_YM <![CDATA[<]]> A01.BASE_YM  -- 이전에 되물림된 건들
-                                             AND Z.PERF_YM         = A01.PERF_YM
-                                             AND Z.FEE_CD          = 'W020081'
-                                             AND Z.OG_TP_CD        = A01.OG_TP_CD
-                                             AND Z.PRTNR_NO        = A01.PRTNR_NO
-                                             AND Z.REDF_ADSB_DV_CD = '02'
-                                             AND Z.REDF_ADSB_TP_CD = '0202'
-                                             AND Z.REDF_ADSB_CTR_CNFM_AMT  > 0  -- 실제 반영된 되물림 금액
-                                             AND Z.DTA_DL_YN       = 'N'
-                               WHERE 1 = 1
-                                 AND A01.BASE_YM           =   #{baseYm}       --  변수   변수   변수   변수
-                                 AND A01.PERF_YM BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -60), 'YYYYMM') AND TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM')
-                                 AND A01.PERF_YM           BETWEEN #{apyStrtYm} AND #{apyEndYm}
-                                 AND A01.PERF_AGRG_CRT_DV_CD = #{perfAgrgCrtDvCd}
-                                 AND A01.FEE_TCNT_DV_CD    = '02'         --  고정 / 2차만
-                                 AND A01.PERF_ATC_CD       = 'W02P00002'  --  고정 / 판매인정건수
-                                 AND A01.CO_CD             = '2000'       --  고정
-                                 AND A01.OG_TP_CD          = 'W02'        --  고정
-                                 AND A01.PERF_DV_CD        = '0'          --  고정 /  개인
-                                 AND A01.DTA_DL_YN       = 'N'
-                                 AND A.QLF_DV_CD NOT IN ('3','6')     /* 당월 자격 확인  */
-                                 AND C.QLF_DV_CD IN ('1')             /* 23년 4월 자격 확인  */
-                                 AND NVL(D.QLF_DV_CD,'2')    NOT IN ('3','6')     /* 차월 자격 확인  */
-                              GROUP BY
-                                     A01.BASE_YM
-                                    ,A01.PERF_YM
-                                    ,A01.PERF_DV_CD
-                                    ,A01.CO_CD
-                                    ,A01.OG_TP_CD
-                                    ,A01.PRTNR_NO
-                                    ,A01.PERF_VAL
-                                    ,A.QLF_DV_CD
-                                    ,C.QLF_DV_CD
-                                    ,C.STRTDT
-                                    ,B.FEE_CD
-                                    ,B.FEE_CTR_CNFM_AMT   ) SUTOT
-                                    )  SRC
-            WHERE 1 = 1
-              AND SRC.REDF_ADSB_OC_AMT > 0
-    </insert>
 </mapper>

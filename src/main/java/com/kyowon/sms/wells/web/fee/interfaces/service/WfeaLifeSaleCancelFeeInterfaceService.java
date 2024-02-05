@@ -41,7 +41,6 @@ public class WfeaLifeSaleCancelFeeInterfaceService {
             saveDvo.setFlpymTn(item.flpymTn());
             saveDvo.setCntrNo(item.welsCntrNo());
             saveDvo.setCntrSn(item.welsCntrSn());
-            saveDvo.setCnfmYn(item.cnfmYn());
             saveDvo.setDtaDlYn(item.dtaDlYn());
             saveDvo.setFstRgstDtm(item.fstRgstDtm());
             saveDvo.setFstRgstUsrId(item.fstRgstUsrId());
@@ -57,6 +56,8 @@ public class WfeaLifeSaleCancelFeeInterfaceService {
             saveDvo.setCanDt("0".equals(item.canDt()) ? "" : item.canDt());
             saveDvo.setFeeDsbYm("0".equals(item.feeDsbYm()) ? "" : item.feeDsbYm());
             saveDvo.setFeeRedfYm("0".equals(item.feeRedfYm()) ? "" : item.feeRedfYm());
+            /* 2024.01.29 확정여부 N으로 고정 */
+            saveDvo.setCnfmYn("N");
 
             if (StringUtils.isNotEmpty(item.ogTpCd())) {
                 String ogTpCd = item.ogTpCd();

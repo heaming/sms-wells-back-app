@@ -6,7 +6,7 @@ import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
 public interface WpsdExcellentDivisionConverter {
-    WpsdExcellentDivisionDvo mapToDvo(SearchContestRsbRes req);
+    WpsdExcellentDivisionDvo mapToDvo(SaveContestPartnerReq req);
     WpsdExcellentDivisionDvo mapToDvo(SaveReq req);
 
 }

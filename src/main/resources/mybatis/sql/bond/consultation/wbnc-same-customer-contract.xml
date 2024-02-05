@@ -82,11 +82,20 @@
             , NVL(T4.DP_AMT,0) - NVL(T5.DP_AMT,0) AS DP_AMT_FNL /*입금액*/
             , NVL(T2.PRM_DP_AMT, 0) - NVL(T2.PRM_RFND_AMT, 0) AS PRM_AMT /*영업선수금액*/
             , CASE
-                  WHEN T1.PERF_YM = TO_CHAR(SYSDATE, 'YYYYMM') THEN NVL(T6.UC_AMT, 0) - (SELECT NVL(SUM(RVE_AMT),0) FROM (SELECT CASE WHEN TT1.DP_DV_CD IN ('2','4') THEN NVL(TT1.RVE_AMT, 0) * -1 ELSE NVL(TT1.RVE_AMT, 0) END AS RVE_AMT FROM TB_RVDW_RVE_DTL TT1 WHERE 1=1 AND TT1.CNTR_NO = #{cntrNo} AND SUBSTR(PERF_DT,1,6) = T6.BASE_YM AND TT1.DTA_DL_YN = 'N' AND TT1.RVE_DV_CD IN ('02','03','04','05','07','08','19','13','18','97') )) --실적년월이 당월일경우 기말미수잔액
-                  WHEN T3.BND_BIZ_DV_CD LIKE 'L3%' THEN NVL(T3.DLQ_AMT, 0) - NVL(T3.DLQ_DP_AMT,0) --멤버십 일 경우 해당월에 연체잔액
-                  WHEN NVL(T3.RSG_BOR_AMT, 0) > 0 THEN NVL(T3.UC_AMT, 0) - (SELECT NVL(SUM(RVE_AMT),0) FROM (SELECT CASE WHEN TT1.DP_DV_CD IN ('2','4') THEN NVL(TT1.RVE_AMT, 0) * -1 ELSE NVL(TT1.RVE_AMT, 0) END AS RVE_AMT FROM TB_RVDW_RVE_DTL TT1 WHERE 1=1 AND TT1.CNTR_NO = #{cntrNo} AND SUBSTR(PERF_DT,1,6) = T3.BASE_YM AND TT1.DTA_DL_YN = 'N' AND TT1.RVE_DV_CD IN ('02','03','04','05','07','08','19','13','18','97') )) --위약금이 있을경우 해당월 미수잔액
-                  WHEN T3.DLQ_MCN > 1 THEN NVL(T6.UC_AMT, 0) - (SELECT NVL(SUM(RVE_AMT),0) FROM (SELECT CASE WHEN TT1.DP_DV_CD IN ('2','4') THEN NVL(TT1.RVE_AMT, 0) * -1 ELSE NVL(TT1.RVE_AMT, 0) END AS RVE_AMT FROM TB_RVDW_RVE_DTL TT1 WHERE 1=1 AND TT1.CNTR_NO = #{cntrNo} AND SUBSTR(PERF_DT,1,6) = T6.BASE_YM AND TT1.DTA_DL_YN = 'N' AND TT1.RVE_DV_CD IN ('02','03','04','05','07','08','19','13','18','97') )) --연체개월이 1보다 클경우 기말미수잔액
-                  ELSE NVL(T3.DLQ_AMT,0) - NVL(T3.DLQ_DP_AMT,0) --그외 연체잔액
+                  WHEN T3.BND_BIZ_DV_CD = 'L21' OR T6.BND_BIZ_DV_CD = 'L21' --리스일경우
+                      THEN
+                      CASE
+                          WHEN T1.PERF_YM = TO_CHAR(SYSDATE, 'YYYYMM') THEN NVL(T6.DLQ_AMT,0) + NVL(T6.DLQ_ADD_AMT,0) - NVL(T6.DLQ_DP_AMT,0) - NVL(T6.DLQ_ADD_DP_AMT,0) --실적년월이 당월일경우 기말총연체잔액
+                          ELSE NVL(T3.DLQ_AMT,0) + NVL(T3.DLQ_ADD_AMT,0) - NVL(T3.DLQ_DP_AMT,0) - NVL(T3.DLQ_ADD_DP_AMT,0) --그외 총연체잔액
+                          END
+                  ELSE
+                      CASE
+                          WHEN T1.PERF_YM = TO_CHAR(SYSDATE, 'YYYYMM') THEN NVL(T6.UC_AMT, 0) - (SELECT NVL(SUM(RVE_AMT),0) FROM (SELECT CASE WHEN TT1.DP_DV_CD IN ('2','4') THEN NVL(TT1.RVE_AMT, 0) * -1 ELSE NVL(TT1.RVE_AMT, 0) END AS RVE_AMT FROM TB_RVDW_RVE_DTL TT1 WHERE 1=1 AND TT1.CNTR_NO = #{cntrNo} AND SUBSTR(PERF_DT,1,6) = T6.BASE_YM AND TT1.DTA_DL_YN = 'N' AND TT1.RVE_DV_CD IN ('02','03','04','05','07','08','19','13','18','97') )) --실적년월이 당월일경우 기말미수잔액
+                          WHEN T3.BND_BIZ_DV_CD LIKE 'L3%' THEN NVL(T3.DLQ_AMT, 0) - NVL(T3.DLQ_DP_AMT,0) --멤버십 일 경우 해당월에 연체잔액
+                          WHEN NVL(T3.RSG_BOR_AMT, 0) > 0 THEN NVL(T3.UC_AMT, 0) - (SELECT NVL(SUM(RVE_AMT),0) FROM (SELECT CASE WHEN TT1.DP_DV_CD IN ('2','4') THEN NVL(TT1.RVE_AMT, 0) * -1 ELSE NVL(TT1.RVE_AMT, 0) END AS RVE_AMT FROM TB_RVDW_RVE_DTL TT1 WHERE 1=1 AND TT1.CNTR_NO = #{cntrNo} AND SUBSTR(PERF_DT,1,6) = T3.BASE_YM AND TT1.DTA_DL_YN = 'N' AND TT1.RVE_DV_CD IN ('02','03','04','05','07','08','19','13','18','97') )) --위약금이 있을경우 해당월 미수잔액
+                          WHEN T3.DLQ_MCN > 1 THEN NVL(T6.UC_AMT, 0) - (SELECT NVL(SUM(RVE_AMT),0) FROM (SELECT CASE WHEN TT1.DP_DV_CD IN ('2','4') THEN NVL(TT1.RVE_AMT, 0) * -1 ELSE NVL(TT1.RVE_AMT, 0) END AS RVE_AMT FROM TB_RVDW_RVE_DTL TT1 WHERE 1=1 AND TT1.CNTR_NO = #{cntrNo} AND SUBSTR(PERF_DT,1,6) = T6.BASE_YM AND TT1.DTA_DL_YN = 'N' AND TT1.RVE_DV_CD IN ('02','03','04','05','07','08','19','13','18','97') )) --연체개월이 1보다 클경우 기말미수잔액
+                          ELSE NVL(T3.DLQ_AMT,0) - NVL(T3.DLQ_DP_AMT,0) --그외 연체잔액
+                          END
                 END AS DLQ_AMT /*연체금액*/
             , CASE
                 WHEN T1.PERF_YM = TO_CHAR(SYSDATE, 'YYYYMM') THEN NVL(T6.UC_AMT, 0) + NVL(T2.THM_SL_SUM_AMT,0) --실적년월이 당월일경우 기말미수금+매출금액
@@ -175,7 +184,10 @@
                NVL(T1.DLQ_AMT, 0) + NVL(T1.DLQ_ADD_AMT, 0) + NVL(T1.THM_CHRAM_AMT, 0) AS OJ_AMT /* 대상금액 = 총연체입금(연체입금금액 + 연체가산금입금금액) + 당월요금액 */
              , NVL(T1.RSG_BOR_AMT, 0) AS RSG_BOR_AMT  /* 위약금 */
              , NVL(T1.DLQ_AMT, 0) + NVL(T1.DLQ_ADD_AMT, 0) AS TOT_DLQ_AMT /* 총연체금액 */
-             , NVL(T2.SL_AGG_AMT, 0) + NVL(T2.THM_SL_SUM_AMT, 0) AS SL_AGG_AMT  /* 매출누계 */
+             , CASE
+                   WHEN T1.BND_BIZ_DV_CD = 'L21' THEN (SELECT SUM(TT1.THM_BIL_OC_AMT) FROM TB_CBCL_WELLS_SL_MM_CL_IZ TT1 WHERE TT1.CNTR_NO = T1.CNTR_NO AND TT1.DTA_DL_YN = 'N') --리스일경우 당월청구금액 합
+                   ELSE NVL(T2.SL_AGG_AMT, 0) + NVL(T2.THM_SL_SUM_AMT, 0) --그외 매출누계금액 + 당월매출합계금액
+                END AS SL_AGG_AMT  /* 매출누계 */
              , NVL(T1.DLQ_DP_AMT, 0) + NVL(T1.DLQ_ADD_DP_AMT, 0) + NVL(T1.THM_CHRAM_DP_AMT, 0) AS OJ_DP_AMT  /* 대상입금 = 총연체입금(연체입금금액 + 연체가산금입금금액) + 당월요금액 */
              , NVL(T3.LS_RNTF, 0) AS LS_RNTF  /* 분실료 */
              , NVL(T1.DLQ_DP_AMT, 0) + NVL(T1.DLQ_ADD_DP_AMT, 0) AS TOT_DLQ_DP_AMT  /* 총연체입금 */

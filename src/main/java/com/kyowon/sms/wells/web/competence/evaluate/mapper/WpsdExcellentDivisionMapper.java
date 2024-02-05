@@ -34,9 +34,11 @@ public interface WpsdExcellentDivisionMapper {
 
     List<SearchEvlRsbRes> selectEvaluationResponsibility(SearchEvlRsbReq req);
 
-    List<SearchContestRsbRes> selectContestResponsibilityGroupList(SearchContestRsbReq req);
+    List<SearchContestPartnerRes> selectContestResponsibilityGroupList(SearchContestPartnerReq req);
 
     int updateContestResponsibilityGroup(WpsdExcellentDivisionDvo req);
 
-    int updateExcellentDivision(WpsdExcellentDivisionDvo dvo);
+    int updateExcellentDivisionBaseDtl(WpsdExcellentDivisionDvo dvo);
+
+    int updateExcellentDivisionItemization(WpsdExcellentDivisionDvo dvo);
 }

@@ -44,7 +44,7 @@ public class WdcbSalesPerformanceDetailDto {
         String jDt,
         String nomSlAmt,
         String nomDscAmt,
-        String mshWdwalDt,
+        String slBlam,
         String spmtSlAmt,
         String spmtDscAmt,
         String fshDt,

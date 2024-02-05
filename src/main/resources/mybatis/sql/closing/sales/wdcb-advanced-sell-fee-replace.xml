@@ -41,6 +41,7 @@
                       , 0 AS PIA_FEE_EOT_BLAM
                   FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS T1 /*선급판매수수료 비용대체기본*/
                  WHERE BASE_YM   = #{baseYm}   /*기준년월*/
+                   AND FEE_TCNT = #{feeTcnt}
                     <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
                    AND OG_TP_CD  = #{ogTpCd}   /*조직유형*/
                     </if>
@@ -184,7 +185,8 @@
                      , CASE WHEN SUBSTR(CNTR_PD_ENDDT,1,6) = #{baseYm} THEN SUM(CS_RPLC_AMT)
                             ELSE 0 END AS CS_RPLC_AMT_CANC_BLAM
                   FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS A1 /*선급판매수수료 비용대체기본*/
-                 GROUP BY CNTR_NO
+                  WHERE FEE_TCNT = #{feeTcnt}
+                  GROUP BY CNTR_NO
                      , CNTR_SN
                      , BASE_YM
                      , OG_TP_CD
@@ -326,6 +328,7 @@
              , (SELECT MAX(USR_NM) FROM T_CMP_USR_ACO_M WHERE USR_ID = T1.FNL_MDFC_USR_ID) AS USR_NM  /*사용자명*/
           FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS T1 /*선급판매수수료 비용대체기본*/
          WHERE BASE_YM   = #{baseYm}   /*기준년월*/
+           AND FEE_TCNT = #{feeTcnt}
            <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
            AND OG_TP_CD  = #{ogTpCd}   /*조직유형*/
            </if>
@@ -444,6 +447,7 @@
               , NVL(SUM(FEE_OC_AMT), 0) + NVL(SUM(PIA_SELL_FEE_CRDOVR_RES_AMT), 0) - NVL(SUM(CS_RPLC_AMT), 0) AS PIA_FEE_EOT_BLAM  /*선급수수료기말잔액. 취소된 경우는 0*/
            FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS T1 /*선급판매수수료 비용대체기본*/
           WHERE BASE_YM   = #{baseYm}   /*기준년월*/
+            AND FEE_TCNT = #{feeTcnt}
             <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
             AND OG_TP_CD  = #{ogTpCd}   /*조직유형*/
             </if>
@@ -528,238 +532,255 @@
 
     <select id="selectDivideLists" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbAdvancedSellFeeReplaceDto$SearchDivideRes">
         WITH T AS
-        (
-            SELECT SELL_TP_CD  /*판매유형코드*/
-                 , SELL_TP_DTL_CD  /*판매유형상세*/
-                 , (SELECT MAX(PD_NM) FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.PD_HCLSF_ID) AS PD_HCLSF_NM   /*상품대분류*/
-                 , (SELECT MAX(PD_NM) FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.PD_MCLSF_ID) AS PD_MCLSF_NM   /*상품중분류*/
-                 , BASE_YM      /*발생년월*/
-                 , NVL(SUM(PIA_SELL_FEE_CRDOVR_RES_AMT),0) AS PIA_SELL_FEE_CRDOVR_RES_AMT   /*선급판매수수료이월잔액*/
-                 , NVL(SUM(FEE_OC_AMT),0)  AS PIA_FEE_OC_AMT          /*선급수수료발생금액*/
-                 , NVL(SUM(CS_RPLC_AMT),0) AS CS_RPLC_AMT             /*비용대체금액*/
-                 , SUM(NVL(FEE_OC_AMT,0) + NVL(PIA_SELL_FEE_CRDOVR_RES_AMT,0) - NVL(CS_RPLC_AMT,0)) AS PIA_FEE_EOT_BLAM  /*선급수수료기말잔액=이월+발생-대체금액*/
+            (
+            SELECT CNTR_NO, CNTR_SN
+                  ,SELL_TP_CD  /*판매유형*/
+                  ,SELL_TP_DTL_CD  /*판매유형상세*/
+                  ,(SELECT MAX(PD_CLSF_NM) FROM TB_PDBS_PD_CLSF_BAS WHERE PD_CLSF_ID = T1.PD_HCLSF_ID) AS PD_HCLSF_NM   /*상품대분류*/
+                  ,(SELECT MAX(PD_CLSF_NM) FROM TB_PDBS_PD_CLSF_BAS WHERE PD_CLSF_ID = T1.PD_MCLSF_ID) AS PD_MCLSF_NM   /*상품중분류*/
+                  ,BASE_YM      /*기준년월*/
+                  ,FEE_OC_YM    /*수수료발생년월*/
+                  ,NVL(SUM(PIA_SELL_FEE_CRDOVR_RES_AMT),0) AS PIA_SELL_FEE_CRDOVR_BLAM   /*선급판매수수료이월잔액*/
+                  ,NVL(SUM(FEE_OC_AMT),0)  AS PIA_FEE_OC_AMT  /*선급수수료발생금액*/
+                  ,NVL(SUM(CS_RPLC_AMT),0) AS CS_RPLC_AMT             /*비용대체금액*/
+                  ,NVL(SUM(CS_RPLC_BLAM),0) AS PIA_FEE_EOT_BLAM    /*비용대체잔액*/
               FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS T1
-             WHERE SUBSTR(BASE_YM,1,4) = #{baseYm}      /*기준년월 - 년이 인풋으로 들어오는것. (2023) */
-               <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
-               AND OG_TP_CD  = #{ogTpCd}   /*조직유형*/
-               </if>
-               <if test="@MybatisUtils@isNotEmpty(piaCsYn) and !@MybatisUtils@equals(piaCsYn, 'ALL')">
-               AND PIA_CS_YN = #{piaCsYn}  /*선급대상여부*/
-               </if>
-               <if test="@MybatisUtils@isNotEmpty(sellTpCd) and !@MybatisUtils@equals(sellTpCd, 'ALL')">
-               AND SELL_TP_CD = #{sellTpCd}   /*판매유형*/
-                   <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
-                   AND SELL_TP_DTL_CD = #{sellTpDtlCd}   /*판매유형상세*/
-                   </if>
-               </if>
-               <if test="@MybatisUtils@isNotEmpty(pdHclsfId) and !@MybatisUtils@equals(pdHclsfId, 'ALL')">
-               AND PD_HCLSF_ID = #{pdHclsfId}     /*상품대분류*/
-                   <if test="@MybatisUtils@isNotEmpty(pdMclsfId) and !@MybatisUtils@equals(pdMclsfId, 'ALL')">
-                   AND PD_MCLSF_ID = #{pdMclsfId}   /*상품중분류*/
-                   </if>
-               </if>
-               <if test="@MybatisUtils@isNotEmpty(cntrNo)">
-               AND CNTR_NO   = #{cntrNo}   /*계약번호*/
-               </if>
-               <if test="@MybatisUtils@isNotEmpty(cntrSn)">
-               AND CNTR_SN   = #{cntrSn}   /*계약상세번호*/
-               </if>
-               <if test="@MybatisUtils@isNotEmpty(feeCd) and !@MybatisUtils@equals(feeCd, 'ALL')">
-               AND FEE_CD    = #{feeCd}    /*수수료코드(구분)*/
-               </if>
-          GROUP BY SELL_TP_CD, SELL_TP_DTL_CD, BASE_YM, PD_HCLSF_ID, PD_MCLSF_ID
-        )
-        SELECT SELL_TP_CD  /*판매유형코드*/
-             , SELL_TP_DTL_CD  /*판매유형상세*/
-             , PD_HCLSF_NM   /*상품대분류*/
-             , PD_MCLSF_NM   /*상품중분류*/
-             , '' AS BASE_YM   /*기준년월*/
-             , MIN(PIA_SELL_FEE_CRDOVR_RES_AMT) AS PIA_SELL_FEE_CRDOVR_RES_AMT    /*선급판매수수료이월잔액*/
-             , 0  AS PIA_FEE_OC_AMT    /*선급수수료발생금액*/
-             , CASE WHEN SUBSTR(BASE_YM,5,2) = '01'
-                    THEN SUM(CS_RPLC_AMT)
-                    ELSE 0 END  AS CS_RPLC_AMT1     /*1월비용대체*/
-             , CASE WHEN SUBSTR(BASE_YM,5,2) = '02'
-                    THEN SUM(CS_RPLC_AMT)
-                    ELSE 0 END  AS CS_RPLC_AMT2     /*2월비용대체*/
-             , CASE WHEN SUBSTR(BASE_YM,5,2) = '03'
-                    THEN SUM(CS_RPLC_AMT)
-                    ELSE 0 END  AS CS_RPLC_AMT3     /*3월비용대체*/
-             , CASE WHEN SUBSTR(BASE_YM,5,2) = '04'
-                    THEN SUM(CS_RPLC_AMT)
-                    ELSE 0 END  AS CS_RPLC_AMT4     /*4월비용대체*/
-             , CASE WHEN SUBSTR(BASE_YM,5,2) = '05'
-                    THEN SUM(CS_RPLC_AMT)
-                    ELSE 0 END  AS CS_RPLC_AMT5     /*5월비용대체*/
-             , CASE WHEN SUBSTR(BASE_YM,5,2) = '06'
-                    THEN SUM(CS_RPLC_AMT)
-                    ELSE 0 END  AS CS_RPLC_AMT6     /*6월비용대체*/
-             , CASE WHEN SUBSTR(BASE_YM,5,2) = '07'
-                    THEN SUM(CS_RPLC_AMT)
-                    ELSE 0 END  AS CS_RPLC_AMT7     /*7월비용대체*/
-             , CASE WHEN SUBSTR(BASE_YM,5,2) = '08'
-                    THEN SUM(CS_RPLC_AMT)
-                    ELSE 0 END  AS CS_RPLC_AMT8     /*8월비용대체*/
-             , CASE WHEN SUBSTR(BASE_YM,5,2) = '09'
-                    THEN SUM(CS_RPLC_AMT)
-                    ELSE 0 END  AS CS_RPLC_AMT9     /*9월비용대체*/
-             , CASE WHEN SUBSTR(BASE_YM,5,2) = '10'
-                    THEN SUM(CS_RPLC_AMT)
-                    ELSE 0 END  AS CS_RPLC_AMT10     /*10월비용대체*/
-             , CASE WHEN SUBSTR(BASE_YM,5,2) = '11'
-                    THEN SUM(CS_RPLC_AMT)
-                    ELSE 0 END  AS CS_RPLC_AMT11     /*11월비용대체*/
-             , CASE WHEN SUBSTR(BASE_YM,5,2) = '12'
-                    THEN SUM(CS_RPLC_AMT)
-                    ELSE 0 END  AS CS_RPLC_AMT12     /*12월비용대체*/
-             , SUM(CS_RPLC_AMT) AS CS_RPLC_AMT_TOT   /*합계*/
-             , SUM(PIA_FEE_EOT_BLAM) AS PIA_FEE_EOT_BLAM
-          FROM T
-      GROUP BY SELL_TP_CD  /*판매유형코드*/
-             , SELL_TP_DTL_CD  /*판매유형상세*/
-             , PD_HCLSF_NM   /*상품대분류*/
-             , PD_MCLSF_NM   /*상품중분류*/
-             , BASE_YM
-     UNION ALL
-        SELECT SELL_TP_CD  /*판매유형코드*/
-             , SELL_TP_DTL_CD  /*판매유형상세*/
-             , PD_HCLSF_NM   /*상품대분류*/
-             , PD_MCLSF_NM   /*상품중분류*/
-             , BASE_YM  /*기준년월*/
-             , 0 AS PIA_SELL_FEE_CRDOVR_RES_AMT    /*선급판매수수료이월잔액*/
-             , SUM(PIA_FEE_OC_AMT) AS PIA_FEE_OC_AMT
-             , CASE WHEN SUBSTR(BASE_YM,5,2) = '01' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '01'
-                    THEN SUM(CS_RPLC_AMT)
-                    ELSE 0 END  AS CS_RPLC_AMT1
-                        /*1월비용대체*/
-             , CASE WHEN SUBSTR(BASE_YM,5,2) = '02' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '02'
-                    THEN SUM(CS_RPLC_AMT)
-                    ELSE 0 END  AS CS_RPLC_AMT2     /*2월비용대체*/
-             , CASE WHEN SUBSTR(BASE_YM,5,2) = '03' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '03'
-                    THEN SUM(CS_RPLC_AMT)
-                    ELSE 0 END  AS CS_RPLC_AMT3     /*3월비용대체*/
-             , CASE WHEN SUBSTR(BASE_YM,5,2) = '04' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '04'
-                    THEN SUM(CS_RPLC_AMT)
-                    ELSE 0 END  AS CS_RPLC_AMT4     /*4월비용대체*/
-             , CASE WHEN SUBSTR(BASE_YM,5,2) = '05' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '05'
-                    THEN SUM(CS_RPLC_AMT)
-                    ELSE 0 END  AS CS_RPLC_AMT5     /*5월비용대체*/
-             , CASE WHEN SUBSTR(BASE_YM,5,2) = '06' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '06'
-                    THEN SUM(CS_RPLC_AMT)
-                    ELSE 0 END  AS CS_RPLC_AMT6     /*6월비용대체*/
-             , CASE WHEN SUBSTR(BASE_YM,5,2) = '07' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '07'
-                    THEN SUM(CS_RPLC_AMT)
-                    ELSE 0 END  AS CS_RPLC_AMT7     /*7월비용대체*/
-             , CASE WHEN SUBSTR(BASE_YM,5,2) = '08' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '08'
-                    THEN SUM(CS_RPLC_AMT)
-                    ELSE 0 END  AS CS_RPLC_AMT8     /*8월비용대체*/
-             , CASE WHEN SUBSTR(BASE_YM,5,2) = '09' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '09'
-                    THEN SUM(CS_RPLC_AMT)
-                    ELSE 0 END  AS CS_RPLC_AMT9     /*9월비용대체*/
-             , CASE WHEN SUBSTR(BASE_YM,5,2) = '10' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '10'
-                    THEN SUM(CS_RPLC_AMT)
-                    ELSE 0 END  AS CS_RPLC_AMT10     /*10월비용대체*/
-             , CASE WHEN SUBSTR(BASE_YM,5,2) = '11' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '11'
-                    THEN SUM(CS_RPLC_AMT)
-                    ELSE 0 END  AS CS_RPLC_AMT11     /*11월비용대체*/
-             , CASE WHEN SUBSTR(BASE_YM,5,2) = '12' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '12'
-                    THEN SUM(CS_RPLC_AMT)
-                    ELSE 0 END  AS CS_RPLC_AMT12     /*12월비용대체*/
-             , SUM(CS_RPLC_AMT) AS CS_RPLC_AMT_TOT   /*합계*/
-             , SUM(PIA_FEE_EOT_BLAM) AS PIA_FEE_EOT_BLAM
-          FROM T
-      GROUP BY SELL_TP_CD  /*판매유형코드*/
-             , SELL_TP_DTL_CD  /*판매유형상세*/
-             , PD_HCLSF_NM   /*상품대분류*/
-             , PD_MCLSF_NM   /*상품중분류*/
-             , BASE_YM
-    </select>
-
-    <select id="selectDivideSummary" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbAdvancedSellFeeReplaceDto$SearchDivideSummaryRes">
-        WITH T AS
-        (
-            SELECT SELL_TP_CD  /*판매유형코드*/
-                 , SELL_TP_DTL_CD  /*판매유형상세*/
-                 , (SELECT MAX(PD_NM) FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.PD_HCLSF_ID) AS PD_HCLSF_NM   /*상품대분류*/
-                 , (SELECT MAX(PD_NM) FROM TB_PDBS_PD_BAS WHERE PD_CD = T1.PD_MCLSF_ID) AS PD_MCLSF_NM   /*상품중분류*/
-                 , BASE_YM  /*기준년월*/
-                 , SUM(PIA_SELL_FEE_CRDOVR_RES_AMT) AS PIA_SELL_FEE_CRDOVR_RES_AMT   /*선급판매수수료이월잔액*/
-                 , SUM(FEE_OC_AMT)  AS PIA_FEE_OC_AMT  /*선급수수료발생금액*/
-                 , SUM(CS_RPLC_AMT) AS CS_RPLC_AMT             /*비용대체금액*/
-                 , SUM(FEE_OC_AMT + PIA_SELL_FEE_CRDOVR_RES_AMT - CS_RPLC_AMT) AS PIA_FEE_EOT_BLAM  /*선급수수료기말잔액*/
-              FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS T1
-             WHERE SUBSTR(BASE_YM,1,4) = #{baseYm}      /*기준년월 - 년이 인풋으로 들어오는것. (2023) */
-               <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
-               AND OG_TP_CD  = #{ogTpCd}   /*조직유형*/
-               </if>
-               <if test="@MybatisUtils@isNotEmpty(piaCsYn) and !@MybatisUtils@equals(piaCsYn, 'ALL')">
-               AND PIA_CS_YN = #{piaCsYn}  /*선급대상여부*/
-               </if>
-               <if test="@MybatisUtils@isNotEmpty(dgCstId) and !@MybatisUtils@equals(dgCstId, 'ALL')">
-               AND DG_CST_ID = #{dgCstId}  /*대표고객코드*/
-               </if>
-               <if test="@MybatisUtils@isNotEmpty(cntrNo)">
-               AND CNTR_NO   = #{cntrNo}   /*계약번호*/
-               </if>
-               <if test="@MybatisUtils@isNotEmpty(cntrSn)">
-               AND CNTR_SN   = #{cntrSn}   /*계약상세번호*/
-               </if>
-               <if test="@MybatisUtils@isNotEmpty(feeCd) and !@MybatisUtils@equals(feeCd, 'ALL')">
-               AND FEE_CD    = #{feeCd}    /*수수료코드(구분)*/
-               </if>
-          GROUP BY SELL_TP_CD, SELL_TP_DTL_CD, BASE_YM, PD_HCLSF_ID, PD_MCLSF_ID
-        )
-        SELECT SELL_TP_CD  /*판매유형코드*/
-             , SELL_TP_DTL_CD  /*판매유형상세*/
-             , PD_HCLSF_NM   /*상품대분류*/
-             , PD_MCLSF_NM   /*상품중분류*/
-             , BASE_YM  /*기준년월*/
-             , SUM(PIA_SELL_FEE_CRDOVR_RES_AMT) AS PIA_SELL_FEE_CRDOVR_RES_AMT  /*선급판매수수료이월잔액*/
-             , SUM(PIA_FEE_OC_AMT) AS PIA_FEE_OC_AMT /*선급수수료발생금액*/
-             , (CASE WHEN SUBSTR(BASE_YM,5,2) = '01' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '01'
-                     THEN SUM(CS_RPLC_AMT)
-                     ELSE 0 END) AS CS_RPLC_AMT1     /*1월비용대체*/
-             , (CASE WHEN SUBSTR(BASE_YM,5,2) = '02' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '02'
-                     THEN SUM(CS_RPLC_AMT)
-                     ELSE 0 END) AS CS_RPLC_AMT2     /*2월비용대체*/
-             , (CASE WHEN SUBSTR(BASE_YM,5,2) = '03' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '03'
-                     THEN SUM(CS_RPLC_AMT)
-                     ELSE 0 END) AS CS_RPLC_AMT3     /*3월비용대체*/
-             , (CASE WHEN SUBSTR(BASE_YM,5,2) = '04' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '04'
-                     THEN SUM(CS_RPLC_AMT)
-                     ELSE 0 END) AS CS_RPLC_AMT4     /*4월비용대체*/
-             , (CASE WHEN SUBSTR(BASE_YM,5,2) = '05' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '05'
-                     THEN SUM(CS_RPLC_AMT)
-                     ELSE 0 END) AS CS_RPLC_AMT5     /*5월비용대체*/
-             , (CASE WHEN SUBSTR(BASE_YM,5,2) = '06' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '06'
-                     THEN SUM(CS_RPLC_AMT)
-                     ELSE 0 END) AS CS_RPLC_AMT6     /*6월비용대체*/
-             , (CASE WHEN SUBSTR(BASE_YM,5,2) = '07' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '07'
-                     THEN SUM(CS_RPLC_AMT)
-                     ELSE 0 END) AS CS_RPLC_AMT7     /*7월비용대체*/
-             , (CASE WHEN SUBSTR(BASE_YM,5,2) = '08' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '08'
-                     THEN SUM(CS_RPLC_AMT)
-                     ELSE 0 END) AS CS_RPLC_AMT8     /*8월비용대체*/
-             , (CASE WHEN SUBSTR(BASE_YM,5,2) = '09' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '09'
-                     THEN SUM(CS_RPLC_AMT)
-                     ELSE 0 END) AS CS_RPLC_AMT9     /*9월비용대체*/
-             , (CASE WHEN SUBSTR(BASE_YM,5,2) = '10' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '10'
-                     THEN SUM(CS_RPLC_AMT)
-                     ELSE 0 END) AS CS_RPLC_AMT10     /*10월비용대체*/
-             , (CASE WHEN SUBSTR(BASE_YM,5,2) = '11' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '11'
-                     THEN SUM(CS_RPLC_AMT)
-                     ELSE 0 END) AS CS_RPLC_AMT11     /*11월비용대체*/
-             , (CASE WHEN SUBSTR(BASE_YM,5,2) = '12' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '12'
-                     THEN SUM(CS_RPLC_AMT)
-                     ELSE 0 END) AS CS_RPLC_AMT12     /*12월비용대체*/
-             , SUM(CS_RPLC_AMT) AS CS_RPLC_AMT_TOT   /*합계*/
-             , SUM(PIA_FEE_EOT_BLAM) AS PIA_FEE_EOT_BLAM
-          FROM T
-      GROUP BY SELL_TP_CD  /*판매유형코드*/
-             , SELL_TP_DTL_CD  /*판매유형상세*/
-             , PD_HCLSF_NM   /*상품대분류*/
-             , PD_MCLSF_NM   /*상품중분류*/
-             , BASE_YM
+             WHERE 1=1
+             AND FEE_TCNT = #{feeTcnt}
+             <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
+             AND OG_TP_CD  = #{ogTpCd}   /*조직유형*/
+             </if>
+             <if test="@MybatisUtils@isNotEmpty(piaCsYn) and !@MybatisUtils@equals(piaCsYn, 'ALL')">
+             AND PIA_CS_YN = #{piaCsYn}  /*선급대상여부*/
+             </if>
+             <if test="@MybatisUtils@isNotEmpty(sellTpCd) and !@MybatisUtils@equals(sellTpCd, 'ALL')">
+             AND SELL_TP_CD = #{sellTpCd}   /*판매유형*/
+                 <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd) and !@MybatisUtils@equals(sellTpDtlCd, 'ALL')">
+                 AND SELL_TP_DTL_CD = #{sellTpDtlCd}   /*판매유형상세*/
+                 </if>
+             </if>
+             <if test="@MybatisUtils@isNotEmpty(pdHclsfId) and !@MybatisUtils@equals(pdHclsfId, 'ALL')">
+             AND PD_HCLSF_ID = #{pdHclsfId}     /*상품대분류*/
+                 <if test="@MybatisUtils@isNotEmpty(pdMclsfId) and !@MybatisUtils@equals(pdMclsfId, 'ALL')">
+                 AND PD_MCLSF_ID = #{pdMclsfId}   /*상품중분류*/
+                 </if>
+             </if>
+             <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+             AND CNTR_NO   = #{cntrNo}   /*계약번호*/
+             </if>
+             <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+             AND CNTR_SN   = #{cntrSn}   /*계약상세번호*/
+             </if>
+             <if test="@MybatisUtils@isNotEmpty(feeCd) and !@MybatisUtils@equals(feeCd, 'ALL')">
+             AND FEE_CD    = #{feeCd}    /*수수료코드(구분)*/
+             </if>
+            GROUP BY SELL_TP_CD, SELL_TP_DTL_CD, BASE_YM, FEE_OC_YM, CNTR_NO, CNTR_SN, PD_HCLSF_ID,PD_MCLSF_ID
+            )
+            /*첫번째 셀렉트 - 해당년월의 이전에 발생한 수수료의 비용대체금액. 수수료는 발생하지 않은것으로 봄. */
+            SELECT SELL_TP_CD
+                  ,SELL_TP_DTL_CD
+                  ,PD_HCLSF_NM
+                  ,PD_MCLSF_NM
+                  ,MAX(BF_BASE_YM) AS BASE_YM
+                  ,SUM(PIA_SELL_FEE_CRDOVR_BLAM) AS PIA_SELL_FEE_CRDOVR_RES_AMT
+                  ,SUM(PIA_FEE_OC_AMT) AS PIA_FEE_OC_AMT
+                  ,SUM(CS_RPLC_AMT1) AS CS_RPLC_AMT1
+                  ,SUM(CS_RPLC_AMT2) AS CS_RPLC_AMT2
+                  ,SUM(CS_RPLC_AMT3) AS CS_RPLC_AMT3
+                  ,SUM(CS_RPLC_AMT4) AS CS_RPLC_AMT4
+                  ,SUM(CS_RPLC_AMT5) AS CS_RPLC_AMT5
+                  ,SUM(CS_RPLC_AMT6) AS CS_RPLC_AMT6
+                  ,SUM(CS_RPLC_AMT7) AS CS_RPLC_AMT7
+                  ,SUM(CS_RPLC_AMT8) AS CS_RPLC_AMT8
+                  ,SUM(CS_RPLC_AMT9) AS CS_RPLC_AMT9
+                  ,SUM(CS_RPLC_AMT10) AS CS_RPLC_AMT10
+                  ,SUM(CS_RPLC_AMT11) AS CS_RPLC_AMT11
+                  ,SUM(CS_RPLC_AMT12) AS CS_RPLC_AMT12
+                  ,SUM(CS_RPLC_AMT1+CS_RPLC_AMT2+CS_RPLC_AMT3+CS_RPLC_AMT4+CS_RPLC_AMT5
+                  +CS_RPLC_AMT6+CS_RPLC_AMT7+CS_RPLC_AMT8+CS_RPLC_AMT9+CS_RPLC_AMT10
+                  +CS_RPLC_AMT11+CS_RPLC_AMT12) AS CS_RPLC_AMT_TOT
+                  ,SUM(PIA_FEE_EOT_BLAM) AS PIA_FEE_EOT_BLAM
+              FROM (
+                  /*계약번호별로 금액을 만듬. */
+                  SELECT CNTR_NO
+                        ,CNTR_SN
+                        ,MAX(SELL_TP_CD) AS SELL_TP_CD
+                        ,MAX(SELL_TP_DTL_CD) AS SELL_TP_DTL_CD
+                        ,MAX(PD_HCLSF_NM) AS PD_HCLSF_NM
+                        ,MAX(PD_MCLSF_NM) AS PD_MCLSF_NM
+                        ,MAX(BF_BASE_YM) AS BF_BASE_YM
+                        ,MAX(PIA_SELL_FEE_CRDOVR_BLAM) AS PIA_SELL_FEE_CRDOVR_BLAM
+                        ,0 AS PIA_FEE_OC_AMT
+                        ,SUM(CS_RPLC_AMT1) AS CS_RPLC_AMT1
+                        ,SUM(CS_RPLC_AMT2) AS CS_RPLC_AMT2
+                        ,SUM(CS_RPLC_AMT3) AS CS_RPLC_AMT3
+                        ,SUM(CS_RPLC_AMT4) AS CS_RPLC_AMT4
+                        ,SUM(CS_RPLC_AMT5) AS CS_RPLC_AMT5
+                        ,SUM(CS_RPLC_AMT6) AS CS_RPLC_AMT6
+                        ,SUM(CS_RPLC_AMT7) AS CS_RPLC_AMT7
+                        ,SUM(CS_RPLC_AMT8) AS CS_RPLC_AMT8
+                        ,SUM(CS_RPLC_AMT9) AS CS_RPLC_AMT9
+                        ,SUM(CS_RPLC_AMT10) AS CS_RPLC_AMT10
+                        ,SUM(CS_RPLC_AMT11) AS CS_RPLC_AMT11
+                        ,SUM(CS_RPLC_AMT12) AS CS_RPLC_AMT12
+                        ,MIN(PIA_FEE_EOT_BLAM) AS PIA_FEE_EOT_BLAM
+                    FROM (
+                        SELECT CNTR_NO
+                              ,CNTR_SN
+                              ,MAX(SELL_TP_CD) AS SELL_TP_CD  /*판매유형*/
+                              ,MAX(SELL_TP_DTL_CD) AS SELL_TP_DTL_CD
+                              ,MAX(PD_HCLSF_NM) AS PD_HCLSF_NM
+                              ,MAX(PD_MCLSF_NM) AS PD_MCLSF_NM
+                              ,BASE_YM   /*기준년월 : 수수료대체년월*/
+                              ,SUBSTR(BASE_YM,1,4) || ' 이전' AS BF_BASE_YM   /*기준년월*/
+                              ,MAX(PIA_SELL_FEE_CRDOVR_BLAM) AS PIA_SELL_FEE_CRDOVR_BLAM   /*선급판매수수료이월잔액 - MAX를 하는 이유는 이전년도에 넘어온 계약별 최초월 가져오는내용*/
+                              ,0  AS PIA_FEE_OC_AMT    /*선급수수료발생금액 - 이전꺼는 이거 필요없음. */
+                              ,CASE WHEN SUBSTR(BASE_YM,5,2) = '01'
+                                    THEN SUM(CS_RPLC_AMT)
+                                    ELSE 0 END  AS CS_RPLC_AMT1     /*1월비용대체*/
+                              ,CASE WHEN SUBSTR(BASE_YM,5,2) = '02'
+                                    THEN SUM(CS_RPLC_AMT)
+                                    ELSE 0 END  AS CS_RPLC_AMT2     /*2월비용대체*/
+                              ,CASE WHEN SUBSTR(BASE_YM,5,2) = '03'
+                                    THEN SUM(CS_RPLC_AMT)
+                                    ELSE 0 END  AS CS_RPLC_AMT3     /*3월비용대체*/
+                              ,CASE WHEN SUBSTR(BASE_YM,5,2) = '04'
+                                    THEN SUM(CS_RPLC_AMT)
+                                    ELSE 0 END  AS CS_RPLC_AMT4     /*4월비용대체*/
+                              ,CASE WHEN SUBSTR(BASE_YM,5,2) = '05'
+                                    THEN SUM(CS_RPLC_AMT)
+                                    ELSE 0 END  AS CS_RPLC_AMT5     /*5월비용대체*/
+                              ,CASE WHEN SUBSTR(BASE_YM,5,2) = '06'
+                                    THEN SUM(CS_RPLC_AMT)
+                                    ELSE 0 END  AS CS_RPLC_AMT6     /*6월비용대체*/
+                              ,CASE WHEN SUBSTR(BASE_YM,5,2) = '07'
+                                    THEN SUM(CS_RPLC_AMT)
+                                    ELSE 0 END  AS CS_RPLC_AMT7     /*7월비용대체*/
+                              ,CASE WHEN SUBSTR(BASE_YM,5,2) = '08'
+                                    THEN SUM(CS_RPLC_AMT)
+                                    ELSE 0 END  AS CS_RPLC_AMT8     /*8월비용대체*/
+                              ,CASE WHEN SUBSTR(BASE_YM,5,2) = '09'
+                                    THEN SUM(CS_RPLC_AMT)
+                                    ELSE 0 END  AS CS_RPLC_AMT9     /*9월비용대체*/
+                              ,CASE WHEN SUBSTR(BASE_YM,5,2) = '10'
+                                    THEN SUM(CS_RPLC_AMT)
+                                    ELSE 0 END  AS CS_RPLC_AMT10     /*10월비용대체*/
+                              ,CASE WHEN SUBSTR(BASE_YM,5,2) = '11'
+                                    THEN SUM(CS_RPLC_AMT)
+                                    ELSE 0 END  AS CS_RPLC_AMT11     /*11월비용대체*/
+                              ,CASE WHEN SUBSTR(BASE_YM,5,2) = '12'
+                                    THEN SUM(CS_RPLC_AMT)
+                                    ELSE 0 END  AS CS_RPLC_AMT12     /*12월비용대체*/
+                              --,SUM(CS_RPLC_AMT) AS CS_RPLC_AMT_TOT   /*합계*/
+                              ,MIN(PIA_FEE_EOT_BLAM) AS PIA_FEE_EOT_BLAM
+                          FROM T
+                         WHERE SUBSTR(BASE_YM,1,4) = #{baseYm}    /*비용대체년월이 검색년월인거*/
+                           AND SUBSTR(FEE_OC_YM,1,4) <![CDATA[<]]> #{baseYm}  /*수수료발생년월이 이전년인거*/
+                        GROUP BY CNTR_NO, CNTR_SN, BASE_YM
+                     ) GROUP BY CNTR_NO  ,CNTR_SN
+              )
+                GROUP BY SELL_TP_CD ,SELL_TP_DTL_CD ,PD_HCLSF_NM ,PD_MCLSF_NM
+                UNION ALL
+                /*해당년도에 월별로 새로 생성된 수수료 */
+                SELECT SELL_TP_CD
+                      ,SELL_TP_DTL_CD
+                      ,PD_HCLSF_NM
+                      ,PD_MCLSF_NM
+                      ,FEE_OC_YM AS BASE_YM
+                      ,SUM(PIA_SELL_FEE_CRDOVR_BLAM) AS PIA_SELL_FEE_CRDOVR_RES_AMT
+                      ,SUM(PIA_FEE_OC_AMT) AS PIA_FEE_OC_AMT
+                      ,SUM(CS_RPLC_AMT1) AS CS_RPLC_AMT1
+                      ,SUM(CS_RPLC_AMT2) AS CS_RPLC_AMT2
+                      ,SUM(CS_RPLC_AMT3) AS CS_RPLC_AMT3
+                      ,SUM(CS_RPLC_AMT4) AS CS_RPLC_AMT4
+                      ,SUM(CS_RPLC_AMT5) AS CS_RPLC_AMT5
+                      ,SUM(CS_RPLC_AMT6) AS CS_RPLC_AMT6
+                      ,SUM(CS_RPLC_AMT7) AS CS_RPLC_AMT7
+                      ,SUM(CS_RPLC_AMT8) AS CS_RPLC_AMT8
+                      ,SUM(CS_RPLC_AMT9) AS CS_RPLC_AMT9
+                      ,SUM(CS_RPLC_AMT10) AS CS_RPLC_AMT10
+                      ,SUM(CS_RPLC_AMT11) AS CS_RPLC_AMT11
+                      ,SUM(CS_RPLC_AMT12) AS CS_RPLC_AMT12
+                      ,SUM(CS_RPLC_AMT1+CS_RPLC_AMT2+CS_RPLC_AMT3+CS_RPLC_AMT4+CS_RPLC_AMT5
+                           +CS_RPLC_AMT6+CS_RPLC_AMT7+CS_RPLC_AMT8+CS_RPLC_AMT9+CS_RPLC_AMT10
+                           +CS_RPLC_AMT11+CS_RPLC_AMT12) AS CS_RPLC_AMT_TOT
+                      ,SUM(PIA_FEE_EOT_BLAM) AS PIA_FEE_EOT_BLAM
+                  FROM (
+                      SELECT CNTR_NO
+                            ,CNTR_SN
+                            ,MAX(SELL_TP_CD) AS SELL_TP_CD  /*판매유형*/
+                            ,MAX(SELL_TP_DTL_CD) AS SELL_TP_DTL_CD
+                            ,MAX(PD_HCLSF_NM) AS PD_HCLSF_NM
+                            ,MAX(PD_MCLSF_NM) AS PD_MCLSF_NM
+                            ,FEE_OC_YM
+                            ,MAX(PIA_SELL_FEE_CRDOVR_BLAM) AS PIA_SELL_FEE_CRDOVR_BLAM
+                            ,MAX(PIA_FEE_OC_AMT) AS PIA_FEE_OC_AMT
+                            ,SUM(CS_RPLC_AMT1) AS CS_RPLC_AMT1
+                            ,SUM(CS_RPLC_AMT2) AS CS_RPLC_AMT2
+                            ,SUM(CS_RPLC_AMT3) AS CS_RPLC_AMT3
+                            ,SUM(CS_RPLC_AMT4) AS CS_RPLC_AMT4
+                            ,SUM(CS_RPLC_AMT5) AS CS_RPLC_AMT5
+                            ,SUM(CS_RPLC_AMT6) AS CS_RPLC_AMT6
+                            ,SUM(CS_RPLC_AMT7) AS CS_RPLC_AMT7
+                            ,SUM(CS_RPLC_AMT8) AS CS_RPLC_AMT8
+                            ,SUM(CS_RPLC_AMT9) AS CS_RPLC_AMT9
+                            ,SUM(CS_RPLC_AMT10) AS CS_RPLC_AMT10
+                            ,SUM(CS_RPLC_AMT11) AS CS_RPLC_AMT11
+                            ,SUM(CS_RPLC_AMT12) AS CS_RPLC_AMT12
+                            ,MIN(PIA_FEE_EOT_BLAM) AS PIA_FEE_EOT_BLAM
+                        FROM (
+                            SELECT CNTR_NO, CNTR_SN
+                                  ,SELL_TP_CD
+                                  ,SELL_TP_DTL_CD
+                                  ,PD_HCLSF_NM
+                                  ,PD_MCLSF_NM
+                                  ,FEE_OC_YM  /*수수료발생년월*/
+                                  ,0 AS PIA_SELL_FEE_CRDOVR_BLAM    /*선급판매수수료이월잔액*/
+                                  ,MAX(PIA_FEE_OC_AMT) AS PIA_FEE_OC_AMT
+                                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '01' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '01'
+                                        THEN SUM(CS_RPLC_AMT)
+                                        ELSE 0 END  AS CS_RPLC_AMT1     /*1월비용대체*/
+                                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '02' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '02'
+                                        THEN SUM(CS_RPLC_AMT)
+                                        ELSE 0 END  AS CS_RPLC_AMT2     /*2월비용대체*/
+                                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '03' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '03'
+                                        THEN SUM(CS_RPLC_AMT)
+                                        ELSE 0 END  AS CS_RPLC_AMT3     /*3월비용대체*/
+                                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '04' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '04'
+                                        THEN SUM(CS_RPLC_AMT)
+                                        ELSE 0 END  AS CS_RPLC_AMT4     /*4월비용대체*/
+                                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '05' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '05'
+                                        THEN SUM(CS_RPLC_AMT)
+                                        ELSE 0 END  AS CS_RPLC_AMT5     /*5월비용대체*/
+                                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '06' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '06'
+                                        THEN SUM(CS_RPLC_AMT)
+                                        ELSE 0 END  AS CS_RPLC_AMT6     /*6월비용대체*/
+                                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '07' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '07'
+                                        THEN SUM(CS_RPLC_AMT)
+                                        ELSE 0 END  AS CS_RPLC_AMT7     /*7월비용대체*/
+                                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '08' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '08'
+                                        THEN SUM(CS_RPLC_AMT)
+                                        ELSE 0 END  AS CS_RPLC_AMT8     /*8월비용대체*/
+                                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '09' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '09'
+                                        THEN SUM(CS_RPLC_AMT)
+                                        ELSE 0 END  AS CS_RPLC_AMT9     /*9월비용대체*/
+                                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '10' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '10'
+                                        THEN SUM(CS_RPLC_AMT)
+                                        ELSE 0 END  AS CS_RPLC_AMT10     /*10월비용대체*/
+                                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '11' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '11'
+                                        THEN SUM(CS_RPLC_AMT)
+                                        ELSE 0 END  AS CS_RPLC_AMT11     /*11월비용대체*/
+                                  ,CASE WHEN SUBSTR(BASE_YM,5,2) = '12' AND SUBSTR(BASE_YM,5,2) <![CDATA[<=]]> '12'
+                                        THEN SUM(CS_RPLC_AMT)
+                                        ELSE 0 END  AS CS_RPLC_AMT12     /*12월비용대체*/
+                                  ,MIN(PIA_FEE_EOT_BLAM) AS PIA_FEE_EOT_BLAM
+                             FROM T
+                            WHERE SUBSTR(BASE_YM,1,4) = #{baseYm}
+                              AND SUBSTR(FEE_OC_YM,1,4) = #{baseYm}
+                            GROUP BY CNTR_NO, CNTR_SN, SELL_TP_CD ,SELL_TP_DTL_CD ,PD_HCLSF_NM ,PD_MCLSF_NM , BASE_YM, FEE_OC_YM
+                         ) GROUP BY CNTR_NO, CNTR_SN, FEE_OC_YM
+                 ) GROUP BY SELL_TP_CD ,SELL_TP_DTL_CD ,PD_HCLSF_NM ,PD_MCLSF_NM , FEE_OC_YM
+                  ORDER BY SELL_TP_CD ,SELL_TP_DTL_CD ,PD_HCLSF_NM ,PD_MCLSF_NM , BASE_YM
     </select>
 
     <select id="selectFeeGubunCodes" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbAdvancedSellFeeReplaceDto$SearchCodeRes">
@@ -779,14 +800,14 @@
 
     <select id="selectPop" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbAdvancedSellFeeReplaceDto$SearchPopRes">
         SELECT KW_GRP_CO_CD
-             , TO_CHAR(LAST_DAY(add_months(SYSDATE,-1)),'YYYYMMDD') AS SLIP_FTRM_DT
-             , TO_CHAR(SUM(FEE_OC_AMT), 'FM999,999,999,999,990') AS FEE_OC_AMT   /*선급한매수수료총액*/
-             , TO_CHAR(SUM(CS_RPLC_AMT), 'FM999,999,999,999,990') AS CS_RPLC_AMT   /*비용대체총액*/
-             , TO_CHAR(ADD_MONTHS(SYSDATE,-1), 'YYYY') || '년' || TO_CHAR(ADD_MONTHS(SYSDATE,-1), 'MM') || '월 선급판매수수료' AS PIA_SELL_FEE_SMRY   /*적요*/
-             , MAX(DP_SLIP_TRS_NO) AS DP_SLPNO   /*전표번호*/
+              ,TO_CHAR(LAST_DAY( TO_DATE(#{currentMonth} , 'YYYYMM') ),'YYYYMMDD') AS SLIP_FTRM_DT
+              ,TO_CHAR(SUM(FEE_OC_AMT), 'FM999,999,999,999,990') AS FEE_OC_AMT   /*선급한매수수료총액*/
+              ,TO_CHAR(SUM(CS_RPLC_AMT), 'FM999,999,999,999,990') AS CS_RPLC_AMT   /*비용대체총액*/
+              ,substr(#{currentMonth}, 1,4) || '년' || substr(#{currentMonth}, 5,2) || '월 선급판매수수료' AS PIA_SELL_FEE_SMRY   /*적요*/
+              ,MAX(DP_SLIP_TRS_NO) AS DP_SLPNO   /*전표번호*/
           FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS T1 /*선급판매수수료 비용대체기본*/
-         WHERE BASE_YM = TO_CHAR(add_months(SYSDATE,-1),'YYYYMM')
-           AND KW_GRP_CO_CD = #{kwGprCoCd}
+         WHERE BASE_YM = #{currentMonth}
+           AND KW_GRP_CO_CD = #{kwGrpCoCd}
       GROUP BY KW_GRP_CO_CD
     </select>
 
@@ -794,7 +815,7 @@
         UPDATE TB_CBCL_PIA_FEE_CS_RPLC_BAS
            SET PIA_SELL_FEE_SMRY = #{piaSellFeeSmry}
                <include refid="COMMON.updateSystemField"/>
-         WHERE BASE_YM = TO_CHAR(add_months(sysdate,-1),'YYYYMM')
+         WHERE BASE_YM = #{baseYm}
            AND KW_GRP_CO_CD = #{kwGrpCoCd}
     </update>
 </mapper>
