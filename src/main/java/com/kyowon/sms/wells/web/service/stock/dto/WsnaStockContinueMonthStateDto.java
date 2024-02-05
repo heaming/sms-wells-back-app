@@ -38,7 +38,7 @@ public class WsnaStockContinueMonthStateDto {
     public record SearchRes(
         String pdCd,
         String sapMatCd,
-        String pdNm,
+        String pdAbbrNm,
         String asLdtm,
         String asMatMngTpCd,
         String minGoQty,
