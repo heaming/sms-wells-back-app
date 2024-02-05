@@ -249,6 +249,7 @@ public class WwdbGiroDepositMgtDto {
 
         String cntrNo,
         String cntrSn,
+        String cntrCanDtm,
         String cntrDtlStatCd //--계약상태코드
     ) {}
 

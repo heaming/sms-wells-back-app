@@ -129,10 +129,8 @@ public class WwdbGiroDepositMgtService {
 
                 if (Objects.isNull(selectDtlState)) { //자료가없으면 주문 x
                     errorChk = "1";
-                } else if (selectDtlState.cntrDtlStatCd().equals("303")) { //정상처리가 아니면 2
+                } else if (StringUtil.isNotEmpty(selectDtlState.cntrCanDtm())) { //정상처리가 아니면 2
                     errorChk = "2";
-                } else if (selectDtlState.cntrDtlStatCd().equals("101")) {
-                    errorChk = "3"; //정상처리
                 } else {
                     errorChk = "4"; //정상처리
                 }
