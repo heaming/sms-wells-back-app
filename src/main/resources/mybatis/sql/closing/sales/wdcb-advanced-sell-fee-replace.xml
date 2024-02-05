@@ -41,6 +41,7 @@
                       , 0 AS PIA_FEE_EOT_BLAM
                   FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS T1 /*선급판매수수료 비용대체기본*/
                  WHERE BASE_YM   = #{baseYm}   /*기준년월*/
+                   AND FEE_TCNT = #{feeTcnt}
                     <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
                    AND OG_TP_CD  = #{ogTpCd}   /*조직유형*/
                     </if>
@@ -184,7 +185,8 @@
                      , CASE WHEN SUBSTR(CNTR_PD_ENDDT,1,6) = #{baseYm} THEN SUM(CS_RPLC_AMT)
                             ELSE 0 END AS CS_RPLC_AMT_CANC_BLAM
                   FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS A1 /*선급판매수수료 비용대체기본*/
-                 GROUP BY CNTR_NO
+                  WHERE FEE_TCNT = #{feeTcnt}
+                  GROUP BY CNTR_NO
                      , CNTR_SN
                      , BASE_YM
                      , OG_TP_CD
@@ -326,6 +328,7 @@
              , (SELECT MAX(USR_NM) FROM T_CMP_USR_ACO_M WHERE USR_ID = T1.FNL_MDFC_USR_ID) AS USR_NM  /*사용자명*/
           FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS T1 /*선급판매수수료 비용대체기본*/
          WHERE BASE_YM   = #{baseYm}   /*기준년월*/
+           AND FEE_TCNT = #{feeTcnt}
            <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
            AND OG_TP_CD  = #{ogTpCd}   /*조직유형*/
            </if>
@@ -444,6 +447,7 @@
               , NVL(SUM(FEE_OC_AMT), 0) + NVL(SUM(PIA_SELL_FEE_CRDOVR_RES_AMT), 0) - NVL(SUM(CS_RPLC_AMT), 0) AS PIA_FEE_EOT_BLAM  /*선급수수료기말잔액. 취소된 경우는 0*/
            FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS T1 /*선급판매수수료 비용대체기본*/
           WHERE BASE_YM   = #{baseYm}   /*기준년월*/
+            AND FEE_TCNT = #{feeTcnt}
             <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
             AND OG_TP_CD  = #{ogTpCd}   /*조직유형*/
             </if>
@@ -542,6 +546,7 @@
                   ,NVL(SUM(CS_RPLC_BLAM),0) AS PIA_FEE_EOT_BLAM    /*비용대체잔액*/
               FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS T1
              WHERE 1=1
+             AND FEE_TCNT = #{feeTcnt}
              <if test="@MybatisUtils@isNotEmpty(ogTpCd) and !@MybatisUtils@equals(ogTpCd, 'ALL')">
              AND OG_TP_CD  = #{ogTpCd}   /*조직유형*/
              </if>
@@ -795,14 +800,14 @@
 
     <select id="selectPop" resultType="com.kyowon.sms.wells.web.closing.sales.dto.WdcbAdvancedSellFeeReplaceDto$SearchPopRes">
         SELECT KW_GRP_CO_CD
-             , TO_CHAR(LAST_DAY(add_months(SYSDATE,-1)),'YYYYMMDD') AS SLIP_FTRM_DT
-             , TO_CHAR(SUM(FEE_OC_AMT), 'FM999,999,999,999,990') AS FEE_OC_AMT   /*선급한매수수료총액*/
-             , TO_CHAR(SUM(CS_RPLC_AMT), 'FM999,999,999,999,990') AS CS_RPLC_AMT   /*비용대체총액*/
-             , TO_CHAR(ADD_MONTHS(SYSDATE,-1), 'YYYY') || '년' || TO_CHAR(ADD_MONTHS(SYSDATE,-1), 'MM') || '월 선급판매수수료' AS PIA_SELL_FEE_SMRY   /*적요*/
-             , MAX(DP_SLIP_TRS_NO) AS DP_SLPNO   /*전표번호*/
+              ,TO_CHAR(LAST_DAY( TO_DATE(#{currentMonth} , 'YYYYMM') ),'YYYYMMDD') AS SLIP_FTRM_DT
+              ,TO_CHAR(SUM(FEE_OC_AMT), 'FM999,999,999,999,990') AS FEE_OC_AMT   /*선급한매수수료총액*/
+              ,TO_CHAR(SUM(CS_RPLC_AMT), 'FM999,999,999,999,990') AS CS_RPLC_AMT   /*비용대체총액*/
+              ,substr(#{currentMonth}, 1,4) || '년' || substr(#{currentMonth}, 5,2) || '월 선급판매수수료' AS PIA_SELL_FEE_SMRY   /*적요*/
+              ,MAX(DP_SLIP_TRS_NO) AS DP_SLPNO   /*전표번호*/
           FROM TB_CBCL_PIA_FEE_CS_RPLC_BAS T1 /*선급판매수수료 비용대체기본*/
-         WHERE BASE_YM = TO_CHAR(add_months(SYSDATE,-1),'YYYYMM')
-           AND KW_GRP_CO_CD = #{kwGprCoCd}
+         WHERE BASE_YM = #{currentMonth}
+           AND KW_GRP_CO_CD = #{kwGrpCoCd}
       GROUP BY KW_GRP_CO_CD
     </select>
 
@@ -810,7 +815,7 @@
         UPDATE TB_CBCL_PIA_FEE_CS_RPLC_BAS
            SET PIA_SELL_FEE_SMRY = #{piaSellFeeSmry}
                <include refid="COMMON.updateSystemField"/>
-         WHERE BASE_YM = TO_CHAR(add_months(sysdate,-1),'YYYYMM')
+         WHERE BASE_YM = #{baseYm}
            AND KW_GRP_CO_CD = #{kwGrpCoCd}
     </update>
 </mapper>

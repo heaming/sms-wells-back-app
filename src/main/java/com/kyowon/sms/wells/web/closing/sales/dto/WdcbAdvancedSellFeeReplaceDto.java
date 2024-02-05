@@ -6,6 +6,7 @@ public class WdcbAdvancedSellFeeReplaceDto {
     @ApiModel("WdcbAdvancedSellFeeReplaceDto-SearchReq")
     public record SearchReq(
         String searchGubun,
+        int feeTcnt,
         String baseYm,
         String ogTpCd,
         String sellTpCd,
@@ -161,6 +162,15 @@ public class WdcbAdvancedSellFeeReplaceDto {
     public record SaveReq(
         String piaSellFeeSmry,
         String kwGrpCoCd,
-        String fnlMdfcDtm
+        String fnlMdfcDtm,
+        int feeTcnt,
+        String baseYm
+    ) {}
+
+    @ApiModel("WdcbAdvancedSellFeeReplaceDto-CreateReq")
+    public record CreateReq(
+        String beforeMonth,
+        String currentMonth,
+        String feeTcnt
     ) {}
 }
