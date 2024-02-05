@@ -167,6 +167,8 @@ public class WsnaSeedReleaseScheduleService {
                 String pkgDvCd = dto.pkgDvCd();
                 // 서비스업무세분류코드
                 String svBizDclsfCd = dvo.getSvBizDclsfCd();
+                // 출고예정일
+                String sppDuedt = dvo.getSppDuedt();
 
                 String cntrNo = dvo.getCntrNo();
                 int cntrSn = dvo.getCntrSn();
@@ -176,7 +178,7 @@ public class WsnaSeedReleaseScheduleService {
 
                 // 계약정보 update
                 this.installationReqdDtInService
-                    .saveInstallReqdDt(cntrNo, String.valueOf(cntrSn), sppCnfmdt, "", "");
+                    .saveInstallReqdDt(cntrNo, String.valueOf(cntrSn), sppCnfmdt, "", sppDuedt);
 
                 // BS주기표 생성
                 SearchProcessReq visitDto = this.convertVisitPrdProcessReq(cntrNo, String.valueOf(cntrSn), sppCnfmdt);
@@ -438,6 +440,8 @@ public class WsnaSeedReleaseScheduleService {
         String pkgDvCd = map.get("PARAM3");
         // 서비스업무세분류코드
         String svBizDclsfCd = map.get("PARAM4");
+        // 배송예정일자
+        String sppDuedt = map.get("PARAM5");
 
         ValidAssert.hasText(cntrNo);
         ValidAssert.hasText(cntrSn);
@@ -447,7 +451,7 @@ public class WsnaSeedReleaseScheduleService {
 
         // 계약정보 update
         this.installationReqdDtInService
-            .saveInstallReqdDt(cntrNo, cntrSn, curDt, "", "");
+            .saveInstallReqdDt(cntrNo, cntrSn, curDt, "", sppDuedt);
 
         // BS주기표 생성
         SearchProcessReq visitDto = this.convertVisitPrdProcessReq(cntrNo, cntrSn, curDt);
