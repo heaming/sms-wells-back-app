@@ -62,6 +62,7 @@ public class WbnaFosterTransferMgtController {
         @ApiImplicitParam(name = "cralLocaraTno", value = "휴대지역전화번호", paramType = "query"),
         @ApiImplicitParam(name = "mexnoEncr", value = "휴대전화국번호암호화", paramType = "query"),
         @ApiImplicitParam(name = "cralIdvTno", value = "휴대개별전화번호", paramType = "query"),
+        @ApiImplicitParam(name = "clctamPrtnrNo", value = "집금담당자번호", paramType = "query", required = true),
     })
     @GetMapping("/detail/paging")
     public PagingResult<SearchDetailRes> getFosterTransferDetails(
@@ -84,6 +85,7 @@ public class WbnaFosterTransferMgtController {
         @ApiImplicitParam(name = "cralLocaraTno", value = "휴대지역전화번호", paramType = "query"),
         @ApiImplicitParam(name = "mexnoEncr", value = "휴대전화국번호암호화", paramType = "query"),
         @ApiImplicitParam(name = "cralIdvTno", value = "휴대개별전화번호", paramType = "query"),
+        @ApiImplicitParam(name = "clctamPrtnrNo", value = "집금담당자번호", paramType = "query", required = true),
     })
     public SearchDetailSummaryRes getFosterTransferDetailsSummary(
         @Valid
