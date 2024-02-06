@@ -62,6 +62,7 @@
                             ELSE ''
                           END) AS  TONEP_IST_OPT
                        , T8.IST_LCT_DTL_CN                         /* 설치위치상세내용 */
+                       , T2.SV_BIZ_DCLSF_CD
                   FROM WSMDBS.TB_SVPD_CST_SV_EXCN_IZ T1            /* 고객서비스수행내역 */
                  INNER JOIN WSMDBS.TB_SVPD_CST_SV_WK_RS_IZ T2      /* 고객서비스작업결과내역 */
                     ON T1.CNTR_NO = T2.CNTR_NO
@@ -181,6 +182,7 @@
                             ELSE ''
                           END) AS  TONEP_IST_OPT
                        , T8.IST_LCT_DTL_CN                         /* 설치위치상세내용 */
+                       , T2.SV_BIZ_DCLSF_CD
                   FROM WSMDBS.TB_SVPD_CST_SV_EXCN_IZ T1            /* 고객서비스수행내역 */
                  INNER JOIN WSMDBS.TB_SVPD_CST_SV_WK_RS_IZ T2      /* 고객서비스작업결과내역 */
                     ON T1.CNTR_NO = T2.CNTR_NO
@@ -287,6 +289,7 @@
                    , '' AS TONEP_IST_OPT_YN
                    , '' AS TONEP_IST_OPT
                    , '' AS IST_LCT_DTL_CN                         /* 설치위치상세내용 */
+                   , '' AS SV_BIZ_DCLSF_CD
               FROM WSMDBS.TB_SVPD_CST_SV_EXCN_IZ T1            /* LC_ALLOCATE_AC201TB 고객서비스수행내역 */
              INNER JOIN WSMDBS.TB_SSCT_CNTR_ADR_REL T5         /* 계약주소관계 */
                 ON T1.CNTR_NO = T5.DTL_CNTR_NO
@@ -345,7 +348,7 @@
     <!--투입부품 Dvo-->
     <select id="selectServiceProcDetailPuPart" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbServiceProcDetailPuPartDvo">
         SELECT    P1.FNL_PD_CD AS  PD_CD
-                , DECODE(P1.SV_BIZ_HCLSF_CD, '6', '회수','투입') || ' - ' || P2.PD_NM || '(' || P1.FNL_PD_CD || ')' AS PD_NM
+                , DECODE(P1.SV_BIZ_HCLSF_CD, '6', '회수','투입') || ' - ' || P2.PD_NM || '(' || P1.ITM_PD_CD || ')' AS PD_NM
                 , P1.FNL_BC_NO
                 , P1.USE_QTY
           FROM  TB_SVST_SV_WK_OSTR_IZ P1
@@ -358,5 +361,350 @@
               AND P1.CST_SV_ASN_NO = #{cstSvAsnNo}
               AND P1.DTA_DL_YN = 'N'
 	     ORDER BY P1.WK_OSTR_SN ASC
+    </select>
+
+    <select id="selectCttBasKey" resultType="java.lang.String">
+        SELECT LPAD((SELECT NVL(MAX(CTT_OJ_ID),0) FROM TB_SSOP_CTT_BAS) + 1, 15, '0') FROM DUAL
+    </select>
+
+    <insert id="insertCttNwRgst">
+        INSERT
+          INTO TB_SVPD_CST_SV_CNTC_IZ /* 고객서비스접촉이력 */
+             (
+               CST_SV_ASN_NO
+             , CNTC_DT
+             , CNTC_HH
+             , OG_TP_CD
+             , PRTNR_NO
+             , ABSNC_RSON_CD
+             , CNTC_CN
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />
+             )
+        SELECT #{cstSvAsnNo}
+             , #{cttRcpDtm}    /* 컨택예정일자..화면에서 받아옴 */
+             , TO_CHAR(SYSDATE,'HH24MISS')
+             , ICHR_OG_TP_CD
+             , ICHR_PRTNR_NO
+             , '00'
+             , #{cttMoCn}               /* 컨택메모내용 */
+             , 'N' AS DTA_DL_YN             /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemFieldValue" />
+         FROM TB_SVPD_CST_SVAS_IST_ASN_IZ
+          WHERE CST_SV_ASN_NO = #{cstSvAsnNo}
+    </insert>
+
+    <update id="updateCttNwRgst">
+        UPDATE TB_SVPD_CST_SV_CNTC_IZ
+           SET <include refid="COMMON.updateSystemField"/>
+         WHERE 1=1
+           AND CST_SV_ASN_NO = #{cstSvAsnNo}
+           AND CNTC_DT = #{cttRcpDtm}
+           AND CNTC_HH = '090000'
+    </update>
+
+    <insert id="insertCttNwDtlRgst">
+        INSERT
+          INTO TB_SVPD_WK_DTM_CH_IZ /* 작업일시변경내역 */
+             (
+               CST_SV_ASN_NO
+             , CNTR_NO
+             , CNTR_SN
+             , CH_SN
+             , OG_TP_CD
+             , WK_PRTNR_NO
+             , PROM_DT
+             , PROM_HH
+             , PROM_CH_CAUS_CD
+             , PROM_CH_RSON_CD
+             , PROM_CH_RSON_CN
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />
+             )
+       SELECT  #{cstSvAsnNo}
+             , #{cntrNo}
+             , #{cntrSn}
+             , (SELECT NVL(MAX(CH_SN),'0') + 1 AS SEQ
+                  FROM TB_SVPD_WK_DTM_CH_IZ
+                 WHERE 1=1
+                   AND CST_SV_ASN_NO = AC221.CST_SV_ASN_NO
+                   AND CNTR_NO = AC221.CNTR_NO
+                   AND CNTR_SN = AC221.CNTR_SN
+               ) AS SEQ
+             , ICHR_OG_TP_CD
+             , ICHR_PRTNR_NO
+             , #{cttDuedt}
+             , '090000'
+             , '10'
+             , ''
+             , #{cttMoCn}
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ AC221
+         WHERE CST_SV_ASN_NO = #{cstSvAsnNo}
+    </insert>
+
+    <select id="selectServiceProcDetailCttDatas" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcDetailListDto$CttIzReq">
+        SELECT AC221.CNTR_NO /* 계약번호 */
+             , AC221.CNTR_SN /* 계약일련번호 */
+             , CNTC.CST_SV_ASN_NO AS CTT_OJ_ID /* 컨택대상ID */
+             , CH_SN AS CTT_SN /* 컨택일련번호 */
+             , CNTC_CN AS CTT_MO_CN  /* 컨택요청내용 */
+             , CNTC.CNTC_DT AS CTT_RCP_DTM /* 컨택접수일자 */
+             , NVL(PROM_DT, VST_CNFMDT) AS CTT_DUEDT /* 컨택예정일자 */
+             , AC221.SV_BIZ_DCLSF_CD
+           FROM TB_SVPD_CST_SVAS_IST_ASN_IZ AC221
+LEFT OUTER JOIN TB_SVPD_CST_SV_CNTC_IZ CNTC
+             ON AC221.CST_SV_ASN_NO = CNTC.CST_SV_ASN_NO
+            AND CNTC.CNTC_DT||CNTC.CNTC_HH = (SELECT MAX(Y1.CNTC_DT || Y1.CNTC_HH)
+                                      FROM TB_SVPD_CST_SV_CNTC_IZ Y1
+                                     WHERE CNTC.CST_SV_ASN_NO = Y1.CST_SV_ASN_NO AND Y1.DTA_DL_YN = 'N')
+LEFT OUTER JOIN TB_SVPD_WK_DTM_CH_IZ VST
+             ON AC221.CST_SV_ASN_NO = VST.CST_SV_ASN_NO
+            AND VST.CH_SN = (SELECT MAX(CH_SN)
+                           FROM TB_SVPD_WK_DTM_CH_IZ SUB1
+                          WHERE AC221.CST_SV_ASN_NO = SUB1.CST_SV_ASN_NO
+                          )
+          WHERE AC221.CST_SV_ASN_NO=#{cstSvAsnNo}
+    </select>
+
+    <select id="selectOutSourcingSaveSnInf" resultType="integer">
+        SELECT NVL(MAX(PROCS_SN),0)+1 AS OTSC_SEQ
+          FROM TB_SVPD_OTSC_PDCT_AS_RS_IZ AA
+         WHERE AA.CST_SV_ASN_NO = #{cstSvAsnNo}
+    </select>
+
+
+    <insert id="insertOutSourcingInfRgst">
+        /*-- 아웃소싱제품AS결과내역	저장 */
+        INSERT INTO TB_SVPD_OTSC_PDCT_AS_RS_IZ
+              (   CST_SV_ASN_NO
+                , PROCS_SN
+                , CNTR_NO
+                , CNTR_SN
+                , SV_BIZ_HCLSF_CD
+                , ASN_DT
+                , BLG_NM
+                , WKP_NM
+                , CNTC_DT
+                , VST_DUEDT
+                , PRGS_STAT_NM
+                , RMK_CN
+                , DLVR_ARTC_CN
+                , BC_NO
+                , USE_PROP_SZ_VAL
+                , DTA_DL_YN
+        <include refid="COMMON.insertSystemField" />
+                  )
+         SELECT CST_SV_ASN_NO
+              , #{otscSeq}
+              , CNTR_NO
+              , CNTR_SN
+              , SV_BIZ_HCLSF_CD
+              , ASN_DT
+              , OG_NM
+              , PRTNR_KNM
+              , #{cttRcpDtm}
+              , NVL(#{cttDuedt}, VST_CNFMDT)
+              , #{procStusNm}
+              , #{canRson}
+              , #{cttMoCn}
+              , ''
+              , ''
+              , 'N'
+        <include refid="COMMON.insertSystemFieldValue" />
+           FROM TB_SVPD_CST_SVAS_IST_ASN_IZ
+              , TB_OGBS_PRTNR_BAS
+          WHERE CST_SV_ASN_NO = #{cstSvAsnNo}
+            AND OG_TP_CD = ICHR_OG_TP_CD
+            AND PRTNR_NO = ICHR_PRTNR_NO
+    </insert>
+
+    <update id="updateCfrmdt">
+    UPDATE TB_SVPD_CST_SVAS_IST_ASN_IZ
+       SET VST_CNFMDT = #{cttDuedt}
+         , VST_CNFM_HH = '090000'
+         , WK_ACPTE_STAT_CD = 'Y'
+         , WK_ACPTE_DT = #{cttRcpDtm}
+         , WK_ACPTE_HH = '090000'
+         , VST_DUEDT = #{cttDuedt}
+         , VST_EXP_HH = '090000'
+         , DTM_CH_CAUS_CD = '10'
+         , DTM_CH_RSON_DTL_CN = #{cttMoCn}
+         <include refid="COMMON.updateSystemField"/>
+     WHERE 1=1
+       AND CST_SV_ASN_NO = #{cstSvAsnNo}
+    </update>
+
+    <update id="updateCancleInfo">
+     UPDATE TB_SVPD_CST_SVAS_IST_ASN_IZ
+	       SET WK_PRGS_STAT_CD = DECODE(#procStusCd#, '00', '71', '72') -- 작업진행상태(작업 탭 화면에서 조회한 값, TA.AC221_PROC_STUS)
+	         , DTM_CH_RSON_CD = '11'                                -- (고정값)작업결과조치구분('11' - 고객센터반환)
+	         , WK_CAN_RSON_CD = #{canRson}                       -- (선택값)작업취소사유(그룹코드 - DE53)
+	         , WK_CAN_MO_CN = #{canRsonDtlIz}                    -- (입력값)작업취소메모(작업취소사유가 기타('90') 인 경우에는 필수입력항목
+	         , ARV_DT = (CASE WHEN #procStusCd# != '00' AND LENGTH(AC221_ARR_DT) IS NULL THEN AC221_CFRM_DT ELSE AC221_ARR_DT END)
+		     , ARV_HH = (CASE WHEN #procStusCd# != '00' AND LENGTH(AC221_ARR_DT) IS NULL THEN '000000' ELSE AC221_ARR_TM END)
+	         , WK_EXCN_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')             -- 작업일자
+	         , WK_EXCN_HH = TO_CHAR(SYSDATE, 'HH24MISS')             -- 작업시간
+	         , WK_PRTNR_NO =  #{session.employeeIDNumber}         -- 작업처리자 : 엔지니어 사번(로그인 ID)
+	         <include refid="COMMON.updateSystemField"/>
+	     WHERE 1 = 1
+           AND CST_SV_ASN_NO = #{cstSvAsnNo}
+    </update>
+
+    <select id="selectServiceProcDetailWkCanDatas" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcDetailListDto$WkCanReq">
+        SELECT WK_CAN_RSON_CD
+             , WK_CAN_MO_CN
+             , WK_PRGS_STAT_CD
+          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ
+         WHERE 1=1
+           AND CST_SV_ASN_NO=#{cstSvAsnNo}
+           AND CNTR_NO=#{cntrNo}
+           AND CNTR_SN=#{cntrSn}
+    </select>
+
+    <select id="selectCttBeforeDatas" resultType="hashmap">
+        SELECT CST_SV_ASN_NO
+             , CNTC_DT
+            , CNTC_HH
+            , OG_TP_CD
+            , PRTNR_NO
+            , ABSNC_RSON_CD
+            , CNTC_CN
+            , DTA_DL_YN
+          FROM TB_SVPD_CST_SV_CNTC_IZ
+         WHERE 1=1
+           AND CST_SV_ASN_NO = #{cstSvAsnNo}
+           AND CNTC_DT = #{cttRcpDtm}
+           AND CNTC_HH = '090000'
+    </select>
+
+    <select id="selectWkCanBeforeDatas" resultType="hashmap">
+        SELECT WK_CAN_RSON_CD
+          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ
+         WHERE 1=1
+           AND CST_SV_ASN_NO=#{cstSvAsnNo}
+    </select>
+
+    <insert id="updateWkCanIz">
+        UPDATE TB_SVPD_CST_SVAS_IST_ASN_IZ
+           SET WK_CAN_RSON_CD=#{canRson}
+             , WK_CAN_MO_CN=#{canRsonDtlIz}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE 1=1
+           AND CST_SV_ASN_NO=#{cstSvAsnNo}
+           AND CNTR_NO=#{cntrNo}
+           AND CNTR_SN=#{cntrSn}
+    </insert>
+
+    <insert id="insertUpdateWkCanIz">
+        MERGE
+         INTO TB_SVPD_CST_SVAS_IST_ASN_IZ A
+        USING DUAL
+           ON (A.CST_SV_ASN_NO=#{cstSvAsnNo}
+          AND A.CNTR_NO=#{cntrNo}
+          AND A.CNTR_SN=#{cntrSn})
+         WHEN MATCHED THEN
+       UPDATE
+          SET A.WK_CAN_RSON_CD=#{wkCanRsonCd}
+            , A.WK_CAN_MO_CN=#{wkCanMoCn}
+            <include refid="COMMON.updateSystemField"/>
+         WHEN NOT MATCHED THEN
+       INSERT
+            (
+              A.CST_SV_ASN_NO
+            , A.CNTR_NO
+            , A.CNTR_SN
+            , A.CNTR_CST_NO
+            , A.WK_CAN_RSON_CD
+            , A.WK_CAN_MO_CN
+            <include refid="COMMON.insertSystemField" />
+            )
+       VALUES
+            (
+              #{cstSvAsnNo}
+            , #{cntrNo}
+            , #{cntrSn}
+            , (
+                SELECT TO_CHAR(CNTR_CST_NO)
+                  FROM (
+                         SELECT T2.CNTR_CST_NO
+                           FROM TB_SSCT_CNTR_DTL T1
+                          INNER JOIN TB_SSCT_CNTR_BAS T2
+                             ON T2.CNTR_NO = T1.CNTR_NO
+                          WHERE 1=1
+                            AND T1.CNTR_NO=#{cntrNo}
+                            AND T1.CNTR_SN=#{cntrSn}
+                            AND T2.DTA_DL_YN = 'N'
+                    )
+            )
+            , #{wkCanRsonCd}
+            , #{wkCanMoCn}
+            <include refid="COMMON.insertSystemFieldValue" />
+            )
+    </insert>
+
+    <select id="selectWkStatData" resultType="hashmap">
+        SELECT CST_SV_ASN_NO
+             , WK_PRGS_STAT_CD
+          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ
+         WHERE 1=1
+           AND CST_SV_ASN_NO=#{cstSvAsnNo}
+           AND CNTR_NO=#{cntrNo}
+           AND CNTR_SN=#{cntrSn}
+    </select>
+
+    <insert id="insertWkCanHist">
+        INSERT
+          INTO TB_SVPD_CST_SVAS_IST_ASN_HIST
+             (
+               AS_IST_ASN_ID
+             , CST_SV_ASN_NO
+             , CNTR_NO
+             , CNTR_SN
+             , CNTR_CST_NO
+             , WK_CAN_RSON_CD
+             , WK_CAN_MO_CN
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />
+             )
+        VALUES
+             (
+               TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_SVPD_CST_SVAS_IST_ASN_HIST$AS_IST_ASN_ID.NEXTVAL, 12, 0)
+             , #{cstSvAsnNo}
+             , #{cntrNo}
+             , #{cntrSn}
+             , (
+                 SELECT CNTR_CST_NO
+                   FROM TB_SSCT_CNTR_BAS
+                  WHERE CNTR_NO=#{cntrNo}
+             )
+            , #{wkCanRsonCd}
+            , #{wkCanMoCn}
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" />
+             )
+    </insert>
+
+    <select id="selectCmnCdInqr1" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcDetailCmnCdInqrDto$CmnCdInqrRes">
+        SELECT CD_VLD_VAL AS CODE_ID
+             , CD_CNTN AS CODE_NAME
+          FROM T_CMZ_CD_D A
+         WHERE TENANT_ID = 'TNT_WELLS'
+           AND CD_ID = 'WK_CAN_CAUS_CD'
+            AND SUBSTR(CD_VLD_VAL,2,1)='1'
+                   AND TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN SUBSTR(USER_DFN_03,1,8) AND SUBSTR(USER_DFN_03,10,8)
+                   AND '2' IN (SELECT TRIM(REGEXP_SUBSTR(REPLACE(REPLACE(USER_DFN_04, '1-11', '1,2,3,4,5,6,7,8,9,10,11'),'91-96','91,92,93,94,95,96'), '[^,]+', 1, LEVEL)) FROM DUAL CONNECT BY  INSTR(REPLACE(REPLACE(USER_DFN_04, '1-11', '1,2,3,4,5,6,7,8,9,10,11'),'91-96','91,92,93,94,95,96'), ',', 1, LEVEL - 1) > 0)
+    </select>
+
+    <select id="selectCmnCdInqr2" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcDetailCmnCdInqrDto$CmnCdInqrRes">
+        SELECT CD_VLD_VAL AS CODE_ID
+             , CD_CNTN AS CODE_NAME
+          FROM T_CMZ_CD_D A
+         WHERE TENANT_ID = 'TNT_WELLS'
+           AND CD_ID = 'RCP_CAN_RSON_CD'
+            AND SUBSTR(CD_VLD_VAL,2,1)='1'
+                   AND TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN SUBSTR(USER_DFN_03,1,8) AND SUBSTR(USER_DFN_03,10,8)
+                   AND '2' IN (SELECT TRIM(REGEXP_SUBSTR(REPLACE(REPLACE(USER_DFN_04, '1-11', '1,2,3,4,5,6,7,8,9,10,11'),'91-96','91,92,93,94,95,96'), '[^,]+', 1, LEVEL)) FROM DUAL CONNECT BY  INSTR(REPLACE(REPLACE(USER_DFN_04, '1-11', '1,2,3,4,5,6,7,8,9,10,11'),'91-96','91,92,93,94,95,96'), ',', 1, LEVEL - 1) > 0)
     </select>
 </mapper>

@@ -53,4 +53,5 @@ public class WsnbServiceProcDetailListDvo {
     String aplcDt;
     String aplcYn;
     String istLctDtlCn;
+    String svBizDclsfCd;
 }
