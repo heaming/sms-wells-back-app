@@ -9,37 +9,37 @@ import lombok.Setter;
 @Setter
 public class WsnaPcsvOutOfStorageDvo {
 
-    String cntrNo;
+    String cntrNo; // 계약번호
 
-    String cntrSn;
+    String cntrSn; // 계약일련번호
 
     String cntrCstNo; // 계약자 고객번호
 
-    String sellTpCd;
+    String sellTpCd; // 판매유형코드
 
-    String sellTpNm;
+    String sellTpNm; // 판매유형코드명
 
-    String sellTpDtlCd;
+    String sellTpDtlCd; // 판매유형상세코드
 
-    String sellTpDtlNm;
+    String sellTpDtlNm; // 판매유형상세코드명
 
-    String cntrDtlStatCd;
+    String cntrDtlStatCd; // 계약상세상태코드
 
-    String cntrDtlStatNm;
+    String cntrDtlStatNm; // 계약셍세상태코드명
 
-    String rcgvpKnm;
+    String rcgvpKnm; // 수령자한글명
 
-    String basePdCd;
+    String basePdCd; // 기준상품코드
 
-    String basePdNm;
+    String basePdNm; // 기준상품명
 
-    String cntrRcpFshDtm; //CONT_DT 계약일자
+    String cntrRcpFshDtm; // 계약접수완료일시(출고요청일)
 
-    String adrId;
+    String adrId; // 주소ID
 
-    String newAdrZip;
+    String newAdrZip; // 신주소우편번호
 
-    String rnadr; //주소
+    String rnadr; // 도로명주소
 
     String rdadr; //주소 상세
 
@@ -59,69 +59,69 @@ public class WsnaPcsvOutOfStorageDvo {
 
     String rsgAplcDt; //해지신청일자
 
-    String rsgFshDt;
+    String rsgFshDt; // 해지완료일자
 
-    String cstSvAsnNo;
+    String cstSvAsnNo; // 배정번호
 
-    String pdctPdCd;
+    String pdctPdCd; // 제품코드
 
-    String pdctPdNm;
+    String pdctPdNm; // 제품명
 
-    String svPdCd;
+    String svPdCd; // 서비스코드
 
-    String svPdNm;
+    String svPdNm; // 서비스명
 
-    String pdGdCd;
+    String pdGdCd; // 제품등급
 
-    String svBizHclsfCd;
+    String svBizHclsfCd; // 서비스업무대분류코드
 
-    String svBizDclsfCd;
+    String svBizDclsfCd; // 서비스업무세분류코드
 
-    String svBizDclsfNm;
+    String svBizDclsfNm; // 서비스업무세분류코드명
 
-    String wkPrgsStatCd;
+    String wkPrgsStatCd; // 서비스상태코드
 
-    String wkPrgsStatNm;
+    String wkPrgsStatNm; // 서비스상태코드명
 
-    String istDt;
+    String istDt; // 설치일자
 
-    String reqdDt;
+    String reqdDt; // 철거일자
 
-    String ogId;
+    String ogId; // 조직ID
 
-    String ogTpCd;
+    String ogTpCd; // 조직유형코드
 
-    String prtnrNo;
+    String prtnrNo; // 파트너번호
 
-    String prtnrKnm;
+    String prtnrKnm; // 파트너성명
 
-    String vstFshDt;
+    String vstFshDt; // 방문완료일자(출고확정일)
 
-    String wkWareNo;
+    String wkWareNo; // 창고번호
 
-    String wareMngtPrtnrNo;
+    String wareMngtPrtnrNo; // 창고관리파트너번호
 
-    String wareMngtPrtnrOgTpCd;
+    String wareMngtPrtnrOgTpCd; // 창고관리파트너조직유형코드
 
     String rpbLocaraCd; //VST_LOCARA_CD 방문지역코드
 
-    String siteAwSvTpCd;
+    String siteAwSvTpCd; // 현장수당서비스유형코드
 
-    String siteAwAtcCd;
+    String siteAwAtcCd; // 현장수당항목코드
 
-    String pdUswyCd;
+    String pdUswyCd; // 상품용도코드
 
-    String asRefriDvCd;
+    String asRefriDvCd; // AS유무상구분코드
 
-    String bfsvcRefriDvCd;
+    String bfsvcRefriDvCd; // BS유무상구분코드
 
-    String urgtDvCd;
+    String urgtDvCd; // 긴급구분코드
 
-    String ostrAkNo;
+    String ostrAkNo; // 서비스출고요청번호
 
-    String lgstOstrAkNo;
+    String lgstOstrAkNo; // 물류출고요청번호
 
-    String ostrNo;
+    String ostrNo; // 물류출고번호
 
     /* 작업결과 필수 코드   */
     String pdGrpCd; // 상품그룹코드
@@ -134,13 +134,13 @@ public class WsnaPcsvOutOfStorageDvo {
 
     /* 물류인터페이스 필수 코드  */
 
-    String lgstWkMthdCd;
+    String lgstWkMthdCd; // 물류작업방식코드
 
-    int mpacSn;
+    int mpacSn; // 합포장번호
 
     /* 상품 */
 
-    int partCnt;
+    int partCnt; // 투입부품모델수
 
     String partCd1;
 
@@ -201,4 +201,6 @@ public class WsnaPcsvOutOfStorageDvo {
     String partNm10;
 
     String partQty10;
+
+    String wlcmBfsvcYn;  // 웰컴BS 생성여부
 }
