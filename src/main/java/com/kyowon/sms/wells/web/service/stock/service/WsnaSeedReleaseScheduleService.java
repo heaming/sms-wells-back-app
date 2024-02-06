@@ -55,6 +55,8 @@ public class WsnaSeedReleaseScheduleService {
 
     private static final String SV_BIZ_HCLSF_CD_INSTL = "1";
     private static final String SV_BIZ_HCLSF_CD_BS = "2";
+    private static final String PKG_DV_CD_FLOWER = "4";
+    private static final String SV_BIZ_DCLSF_CD_PD_SPP = "1112";
 
     private static final String SPP_DV_CD_PCSV = "2";
 
@@ -161,6 +163,12 @@ public class WsnaSeedReleaseScheduleService {
             if (SV_BIZ_HCLSF_CD_INSTL.equals(svBizHclsfCd)) {
                 // 출고확정일 = 설치일자
                 String sppCnfmdt = dvo.getSppCnfmdt();
+                // 패키지구분
+                String pkgDvCd = dto.pkgDvCd();
+                // 서비스업무세분류코드
+                String svBizDclsfCd = dvo.getSvBizDclsfCd();
+                // 출고예정일
+                String sppDuedt = dvo.getSppDuedt();
 
                 String cntrNo = dvo.getCntrNo();
                 int cntrSn = dvo.getCntrSn();
@@ -170,11 +178,16 @@ public class WsnaSeedReleaseScheduleService {
 
                 // 계약정보 update
                 this.installationReqdDtInService
-                    .saveInstallReqdDt(cntrNo, String.valueOf(cntrSn), sppCnfmdt, "", "");
+                    .saveInstallReqdDt(cntrNo, String.valueOf(cntrSn), sppCnfmdt, "", sppDuedt);
 
                 // BS주기표 생성
                 SearchProcessReq visitDto = this.convertVisitPrdProcessReq(cntrNo, String.valueOf(cntrSn), sppCnfmdt);
                 this.visitPrdService.processVisitPeriodRegen(visitDto);
+
+                // 플로린이면서 제품배송일 경우 웰컴 BS 서비스 호출
+                if (PKG_DV_CD_FLOWER.equals(pkgDvCd) && SV_BIZ_DCLSF_CD_PD_SPP.equals(svBizDclsfCd)) {
+                    this.maaper.insertWelcomeBS(cntrNo, cntrSn, sppCnfmdt);
+                }
             }
 
             // 모종 출고확정일 저장
@@ -423,6 +436,12 @@ public class WsnaSeedReleaseScheduleService {
         String cntrNo = map.get("PARAM1");
         // 계약일련번호
         String cntrSn = map.get("PARAM2");
+        // 패키지구분
+        String pkgDvCd = map.get("PARAM3");
+        // 서비스업무세분류코드
+        String svBizDclsfCd = map.get("PARAM4");
+        // 배송예정일자
+        String sppDuedt = map.get("PARAM5");
 
         ValidAssert.hasText(cntrNo);
         ValidAssert.hasText(cntrSn);
@@ -432,11 +451,16 @@ public class WsnaSeedReleaseScheduleService {
 
         // 계약정보 update
         this.installationReqdDtInService
-            .saveInstallReqdDt(cntrNo, cntrSn, curDt, "", "");
+            .saveInstallReqdDt(cntrNo, cntrSn, curDt, "", sppDuedt);
 
         // BS주기표 생성
         SearchProcessReq visitDto = this.convertVisitPrdProcessReq(cntrNo, cntrSn, curDt);
         this.visitPrdService.processVisitPeriodRegen(visitDto);
+
+        // 플로린이면서 제품배송일 경우 웰컴 BS 서비스 호출
+        if (PKG_DV_CD_FLOWER.equals(pkgDvCd) && SV_BIZ_DCLSF_CD_PD_SPP.equals(svBizDclsfCd)) {
+            this.maaper.insertWelcomeBS(cntrNo, Integer.parseInt(cntrSn), curDt);
+        }
     }
 
 }

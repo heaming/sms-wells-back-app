@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.withdrawal.idvrve.dto;
 
 import io.swagger.annotations.ApiModel;
+import lombok.Builder;
 
 /**
  * <pre>
@@ -16,6 +17,7 @@ public class WwdbGiroDepositMgtDto {
     // Request Dto
     // *********************************************************
     // 지로입금 목록조회 Request Dto
+    @Builder
     public record SearchReq(
         String rveDt,
         String fntDt,
@@ -35,6 +37,7 @@ public class WwdbGiroDepositMgtDto {
         String cntrNo,
         String cntrSn,
         String cntr,
+        String cstNo,
         String cstKnm,
         String rveDt,
         String perfDt,
@@ -53,7 +56,11 @@ public class WwdbGiroDepositMgtDto {
         String itgDpProcsYn,
 
         String itgDpNo,
-        String dpDt
+        String dpDt,
+        String giroSeAmt,
+        String pyAmt,
+        String giroAmt,
+        String pdCd
 
         //        String kwGrpCoCd,
         //        String cntrNo, //--계약번호
@@ -242,6 +249,7 @@ public class WwdbGiroDepositMgtDto {
 
         String cntrNo,
         String cntrSn,
+        String cntrCanDtm,
         String cntrDtlStatCd //--계약상태코드
     ) {}
 

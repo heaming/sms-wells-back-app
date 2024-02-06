@@ -53,7 +53,7 @@ public interface WpsdExcellentDivisionBaseMgtMapper {
 
     List<EvlArticlesSearchRes> selectEvaluationArticales(EvlSearchReq req);
 
-    PagingResult<TrgSearchRes> selectTargetBaseMgtPages(TrgSearchReq req, PageInfo pageInfo);
+    List<TrgSearchRes> selectTargetBaseMgtList(TrgSearchReq req);
 
     int updateTargetBase(WpsdTrgBaseDvo dvo);
 

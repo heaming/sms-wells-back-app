@@ -19,10 +19,6 @@ public interface WsnaStockAcinspRgstMngtMapper {
         PageInfo pageInfo
     );
 
-    List<WsnaStockAcinspRgstMngtDvo> selectStockAcinspRgstMngtBulk(
-        SearchReq dto
-    );
-
     List<WsnzWellsCodeWareHouseDvo> selectWarehouse(SearchWareReq dto);
 
     List<WsnaStockAcinspRgstMngtDvo> selectStocAcinspIz(WsnaStockAcinspRgstMngtDvo dvo);
