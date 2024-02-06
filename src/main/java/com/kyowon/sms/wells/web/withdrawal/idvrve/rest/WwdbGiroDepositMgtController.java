@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @RequestMapping(value = WdWithdrawalConst.REST_URL_IDVRVE + "/giro-deposits")
 public class WwdbGiroDepositMgtController {
+
     private final WwdbGiroDepositMgtService service;
 
     /**
@@ -104,11 +105,7 @@ public class WwdbGiroDepositMgtController {
         @RequestBody @Valid
         SaveIntegrationReq dto
     ) {
-        return service.saveBillingCreateDocument2(dto);
-
-        //            SaveResponse.builder()
-        //            .processCount(service.saveBillingCreateDocument2(dto))
-        //            .build();
+        return service.saveBillingCreateDocument(dto);
     }
 
     /**
@@ -119,7 +116,10 @@ public class WwdbGiroDepositMgtController {
      */
     @ApiOperation(value = "지로 입금관리 에러 조회", notes = " 검색조건을 받아 지로 입금관리 에러를 조회한다.")
     @GetMapping("/errors")
-    public PagingResult<SearchErrosRes> getBillingDocumentErrorsPages(SearchReq dto, PageInfo pageInfo) {
+    public PagingResult<SearchErrosRes> getBillingDocumentErrorsPages(
+        SearchReq dto,
+        PageInfo pageInfo
+    ) {
         return service.getBillingDocumentErrorsPages(dto, pageInfo);
     }
 
@@ -130,7 +130,9 @@ public class WwdbGiroDepositMgtController {
      */
     @ApiOperation(value = "지로 입금관리 에러 엑셀다운로드", notes = " 검색조건을 받아 지로 입금관리 에러를 엑셀다운로드 한다.")
     @GetMapping("/errors/excel-download")
-    public List<SearchErrosRes> getBillingDocumentErrorsExcels(SearchReq dto) {
+    public List<SearchErrosRes> getBillingDocumentErrorsExcels(
+        SearchReq dto
+    ) {
         return service.getBillingDocumentErrorsExcels(dto);
     }
 
