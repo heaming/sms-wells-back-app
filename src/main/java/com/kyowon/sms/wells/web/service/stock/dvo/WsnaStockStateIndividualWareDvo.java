@@ -15,6 +15,7 @@ public class WsnaStockStateIndividualWareDvo {
     String lctNm;
     String ordnyHvMatYn;
     String cmnPartDvCd;
+    String trnovrRtOjYn;
     String wareNoInStr;
     String agrgQty;
     String wareNoAgrgQtyFields;

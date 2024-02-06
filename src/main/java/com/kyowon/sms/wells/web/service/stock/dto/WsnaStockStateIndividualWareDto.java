@@ -25,7 +25,8 @@ public class WsnaStockStateIndividualWareDto {
         String fromSapCd,
         String toSapCd,
         String pdCdFrom,
-        String pdCdTo
+        String pdCdTo,
+        String trnovrRtOjYn
     ) {}
 
     @ApiModel(value = "WsnaStockStateIndividualWareDto-SearchRes")
