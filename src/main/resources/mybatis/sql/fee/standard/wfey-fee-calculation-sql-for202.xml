@@ -540,6 +540,82 @@
           AND ZZZ.FEE_CALC_AMT > 0
     </insert>
 
+    <insert id="insertManagerLifeAlncFee2">
+        /* 조직 상조수수료(W020126) 계산 SQL  */
+        /* 2024.01 이후 상조개인 수수료 계산 SQL */
+         INSERT INTO TB_FEAM_FEE_CALC_BAS (  /* 수수료계산계약상세내역 */
+                                                  BASE_YM            /* 기준년월 */
+                                                , PERF_YM            /* 실적년월 */
+                                                , OJ_DSB_YM          /* 대상지급년월 */
+                                                , CO_CD              /* 회사코드 */
+                                                , OG_TP_CD           /* 조직유형코드 */
+                                                , PRTNR_NO           /* 파트너번호 */
+                                                , FEE_CD             /* 수수료코드 */
+                                                , DTA_CRT_FEE_CD     /* 데이터생성수수료코드 */
+                                                , FEE_TCNT_DV_CD     /* 수수료차수구분코드 */
+                                                , SPMT_DSB_DV_CD     /* 추가지급구분코드 */
+                                                , FEE_CALC_TP_CD     /* 수수료계산유형코드 */
+                                                , FEE_CALC_AMT       /* 수수료계산금액 */
+                                                , FEE_CTR_CNFM_AMT   /* 수수료조정확정금액 */
+                                                , FNL_FEE_YN         /* 최종수수료여부 */
+                                                <include refid="COMMON.insertSystemField" />
+                                            )
+        SELECT AA.BASE_YM
+               , AA.PERF_YM
+               , AA.OJ_DSB_YM
+               , AA.CO_CD
+               , AA.OG_TP_CD
+               , AA.PRTNR_NO
+               , #{feeCd}         AS FEE_CD
+               , #{dtaCrtFeeCd}   AS DTA_CRT_FEE_CD
+               , #{feeTcntDvCd}   AS FEE_TCNT_DV_CD -- 수수료차수(변수)
+               , '01'             AS SPMT_DSB_DV_CD -- 추후 확인 필요 01/정상지급, 02/추가지급
+               , '01'             AS FEE_CALC_TP_CD -- 01 / 수수료계산
+               , AA.FEE_CALC_AMT
+               , AA.FEE_CTR_CNFM_AMT
+               , #{fnlFeeYn}      AS FNL_FEE_YN
+                <include refid="COMMON.insertSystemFieldValue" />
+           FROM (
+                SELECT A.BASE_YM
+                       , A.BASE_YM      AS PERF_YM
+                       , A.BASE_YM      AS OJ_DSB_YM
+                       , #{coCd}          AS CO_CD
+                       , A.OG_TP_CD
+                       , A.PRTNR_NO
+                       , (NVL(B.PRE_CNT, 0) * 40000 + NVL(B.NXT_CNT, 0) * 30000) AS FEE_CALC_AMT
+                       , (NVL(B.PRE_CNT, 0) * 40000 + NVL(B.NXT_CNT, 0) * 30000) AS FEE_CTR_CNFM_AMT
+                   FROM TB_OGBS_MM_PRTNR_IZ A
+                   LEFT OUTER JOIN (
+                         SELECT M.BASE_YM
+                                ,M.OG_TP_CD
+                                ,M.BRMGR_PRTNR_NO PRTNR_NO
+                                ,SUM(CASE WHEN SUBSTR(M.CNTR_DT, 1, 6) <![CDATA[>=]]> '202401' THEN 1 ELSE 0 END) NXT_CNT
+                                ,SUM(CASE WHEN SUBSTR(M.CNTR_DT, 1, 6) <![CDATA[<]]> '202401' THEN 1 ELSE 0 END) PRE_CNT
+                           FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ M
+                          WHERE BASE_YM = #{baseYm}
+                            AND M.ET_CNFM_DV_CD = '00' /* 확정 */
+                            AND NVL(M.CAN_DT,0) = 0    /* 취소X */
+                            AND M.LIF_CNTR_STAT_CD = 0 /* 수수료 */
+                            AND M.OG_TP_CD = 'W02' /* M영업 조직 */
+                            AND M.DTA_DL_YN = 'N'
+                            AND M.CNFM_YN = 'Y'     /* 상조수수료실적 확정여부 */
+                            AND M.PRTNR_NO != M.BRMGR_PRTNR_NO /* 본인 대상 제외 */
+                            AND M.BASE_YM = M.FEE_DSB_YM
+                            AND M.LIF_CNTR_OC_TN = 1
+                          GROUP BY M.BASE_YM, M.OG_TP_CD, M.BRMGR_PRTNR_NO
+                        ) B
+                     ON (A.BASE_YM = B.BASE_YM
+                        AND A.OG_TP_CD = B.OG_TP_CD
+                        AND A.PRTNR_NO = B.PRTNR_NO)
+                  WHERE 1 = 1
+                    AND A.BASE_YM = #{baseYm} -- 변수
+                    AND A.PSTN_DV_CD = '7'
+                    AND A.OG_TP_CD = 'W02'
+                ) AA
+          WHERE 1 = 1
+            AND AA.FEE_CALC_AMT > 0
+    </insert>
+
     <insert id="insertBsEncouragementFeeForBrmgr">
         /* BS장려(지점장)수수료(W020123) 계산 SQL (소스 : LC56U111, 컬럼 : AKSD41) */
         INSERT INTO TB_FEAM_FEE_CALC_BAS (  /* 수수료계산계약상세내역 */
