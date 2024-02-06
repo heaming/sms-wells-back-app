@@ -70,7 +70,7 @@ public class WsnaStockContinueMonthAgrgStateService {
         dvo.setWareNoPitmSumFields(wareNoPitmSumFields);
 
         ArrayList<String> pdCds = new ArrayList<String>();
-        if(dto.itmPdCds().size() > 0) {
+        if(dto.itmPdCds() != null && !dto.itmPdCds().isEmpty()) {
             for(int i = 0; i < dto.itmPdCds().size(); i++){
 //                pdCds.add();
                 log.info("itmPdCds ===== {}", dto.itmPdCds().get(i));
