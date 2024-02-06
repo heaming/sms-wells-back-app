@@ -152,7 +152,7 @@ public class WwdbGiroDepositMgtService {
         int ECNT = 0; // 오류　건수
         int WCNT = 0; // 처리　건수
         int JCNT = 0; // 묶음건수
-        int DCNT = 0; // 단일건수
+        int DCNT; // 단일건수
         long saveWamt = 0; // 처리총금액
 
         String rveCd = "70550"; //수납코드
@@ -408,7 +408,7 @@ public class WwdbGiroDepositMgtService {
     @Transactional
     public int saveBillingDocumentErrors(List<SaveErrosReq> dtos) throws Exception {
         int processCount = 0;
-        String errorChk = "";
+        String errorChk;
         for (SaveErrosReq saveReq : dtos) {
             WwdbGiroDepositErrorSaveDvo dvo = convert.mapSaveGiroDepositErrorSaveDvo(saveReq);
 
