@@ -17,6 +17,7 @@ public class WdccPressurePumpDto {
     @ApiModel(value = "WdccPressurePumpDto-SearchConfirmManagementRes")
     public record SearchConfirmManagementRes(
         String cnfmYn, /*확정여부*/
+        String errYn, /*오류여부*/
         String errMsg, /*오류상세*/
         String cntrNo, /*계약번호*/
         String cntrSn, /*계약일련번호*/
