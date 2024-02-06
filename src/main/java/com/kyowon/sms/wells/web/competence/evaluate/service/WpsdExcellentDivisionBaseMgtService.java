@@ -260,8 +260,17 @@ public class WpsdExcellentDivisionBaseMgtService {
      * @param req, pageInfo
      * @return PagingResult<TrgSearchRes>
      */
-    public PagingResult<TrgSearchRes> getExcellentDivisionTargetBaseMgtPages(TrgSearchReq req, PageInfo pageInfo) {
-        return mapper.selectTargetBaseMgtPages(req, pageInfo);
+    public List<TrgSearchRes> getExcellentDivisionTargetBaseMgtList(TrgSearchReq req) {
+        return mapper.selectTargetBaseMgtList(req);
+    }
+
+    /**
+     * 우수사업부 기준관리 - 목표기준관리 페이징  조회
+     * @param req, pageInfo
+     * @return PagingResult<TrgSearchRes>
+     */
+    public List<TrgSearchRes> getExcellentDivisionTargetBaseMgtForExcelDownload(TrgSearchReq req) {
+        return mapper.selectTargetBaseMgtList(req);
     }
 
     /**

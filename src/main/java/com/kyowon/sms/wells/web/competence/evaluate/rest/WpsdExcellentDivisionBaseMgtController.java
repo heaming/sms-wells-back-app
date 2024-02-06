@@ -232,19 +232,34 @@ public class WpsdExcellentDivisionBaseMgtController {
         return service.getMonthAwardTypeList(req);
     }
 
-    @ApiOperation(value = "우수사업부 기준관리 - 평가기준관리 페이징 조회", notes = "상품기준관리 페이징 조회")
+    @ApiOperation(value = "우수사업부 기준관리 - 목표기준관리 리스트 조회", notes = "목표기준관리 리스트 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "관리년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "evlOgTpCd", value = "평가조직유형코드", paramType = "query", required = true),
+        @ApiImplicitParam(name = "awdEvlId", value = "시상평가ID", paramType = "query", required = true),
+        @ApiImplicitParam(name = "evlAtcDvCd", value = "평가기준구분", paramType = "query", required = true),
     })
-    @GetMapping("/target/paging")
-    public PagingResult<TrgSearchRes> getExcellentDivisionTargetBaseMgtPages(
+    @GetMapping("/target")
+    public List<TrgSearchRes> getExcellentDivisionTargetBaseMgtList(
         @Valid
-        TrgSearchReq req,
-        @Valid
-        PageInfo pageInfo
+        TrgSearchReq req
     ) {
-        return service.getExcellentDivisionTargetBaseMgtPages(req, pageInfo);
+        return service.getExcellentDivisionTargetBaseMgtList(req);
+    }
+
+    @ApiOperation(value = "우수사업부 기준관리 - 평가기준관리 엑셀다운로드", notes = "평가기준관리 엑셀다운로드")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "관리년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "evlOgTpCd", value = "평가조직유형코드", paramType = "query", required = true),
+        @ApiImplicitParam(name = "awdEvlId", value = "시상평가ID", paramType = "query", required = true),
+        @ApiImplicitParam(name = "evlAtcDvCd", value = "평가기준구분", paramType = "query", required = true),
+    })
+    @GetMapping("/target/excel-download")
+    public List<TrgSearchRes> getExcellentDivisionTargetBaseMgtForExcelDownload(
+        @Valid
+        TrgSearchReq req
+    ) {
+        return service.getExcellentDivisionTargetBaseMgtForExcelDownload(req);
     }
 
     @ApiOperation(value = "우수사업부 기준관리 - 목표기준관리 저장", notes = "목표기준관리 저장")
