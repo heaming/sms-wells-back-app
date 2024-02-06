@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.dvo;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,7 +21,8 @@ public class WsnaByDayMaterialInOutSearchDvo {
     String wareDvCd;
     String hgrWareNo;
     String itmKndCd;
-    String itmPdCds;
+    String itmGrpCd;
+    List<String> itmPdCds;
     String ostrAkTpCd;
     String baseDateFrom;
     String baseDateTo;
