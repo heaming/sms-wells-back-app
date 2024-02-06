@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.service.stock.dto;
 
 import io.swagger.annotations.ApiModel;
 
+import java.util.List;
+
 /**
  * <pre>
  *  K-W-SV-U-0254M01 업무유형별 자재출고금액
@@ -25,7 +27,8 @@ public class WsnaOutOfStorageCostByTaskTypeDto {
         String itmPdCdTo,
         String pdGdCd,
         String useSel,
-        String stocTypeCd
+        String stocTypeCd,
+        List<String> itmPdCds
     ) {}
 
     @ApiModel(value = "WsnaOutOfStorageCostByTaskTypeDto-SearchRes")
