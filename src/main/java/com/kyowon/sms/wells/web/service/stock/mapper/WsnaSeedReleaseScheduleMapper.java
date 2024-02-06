@@ -27,6 +27,8 @@ public interface WsnaSeedReleaseScheduleMapper {
 
     int updateCstSvExcnIzForInstl(String cntrNo, int cntrSn, String istDt);
 
+    int insertWelcomeBS(String cntrNo, int cntrSn, String istDt);
+
     int updateSdingSppPlanIzForCnfm(WsnaSeedReleaseScheduleCnfmDvo dvo);
 
     int insertSvWkOstrIzsForAS(WsnaSeedReleaseScheduleCnfmDvo dvo);
