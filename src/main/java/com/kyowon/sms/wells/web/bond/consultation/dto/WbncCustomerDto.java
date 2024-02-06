@@ -233,6 +233,7 @@ public class WbncCustomerDto {
         String cstKnm, /* 고객명 */
         String dlqMcn, /* 연체개월 */
         String authRsg, /* 직권해지일자 */
+        String authRsgCnfmYn, /* 직권해지최종확정여부 */
         String ojAmt, /* 대상금액 */
         String ojDp, /* 대상입금 */
         String ojBlam, /* 대상금액 - 대상입금 = 대상잔액 */
