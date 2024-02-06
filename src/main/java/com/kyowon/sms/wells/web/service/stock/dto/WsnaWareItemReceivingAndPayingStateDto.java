@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.service.stock.dto;
 
 import io.swagger.annotations.ApiModel;
 
+import java.util.List;
+
 /**
  * <pre>
  * 창고 품목별 수불현황
@@ -23,8 +25,8 @@ public class WsnaWareItemReceivingAndPayingStateDto {
         String itmGdCd,
         String useYn,
         String itmKndCd,
-        String pdCd
-
+        String pdCd,
+        List<String> itmPdCds
     ) {}
 
     @ApiModel(value = "WsnaWareItemReceivingAndPayingStateDto-SearchRes")
