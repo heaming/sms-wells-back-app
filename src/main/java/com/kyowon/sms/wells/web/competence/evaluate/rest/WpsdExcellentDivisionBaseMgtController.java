@@ -77,7 +77,7 @@ public class WpsdExcellentDivisionBaseMgtController {
     public ExcelUploadDto.UploadRes getProductBaseMgtsForExcelUpload(
         @RequestParam("file")
         MultipartFile file
-    ) throws Exception {
+    ) {
         // file 읽어서 처리.
         Map<String, String> headerTitle = new LinkedHashMap<>();
         headerTitle.put("baseYm", messageResourceService.getMessage("MSG_TXT_MGT_YNM"));
@@ -110,17 +110,17 @@ public class WpsdExcellentDivisionBaseMgtController {
         @Valid @RequestBody
         List<PdSaveReq> reqs
     ) {
-        return SaveResponse.builder().processCount(service.saveProductBase(reqs))
+        return SaveResponse.builder().processCount(service.saveProductBases(reqs))
             .build();
     }
 
-    @ApiOperation(value = "우수사업부 기준관리 - 상품기준관리 저장", notes = "상품기준관리 저장")
+    @ApiOperation(value = "우수사업부 기준관리 - 상품기준관리 삭제", notes = "상품기준관리 삭제")
     @DeleteMapping("/product")
     public SaveResponse removeProductBase(
         @Valid @RequestBody
         List<PdSaveReq> reqs
     ) {
-        return SaveResponse.builder().processCount(service.removeProductBase(reqs))
+        return SaveResponse.builder().processCount(service.removeProductBases(reqs))
             .build();
     }
 
@@ -139,23 +139,34 @@ public class WpsdExcellentDivisionBaseMgtController {
         return service.getEvaluationBaseMgtPages(req, pageInfo);
     }
 
-    @ApiOperation(value = "우수사업부 기준관리 - 평가기준관리 저장", notes = "평가기준관리 저장")
-    @PostMapping("/evaluation")
-    public SaveResponse saveEvaluationBase(
-        @Valid @RequestBody
-        List<EvlSaveReq> reqs
+    @ApiOperation(value = "우수사업부 기준관리 - 평가기준관리 삭제", notes = "평가기준관리 삭제")
+    @DeleteMapping("/evaluation")
+    public SaveResponse removeEvaluationBases(
+        @Valid
+        @RequestBody
+        List<EvlDeleteReq> reqs
     ) {
-        return SaveResponse.builder().processCount(service.saveEvaluationBase(reqs))
+        return SaveResponse.builder().processCount(service.removeEvaluationBases(reqs))
             .build();
     }
 
-    @ApiOperation(value = "우수사업부 기준관리 - 상세 페이징 조회", notes = "상세 페이징 조회")
+    @ApiOperation(value = "우수사업부 기준관리 - 평가기준관리 저장", notes = "평가기준관리 저장")
+    @PostMapping("/evaluation")
+    public SaveResponse saveEvaluationBases(
+        @Valid @RequestBody
+        List<EvlSaveReq> reqs
+    ) {
+        return SaveResponse.builder().processCount(service.saveEvaluationBases(reqs))
+            .build();
+    }
+
+    @ApiOperation(value = "우수사업부 기준관리 - 평가기준관리 상세 페이징 조회", notes = "상세 페이징 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "관리년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "evlOgTpCd", value = "평가조직유형코드", paramType = "query", required = true),
-        @ApiImplicitParam(name = "evlPdDvCd", value = "평가상품구분코드", paramType = "query", required = true),
+        @ApiImplicitParam(name = "awdEvlId", value = "시상평가ID", paramType = "query", required = true),
     })
-    @GetMapping("/evaluation/detail")
+    @GetMapping("/evaluation/detail/paging")
     public PagingResult<EvlDetailSearchRes> getExcellentDivisionEvaluationDetailPages(
         @Valid
         EvlSearchReq req,
@@ -165,13 +176,37 @@ public class WpsdExcellentDivisionBaseMgtController {
         return service.getEvaluationDetailPages(req, pageInfo);
     }
 
-    @ApiOperation(value = "우수사업부 기준관리 - 상세 저장", notes = "상세 저장")
+    @ApiOperation(value = "우수사업부 기준관리 - 평가기준관리 상세 리스트 조회", notes = "상세 리스트 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "관리년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "evlOgTpCd", value = "평가조직유형코드", paramType = "query", required = true),
+        @ApiImplicitParam(name = "awdEvlId", value = "시상평가ID", paramType = "query", required = true),
+    })
+    @GetMapping("/evaluation/detail")
+    public List<EvlDetailSearchRes> getExcellentDivisionEvaluationDetail(
+        @Valid
+        EvlSearchReq req
+    ) {
+        return service.getExcellentDivisionEvaluationDetail(req);
+    }
+
+    @ApiOperation(value = "우수사업부 기준관리 - 평가기준상세 저장", notes = "상세 저장")
     @PostMapping("/evaluation/detail")
-    public SaveResponse saveEvaluationDetail(
+    public SaveResponse saveEvaluationDetails(
         @Valid @RequestBody
         List<EvlDetailSaveReq> reqs
     ) {
-        return SaveResponse.builder().processCount(service.saveEvaluationDetail(reqs))
+        return SaveResponse.builder().processCount(service.saveEvaluationDetails(reqs))
+            .build();
+    }
+
+    @ApiOperation(value = "우수사업부 기준관리 - 평가기준상세 삭제", notes = "상세 삭제")
+    @DeleteMapping("/evaluation/detail")
+    public SaveResponse removeEvaluationDetails(
+        @Valid @RequestBody
+        List<EvlDetailDeleteReq> reqs
+    ) {
+        return SaveResponse.builder().processCount(service.removeEvaluationDetails(reqs))
             .build();
     }
 
@@ -184,26 +219,54 @@ public class WpsdExcellentDivisionBaseMgtController {
         return service.getEvaluationArticales(req);
     }
 
-    @ApiOperation(value = "우수사업부 기준관리 - 평가기준관리 페이징 조회", notes = "상품기준관리 페이징 조회")
+    @ApiOperation(value = "우수사업부 기준관리 - 월별 시상구분 조회", notes = "월별 시상구분 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "baseYm", value = "관리년월", paramType = "query", required = true),
         @ApiImplicitParam(name = "evlOgTpCd", value = "평가조직유형코드", paramType = "query", required = true),
     })
-    @GetMapping("/target/paging")
-    public PagingResult<TrgSearchRes> getExcellentDivisionTargetBaseMgtPages(
+    @GetMapping("/target/award")
+    public List<EvlAwardRes> getMonthAwardTypeList(
         @Valid
-        TrgSearchReq req,
+        EvlSearchReq req
+    ){
+        return service.getMonthAwardTypeList(req);
+    }
+
+    @ApiOperation(value = "우수사업부 기준관리 - 목표기준관리 리스트 조회", notes = "목표기준관리 리스트 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "관리년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "evlOgTpCd", value = "평가조직유형코드", paramType = "query", required = true),
+        @ApiImplicitParam(name = "awdEvlId", value = "시상평가ID", paramType = "query", required = true),
+        @ApiImplicitParam(name = "evlAtcDvCd", value = "평가기준구분", paramType = "query", required = true),
+    })
+    @GetMapping("/target")
+    public List<TrgSearchRes> getExcellentDivisionTargetBaseMgtList(
         @Valid
-        PageInfo pageInfo
+        TrgSearchReq req
     ) {
-        return service.getExcellentDivisionTargetBaseMgtPages(req, pageInfo);
+        return service.getExcellentDivisionTargetBaseMgtList(req);
+    }
+
+    @ApiOperation(value = "우수사업부 기준관리 - 평가기준관리 엑셀다운로드", notes = "평가기준관리 엑셀다운로드")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "baseYm", value = "관리년월", paramType = "query", required = true),
+        @ApiImplicitParam(name = "evlOgTpCd", value = "평가조직유형코드", paramType = "query", required = true),
+        @ApiImplicitParam(name = "awdEvlId", value = "시상평가ID", paramType = "query", required = true),
+        @ApiImplicitParam(name = "evlAtcDvCd", value = "평가기준구분", paramType = "query", required = true),
+    })
+    @GetMapping("/target/excel-download")
+    public List<TrgSearchRes> getExcellentDivisionTargetBaseMgtForExcelDownload(
+        @Valid
+        TrgSearchReq req
+    ) {
+        return service.getExcellentDivisionTargetBaseMgtForExcelDownload(req);
     }
 
     @ApiOperation(value = "우수사업부 기준관리 - 목표기준관리 저장", notes = "목표기준관리 저장")
     @PostMapping("/target")
     public SaveResponse saveTargetBase(
         @Valid @RequestBody
-        List<EvlDetailSaveReq> reqs
+        List<TrgSaveReq> reqs
     ) {
         return SaveResponse.builder().processCount(service.saveTargetBase(reqs))
             .build();

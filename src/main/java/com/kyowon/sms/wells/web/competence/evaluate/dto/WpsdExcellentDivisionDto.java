@@ -18,7 +18,7 @@ public class WpsdExcellentDivisionDto {
         @NotBlank
         String evlOgTpCd,           /* 조직유형코드 */
         @NotBlank
-        String evlDvCd,             /* 평가구분코드 */
+        String awdEvlId,             /* 평가구분코드 */
         String cntrPerfDvCd,        /* 실적구분 */
         String ctstGrpCd            /* 당월그룹 */
     ) {
@@ -30,9 +30,11 @@ public class WpsdExcellentDivisionDto {
     // SearchContestRes Request Dto
     @ApiModel("WpsdExcellentDivisionDto-SearchContestReq")
     public record SearchContestReq(
+        @NotBlank
         String evlOgTpCd,           /* 조직유형코드 */
-        String evlDvCd,           /* 평가구분코드 */
+        String awdEvlId,
         String ctstGrpCd
+
     ){}
 
     // *********************************************************
@@ -41,13 +43,22 @@ public class WpsdExcellentDivisionDto {
     // SearchContestRes Result Dto
     @ApiModel("WpsdExcellentDivisionDto-SearchContestRes")
     public record SearchContestRes(
-        String evlOgTpCd,           /* 조직유형코드 */
-        String evlDvCd,
-        String evlDvNm,
-        String ctstGrpCd,        /* 경진그룹코드 */
+        String evlOgTpCd,
+        String awdEvlId,
+        String ctstGrpCd,
+        String vlStrtdt,
+        String vlEnddt,
         String ctstGrpNm,
-        String vlStrtdt,         /* 유효시작일자 */
-        String vlEnddt          /* 유효종료일자 */
+        String unuitmCn,
+        String dtaDlYn,
+        String fstRgstDtm,
+        String fstRgstUsrId,
+        String fstRgstPrgId,
+        String fstRgstDeptId,
+        String fnlMdfcDtm,
+        String fnlMdfcUsrId,
+        String fnlMdfcPrgId,
+        String fnlMdfcDeptId
     ){}
 
     // *********************************************************
@@ -57,8 +68,10 @@ public class WpsdExcellentDivisionDto {
     @ApiModel("WpsdExcellentDivisionDto-SearchEvlRsbReq")
     public record SearchEvlRsbReq(
         @NotBlank
-        String evlOgTpCd,              /* 관리년월 */
-        String evlDvCd           /* 조직유형코드 */
+        String baseYm,
+        @NotBlank
+        String evlOgTpCd,
+        String awdEvlId
     ){}
 
     // *********************************************************
@@ -77,14 +90,16 @@ public class WpsdExcellentDivisionDto {
     // Request Dto
     // *********************************************************
     // SearchContestRes Request Dto
-    @ApiModel("WpsdExcellentDivisionDto-SearchContestRsbReq")
-    public record SearchContestRsbReq(
+    @ApiModel("WpsdExcellentDivisionDto-SearchContestPartnerReq")
+    public record SearchContestPartnerReq(
         @NotBlank
         String baseYm,
         @NotBlank
-        String evlOgTpCd,           /* 조직유형코드 */
+        String evlOgTpCd,
         @NotBlank
-        String evlDvCd,           /* 평가구분코드 */
+        String awdEvlId,
+        @NotBlank
+        String evlAtcDvCd,
         String evlRsbDvCd,
         String ctstGrpCd
     ){}
@@ -93,16 +108,35 @@ public class WpsdExcellentDivisionDto {
     // Result Dto
     // *********************************************************
     // SearchGnrdvRes Result Dto
-    @ApiModel("WpsdExcellentDivisionDto-SearchContestRsbRes")
-    public record SearchContestRsbRes(
+    @ApiModel("WpsdExcellentDivisionDto-SearchContestPartnerRes")
+    public record SearchContestPartnerRes(
         String baseYm,
         String evlOgTpCd,
-        String evlDvCd,
-        String evlDvNm,
-        String ogId,
-        String ogNm,
-        String evlRsbDvCd,
-        String evlRsbDvNm,
+        String awdEvlId,
+        String evlAtcDvCd,
+        String evlAtcDvNm,
+        String prtnrNo,
+        String evlPdDvCd,
+        String trgBasePc,
+        String ctstGrpCd,
+        Integer sortOdr,
+        String prtnrKnm,
+        String ogCd,
+        String ogNm
+    ){}
+
+    // *********************************************************
+    // Result Dto
+    // *********************************************************
+    // SearchGnrdvRes Result Dto
+    @ApiModel("WpsdExcellentDivisionDto-SaveContestPartnerReq")
+    public record SaveContestPartnerReq(
+        String baseYm,
+        String evlOgTpCd,
+        String awdEvlId,
+        String evlAtcDvCd,
+        String prtnrNo,
+        String prtnrKnm,
         String ctstGrpCd
     ){}
 
@@ -114,11 +148,10 @@ public class WpsdExcellentDivisionDto {
     public record SaveReq(
         String baseYm,
         String evlOgTpCd,
-        String evlDvCd,
+        String awdEvlId,
         String ogId,
         String evlAtcDvCd,
         String prtnrNo,
-
         Long trgBasePc
 
     ){}

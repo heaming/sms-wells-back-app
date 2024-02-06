@@ -39,9 +39,9 @@ public class WsncRoutineBsPsicAssignStateDto {
     @ApiModel(value = "WsncRoutineBsPsicAssignStateDto-SearchRes")
     public record SearchRes(
         String snRpblYn,
+        String cntrCstNo,//new
         String cstGdCd,
         String cstGdNm,
-        String spcAsTpCd,
         String cstCnttYn,
         String vstPrgsStatCd,
         String vstPrgsStatNm,
@@ -60,19 +60,16 @@ public class WsncRoutineBsPsicAssignStateDto {
         String idvTno,
         String pdCd,
         String pdNm,
-        String pdAbbrNm,
         String sellTpCd,
         String sellTpNm,
+        String sellTpDtlCd,
+        String sellTpDtlNm,
         String mngerRglvlDvCd,
         String mngerRglvlDvNm,
-        String expPart,
         String newAdrZip,
         String rndadr,
-        String dgr2LevlOgId,
-        String dgr2LevlOgNm,
-        String svBizMclsfCd,
-        String svBizDclsfCd,
-        String svBizDclsfNm,
+        String rltdSvBizDclsfCd,//new
+        String clsfCdSrnPrntCn,//new
         String bfVstDuedt,
         String vstDuedt,
         String vstCnfmdt,
@@ -81,32 +78,42 @@ public class WsncRoutineBsPsicAssignStateDto {
         String vstFshHh,
         String cstUnuitmCn,
         String fstRgstDtm,
-        String fstRgstTm,
-        String ogId,
-        String ogCd,
-        String ogNm,
+        String l1HgrOgCd,//new
+        String l2HgrOgCd,//new
+        String l3HgrOgCd,//new
+        String l1HgrOgNm,//new
+        String l2HgrOgNm,//new
+        String l3HgrOgNm,//new
+        String cnfmPsicDvCd,//new
+        String cnfmPsicPrtnrOgTpCd,//new
+        String cnfmPsicPrtnrNo,//new
         String prtnrKnm,
-        String prtnrNo,
         String pstnDvCd,
+        String pstnDvNm,//new
         String siteAwAtcCd,
         String siteAwAtcNm,
+        String engPrtnrGdCd,//new
         String awAmt,
         String svProcsCn,
         String cstSignCn,
         String bgColo,
         String cntrDtlStatCd,
         String cntrDtlStatNm,
-        String asMatItmGrpCd,
-        String hirFomCd,
-        String cstSvAsnNo
-
+        String cstSvAsnNo,
+        String pdAbbrNm,
+        String ogNm,
+        String ogCd,
+        String prtnrNo,
+        String fstRgstTm,
+        String svBizDclsfNm,
+        String spcAsTpCd
     ) {
         @AutomapConstructor
         public SearchRes(
             String snRpblYn,
+            String cntrCstNo,//new
             String cstGdCd,
             String cstGdNm,
-            String spcAsTpCd,
             String cstCnttYn,
             String vstPrgsStatCd,
             String vstPrgsStatNm,
@@ -123,19 +130,16 @@ public class WsncRoutineBsPsicAssignStateDto {
             String idvTno,
             String pdCd,
             String pdNm,
-            String pdAbbrNm,
             String sellTpCd,
             String sellTpNm,
+            String sellTpDtlCd,
+            String sellTpDtlNm,
             String mngerRglvlDvCd,
             String mngerRglvlDvNm,
-            String expPart,
             String newAdrZip,
             String rndadr,
-            String dgr2LevlOgId,
-            String dgr2LevlOgNm,
-            String svBizMclsfCd,
-            String svBizDclsfCd,
-            String svBizDclsfNm,
+            String rltdSvBizDclsfCd,//new
+            String clsfCdSrnPrntCn,//new
             String bfVstDuedt,
             String vstDuedt,
             String vstCnfmdt,
@@ -144,30 +148,41 @@ public class WsncRoutineBsPsicAssignStateDto {
             String vstFshHh,
             String cstUnuitmCn,
             String fstRgstDtm,
-            String fstRgstTm,
-            String ogId,
-            String ogCd,
-            String ogNm,
+            String l1HgrOgCd,//new
+            String l2HgrOgCd,//new
+            String l3HgrOgCd,//new
+            String l1HgrOgNm,//new
+            String l2HgrOgNm,//new
+            String l3HgrOgNm,//new
+            String cnfmPsicDvCd,//new
+            String cnfmPsicPrtnrOgTpCd,//new
+            String cnfmPsicPrtnrNo,//new
             String prtnrKnm,
-            String prtnrNo,
             String pstnDvCd,
+            String pstnDvNm,//new
             String siteAwAtcCd,
             String siteAwAtcNm,
+            String engPrtnrGdCd,//new
             String awAmt,
             String svProcsCn,
             byte[] cstSignCn,
             String bgColo,
             String cntrDtlStatCd,
             String cntrDtlStatNm,
-            String asMatItmGrpCd,
-            String hirFomCd,
-            String cstSvAsnNo
+            String cstSvAsnNo,
+            String pdAbbrNm,
+            String ogNm,
+            String ogCd,
+            String prtnrNo,
+            String fstRgstTm,
+            String svBizDclsfNm,
+            String spcAsTpCd
         ) {
             this(
                 snRpblYn,
+                cntrCstNo,//new
                 cstGdCd,
                 cstGdNm,
-                spcAsTpCd,
                 cstCnttYn,
                 vstPrgsStatCd,
                 vstPrgsStatNm,
@@ -184,19 +199,16 @@ public class WsncRoutineBsPsicAssignStateDto {
                 idvTno,
                 pdCd,
                 pdNm,
-                pdAbbrNm,
                 sellTpCd,
                 sellTpNm,
+                sellTpDtlCd,
+                sellTpDtlNm,
                 mngerRglvlDvCd,
                 mngerRglvlDvNm,
-                expPart,
                 newAdrZip,
                 rndadr,
-                dgr2LevlOgId,
-                dgr2LevlOgNm,
-                svBizMclsfCd,
-                svBizDclsfCd,
-                svBizDclsfNm,
+                rltdSvBizDclsfCd,//new
+                clsfCdSrnPrntCn,//new
                 bfVstDuedt,
                 vstDuedt,
                 vstCnfmdt,
@@ -205,24 +217,35 @@ public class WsncRoutineBsPsicAssignStateDto {
                 vstFshHh,
                 cstUnuitmCn,
                 fstRgstDtm,
-                fstRgstTm,
-                ogId,
-                ogCd,
-                ogNm,
+                l1HgrOgCd,//new
+                l2HgrOgCd,//new
+                l3HgrOgCd,//new
+                l1HgrOgNm,//new
+                l2HgrOgNm,//new
+                l3HgrOgNm,//new
+                cnfmPsicDvCd,//new
+                cnfmPsicPrtnrOgTpCd,//new
+                cnfmPsicPrtnrNo,//new
                 prtnrKnm,
-                prtnrNo,
                 pstnDvCd,
+                pstnDvNm,//new
                 siteAwAtcCd,
                 siteAwAtcNm,
+                engPrtnrGdCd,//new
                 awAmt,
                 svProcsCn,
                 cstSignCn != null ? Base64.getEncoder().encodeToString(cstSignCn) : "",
                 bgColo,
                 cntrDtlStatCd,
                 cntrDtlStatNm,
-                asMatItmGrpCd,
-                hirFomCd,
-                cstSvAsnNo
+                cstSvAsnNo,
+                pdAbbrNm,
+                ogNm,
+                ogCd,
+                prtnrNo,
+                fstRgstTm,
+                svBizDclsfNm,
+                spcAsTpCd
             );
         }
     }

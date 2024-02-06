@@ -14,12 +14,10 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 @Mapper
 public interface WsncRoutineBsPsicAssignStateMapper {
 
-    PagingResult<SearchRes> selectRoutineBsPsicAssignState(
-        SearchReq dto,
-        PageInfo pageInfo
-    );
+    PagingResult<SearchRes> selectRoutineBsPsicAssignState(SearchReq dto, PageInfo pageInfo);
 
     List<SearchRes> selectRoutineBsPsicAssignState(SearchReq dto);
+    List<SearchRes> selectRoutineBsPsicAssignStateBulkExcelDownload(SearchReq dto);
 
     List<HashMap<String, String>> selectWellsManager(String dgr2LevlOgId);
 

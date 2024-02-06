@@ -81,9 +81,9 @@ public class WdcbAdvancedSellFeeReplaceController {
 
     @GetMapping("/info-pop")
     public SearchPopRes getPop(
-        String kwGrpCoCd
+        String kwGrpCoCd, String currentMonth
     ) {
-        return service.getPop(kwGrpCoCd);
+        return service.getPop(kwGrpCoCd, currentMonth);
     }
 
     @ApiOperation(value = "전표 생성", notes = "전표 생성")
@@ -94,5 +94,15 @@ public class WdcbAdvancedSellFeeReplaceController {
         SaveReq dto
     ) throws Exception {
         return SaveResponse.builder().processCount(service.saveSlipCreate(dto)).build();
+    }
+
+    @ApiOperation(value = "비용대체 생성", notes = "비용대체 생성 온디멘드 배치 호출")
+    @PostMapping("/cost-replace-create")
+    public String saveCostReplace(
+        @RequestBody
+        @Valid
+        CreateReq dto
+    ) throws Exception {
+        return service.createCostReplace(dto);
     }
 }

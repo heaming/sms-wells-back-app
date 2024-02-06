@@ -40,6 +40,9 @@ public class WsnaReturningGoodsOstrAgrgDto {
 
     @ApiModel(value = "WsnaReturningGoodsOstrAgrgDto-SearchWareRes")
     public record SearchWareRes(
+        String codeId,
+        String codeName,
         String wareNo
     ) {}
+
 }

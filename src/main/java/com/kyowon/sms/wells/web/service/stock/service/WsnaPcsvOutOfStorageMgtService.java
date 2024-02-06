@@ -20,6 +20,11 @@ public class WsnaPcsvOutOfStorageMgtService {
 
     private final WsnaPcsvOutOfStorageSaveService service;
 
+    /**
+     * 택배상품 출고관리 목록조회
+     * @param dto
+     * @return
+     */
     public List<SearchRes> getPcsvOutOfStorages(SearchReq dto) {
         return converter.mapAllDvoToSearchRes(mapper.selectPcsvOutOfStorages(dto));
     }
@@ -32,11 +37,13 @@ public class WsnaPcsvOutOfStorageMgtService {
         return mapper.selectPcsvProducts();
     }
 
+    /**
+     * 택배상품 출고관리 저장
+     * @param dtos
+     * @return
+     * @throws Exception
+     */
     public int savePcsvOutOfStorages(List<SaveReq> dtos) throws Exception {
         return service.savePcsvOutOfStorages(dtos);
-    }
-
-    public int savePcsvOutOfStorageTest(List<SaveReq> dtos) {
-        return service.savePcsvOutOfStorageTest(dtos);
     }
 }

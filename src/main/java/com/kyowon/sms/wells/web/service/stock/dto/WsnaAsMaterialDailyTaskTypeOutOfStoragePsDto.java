@@ -33,7 +33,7 @@ public class WsnaAsMaterialDailyTaskTypeOutOfStoragePsDto {
     public record SearchRes(
         String sapMatCd,
         String pdCd,
-        String pdNm,
+        String pdAbbrNm,
         String asLdtm,
         String minGoQty,
         Integer last1yPrev3m,

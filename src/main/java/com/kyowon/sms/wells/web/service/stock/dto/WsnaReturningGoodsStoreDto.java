@@ -108,12 +108,6 @@ public class WsnaReturningGoodsStoreDto {
         String ostrDt // 출고일자
     ) {}
 
-    @ApiModel(value = "WsnaReturningGoodsStoreDto-FindOstrAkNoReq")
-    public record FindOstrAkNoReq(
-        String ostrAkTpCd, //출고요청유형코드
-        String ostrAkDt //출고요청일자
-    ) {}
-
     @ApiModel("WsnaReturningGoodsStoreDto-SaveReq")
     public record SaveReq(
         @NotBlank

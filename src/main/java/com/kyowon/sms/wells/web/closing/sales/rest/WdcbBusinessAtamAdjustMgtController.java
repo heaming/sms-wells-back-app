@@ -181,19 +181,20 @@ public class WdcbBusinessAtamAdjustMgtController {
 
     /**
      * 채권반제 조회
-     * @param sapAlrpySlpno
+     * @param dto
      * @return
      */
     @ApiOperation(value = "채권반제 조회", notes = "조회조건에 따른 채권반제 내역을 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "sapAlrpySlpno", value = "SAP전표번호", paramType = "query"),
+        @ApiImplicitParam(name = "baseYm", value = "년월", paramType = "query"),
     })
-    @GetMapping("/sapAlrpySlpno")
+    @GetMapping("/sap-alrpy-slpno")
     public List<SearchSlpnoRes> getSapAlrpySlpnos(
-        @RequestParam
-        String sapAlrpySlpno
+        @Valid
+        SearchSlpnoReq dto
     ) {
-        return service.getSapAlrpySlpnos(sapAlrpySlpno);
+        return service.getSapAlrpySlpnos(dto);
     }
 
     /**
@@ -202,7 +203,7 @@ public class WdcbBusinessAtamAdjustMgtController {
      * @return
      */
     @ApiOperation(value = "전표 초기화", notes = "전표 초기화")
-    @PostMapping("/sapAlrpySlpno")
+    @PostMapping("/sap-alrpy-slpno")
     public SaveResponse saveSlpnoInitializes(
         @RequestBody
         @Valid

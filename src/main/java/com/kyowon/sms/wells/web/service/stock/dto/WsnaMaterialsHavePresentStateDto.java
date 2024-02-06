@@ -3,6 +3,8 @@ package com.kyowon.sms.wells.web.service.stock.dto;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
+import java.util.List;
+
 /**
  * <pre>
  * K-W-SV-U-0112M01 자재보유현
@@ -30,7 +32,8 @@ public class WsnaMaterialsHavePresentStateDto {
         String sapMatCdStrt,
         String sapMatCdEnd,
         String wareDvCd,
-        String csmbPdCd
+        String csmbPdCd,
+        List<String> itmPdCds
     ) {}
 
     @ApiModel(value = "WsnaMaterialsHavePresentStateDto-SearchRes")

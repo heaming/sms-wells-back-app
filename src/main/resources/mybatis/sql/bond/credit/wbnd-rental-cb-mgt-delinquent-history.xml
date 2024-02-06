@@ -11,9 +11,10 @@
              , T2.MEXNO_ENCR        /*휴대폰번호2*/
              , T2.CRAL_IDV_TNO      /*휴대폰번호3*/
              , (CASE WHEN X.DLQ_AMT <![CDATA[<]]> 0 THEN 0 ELSE X.DLQ_AMT END) AS DLQ_AMT /*연체금액*/
-             , (CASE WHEN NVL(X.DLQ_BLAM,0) - (T7.DP_RVE_AMT - T7.RFND_RVE_AMT) <![CDATA[<]]> 0 THEN 0
-                     ELSE NVL(X.DLQ_BLAM,0) - (T7.DP_RVE_AMT - T7.RFND_RVE_AMT)
-                 END) AS DLQ_BLAM   /*연체잔액*/
+             , (CASE WHEN NVL(X.DLQ_AMT,0) - (T7.DP_RVE_AMT - T7.RFND_RVE_AMT) <![CDATA[<]]> 0
+                     THEN 0
+                     ELSE NVL(X.DLQ_AMT,0) - (T7.DP_RVE_AMT - T7.RFND_RVE_AMT)
+                  END) AS DLQ_BLAM   /*연체잔액*/
              , T3.CLCTAM_PRTNR_NO   /*집금담당자번호*/
              , (SELECT PRTNR_KNM
                   FROM TB_CBBO_CLCTAM_PRTNR_DTL /*T:집금파트너상세*/
@@ -59,7 +60,8 @@
                                      FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ /*T:채권접촉제외대상내역*/
                                     WHERE CST_NO = A.CST_NO
                                       AND CTNT_EXCD_BND_BIZ_CD = '02'           /*연락제외채권업무코드-02:렌탈CB*/
-                                      AND TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT) /*적용시작일자~종료일자*/
+                                      AND TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT /*적용시작일자~종료일자*/
+                                      AND DTA_DL_YN = 'N')
                  GROUP BY SUBSTR(A.OC_BSDT,1,6)
                      , A.CST_NO
                      , A.NOTY_TRS_DT
@@ -70,6 +72,7 @@
                        FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ /*T:채권접촉제외대상내역*/
                       WHERE CTNT_EXCD_BND_BIZ_CD = '02'           /*연락제외채권업무코드-02:렌탈CB*/
                         AND TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT /*적용시작일자~종료일자*/
+                        AND DTA_DL_YN = 'N'
                     ) T1
             ON T1.CST_NO = X.CST_NO
          INNER JOIN TB_CUBS_CST_BAS T2 /*T:고객기본*/
@@ -85,7 +88,7 @@
                         AND CLCTAM_PRTNR_NO IS NOT NULL
                         AND BASE_YM = #{baseYm}
                     ) T3 /*T:채권계약기본*/
-            ON T3.CST_NO = X.CST_NO
+             ON T3.CST_NO = X.CST_NO
            AND T3.RANK_NUM = 1
           LEFT JOIN TB_SSCT_CNTR_STLM_REL C1        /* T:계약결제관계 */
             ON C1.DTL_CNTR_NO = T3.CNTR_NO
@@ -120,10 +123,9 @@
                                   , NVL(SUM(CASE WHEN DP_DV_CD IN ('2','4') THEN NVL(RVE_AMT,0) ELSE 0 END),0) AS RFND_RVE_AMT /*환불금액*/
                                FROM TB_RVDW_RVE_DTL /*T:수납상세*/
                               WHERE CNTR_NO = T3.CNTR_NO
-                                AND RVE_DV_CD NOT IN ('09','10') /*수납구분코드->09:대손,10:손료*/
+                                AND RVE_DV_CD IN ('02','03','04','05','07','08','19','13','18','97')
                                 AND DP_MES_CD IN ('01','02')    /*입금수단코드-01:현금,02:신용카드*/
-                                AND (RVE_DT BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),1),'YYYYMM')||'01'
-                                                AND TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),1),'YYYYMM')||LPAD(T4.MPY_BSDT,2,'0'))
+                                AND (RVE_DT BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),-1),'YYYYMM')||'01' AND #{baseYm}||'31')
                             ) T7
             ON 1=1
          WHERE 1 = 1
@@ -226,6 +228,7 @@
                              FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ /*T:채권접촉제외대상내역*/
                             WHERE CST_NO = A.CST_NO
                               AND CTNT_EXCD_BND_BIZ_CD = '02'           /*연락제외채권업무코드-02:렌탈CB*/
-                              AND TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT /*적용시작일자~종료일자*/)
+                              AND TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT /*적용시작일자~종료일자*/
+                              AND DTA_DL_YN = 'N')
     </update>
 </mapper>

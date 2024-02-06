@@ -20,33 +20,33 @@ public class WsnaMdProductOutOfStorageMgtDto {
 
     @ApiModel(value = "WsnaMdProductOutOfStorageMgtDto-SearchReq")
     public record SearchReq(
-        String startDt,
+        String startDt, // 계약시작일자
 
-        String endDt,
+        String endDt, // 계약종료일자
 
-        String findGb,
+        String findGb, // 조회구분
 
-        String firstSppGb,
+        String firstSppGb, // 첫배송여부구분
 
-        String selCnt,
+        String selCnt, // 조회제한건수
 
-        String wkStartDt,
+        String wkStartDt, // 작업시작일자
 
-        String wkEndDt,
+        String wkEndDt, // 작업종료일자
 
-        String prtnrBzsCd,
+        String prtnrBzsCd, // 파트너업체코드
 
-        String cntrDtlNo,
+        String cntrDtlNo, // 계약상세번호
 
-        String rcgvpKnm,
+        String rcgvpKnm, // 고객명
 
-        String serialNo,
+        String serialNo, // 시리얼번호
 
-        String cralLocaraTno,
+        String cralLocaraTno, // 휴대지역전화번호
 
-        String mexnoEncr,
+        String mexnoEncr, // 휴대전화국번호암호화
 
-        String cralIdvTno
+        String cralIdvTno // 휴대개별전화번호
 
     ) {}
     @ApiModel(value = "WsnaMdProductOutOfStorageMgtDto-SearchRes")
@@ -59,29 +59,29 @@ public class WsnaMdProductOutOfStorageMgtDto {
 
         String cntrCstNo, // 계약자 고객번호
 
-        String sellTpCd,
+        String sellTpCd, /*판매유형코드*/
 
-        String sellTpNm,
+        String sellTpNm, /*판매유형코드명 */
 
-        String svBizHclsfCd,
+        String svBizHclsfCd, /*서비스업무대분류코드*/
 
-        String svBizDclsfCd,
+        String svBizDclsfCd, /*서비스업무세분류코드*/
 
-        String svBizDclsfNm,
+        String svBizDclsfNm, /* 서비스업무세분류명 */
 
-        String wkPrgsStatCd,
+        String wkPrgsStatCd, /*작업진행상태코드*/
 
-        String wkPrgsStatNm,
+        String wkPrgsStatNm, /*작업진행상태코드명*/
 
-        String istDt,
+        String istDt,  /*설치일자*/
 
-        String reqdDt,
+        String reqdDt, /*철거일자*/
 
-        String rcgvpKnm,
+        String rcgvpKnm, /*고객명*/
 
         String cntrRcpFshDtm, //CONT_DT 계약일자
 
-        String newAdrZip,
+        String newAdrZip, /* 우편번호 */
 
         String rnadr, //주소
 
@@ -99,37 +99,37 @@ public class WsnaMdProductOutOfStorageMgtDto {
 
         String idvTno, //개별전화번호(전화번호)
 
-        String rsgFshDt,
+        String rsgFshDt, /*취소일자*/
 
         String ostrCnfmDt,
 
-        String ogId,
+        String ogId, /* 조직ID */
 
-        String ogTpCd,
+        String ogTpCd, /* 조직유형코드 */
 
-        String prtnrNo,
+        String prtnrNo, /* 파트너번호 */
 
-        String pdctPdCd,
+        String pdctPdCd, /* 제품상품코드 */
 
         /* MD */
-        String prtnrBzsNm,
+        String prtnrBzsNm, /* 파트너업체명 */
 
-        String pcsvCompDv,
+        String pcsvCompDv, /*택배사구분*/
 
-        String pcsvCompNm,
+        String pcsvCompNm, /*택배사구분명 */
 
-        String sppIvcNo,
+        String sppIvcNo, /*송장번호*/
 
-        String sppBzsPdId,
+        String sppBzsPdId, /*SR번호*/
 
         /* 창고 */
-        String wkWareNo,
+        String wkWareNo, /*작업창고번호*/
 
-        String wareMngtPrtnrNo,
+        String wareMngtPrtnrNo,  /* 창고관리파트너번호 */
 
         /* 상품 */
 
-        int partCnt,
+        int partCnt,  /* 투입부품모델수 */
 
         String partCd1,
 
@@ -196,53 +196,53 @@ public class WsnaMdProductOutOfStorageMgtDto {
     @ApiModel(value = "WsnaMdProductOutOfStorageMgtDto-SaveReq")
     public record SaveReq(
         @NotBlank
-        String cstSvAsnNo,
+        String cstSvAsnNo,  /*고객요청번호*/
 
         @NotBlank
-        String cntrNo,
+        String cntrNo, /*계약번호*/
 
         @NotBlank
-        String cntrSn,
+        String cntrSn, /*계약일련번호*/
 
         @NotBlank
-        String svBizDclsfCd,
+        String svBizDclsfCd, /*서비스업무세분류코드*/
 
         @NotBlank
-        String svBizHclsfCd,
+        String svBizHclsfCd,  /*서비스업무대분류코드*/
 
         @NotBlank
-        String prtnrNo,
+        String prtnrNo, /* 파트너번호 */
 
         @NotBlank
-        String ogTpCd,
+        String ogTpCd, /* 조직유형코드 */
 
         @NotBlank
-        String ogId,
+        String ogId, /* 조직ID */
 
         @NotBlank
-        String pdctPdCd,
+        String pdctPdCd, /* 제품상품코드 */
 
         @NotBlank
-        String wkWareNo,
+        String wkWareNo, /*작업창고번호*/
 
-        String sellTpCd,
+        String sellTpCd, /*판매유형코드*/
 
-        String istDt,
+        String istDt,   /*설치일자*/
 
         List<WsnaMdProductOutOfStorageSaveProductDvo> products
     ) {}
     @ApiModel(value = "WsnaMdProductOutOfStorageMgtDto-RemoveReq")
     public record RemoveReq(
         @NotBlank
-        String cstSvAsnNo,
+        String cstSvAsnNo,  /*고객요청번호*/
 
         @NotBlank
-        String cntrNo,
+        String cntrNo, /*계약번호*/
 
         @NotBlank
-        String cntrSn,
+        String cntrSn, /*계약일련번호*/
 
         @NotBlank
-        String svBizHclsfCd
+        String svBizHclsfCd /*서비스업무대분류코드*/
     ) {}
 }

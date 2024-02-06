@@ -8,9 +8,10 @@ import org.apache.ibatis.annotations.Param;
 
 import com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdExcellentDivisionBaseMgtDto.*;
 import com.kyowon.sms.wells.web.competence.evaluate.dvo.WpsdElvBaseDvo;
+import com.kyowon.sms.wells.web.competence.evaluate.dvo.WpsdTrgBaseDvo;
+import com.kyowon.sms.wells.web.competence.evaluate.dvo.WpsdPdBaseDvo;
 import com.kyowon.sms.wells.web.competence.evaluate.dvo.WpsdElvDetailDvo;
 import com.kyowon.sms.wells.web.competence.evaluate.dvo.WpsdExcellentDivisionDeadlineDvo;
-import com.kyowon.sms.wells.web.competence.evaluate.dvo.WpsdPdBaseDvo;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -34,11 +35,9 @@ public interface WpsdExcellentDivisionBaseMgtMapper {
 
     PagingResult<EvlSearchRes> selectEvaluationBaseMgtPages(EvlSearchReq req, PageInfo pageInfo);
 
-    int selectEvaluationBase(WpsdElvBaseDvo dvo);
-
     int updateEvaluationBase(WpsdElvBaseDvo dvo);
 
-    int insertEvaluationBase(WpsdElvBaseDvo dvo);
+    int insertEvaluationBase(@Param("dvo") WpsdElvBaseDvo dvo);
 
     int removeEvaluationResponsibility(WpsdElvBaseDvo dvo);
 
@@ -46,15 +45,17 @@ public interface WpsdExcellentDivisionBaseMgtMapper {
 
     PagingResult<EvlDetailSearchRes> selectEvaluationDetailPages(EvlSearchReq req, PageInfo pageInfo);
 
+    List<EvlDetailSearchRes> selectEvaluationDetailPages(EvlSearchReq req);
+
     List<HashMap<String, Object>> selectTargetList(WpsdElvDetailDvo dvo);
 
-    int insertEvaluationDetail(@Param("param") WpsdElvDetailDvo dvo, @Param("target") List<HashMap<String, Object>> target);
+    int insertEvaluationDetail(WpsdElvDetailDvo dvo);
 
     List<EvlArticlesSearchRes> selectEvaluationArticales(EvlSearchReq req);
 
-    PagingResult<TrgSearchRes> selectTargetBaseMgtPages(TrgSearchReq req, PageInfo pageInfo);
+    List<TrgSearchRes> selectTargetBaseMgtList(TrgSearchReq req);
 
-    int updateTargetBase(WpsdElvDetailDvo dvo);
+    int updateTargetBase(WpsdTrgBaseDvo dvo);
 
     int deleteEvaluationDetail(WpsdElvDetailDvo dvo);
 
@@ -66,4 +67,11 @@ public interface WpsdExcellentDivisionBaseMgtMapper {
 
     DeadlineSearchRes selectExcellentDivisionDeadline(DeadlineSearchReq req);
 
+    int insertEvaluationArticleDetail(@Param("param") WpsdElvDetailDvo dvo, @Param("target") List<HashMap<String, Object>> target);
+
+    int deleteEvaluationArticleDetail(WpsdElvDetailDvo dvo);
+
+    List<EvlAwardRes> selectMonthAwardTypeList(EvlSearchReq req);
+
+    int removeEvaluationBase(WpsdElvBaseDvo dvo);
 }

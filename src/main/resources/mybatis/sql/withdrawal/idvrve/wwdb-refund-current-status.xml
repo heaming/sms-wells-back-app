@@ -13,8 +13,8 @@
                       AND S1.DTA_DL_YN = 'N') AS CST_KNM  /*고객명*/
                 , T2.SELL_TP_CD
                 , NVL(T3.RVE_AMT_DP,0) - NVL(T3.RVE_AMT_RF,0) AS DP_AMT /*입금총액*/
-                , T1.RVE_AMT AS RVE_AMT  /*지급금액*/
-                , T1.RVE_AMT AS RFND_DSB_AMT   /*환불금액*/
+                , NVL(T1.RVE_AMT , 0) AS RVE_AMT  /*지급금액*/
+                , NVL(T1.RVE_AMT , 0) + NVL(T7.RVE_AMT ,0) AS RFND_DSB_AMT   /*환불금액*/
                 , NVL(T4.RFND_DSB_PSP_INT , 0 ) AS RFND_DSB_PSP_INT  /*지연이자*/
                 , NVL(T7.RVE_AMT ,0) AS RFND_DDTN_AMT /*카드공제*/
                 , T4.CSH_RFND_FNIT_CD  AS  CSH_RFND_FNIT_CD /*은행/카드사*/
@@ -67,7 +67,7 @@
                          WHERE 1 = 1
                            AND S1.DTA_DL_YN = 'N'
                            AND S1.KW_GRP_CO_CD = '2000'
-                           AND S1.RVE_DV_CD IN ('03' , '04' ,'05' ,'09' , '17')
+                           AND S1.RVE_DV_CD IN ('01' , '03' , '04' ,'05' ,'09' , '17')
                          AND S1.DTA_DL_YN  = 'N'
                          GROUP BY S1.CNTR_NO , S1.CNTR_SN) T3
               ON (    T3.CNTR_NO = T1.CNTR_NO
@@ -148,7 +148,7 @@
                AND (T1.RVE_DV_CD = '09')                   /* 수납상세.수납구분코드 = 09.대손이관 = 대손구분 테스트용 임시주석 */
                   </when>
                   <otherwise>
-               AND (T1.RVE_DV_CD IN ('03' , '04' ,'05' , '17'))                  /* 수납상세.수납구분코드 != 09.대손이관 = 일반 테스트용 임시주석*/
+               AND (T1.RVE_DV_CD IN ('01' , '03' , '04' ,'05' , '17'))                  /* 수납상세.수납구분코드 != 09.대손이관 = 일반 테스트용 임시주석*/
                   </otherwise>
                 </choose>
             </if>
@@ -158,9 +158,11 @@
 
     <select id="selectRefundHistorySum" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto$SearchRefundHistoryTotalRes">
            SELECT /*+ push_pred(T3) use_nl(T1 T2 T6 T3)  */
-                  SUM(NVL(T3.RVE_AMT_DP,0) - NVL(T3.RVE_AMT_RF,0)) AS DP_AMT_SUM /*입금총액*/
-                , SUM(T1.RVE_AMT) AS RVE_AMT_SUM  /*지급금액*/
-                , SUM(T1.RVE_AMT) AS RFND_DSB_AMT_SUM   /*환불금액*/
+<!--                  SUM(NVL(T3.RVE_AMT_DP,0) - NVL(T3.RVE_AMT_RF,0)) AS DP_AMT_SUM /*입금총액*/-->
+                  SUM(T1.RVE_AMT) AS RVE_AMT_SUM  /*지급금액*/
+                , SUM(NVL(T1.RVE_AMT , 0) + NVL(T7.RVE_AMT ,0)) AS RFND_DSB_AMT_SUM   /*환불금액*/
+                , SUM(NVL(T4.RFND_DSB_PSP_INT, 0)) AS RFND_DSB_PSP_INT_SUM /*지연이자*/
+                , SUM(NVL(T7.RVE_AMT, 0)) AS RFND_DDTN_AMT_SUM /*카드공제*/
               FROM TB_RVDW_RVE_DTL T1 /*수납상세*/
              INNER JOIN TB_SSCT_CNTR_DTL T2  /*계약상세*/
                 ON (    T2.CNTR_NO = T1.CNTR_NO /*계약번호*/
@@ -183,7 +185,7 @@
                          WHERE 1 = 1
                            AND S1.DTA_DL_YN = 'N'
                            AND S1.KW_GRP_CO_CD = '2000'
-                           AND S1.RVE_DV_CD IN ('03' , '04' ,'05' ,'09' , '17')
+                           AND S1.RVE_DV_CD IN ('01' , '03' , '04' ,'05' ,'09' , '17')
                          AND S1.DTA_DL_YN  = 'N'
                          GROUP BY S1.CNTR_NO , S1.CNTR_SN) T3
               ON (    T3.CNTR_NO = T1.CNTR_NO
@@ -260,7 +262,7 @@
                AND (T1.RVE_DV_CD = '09')                   /* 수납상세.수납구분코드 = 09.대손이관 = 대손구분 테스트용 임시주석 */
                   </when>
                   <otherwise>
-               AND (T1.RVE_DV_CD IN ('03' , '04' ,'05' , '17'))                  /* 수납상세.수납구분코드 != 09.대손이관 = 일반 테스트용 임시주석*/
+               AND (T1.RVE_DV_CD IN ('01' , '03' , '04' ,'05' , '17'))                  /* 수납상세.수납구분코드 != 09.대손이관 = 일반 테스트용 임시주석*/
                   </otherwise>
                 </choose>
             </if>
@@ -286,7 +288,8 @@
                   SELECT /*+ push_pred(T3) use_nl(T1 T2 T6 T3)  */
                          T2.SELL_TP_CD
                        , T2.SELL_TP_DTL_CD
-                       , CASE WHEN T2.SELL_TP_CD = '2' THEN CASE WHEN SELL_TP_DTL_CD IN ('21' , '23') THEN '21'
+                       , CASE WHEN T2.SELL_TP_CD = '1' THEN SELL_TP_DTL_CD
+                              WHEN T2.SELL_TP_CD = '2' THEN CASE WHEN SELL_TP_DTL_CD IN ('21' , '23') THEN '21'
                                                                  WHEN SELL_TP_DTL_CD = '22' THEN '22'
                                                                  WHEN SELL_TP_DTL_CD = '24' THEN '24'
                                                                  WHEN SELL_TP_DTL_CD = '25' THEN '25'
@@ -297,7 +300,8 @@
                                                                   END
                               WHEN T2.SELL_TP_CD = '6' THEN '61'
                               END AS SELL_DTL
-                       , CASE WHEN T2.SELL_TP_CD = '2' THEN CASE WHEN SELL_TP_DTL_CD IN ('21' , '23') THEN RVE_AMT
+                       , CASE WHEN T2.SELL_TP_CD = '1' THEN RVE_AMT
+                              WHEN T2.SELL_TP_CD = '2' THEN CASE WHEN SELL_TP_DTL_CD IN ('21' , '23') THEN RVE_AMT
                                                                  WHEN SELL_TP_DTL_CD = '22' THEN RVE_AMT
                                                                  WHEN SELL_TP_DTL_CD = '24' THEN RVE_AMT
                                                                  WHEN SELL_TP_DTL_CD = '25' THEN RVE_AMT
@@ -308,7 +312,11 @@
                                                                   END
                               WHEN T2.SELL_TP_CD = '6' THEN RVE_AMT
                               END AS RFND_CSH_AMT
-                       , CASE WHEN T2.SELL_TP_CD = '2' THEN CASE WHEN SELL_TP_DTL_CD IN ('21' , '23') THEN '렌탈'
+                       , CASE WHEN T2.SELL_TP_CD = '1' THEN CASE WHEN SELL_TP_DTL_CD = '11' THEN '일반'
+                                                                 WHEN SELL_TP_DTL_CD = '12' THEN '홈케어'
+                                                                 WHEN SELL_TP_DTL_CD = '13' THEN '환경가전'
+                                                             END
+                              WHEN T2.SELL_TP_CD = '2' THEN CASE WHEN SELL_TP_DTL_CD IN ('21' , '23') THEN '렌탈'
                                                                  WHEN SELL_TP_DTL_CD = '22' THEN '리스'
                                                                  WHEN SELL_TP_DTL_CD = '24' THEN '환경리스'
                                                                  WHEN SELL_TP_DTL_CD = '25' THEN '장기할부'
@@ -322,7 +330,7 @@
                       , T4.CSH_RFND_FNIT_CD  AS CSH_RFND_FNIT_CD /*은행*/
                       , T4.CARD_RFND_FNIT_CD AS CRDCD_FNIT_CD /*카드사*/
                       , T1.DP_MES_CD /*입금수단*/
-                      , T4.RFND_DDTN_AMT /*공제금액*/
+                      , T4.CARD_RFND_FEE AS RFND_DDTN_AMT /*공제금액*/
                       , T4.RFND_DSB_PSP_INT /*지연이자*/
                       , T1.DP_TP_CD
                       , T4.RFND_DSB_DV_CD
@@ -392,7 +400,7 @@
                        AND (T1.RVE_DV_CD = '09')                   /* 수납상세.수납구분코드 = 09.대손이관 = 대손구분 테스트용 임시주석 */
                           </when>
                           <otherwise>
-                       AND (T1.RVE_DV_CD IN ('03' , '04' ,'05' , '17'))                  /* 수납상세.수납구분코드 != 09.대손이관 = 일반 테스트용 임시주석*/
+                       AND (T1.RVE_DV_CD IN ('01' , '03' , '04' ,'05' , '17'))                  /* 수납상세.수납구분코드 != 09.대손이관 = 일반 테스트용 임시주석*/
                           </otherwise>
                         </choose>
                     </if>
@@ -558,7 +566,7 @@
                        AND (M1.RVE_DV_CD = '09')                   /* 수납상세.수납구분코드 = 09.대손이관 = 대손구분 테스트용 임시주석 */
                           </when>
                           <otherwise>
-                       AND (M1.RVE_DV_CD IN ('03' , '04' ,'05' , '17'))                  /* 수납상세.수납구분코드 != 09.대손이관 = 일반 테스트용 임시주석*/
+                       AND (M1.RVE_DV_CD IN ('01' , '03' , '04' ,'05' , '17'))                  /* 수납상세.수납구분코드 != 09.대손이관 = 일반 테스트용 임시주석*/
                           </otherwise>
                         </choose>
                     </if>

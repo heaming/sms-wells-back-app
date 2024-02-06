@@ -16,7 +16,7 @@
              ORDER BY T1.WARE_USE_YN DESC, T1.WARE_NM ASC, T1.WARE_NO ASC
     </select>
 
-    <select id="selectStockAcinspRgstMngtPages" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaStockAcinspRgstMngtDto$SearchRes" fetchSize="1000">
+    <select id="selectStockAcinspRgstMngtPages" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaStockAcinspRgstMngtDto$SearchRes">
         SELECT A1.APY_YM        /*기준년월*/
              , A1.WARE_NO       /*창고번호*/
              , A1.WARE_NM        /*창고명*/
@@ -83,6 +83,7 @@
                           INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D3
                              ON D3.PD_CD = D2.PD_CD
                           WHERE D1.DTA_DL_YN          = 'N'
+                            AND D1.WARE_USE_YN        = 'Y'
                             AND D2.DTA_DL_YN          = 'N'
                             AND D2.PD_TP_CD           = 'M'
                             AND D3.DTA_DL_YN          = 'N'
@@ -90,7 +91,6 @@
                             AND D2.SAP_MAT_CD IS NOT NULL
                             AND D1.APY_YM             = #{baseYm}
                             AND D1.WARE_DV_CD         = #{wareDvCd}
-                            AND D1.WARE_USE_YN        = 'Y'
                         <if test='@MybatisUtils@equals(wareDvCd, "3")'>
                             AND (D3.PD_PRP_VAL19      IN ('5','6') OR D2.PD_CD = 'WM07106893')
                         </if>
@@ -179,11 +179,9 @@
                  </if>
                    ) A1
             ORDER BY A1.STATUS_T, A1.WARE_NO, A1.ITM_KND, A1.ITM_PD_CD
-
-
     </select>
 
-    <select id="selectStockAcinspRgstMngtBulk" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaStockAcinspRgstMngtDvo" fetchSize="1000">
+    <select id="selectStockAcinspRgstMngtBulk" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaStockAcinspRgstMngtDto$SearchRes" fetchSize="10000">
         SELECT A1.APY_YM        /*기준년월*/
              , A1.WARE_NO       /*창고번호*/
              , A1.WARE_NM        /*창고명*/
@@ -196,12 +194,12 @@
              , A1.ACINSP_QTY    /*실사재고*/
              , NVL(ACINSP_QTY, 0) - NVL(EOT_STOC, 0) AS MINUS_QTY /*재고차이*/
              , A1.ACINSP_RMK_CN /* 실사비고 */
-             , A1.CNFMDT /* 확정일자 */
+             , TO_CHAR(TO_DATE(A1.CNFMDT, 'YYYYMMDD'), 'YYYY-MM-DD') AS CNFMDT  /* 확정일자 */
              , A1.CNFM_PITM_EOT_STOC_QTY /* 확정시점기말재고수량 */
              , A1.CNFM_PITM_STR_GAP_QTY/* 확정시점입고차이수량 */
              , A1.CNFM_PITM_OSTR_GAP_QTY /* 확정시점출고차이수량 */
              , A1.DIFF_QTY /* 차이수량 */
-             , A1.IOST_RFDT /* 입출고반영일자 */
+             , TO_CHAR(TO_DATE(A1.IOST_RFDT, 'YYYYMMDD'), 'YYYY-MM-DD') AS IOST_RFDT /* 입출고반영일자 */
              , A1.STOC_ACINSP_AK_ID /* 재고실사요청ID*/
           FROM (
                 SELECT T1.APY_YM /*기준년월*/
@@ -250,6 +248,7 @@
                           INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D3
                              ON D3.PD_CD = D2.PD_CD
                           WHERE D1.DTA_DL_YN          = 'N'
+                            AND D1.WARE_USE_YN        = 'Y'
                             AND D2.DTA_DL_YN          = 'N'
                             AND D2.PD_TP_CD           = 'M'
                             AND D3.DTA_DL_YN          = 'N'
@@ -258,7 +257,7 @@
                             AND D1.APY_YM             = #{baseYm}
                             AND D1.WARE_DV_CD         = #{wareDvCd}
                         <if test='@MybatisUtils@equals(wareDvCd, "3")'>
-                            AND D3.PD_PRP_VAL19      IN ('5','6')
+                            AND ( D3.PD_PRP_VAL19 IN ('5','6') OR D2.PD_CD = 'WM07106893' )
                         </if>
                         <if test='@MybatisUtils@isNotEmpty(wareDtlDvCd)'>
                             AND D1.WARE_DTL_DV_CD     = #{wareDtlDvCd}
@@ -345,8 +344,6 @@
                  </if>
                    ) A1
             ORDER BY A1.STATUS_T, A1.WARE_NO, A1.ITM_KND, A1.ITM_PD_CD
-
-
     </select>
 
     <select id="selectReAcinspRgst" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaStockAcinspRgstMngtDvo">

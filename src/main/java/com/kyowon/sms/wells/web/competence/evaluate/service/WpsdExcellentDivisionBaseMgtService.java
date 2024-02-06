@@ -12,8 +12,9 @@ import com.kyowon.sms.wells.web.competence.evaluate.converter.WpsdExcellentDivis
 import com.kyowon.sms.wells.web.competence.evaluate.dto.WpsdExcellentDivisionBaseMgtDto.*;
 import com.kyowon.sms.wells.web.competence.evaluate.dvo.WpsdElvBaseDvo;
 import com.kyowon.sms.wells.web.competence.evaluate.dvo.WpsdElvDetailDvo;
-import com.kyowon.sms.wells.web.competence.evaluate.dvo.WpsdExcellentDivisionDeadlineDvo;
+import com.kyowon.sms.wells.web.competence.evaluate.dvo.WpsdTrgBaseDvo;
 import com.kyowon.sms.wells.web.competence.evaluate.dvo.WpsdPdBaseDvo;
+import com.kyowon.sms.wells.web.competence.evaluate.dvo.WpsdExcellentDivisionDeadlineDvo;
 import com.kyowon.sms.wells.web.competence.evaluate.mapper.WpsdExcellentDivisionBaseMgtMapper;
 import com.sds.sflex.common.common.dvo.ExcelUploadErrorDvo;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
@@ -57,7 +58,7 @@ public class WpsdExcellentDivisionBaseMgtService {
      * @return int
      */
     @Transactional
-    public int saveProductBase(List<PdSaveReq> reqs) {
+    public int saveProductBases(List<PdSaveReq> reqs) {
         int processCount = 0;
         for (PdSaveReq req : reqs) {
             WpsdPdBaseDvo dvo = converter.pdMapToPdBaseDvo(req);
@@ -78,7 +79,7 @@ public class WpsdExcellentDivisionBaseMgtService {
      * @param reqs
      * @return int
      */
-    public int removeProductBase(List<PdSaveReq> reqs) {
+    public int removeProductBases(List<PdSaveReq> reqs) {
         int processCount = 0;
         for (PdSaveReq req : reqs) {
             WpsdPdBaseDvo dvo = converter.pdMapToPdBaseDvo(req);
@@ -146,16 +147,17 @@ public class WpsdExcellentDivisionBaseMgtService {
      * @return int
      */
     @Transactional
-    public int saveEvaluationBase(List<EvlSaveReq> reqs) {
+    public int saveEvaluationBases(List<EvlSaveReq> reqs) {
         int processCount = 0;
         for (EvlSaveReq req : reqs) {
             WpsdElvBaseDvo dvo = converter.elvMapToElvBaseDvo(req);
             int resultCnt = 0;
-            if (mapper.selectEvaluationBase(dvo) > 0) {
-                resultCnt = mapper.updateEvaluationBase(dvo);
-            } else {
+            if(StringUtils.isBlank(dvo.getAwdEvlId())){
                 resultCnt = mapper.insertEvaluationBase(dvo);
+            }else{
+                resultCnt = mapper.updateEvaluationBase(dvo);
             }
+
             BizAssert.isTrue(resultCnt > 0, SAVE_ERROR_MESSAGE);
             if (dvo.getRsbDvCdList().length > 0) {
                 mapper.removeEvaluationResponsibility(dvo);
@@ -177,20 +179,59 @@ public class WpsdExcellentDivisionBaseMgtService {
     }
 
     /**
+     * 우수사업부 기준관리 - 평가기준관리 삭제
+     * @param reqs
+     * @return int
+     */
+    public int removeEvaluationBases(List<EvlDeleteReq> reqs) {
+        int processCount = 0;
+        for (EvlDeleteReq req : reqs) {
+            WpsdElvBaseDvo dvo = converter.elvMapToElvBaseDvo(req);
+            int resultCnt = mapper.removeEvaluationBase(dvo);
+            processCount += resultCnt;
+        }
+        return processCount;
+    }
+
+    /**
+     * 우수사업부 기준관리 - 평가기준관리 상세 삭제
+     * @param reqs
+     * @return PagingResult<EvlDetailSearchRes>
+     */
+    public int removeEvaluationDetails(List<EvlDetailDeleteReq> reqs) {
+        int processCount = 0;
+        for (EvlDetailDeleteReq req : reqs) {
+            WpsdElvDetailDvo dvo = converter.elvMapToDetailDvo(req);
+            // 1. 기존 시상평가기준상세 데이터 삭제
+            mapper.deleteEvaluationDetail(dvo); // 시상평가기준상세 삭제
+            mapper.deleteEvaluationArticleDetail(dvo);  // 시상평가항목상세(대상) 삭제
+        }
+        return processCount;
+    }
+
+    /**
      * 우수사업부 기준관리 - 평가기준관리 상세 저장
      * @param reqs
      * @return PagingResult<EvlDetailSearchRes>
      */
     @Transactional
-    public int saveEvaluationDetail(List<EvlDetailSaveReq> reqs) {
+    public int saveEvaluationDetails(List<EvlDetailSaveReq> reqs) {
         int processCount = 0;
         for (EvlDetailSaveReq req : reqs) {
             WpsdElvDetailDvo dvo = converter.elvMapToDetailDvo(req);
-            mapper.deleteEvaluationDetail(dvo);
+            // 1. 기존 시상평가기준상세 데이터 삭제
+            mapper.deleteEvaluationDetail(dvo); // 시상평가기준상세 삭제
+            mapper.deleteEvaluationArticleDetail(dvo);  // 시상평가항목상세(대상) 삭제
+            // 2. 대상자 조회
             List<HashMap<String, Object>> target = mapper.selectTargetList(dvo);
             BizAssert.isTrue(!target.isEmpty(), "MSG_ALT_UNRG_EVL_OJ");
-            int resultCnt = mapper.insertEvaluationDetail(dvo, target);
+            // 3. 시상평가기준상세 등록
+            int resultCnt = mapper.insertEvaluationDetail(dvo);
             BizAssert.isTrue(resultCnt > 0, "MSG_ALT_NTHNG_PROCS_OJ");
+            // 4. 시상평가항목상세 등록
+            resultCnt = mapper.insertEvaluationArticleDetail(dvo, target);
+            BizAssert.isTrue(resultCnt > 0, "MSG_ALT_NTHNG_PROCS_OJ");
+
             processCount += resultCnt;
         }
         return processCount;
@@ -206,12 +247,30 @@ public class WpsdExcellentDivisionBaseMgtService {
     }
 
     /**
+     * 우수사업부 기준관리 - 월별 시상구분 조회
+     * @param req
+     * @return PagingResult<EvlSearchRes>
+     */
+    public List<EvlAwardRes> getMonthAwardTypeList(EvlSearchReq req) {
+        return mapper.selectMonthAwardTypeList(req);
+    }
+
+    /**
      * 우수사업부 기준관리 - 목표기준관리 페이징  조회
      * @param req, pageInfo
      * @return PagingResult<TrgSearchRes>
      */
-    public PagingResult<TrgSearchRes> getExcellentDivisionTargetBaseMgtPages(TrgSearchReq req, PageInfo pageInfo) {
-        return mapper.selectTargetBaseMgtPages(req, pageInfo);
+    public List<TrgSearchRes> getExcellentDivisionTargetBaseMgtList(TrgSearchReq req) {
+        return mapper.selectTargetBaseMgtList(req);
+    }
+
+    /**
+     * 우수사업부 기준관리 - 목표기준관리 페이징  조회
+     * @param req, pageInfo
+     * @return PagingResult<TrgSearchRes>
+     */
+    public List<TrgSearchRes> getExcellentDivisionTargetBaseMgtForExcelDownload(TrgSearchReq req) {
+        return mapper.selectTargetBaseMgtList(req);
     }
 
     /**
@@ -220,10 +279,10 @@ public class WpsdExcellentDivisionBaseMgtService {
      * @return int
      */
     @Transactional
-    public int saveTargetBase(List<EvlDetailSaveReq> reqs) {
+    public int saveTargetBase(List<TrgSaveReq> reqs) {
         int processCount = 0;
-        for (EvlDetailSaveReq req : reqs) {
-            WpsdElvDetailDvo dvo = converter.elvMapToDetailDvo(req);
+        for (TrgSaveReq req : reqs) {
+            WpsdTrgBaseDvo dvo = converter.mapToTrgBaseDvo(req);
             int resultCnt = mapper.updateTargetBase(dvo);
             BizAssert.isTrue(resultCnt > 0, SAVE_ERROR_MESSAGE);
             processCount += resultCnt;
@@ -258,4 +317,8 @@ public class WpsdExcellentDivisionBaseMgtService {
         return resultCount;
     }
 
+
+    public List<EvlDetailSearchRes> getExcellentDivisionEvaluationDetail(EvlSearchReq req) {
+        return mapper.selectEvaluationDetailPages(req);
+    }
 }

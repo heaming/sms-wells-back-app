@@ -10,46 +10,46 @@ public class WsnbSamsungManufactureNoInqrDto {
     public record SearchReq(
 
         @NotBlank
-        String startDt,
+        String startDt,  // 등록일자시작
 
         @NotBlank
-        String endDt,
+        String endDt,    // 등록일자종료
 
-        String ssPdctBcNo,
+        String ssPdctBcNo,  // 삼성제조번호
 
-        String cntrDtlNo,
+        String cntrDtlNo,  // 계약상세번호 (CNTR_NO || '-' || CNTR_SN)
 
-        String saleCd,
+        String saleCd,  // 판매코드
 
-        String rcgvpKnm
+        String rcgvpKnm  // 고객명
 
     ) {}
     @ApiModel(value = "WsnbSamsungManufactureNoInqrDto-SearchRes")
     public record SearchRes(
-        String cntrNo,
+        String cntrNo,  // 계약번호
 
-        String cntrSn,
+        String cntrSn,  // 계약상세일련번호
 
-        String rcgvpKnm,
+        String rcgvpKnm,  // 고객명
 
-        String sellTpNm,
+        String sellTpNm,  // 고객유형
 
-        String saleCd,
+        String saleCd, // 판매코드
 
-        String sapMatCd,
+        String sapMatCd, // SAP코드
 
-        String pdCd,
+        String pdCd, // 품목코드
 
-        String pdNm,
+        String pdNm, // 상품명
 
-        String ssPdctBcNo,
+        String ssPdctBcNo,  // 삼성제조번호
 
-        String fstRgstDt,
+        String fstRgstDt,  // 등록일자
 
-        String prtnrKnm,
+        String prtnrKnm,  // 담당자
 
-        String ogNm,
+        String ogNm,  // 조직명, 등록지점
 
-        String wkPsicDvCd
+        String wkPsicDvCd // 담당자구분
     ) {}
 }

@@ -4,6 +4,7 @@ import static com.kyowon.sms.common.web.fee.common.dvo.FeeIdGenerator.getFeeRede
 
 import java.util.Arrays;
 
+import com.kyowon.sms.wells.web.deduction.redf.service.WdeaSoleDistributorMgtService;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,7 @@ public class WfebRedemptionFeeService {
 
     private final WfeaRedemptionPerfService redemptionPerfService;
     private final ZfebRedfAdsbFeeCalculationService redfAdsbFeeCalculationService;
+    private final WdeaSoleDistributorMgtService soleDistributorMgtService;
 
     private final WfebRedemptionFeeMapper redemptionFeeMapper;
 
@@ -75,6 +77,11 @@ public class WfebRedemptionFeeService {
         if (Arrays.asList("W01", "W02", "W05").contains(ogTpCd)) {
             saveDlqRedemptionOfFees(baseYm, ogTpCd, cntrPerfCrtDvCd);
         }
+
+        if ("W05".equals(ogTpCd)) {
+            /* 총판인 경우 총판전용 되물림테이블 데이터 생성 호출 */
+            soleDistributorMgtService.saveSoleDistributorB2bRedfAmt(baseYm);
+        }
     }
 
     /**
@@ -112,7 +119,7 @@ public class WfebRedemptionFeeService {
                     getFeeRedemptionDetailIdSql(defaultTenantId, redfAdsbDvCd, baseYm, redfAdsbTpCd)
                 );
 
-                /* P조직 상조 연체되물림 생성 */
+                /* M조직 상조 연체되물림 생성 */
                 insertCount += redemptionFeeMapper.insertLifeContractRedf(
                     baseYm, ogTpCd, getFeeRedemptionDetailIdSql(defaultTenantId, redfAdsbDvCd, baseYm, redfAdsbTpCd),
                     "W020125", "W020127", "W020126"

@@ -2126,17 +2126,21 @@
              , NVL(A9.EOT_DLQ_AMT + A9.BTD_DLQ_ADD_AMT - A9.THM_DLQ_ADD_DP_SUM_AMT - A9.THM_CTR_DLQ_ADD_AMT + A9.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(A12.EOT_BOR_AMT,0) AS EOT_DLQ_AMT           /*기말연체금액*/
              , NVL(A9.EOT_DLQ_AMT + A9.BTD_DLQ_ADD_AMT - A9.THM_DLQ_ADD_DP_SUM_AMT - A9.THM_CTR_DLQ_ADD_AMT + A9.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(A12.EOT_BOR_AMT,0) AS BILLING_AMOUNT         /*매출누계금액*/
              , CASE WHEN A1.SELL_TP_CD = '2' THEN GREATEST(NVL(B6.THM_BIL_DP_AMT - B6.SV_DP_AMT, 0), 0)
-                    WHEN A1.SELL_TP_CD = '6' THEN NVL(B6.SL_BND_ALRPY_AMT, 0)
+                    WHEN A1.SELL_TP_CD = '6' THEN NVL(B6.THM_ATAM_DP_AMT, 0)
                     WHEN A1.SELL_TP_CD = '3' THEN NVL(B6.SL_BND_ALRPY_AMT, 0)
                     WHEN A1.SELL_TP_CD = '1' THEN NVL(B6.THM_INTAM_DP_AMT, 0)
                     ELSE 0 END                                                       AS DEPOSIT_AMOUNT      /*입금금액*/
              , NVL(B9.EOT_DLQ_AMT + B9.BTD_DLQ_ADD_AMT - B9.THM_DLQ_ADD_DP_SUM_AMT - B9.THM_CTR_DLQ_ADD_AMT + B9.THM_DLQ_ADD_RFND_SUM_AMT, 0) + NVL(A12.EOT_BOR_AMT,0) AS UNCOLLECTED_AMOUNT  /*미수금액*/
              , F_CMZ_CD_NM(#{session.tenantId}, 'DP_TP_CD', A5.DP_TP_CD)             AS DP_TP_CD           /*입금유형코드*/
              , A5.MPY_BSDT                                                           AS MPY_BSDT         /*납부기준일자*/
-             , ''                                                                    AS APPROVE_CODE           /*입/출금에 문의*/
-             , ''                                                                    AS NON_PAYMENT_REASON         /*입/출금에 문의*/
+             , CASE WHEN A5.DP_TP_CD = '0102' THEN A5.AC_FNT_IMPS_CD
+                    WHEN A5.DP_TP_CD = '0203' THEN A5.CARD_FNT_IMPS_CD
+                    ELSE '' END                                                      AS APPROVE_CODE           /*결제코드*/
+             , CASE WHEN A5.DP_TP_CD = '0102' THEN F_CMZ_CD_NM(#{session.tenantId}, 'AC_FNT_IMPS_CD', A5.AC_FNT_IMPS_CD)
+                    WHEN A5.DP_TP_CD = '0203' THEN (CASE WHEN A5.CARD_FNT_IMPS_CD = 'OD21' THEN '유효기간경과' ELSE F_CMZ_CD_NM(#{session.tenantId}, 'CARD_FNT_IMPS_CD', A5.CARD_FNT_IMPS_CD) END)
+                    ELSE '' END                                                      AS NON_PAYMENT_REASON   /*미결제사유*/
              , A6.SL_AGG_AMT                                                         AS SL_AGG_AMT           /*매출누계금액*/
-             , A6.SL_DP_AGG_AMT                                                      AS DEPOSIT_AGGREGATE    /*입금누계액*/
+             , B6.SL_DP_AGG_AMT                                                      AS DEPOSIT_AGGREGATE    /*입금누계액*/
              , A7.PRTNR_KNM                                                          AS PRTNR_KNM           /*파트너한글명*/
              , A7.PRTNR_NO                                                           AS PRTNR_NO         /*파트너번호*/
              , A7.FST_CNTR_DT                                                        AS FST_CNTR_DT   /*최초계약일자*/
@@ -2171,7 +2175,7 @@
          INNER JOIN TB_PDBS_PD_BAS A4 /*상품기본*/
             ON A4.DTA_DL_YN = 'N' /*데이터삭제여부*/
            AND A4.PD_CD     = A1.BASE_PD_CD
-          LEFT OUTER JOIN TB_SSCT_CNTR_STLM_BAS A5 /*계약결제기본*/
+          LEFT OUTER JOIN TB_SSCT_CNTR_STLM_CH_HIST A5 /*계약결제변경이력*/
             ON A5.DTA_DL_YN = 'N' /*데이터삭제여부*/
            AND A5.CNTR_NO   = A1.CNTR_NO
            AND A5.CNTR_STLM_ID = (SELECT MAX(B1.CNTR_STLM_ID)
@@ -2184,6 +2188,7 @@
                                          AND TO_CHAR(#{perfYm}) BETWEEN SUBSTR(B2.VL_STRT_DTM, 1, 6) AND SUBSTR(B2.VL_END_DTM, 1, 6)
                                          AND B1.DTA_DL_YN = 'N'
                                          AND B2.DTA_DL_YN = 'N')
+           AND #{perfYm} BETWEEN SUBSTR(A5.HIST_STRT_DTM, 1, 6) AND SUBSTR(A5.HIST_END_DTM, 1, 6)
          INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ A6 /*WELLS매출월마감내역*/
             ON A6.DTA_DL_YN = 'N' /*데이터삭제여부*/
            AND A6.CNTR_NO = A1.CNTR_NO

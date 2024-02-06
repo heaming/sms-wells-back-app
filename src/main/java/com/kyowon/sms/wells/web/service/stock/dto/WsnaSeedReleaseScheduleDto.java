@@ -100,6 +100,27 @@ public class WsnaSeedReleaseScheduleDto {
         String sding5,
         // 수량5
         BigDecimal qty5,
+        // 모종6
+        String sding6,
+        // 수량6
+        BigDecimal qty6,
+        // 모종7
+        String sding7,
+        // 수량7
+        BigDecimal qty7,
+        // 모종8
+        String sding8,
+        // 수량8
+        BigDecimal qty8,
+        // 모종9
+        String sding9,
+        // 수량9
+        BigDecimal qty9,
+        // 모종10
+        String sding10,
+        // 수량10
+        BigDecimal qty10,
+
         // 기기철거일자
         String mchnDemDt,
         // 접수일자
@@ -158,6 +179,27 @@ public class WsnaSeedReleaseScheduleDto {
         String sdingPdCd5,
         // 모종5 파종일자
         String sowDt5,
+        // 모종6 품목코드
+        String sdingPdCd6,
+        // 모종6 파종일자
+        String sowDt6,
+        // 모종7 품목코드
+        String sdingPdCd7,
+        // 모종7 파종일자
+        String sowDt7,
+        // 모종8 품목코드
+        String sdingPdCd8,
+        // 모종8 파종일자
+        String sowDt8,
+        // 모종9 품목코드
+        String sdingPdCd9,
+        // 모종9 파종일자
+        String sowDt9,
+        // 모종10 품목코드
+        String sdingPdCd10,
+        // 모종10 파종일자
+        String sowDt10,
+
         // 모종패키지품목코드
         String sdingPkgPdCd,
         // 관리자구분코드
@@ -191,7 +233,9 @@ public class WsnaSeedReleaseScheduleDto {
         // 고객휴대개별전화번호
         String cstCralIdvTno,
         // 서비스상품코드
-        String svPdCd
+        String svPdCd,
+        // 패키지구분코드
+        String pkgDvCd
     ) {}
 
     @Builder
@@ -282,6 +326,36 @@ public class WsnaSeedReleaseScheduleDto {
         BigDecimal qty5,
         // 파종일자5
         String sowDt5,
+        // 모종6
+        String sdingPdCd6,
+        // 수량6
+        BigDecimal qty6,
+        // 파종일자6
+        String sowDt6,
+        // 모종7
+        String sdingPdCd7,
+        // 수량7
+        BigDecimal qty7,
+        // 파종일자7
+        String sowDt7,
+        // 모종8
+        String sdingPdCd8,
+        // 수량8
+        BigDecimal qty8,
+        // 파종일자8
+        String sowDt8,
+        // 모종9
+        String sdingPdCd9,
+        // 수량9
+        BigDecimal qty9,
+        // 파종일자9
+        String sowDt9,
+        // 모종10
+        String sdingPdCd10,
+        // 수량10
+        BigDecimal qty10,
+        // 파종일자10
+        String sowDt10,
 
         // 접수일자
         @ValidDate
@@ -327,7 +401,9 @@ public class WsnaSeedReleaseScheduleDto {
         // 고객휴대개별전화번호
         String cstCralIdvTno,
         // 서비스상품코드
-        String svPdCd
+        String svPdCd,
+        // 패키지구분코드
+        String pkgDvCd
     ) {}
 
 }

@@ -21,7 +21,8 @@ public class WsnbAsVisitPsDto {
         String wkExcnDtFrom, // 처리일자 From
         @NotBlank
         String wkExcnDtTo, // 처리일자 To
-        String refriDvCd // 유/무상 구분
+        String refriDvCd, // 유/무상 구분
+        String pdGrpCd // 상품군
     ) {}
 
     @ApiModel(value = "WsnbAsVisitPsDto-SearchRes")

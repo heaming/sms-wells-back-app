@@ -4,7 +4,7 @@
     <select id="selectOutOfStorageCostByTaskType"
             resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaOutOfStorageCostByTaskTypeDto$SearchRes">
         WITH PD_INF AS ( SELECT T1.PD_CD
-                              , T1.PD_NM
+                              , T1.PD_ABBR_NM AS PD_NM /*PD_NM -> PD_ABBR_NM(상품약어)로 변경*/
                               , T2.PD_PRP_VAL19 AS ITM_KND_CD
                               , T2.PD_PRP_VAL20 AS PD_GRP_CD
                               , T2.PD_PRP_VAL04	AS LP_USE_YN
@@ -24,11 +24,35 @@
                             <if test="@MybatisUtils@isNotEmpty(itmKndCd)">
                             AND T2.PD_PRP_VAL19 = #{itmKndCd} /* 품목구분 */
                             </if>
+        <if test="@MybatisUtils@isNotEmpty(itmGrpCd)">
+                            AND (
+                                  T2.PD_PRP_VAL20 = #{itmGrpCd}
+                                OR EXISTS (
+                                            SELECT 1
+                                             FROM TB_PDBS_PD_REL ST1
+                                            INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL DT2
+                                               ON DT2.PD_CD = ST1.BASE_PD_CD
+                                            WHERE ST1.DTA_DL_YN          = 'N'
+                                              AND ST1.PD_REL_TP_CD       = '14'   /* AS부품 */
+                                              AND DT2.DTA_DL_YN          = 'N'
+                                              AND DT2.PD_EXTS_PRP_GRP_CD = 'PART'
+                                              AND ST1.OJ_PD_CD           = T1.PD_CD
+                                              AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN ST1.VL_STRT_DTM AND ST1.VL_END_DTM
+                                              AND DT2.PD_PRP_VAL20       = #{itmGrpCd}
+                                          )
+                                )
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(itmPdCds)">
+                            AND T1.PD_CD IN
+            <foreach collection="itmPdCds" item="item" separator=", " open="(" close=")">
+                                #{item}
+            </foreach>
+        </if>
                             <if test="@MybatisUtils@isNotEmpty(useSel)">
                             AND T2.PD_PRP_VAL04 = #{useSel} /* 사용여부 */
                             </if>
-                            <if test="@MybatisUtils@isNotEmpty(itmPdCdFrom)">
-                            AND T1.PD_CD BETWEEN #{itmPdCdFrom} AND #{itmPdCdTo}
+                            <if test="@MybatisUtils@isNotEmpty(itmPdCdFrom) or @MybatisUtils@isNotEmpty(itmPdCdTo)">
+                            AND T1.PD_CD BETWEEN NVL(#{itmPdCdFrom}, #{itmPdCdTo}) AND NVL(#{itmPdCdTo}, #{itmPdCdFrom})
                             </if>
                             <if test="@MybatisUtils@isNotEmpty(stocTypeCd)">
                                <if test='@MybatisUtils@equals(stocTypeCd, "N")'>

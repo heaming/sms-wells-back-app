@@ -1,9 +1,11 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaStockContinueMonthAgrgStateConverter;
@@ -23,7 +25,6 @@ public class WsnaStockContinueMonthAgrgStateService {
     private final WsnaStockContinueMonthAgrgStateConverter converter;
 
     public List<HashMap<String, String>> getStockContinueMonthAgrgState(SearchReq dto) {
-
         WsnaStockContinueMonthAgrgStateDvo dvo = convertPivotStockContinueMonthAgrgStateDvo(dto);
 
         return mapper.selectStockContinueMonthAgrgState(dvo);
@@ -59,6 +60,7 @@ public class WsnaStockContinueMonthAgrgStateService {
             .map(item -> "NVL(T1.WARE_" + item.getWareNo() + "_KEPP,0) AS WARE_" + item.getWareNo() + "_KEPP_MM")
             .collect(Collectors.joining(","));
         String wareNoPitmSumFields = wares.stream()
+            .filter(item -> !item.getWareNo().equals("100002"))
             .map(item -> " NVL(T1.WARE_" + item.getWareNo() + "_PITM,0) ")
             .collect(Collectors.joining("+")); //영업센터 합계
 
@@ -67,9 +69,16 @@ public class WsnaStockContinueMonthAgrgStateService {
         dvo.setWareNoKeppMmFields(wareNoKeppMmFields);
         dvo.setWareNoPitmSumFields(wareNoPitmSumFields);
 
-        dvo.setItmPdCd(dto.itmPdCd());
-        dvo.setStrtSapCd(dto.strtSapCd());
-        dvo.setEndSapCd(dto.endSapCd());
+        ArrayList<String> pdCds = new ArrayList<String>();
+        if(dto.itmPdCds().size() > 0) {
+            for(int i = 0; i < dto.itmPdCds().size(); i++){
+//                pdCds.add();
+                log.info("itmPdCds ===== {}", dto.itmPdCds().get(i));
+                pdCds.add(dto.itmPdCds().get(i));
+            }
+            dvo.setItmPdCds(pdCds);
+            log.info("dvo.getItmPdCds() ===== {}", dvo.getItmPdCds());
+        }
 
         return dvo;
     }
