@@ -186,7 +186,7 @@ public class WsnaSeedReleaseScheduleService {
 
                 // 플로린이면서 제품배송일 경우 웰컴 BS 서비스 호출
                 if (PKG_DV_CD_FLOWER.equals(pkgDvCd) && SV_BIZ_DCLSF_CD_PD_SPP.equals(svBizDclsfCd)) {
-
+                    this.maaper.insertWelcomeBS(cntrNo, cntrSn, sppCnfmdt);
                 }
             }
 
@@ -459,7 +459,7 @@ public class WsnaSeedReleaseScheduleService {
 
         // 플로린이면서 제품배송일 경우 웰컴 BS 서비스 호출
         if (PKG_DV_CD_FLOWER.equals(pkgDvCd) && SV_BIZ_DCLSF_CD_PD_SPP.equals(svBizDclsfCd)) {
-
+            this.maaper.insertWelcomeBS(cntrNo, Integer.parseInt(cntrSn), curDt);
         }
     }
 
