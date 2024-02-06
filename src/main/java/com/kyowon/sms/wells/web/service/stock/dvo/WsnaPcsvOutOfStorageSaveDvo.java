@@ -65,5 +65,6 @@ public class WsnaPcsvOutOfStorageSaveDvo {
     int mpacSn; // 합포장 일련번호
     String lgstWkMthdCd; // 물류작업방식코드
     String lgstOstrAkNo; // 물류요청번호
+    String wlcmBfsvcYn; //웰컴BS 생성여부
     List<WsnaPcsvOutOfStorageSaveProductDvo> products;  //상품 목록
 }
