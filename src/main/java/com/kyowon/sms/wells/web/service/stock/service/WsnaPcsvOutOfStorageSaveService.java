@@ -132,7 +132,22 @@ public class WsnaPcsvOutOfStorageSaveService {
 
                 // 웰컴BS 생성
                 if ("Y".equals(dvo.getWlcmBfsvcYn())) {
-                    visitPrdService.saveWelcomeBS(this.setWsnbWelcomeBSReq(cntrNo, cntrSn));
+//                    visitPrdService.saveWelcomeBS(this.setWsnbWelcomeBSReq(cntrNo, cntrSn));
+                    this.mapper.insertSvpdCstSvRgbsprIz(cntrNo, cntrSn);
+
+                    String asnOjYm = DateUtil.addDays(sppDueDt, 7);
+                    // B/S 배정
+                    WsnbIndividualVisitPrdDto.SearchProcessReq processReq = new WsnbIndividualVisitPrdDto.SearchProcessReq(
+                        cntrNo,
+                        cntrSn,
+                        "",
+                        "",
+                        "",
+                        asnOjYm,
+                        "",
+                        ""
+                    );
+                    visitPrdService.processBsAssign(processReq);
                 }
 
                 // 11.물류 인터페이스 연동
