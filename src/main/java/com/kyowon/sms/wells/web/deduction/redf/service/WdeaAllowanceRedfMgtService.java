@@ -100,7 +100,7 @@ public class WdeaAllowanceRedfMgtService {
     //            if ("A5".equals(dto.ymDvCd())) {
     //                dvo = mapper.selectRedfBizd202304Mgts(dto, pageInfo); // M조직 2023년 04월 이후, 직책구분 - 지구장 이하
     //            }
-    //            if ("ALL".equals(dto.ymDvCd())) {
+    //            if ("ALL".equals(dto.ymDvCd()) && "01".equals(dto.rsbDvCd())) {
     //                dvo = mapper.selectRedfBizdAllMgts(dto, pageInfo); // M조직 전 기간(위 해당사항에 걸리지 않는 조건), 직책구분 - 지구장 이하
     //            }
     //
@@ -120,15 +120,16 @@ public class WdeaAllowanceRedfMgtService {
     //            if ("B5".equals(dto.ymDvCd())) {
     //                dvo = mapper.selectRedfBizdBrmgr202304Mgts(dto, pageInfo); // M조직 2023년 04월 이후, 직책구분 - 지점장 이상
     //            }
-    //            if ("ALL".equals(dto.ymDvCd())) {
+    //            if ("ALL".equals(dto.ymDvCd()) && "02".equals(dto.rsbDvCd())) {
     //                dvo = mapper.selectRedfBizdBrmgrAllMgts(dto, pageInfo); // M조직 전 기간(위 해당사항에 걸리지 않는 조건), 직책구분 - 지점장 이상
     //            }
-    //
     //            returnList = converter.mapRedfBizdW02CancelRes(dvo);
+    //            returnList.setPageInfo(pageInfo);
     //
     //        } else {
     //            dvo = mapper.selectRedfBizdMgtsTest(dto, pageInfo); // P조직 쿼리 return
     //            returnList = converter.mapRedfBizdW01Res(dvo);
+    //            returnList.setPageInfo(pageInfo);
     //        }
     //
     //        return returnList;
