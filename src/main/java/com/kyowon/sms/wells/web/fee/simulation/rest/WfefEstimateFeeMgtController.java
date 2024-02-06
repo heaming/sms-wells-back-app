@@ -1,9 +1,7 @@
 package com.kyowon.sms.wells.web.fee.simulation.rest;
 
-import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.SearchEstimateReq;
-import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.SearchHomeRes;
-import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.SearchOgMRes;
-import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.SearchOgPRes;
+import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto;
+import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.*;
 import com.kyowon.sms.wells.web.fee.simulation.service.WfefEstimateFeeMgtService;
 import com.kyowon.sms.wells.web.fee.zcommon.constants.CtFeeConst;
 import io.swagger.annotations.Api;
@@ -46,7 +44,7 @@ public class WfefEstimateFeeMgtController {
         @ApiImplicitParam(name = "sellPrtnrNo", value = "번호", paramType = "query", required = true),
     })
     @PostMapping("/p-og")
-    public SearchOgPRes getEstimateFeeOgP(@Valid SearchEstimateReq req, @RequestBody List<Map<String, Object>> addPerformances) {
+    public EstimateP getEstimateFeeOgP(@Valid SearchEstimateReq req, @RequestBody Map<String, Object> addPerformances) {
         return service.getEstimateFeeOgP(req, addPerformances);
     }
 
@@ -68,7 +66,7 @@ public class WfefEstimateFeeMgtController {
         @ApiImplicitParam(name = "sellPrtnrNo", value = "번호", paramType = "query", required = true),
     })
     @PostMapping("/m-og")
-    public SearchOgMRes getEstimateFeeOgM(@Valid SearchEstimateReq req, @RequestBody List<Map<String, Object>> addPerformances) {
+    public SearchOgMRes getEstimateFeeOgM(@Valid SearchEstimateReq req, @RequestBody Map<String, Object> addPerformances) {
         return service.getEstimateFeeOgM(req, addPerformances);
     }
 
@@ -90,7 +88,7 @@ public class WfefEstimateFeeMgtController {
         @ApiImplicitParam(name = "sellPrtnrNo", value = "번호", paramType = "query", required = true),
     })
     @PostMapping("/home")
-    public SearchHomeRes getEstimateFeeHome(@Valid SearchEstimateReq req, @RequestBody List<Map<String, Object>> addPerformances) {
+    public SearchHomeRes getEstimateFeeHome(@Valid SearchEstimateReq req, @RequestBody Map<String, Object> addPerformances) {
         return service.getEstimateFeeHome(req, addPerformances);
     }
 }

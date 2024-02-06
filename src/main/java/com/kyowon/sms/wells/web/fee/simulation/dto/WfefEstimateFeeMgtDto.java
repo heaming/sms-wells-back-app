@@ -19,6 +19,7 @@ public class WfefEstimateFeeMgtDto {
         String rsbDvCd, // 직책구분코드
         String startYm, // 개시차월
         String prfmtYm, // 승진차월
+        Integer metgDc, // 미팅일수
         Long amtEstSalFee, // 예상판매수수료 - 개인
         Long amtMutAidFee, // 예상상조수수료 - 개인
         Long amtEstOgFee, // 예상조직수수료
