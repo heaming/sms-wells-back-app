@@ -63,4 +63,7 @@ public interface WsnaPcsvOutOfStorageSaveMapper {
      * @param vo
      */
     void updateSvpdCstSvExcnIz(WsnaPcsvOutOfStorageSaveDvo vo);
+
+    void insertSvpdCstSvRgbsprIz(String cntrNo, String cntrSn);
+
 }
