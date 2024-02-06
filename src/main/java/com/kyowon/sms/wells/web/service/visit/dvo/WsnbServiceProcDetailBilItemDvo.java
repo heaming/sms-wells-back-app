@@ -8,6 +8,7 @@ import lombok.Setter;
 @Getter
 public class WsnbServiceProcDetailBilItemDvo {
     String csBilAtcCd;
+
     String bilOjAmt;
     String bilCtrSumAmt;
     String bilRveAmt;
@@ -30,4 +31,8 @@ public class WsnbServiceProcDetailBilItemDvo {
     String cstSvAsnNo;
     String wkCanRsonCd;
     String wkCanMoCn;
+
+    String svBizDclsfCd;
+
+    int otscSeq;
 }

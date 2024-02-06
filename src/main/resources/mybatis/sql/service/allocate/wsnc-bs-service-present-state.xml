@@ -1,295 +1,257 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncBsServicePresentStateMapper">
     <select id="selectBsServicePresentStates" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBsServicePresentStateDto$SearchResList">
-         SELECT OG_ID
+        SELECT OG_ID
              , PRTNR_NO
              , PRTNR_KNM
-             , MNG_CNT AS MNGT_ACC
-             , VST_CNT AS VST_ACC
-             , WRK_CNT AS FSH_ACC
+             , SUM(1) AS MNGT_ACC
+             , SUM(CASE WHEN V1.CNTR_NO_AC261 IS NOT NULL THEN 1 ELSE 0 END) AS VST_ACC
+             , SUM(CASE WHEN V1.CNTR_NO_AC261 IS NOT NULL AND V1.VST_PRGS_STAT_CD='20' THEN 1 ELSE 0 END) AS FSH_ACC
+             , (CASE WHEN SUM(CASE WHEN V1.CNTR_NO_AC261 IS NOT NULL THEN 1 ELSE 0 END) > 0  THEN ROUND((SUM(CASE WHEN V1.CNTR_NO_AC261 IS NOT NULL AND V1.VST_PRGS_STAT_CD='20' THEN 1 ELSE 0 END) / SUM(CASE WHEN V1.CNTR_NO_AC261 IS NOT NULL THEN 1 ELSE 0 END)) * 100, 1) ELSE 0 END) AS SVC_PROC
              , OG_CD
               , OG_NM
               , BLD_CD
               , BLD_NM
-              , PSTN_DV_CD_NM
-             , (CASE WHEN VST_CNT > 0  THEN ROUND((WRK_CNT / VST_CNT) * 100, 1) ELSE 0 END) AS SVC_PROC
+              , (SELECT CASE WHEN PSTN_DV_CD = '15' THEN '매니저'
+                             WHEN PSTN_DV_CD = '10' THEN '지구장'
+                             WHEN PSTN_DV_CD = '7' THEN '지점장'
+                             WHEN PSTN_DV_CD = '4' THEN '사업단장'
+                             WHEN PSTN_DV_CD IN ('2','3') THEN '총괄단장'
+                             WHEN PSTN_DV_CD = '1' THEN '추진단장'
+                         ELSE ''
+                      END
+                  FROM TB_OGBS_MM_PRTNR_IZ SUB1
+                 WHERE SUB1.BASE_YM = #{mgtYnm}
+                   AND SUB1.OG_TP_CD = V1.OG_TP_CD
+                   AND SUB1.PRTNR_NO = V1.PRTNR_NO
+                 ) AS PSTN_DV_CD_NM
              , #{mgtYnm} AS ASN_OJ_YM /* TODO 관리년월 내용 확인 */
              , '' AS MNGT_SCHD /* TODO 관리년월 내용 확인 */
-          FROM (
-                SELECT OG_CD
-                     , OG_NM
-                     , BLD_CD
-                     , BLD_NM
-                     , OG_ID
-                     , PRTNR_NO
-                     , PRTNR_KNM
-                     , PSTN_DV_CD_NM
-                     , (SELECT COUNT(1)
-                          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261
-                    INNER JOIN TB_OGBS_PRTNR_BAS PBAS
-                            ON PBAS.OG_TP_CD = 'W02'
-                           AND PBAS.PRTNR_NO = AC261.CNFM_PSIC_PRTNR_NO
-                    INNER JOIN TB_OGBS_MM_OG_IZ PORG
-                            ON PORG.BASE_YM = #{mgtYnm}
-                           AND PORG.OG_ID = PBAS.OG_ID
-                           AND PORG.OG_TP_CD  = 'W02'
-                           AND PORG.CLO_DT IS NULL
-                           AND PORG.DTA_DL_YN = 'N'
-                         WHERE ASN_OJ_YM = #{mgtYnm}
-                           AND AC261.CNFM_PSIC_PRTNR_NO =  M1.PRTNR_NO
-                           AND AC261.DTA_DL_YN = 'N'
-                        ) LST_CNT
-                     , (SELECT COUNT(1)
-                          FROM TB_SVPD_MCBY_CST_SV_OJ_IZ AC201
-                    INNER JOIN TB_OGBS_PRTNR_BAS PBAS
-                            ON PBAS.OG_TP_CD = 'W02'
-                           AND PBAS.PRTNR_NO = AC201.MNGT_PRTNR_NO
-                    INNER JOIN TB_OGBS_MM_OG_IZ PORG
-                            ON PORG.BASE_YM =  #{mgtYnm}
-                           AND PORG.OG_ID = PBAS.OG_ID
-                           AND PORG.OG_TP_CD  = 'W02'
-                           AND PORG.CLO_DT IS NULL
-                           AND PORG.DTA_DL_YN = 'N'
-                         WHERE MNGT_YM = #{mgtYnm}
-                           AND AC201.MNGT_PRTNR_NO = M1.PRTNR_NO
-                           AND AC201.DTA_DL_YN = 'N'
-                        ) MNG_CNT
-                     , (SELECT COUNT(1)
-                         FROM
-                       (
-                        SELECT VST_CNFMDT
-                             , AC261.CNTR_NO
-                          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261
-                    INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ AC251
-                            ON AC251.CST_SV_ASN_NO = AC261.CST_SV_ASN_NO
-                    INNER JOIN TB_OGBS_PRTNR_BAS PBAS
-                            ON PBAS.OG_TP_CD = 'W02'
-                           AND PBAS.PRTNR_NO = AC261.CNFM_PSIC_PRTNR_NO
-                    INNER JOIN TB_OGBS_MM_OG_IZ PORG
-                            ON PORG.BASE_YM =  #{mgtYnm}
-                           AND PORG.OG_ID = PBAS.OG_ID
-                           AND PORG.OG_TP_CD  = 'W02'
-                           AND PORG.CLO_DT IS NULL
-                           AND PORG.DTA_DL_YN = 'N'
-                    INNER JOIN TB_PDBS_PD_BAS P1
-                           ON AC251.PDCT_PD_CD = P1.PD_CD
-              LEFT OUTER JOIN TB_SVPD_RGBS_PU_ITM_IZ F1
-                           ON AC261.CNTR_NO  = F1.CNTR_NO
-                          AND F1.ASN_OJ_YM =  #{mgtYnm}
-         LEFT OUTER JOIN TB_PDBS_PD_BAS F2
-                   ON PU_PART_PD_CD = F2.PD_CD
-                         WHERE AC261.ASN_OJ_YM = #{mgtYnm}
-                           AND AC261.DTA_DL_YN = 'N'
-                           AND AC261.CNFM_PSIC_PRTNR_NO =  M1.PRTNR_NO
+        FROM (
+                SELECT CNTR_NO
+                      , CNTR_SN
+                      , CNTR_NO_AC261
+                      , CNTR_SN_AC261
+                      , NVL(MNGT_PRTNR_NO, CNFM_PSIC_PRTNR_NO) AS PRTNR_NO
+                      , NVL(PBAS_2.PRTNR_KNM, PBAS_1.PRTNR_KNM) AS PRTNR_KNM
+                      , NVL(MNGT_PRTNR_OG_TP_CD, CNFM_PSIC_PRTNR_OG_TP_CD) AS OG_TP_CD
+                      , NVL(OGIZ_2.OG_ID, OGIZ_1.OG_ID ) AS OG_ID
+                      , NVL(OGIZ_2.OG_CD, OGIZ_1.OG_CD ) AS OG_CD
+                      , NVL(OGIZ_2.OG_NM, OGIZ_1.OG_NM ) AS OG_NM
+                      , NVL(OGIZ_2.BLD_CD, OGIZ_1.BLD_CD ) AS BLD_CD
+                      , NVL(OGIZ_2.BLD_NM, OGIZ_1.BLD_NM ) AS BLD_NM
+                      , VST_PRGS_STAT_CD
+                  FROM (
+                            SELECT AC201.CNTR_NO
+                                 , AC201.CNTR_SN
+                                 , AC261.CNTR_NO AS CNTR_NO_AC261
+                                 , AC261.CNTR_SN AS CNTR_SN_AC261
+                                 , AC261.CNFM_PSIC_PRTNR_OG_TP_CD
+                                 , AC261.CNFM_PSIC_PRTNR_NO
 
-                           AND VST_CNFMDT LIKE #{mgtYnm}||'%'
-                           AND P1.DTA_DL_YN = 'N'
-                           --AND F2.DTA_DL_YN = 'N'
-                      GROUP BY VST_CNFMDT
-                            , AC261.CNTR_NO
-                           )
+                                 , AC261.VST_PRGS_STAT_CD
+                                 , AC201.MNGT_PRTNR_OG_TP_CD
+                                 , AC201.MNGT_PRTNR_NO
 
-                        ) VST_CNT
-                    , (SELECT COUNT(1)
-                          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261
-                    INNER JOIN TB_OGBS_PRTNR_BAS PBAS
-                            ON PBAS.OG_TP_CD = 'W02'
-                           AND PBAS.PRTNR_NO = AC261.CNFM_PSIC_PRTNR_NO
-                    INNER JOIN TB_OGBS_MM_OG_IZ PORG
-                            ON PORG.BASE_YM =  #{mgtYnm}
-                           AND PORG.OG_ID = PBAS.OG_ID
-                           AND PORG.OG_TP_CD  = 'W02'
-                           AND PORG.CLO_DT IS NULL
-                           AND PORG.DTA_DL_YN = 'N'
-                         WHERE ASN_OJ_YM = #{mgtYnm}
-                           AND AC261.DTA_DL_YN = 'N'
-                           AND VST_PRGS_STAT_CD = '20'
-                           AND AC261.CNFM_PSIC_PRTNR_NO =  M1.PRTNR_NO
-                           AND WK_EXCN_DT IS NOT NULL
-                           AND WK_EXCN_DT LIKE #{mgtYnm}||'%'
-                        ) WRK_CNT
-                 FROM (
-                         SELECT PBAS.OG_CD
-                                , PBAS.OG_NM
-                                , BLD_CD
-                                , BLD_NM
-                                , PBAS.OG_ID
-                                , PBAS.PRTNR_NO
-                                , PBAS.PRTNR_KNM
-                                , (CASE WHEN PSTN_DV_CD = '15' THEN '매니저'
-                                       WHEN PSTN_DV_CD = '10' THEN '지구장'
-                                        WHEN PSTN_DV_CD = '7' THEN '지점장'
-                                        WHEN PSTN_DV_CD = '4' THEN '사업단장'
-                                        WHEN PSTN_DV_CD IN ('2','3') THEN '총괄단장'
-                                        WHEN PSTN_DV_CD = '1' THEN '추진단장'
-                                   ELSE ''
-                                  END) AS PSTN_DV_CD_NM
-                          FROM TB_OGBS_MM_OG_IZ PORG
-                           INNER JOIN TB_OGBS_PRTNR_BAS PBAS
-                                  ON PBAS.OG_TP_CD = 'W02'
-                                 AND PBAS.OG_ID = PORG.OG_ID
-                          INNER JOIN TB_OGBS_MM_PRTNR_IZ T1
-                                  ON T1.BASE_YM = #{mgtYnm}
-                                 AND T1.OG_TP_CD = 'W02'
-                                 AND T1.BZ_STAT_CD = '1'
-                                 AND T1.DTA_DL_YN = 'N'
-                                 AND T1.OG_ID = PORG.OG_ID
-                                 AND T1.BZ_STAT_CD = '1'
-                                 AND T1.QLF_DV_CD != '2'
-                                 AND T1.CLTN_DT IS NULL
-                                 AND T1.PRTNR_NO = PBAS.PRTNR_NO
-                               WHERE PORG.BASE_YM =  #{mgtYnm}
-                                 AND PORG.OG_TP_CD  = 'W02'
-                                 AND PORG.CLO_DT IS NULL
-                                 AND PORG.DTA_DL_YN = 'N'
-                           <if test='@MybatisUtils@isNotEmpty(mgtDept)'>
-                           AND PORG.DGR1_LEVL_OG_ID =  #{mgtDept}
-                           </if>
-                           <if test='@MybatisUtils@isNotEmpty(rgnlGrp)'>
-                           AND PORG.DGR2_LEVL_OG_ID=  #{rgnlGrp}
-                           </if>
-                           <if test='@MybatisUtils@isNotEmpty(branch)'>
-                           AND PORG.DGR3_LEVL_OG_ID=  #{branch}
-                           </if>
-                           <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                           AND PBAS.PRTNR_NO=  #{prtnrNo}
-                           </if>
-                       ) M1
-         )
+                             FROM TB_SSCT_CNTR_DTL CDTL
+                       INNER JOIN TB_SVPD_CST_SV_EXCN_IZ AC201
+                               ON CDTL.CNTR_NO = AC201.CNTR_NO
+                              AND CDTL.CNTR_SN = AC201.CNTR_SN
+                  LEFT OUTER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ AC251
+                               ON AC201.CNTR_NO = AC251.CNTR_NO
+                              AND AC201.CNTR_SN = AC251.CNTR_SN
+                              AND AC251.VST_DV_CD != '20'
+                              AND AC251.ASN_OJ_YM = #{mgtYnm}
+                  LEFT OUTER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261
+                               ON AC261.CST_SV_ASN_NO = AC251.CST_SV_ASN_NO
+                              AND AC261.ASN_OJ_YM = #{mgtYnm}
+                            WHERE CDTL.CNTR_DTL_STAT_CD IN ('101','201', '202', '203')
+                              AND AC201.CNTR_DTL_STAT_CD IN ('101','201', '202', '203')
+                              AND AC201.IST_DT IS NOT NULL
+                              AND AC201.MNGT_PRTNR_OG_TP_CD IN ('HR1','W02')
+                              AND EXISTS (SELECT 1
+                                            FROM TB_SVPD_CST_SV_RGBSPR_IZ VS107
+                                           WHERE VST_DV_CD IN ('10', '11')
+                                             AND VS107.CNTR_NO = AC201.CNTR_NO
+                                             AND VS107.CNTR_SN = AC201.CNTR_SN
+                                         )
+                               ) M1
+                 LEFT OUTER JOIN TB_OGBS_PRTNR_BAS PBAS_1     -- 해약자 나오도록 변경
+                              ON PBAS_1.OG_TP_CD = M1.CNFM_PSIC_PRTNR_OG_TP_CD
+                             AND PBAS_1.PRTNR_NO = M1.CNFM_PSIC_PRTNR_NO
+                             AND PBAS_1.DTA_DL_YN = 'N'
+                 LEFT OUTER JOIN TB_OGBS_MM_OG_IZ OGIZ_1
+                              ON OGIZ_1.BASE_YM = #{mgtYnm}
+                             AND OGIZ_1.OG_ID = PBAS_1.OG_ID
+                             AND OGIZ_1.DTA_DL_YN = 'N'
+                 LEFT OUTER JOIN TB_OGBS_PRTNR_BAS PBAS_2     -- 해약자 나오도록 변경
+                              ON PBAS_2.OG_TP_CD = M1.MNGT_PRTNR_OG_TP_CD
+                             AND PBAS_2.PRTNR_NO = M1.MNGT_PRTNR_NO
+                             AND PBAS_2.DTA_DL_YN = 'N'
+                 LEFT OUTER JOIN TB_OGBS_MM_OG_IZ OGIZ_2
+                              ON OGIZ_2.BASE_YM = #{mgtYnm}
+                             AND OGIZ_2.OG_ID = PBAS_2.OG_ID
+                             AND OGIZ_2.DTA_DL_YN = 'N'
+                    WHERE (
+
+                           <if test='@MybatisUtils@isNotEmpty(mgtDept) and @MybatisUtils@isEmpty(rgnlGrp)'>
+                                OGIZ_1.DGR1_LEVL_OG_ID = #{mgtDept}
+                                OR OGIZ_2.DGR1_LEVL_OG_ID = #{mgtDept}
+                            </if>
+                            <if test='@MybatisUtils@isNotEmpty(rgnlGrp) and @MybatisUtils@isNotEmpty(rgnlGrp)'>
+                                OGIZ_1.DGR2_LEVL_OG_ID = #{rgnlGrp}
+                               OR OGIZ_2.DGR2_LEVL_OG_ID = #{rgnlGrp}
+                            </if>
+                            <if test='@MybatisUtils@isNotEmpty(rgnlGrp)'>
+
+                               OR (OGIZ_1.OG_TP_CD = 'HR1'
+                                      AND M1.CNFM_PSIC_PRTNR_NO = (SELECT OG1.PRTNR_NO
+                                                                FROM TB_OGBS_SPPT_OG_IZ OG1
+                                                               INNER JOIN TB_OGBS_MM_OG_IZ OG2
+                                                                  ON OG2.OG_ID = OG1.OG_ID
+                                                               WHERE 1=1
+                                                                 AND OG1.BZNS_SPPT_RSB_DV_CD = 'W0206' -- 업무담당자 코드
+                                                                 AND OG1.OG_TP_CD = 'W02' -- M조직
+                                                                 AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN OG1.MNGT_STRT_DT AND OG1.MNGT_END_DT
+                                                                 AND OG2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                                                                 AND OG2.OG_ID = #{rgnlGrp}
+                                                                 AND OG1.DTA_DL_YN = 'N'
+                                                                )
+                                  )
+                                 OR (OGIZ_2.OG_TP_CD = 'HR1'
+                                      AND M1.MNGT_PRTNR_NO = (SELECT OG1.PRTNR_NO
+                                                                FROM TB_OGBS_SPPT_OG_IZ OG1
+                                                               INNER JOIN TB_OGBS_MM_OG_IZ OG2
+                                                                  ON OG2.OG_ID = OG1.OG_ID
+                                                               WHERE 1=1
+                                                                 AND OG1.BZNS_SPPT_RSB_DV_CD = 'W0206' -- 업무담당자 코드
+                                                                 AND OG1.OG_TP_CD = 'W02' -- M조직
+                                                                 AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN OG1.MNGT_STRT_DT AND OG1.MNGT_END_DT
+                                                                 AND OG2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                                                                 AND OG2.OG_ID = #{rgnlGrp}
+                                                                 AND OG1.DTA_DL_YN = 'N'
+                                                                )
+                                  )
+                            </if>
+                            <if test='@MybatisUtils@isNotEmpty(branch)'>
+                               AND ( OGIZ_1.DGR3_LEVL_OG_CD = #{branch}
+                                OR OGIZ_2.DGR3_LEVL_OG_CD = #{branch}
+                                )
+                            </if>
+                            <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+                              AND ( M1.MNGT_PRTNR_NO = #{prtnrNo}
+                                OR M1.CNFM_PSIC_PRTNR_NO = #{prtnrNo}
+                                )
+                            </if>
+        )
+        ) V1
+        GROUP BY  PRTNR_NO, PRTNR_KNM, OG_TP_CD, OG_ID, OG_CD, OG_NM, BLD_CD, BLD_NM
     </select>
 
     <select id="selectBsServicePresentStateInfo" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBsServicePresentStateDto$SearchResInfo">
-        SELECT MNG_CNT AS MNGT_ACC
-             , VST_CNT AS VST_ACC
-             , WRK_CNT AS FSH_ACC
-             , (CASE WHEN VST_CNT > 0  THEN ROUND((WRK_CNT / VST_CNT) * 100, 1) ELSE 0 END) AS SVC_PROC
-          FROM (
-                SELECT (
-                        SELECT COUNT(1)
-                          FROM TB_SVPD_MCBY_CST_SV_OJ_IZ AC201
-                         INNER JOIN TB_OGBS_PRTNR_BAS PBAS
-                            ON PBAS.OG_TP_CD = 'W02'
-                           AND PBAS.PRTNR_NO = AC201.MNGT_PRTNR_NO
-                         INNER JOIN TB_OGBS_MM_PRTNR_IZ T1
-                            ON T1.BASE_YM = SUBSTR(#{baseDateFrom},1, 6)
-                           AND T1.OG_TP_CD = 'W02'
-                           AND T1.BZ_STAT_CD = '1'
-                           AND T1.DTA_DL_YN = 'N'
-                           AND T1.PRTNR_NO = AC201.MNGT_PRTNR_NO
-                           AND T1.BZ_STAT_CD = '1'
-                         INNER JOIN TB_OGBS_MM_OG_IZ PORG
-                            ON PORG.BASE_YM =  SUBSTR(#{baseDateFrom},1, 6)
-                           AND PORG.OG_ID = PBAS.OG_ID
-                           AND PORG.OG_TP_CD  = 'W02'
-                           AND PORG.CLO_DT IS NULL
-                           AND PORG.DTA_DL_YN = 'N'
-                         WHERE MNGT_YM = SUBSTR(#{baseDateFrom},1, 6)
-        <if test='@MybatisUtils@isNotEmpty(mgtDept)'>
-                           AND PORG.DGR1_LEVL_OG_ID =  #{mgtDept}
-        </if>
-        <if test='@MybatisUtils@isNotEmpty(rgnlGrp)'>
-                           AND PORG.DGR2_LEVL_OG_ID=  #{rgnlGrp}
-        </if>
+        SELECT SUM(1) AS MNGT_ACC
+      ,SUM(CASE WHEN M1.CNTR_NO_AC261 IS NOT NULL THEN 1 ELSE 0 END) AS VST_ACC
+      ,SUM(CASE WHEN M1.CNTR_NO_AC261 IS NOT NULL AND M1.VST_PRGS_STAT_CD='20' THEN 1 ELSE 0 END) AS FSH_ACC
+      ,(CASE WHEN SUM(CASE WHEN M1.CNTR_NO_AC261 IS NOT NULL THEN 1 ELSE 0 END) > 0  THEN ROUND((SUM(CASE WHEN M1.CNTR_NO_AC261 IS NOT NULL AND M1.VST_PRGS_STAT_CD='20' THEN 1 ELSE 0 END) / SUM(CASE WHEN M1.CNTR_NO_AC261 IS NOT NULL THEN 1 ELSE 0 END)) * 100, 1) ELSE 0 END) AS SVC_PROC
+  FROM (
+            SELECT AC201.CNTR_NO
+                 , AC201.CNTR_SN
+                 , AC261.CNTR_NO AS CNTR_NO_AC261
+                 , AC261.CNTR_SN AS CNTR_SN_AC261
+                 , AC261.CNFM_PSIC_PRTNR_OG_TP_CD
+                 , AC261.CNFM_PSIC_PRTNR_NO
+                 , AC261.VST_PRGS_STAT_CD
+                 , AC201.MNGT_PRTNR_OG_TP_CD
+                 , AC201.MNGT_PRTNR_NO
+             FROM TB_SSCT_CNTR_DTL CDTL
+       INNER JOIN TB_SVPD_CST_SV_EXCN_IZ AC201
+               ON CDTL.CNTR_NO = AC201.CNTR_NO
+              AND CDTL.CNTR_SN = AC201.CNTR_SN
+  LEFT OUTER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ AC251
+               ON AC201.CNTR_NO = AC251.CNTR_NO
+              AND AC201.CNTR_SN = AC251.CNTR_SN
+              AND AC251.VST_DV_CD != '20'
+              AND AC251.ASN_OJ_YM = SUBSTR(#{baseDateFrom},1, 6)
+  LEFT OUTER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261
+               ON AC261.CST_SV_ASN_NO = AC251.CST_SV_ASN_NO
+              AND AC261.ASN_OJ_YM = SUBSTR(#{baseDateFrom},1, 6)
+            WHERE CDTL.CNTR_DTL_STAT_CD IN ('101','201', '202', '203')
+              AND AC201.CNTR_DTL_STAT_CD IN ('101','201', '202', '203')
+              AND AC201.IST_DT IS NOT NULL
+              AND AC201.MNGT_PRTNR_OG_TP_CD IN ('HR1','W02')
+              AND EXISTS (SELECT 1
+                            FROM TB_SVPD_CST_SV_RGBSPR_IZ VS107
+                           WHERE VST_DV_CD IN ('10', '11')
+                             AND VS107.CNTR_NO = AC201.CNTR_NO
+                             AND VS107.CNTR_SN = AC201.CNTR_SN
+                         )
+               ) M1
+ LEFT OUTER JOIN TB_OGBS_PRTNR_BAS PBAS_1     -- 해약자 나오도록 변경
+              ON PBAS_1.OG_TP_CD = M1.CNFM_PSIC_PRTNR_OG_TP_CD
+             AND PBAS_1.PRTNR_NO = M1.CNFM_PSIC_PRTNR_NO
+             AND PBAS_1.DTA_DL_YN = 'N'
+ LEFT OUTER JOIN TB_OGBS_MM_OG_IZ OGIZ_1
+              ON OGIZ_1.BASE_YM = SUBSTR(#{baseDateFrom},1, 6)
+             AND OGIZ_1.OG_ID = PBAS_1.OG_ID
+             AND OGIZ_1.DTA_DL_YN = 'N'
+ LEFT OUTER JOIN TB_OGBS_PRTNR_BAS PBAS_2     -- 해약자 나오도록 변경
+              ON PBAS_2.OG_TP_CD = M1.MNGT_PRTNR_OG_TP_CD
+             AND PBAS_2.PRTNR_NO = M1.MNGT_PRTNR_NO
+             AND PBAS_2.DTA_DL_YN = 'N'
+ LEFT OUTER JOIN TB_OGBS_MM_OG_IZ OGIZ_2
+              ON OGIZ_2.BASE_YM = SUBSTR(#{baseDateFrom},1, 6)
+             AND OGIZ_2.OG_ID = PBAS_2.OG_ID
+             AND OGIZ_2.DTA_DL_YN = 'N'
+    WHERE ( <if test='@MybatisUtils@isNotEmpty(mgtDept) and @MybatisUtils@isEmpty(rgnlGrp)'>
+                OGIZ_1.DGR1_LEVL_OG_ID = #{mgtDept}
+                OR OGIZ_2.DGR1_LEVL_OG_ID = #{mgtDept}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(rgnlGrp) and @MybatisUtils@isNotEmpty(rgnlGrp)'>
+                OGIZ_1.DGR2_LEVL_OG_ID = #{rgnlGrp}
+               OR OGIZ_2.DGR2_LEVL_OG_ID = #{rgnlGrp}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(rgnlGrp)'>
+               OR (OGIZ_1.OG_TP_CD = 'HR1'
+                      AND M1.CNFM_PSIC_PRTNR_NO = (SELECT OG1.PRTNR_NO
+                                                FROM TB_OGBS_SPPT_OG_IZ OG1
+                                               INNER JOIN TB_OGBS_MM_OG_IZ OG2
+                                                  ON OG2.OG_ID = OG1.OG_ID
+                                               WHERE 1=1
+                                                 AND OG1.BZNS_SPPT_RSB_DV_CD = 'W0206' -- 업무담당자 코드
+                                                 AND OG1.OG_TP_CD = 'W02' -- M조직
+                                                 AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN OG1.MNGT_STRT_DT AND OG1.MNGT_END_DT
+                                                 AND OG2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                                                 AND OG2.OG_ID = #{rgnlGrp}
+                                                 AND OG1.DTA_DL_YN = 'N'
+                                                )
+                  )
+                 OR (OGIZ_2.OG_TP_CD = 'HR1'
+                      AND M1.MNGT_PRTNR_NO = (SELECT OG1.PRTNR_NO
+                                                FROM TB_OGBS_SPPT_OG_IZ OG1
+                                               INNER JOIN TB_OGBS_MM_OG_IZ OG2
+                                                  ON OG2.OG_ID = OG1.OG_ID
+                                               WHERE 1=1
+                                                 AND OG1.BZNS_SPPT_RSB_DV_CD = 'W0206' -- 업무담당자 코드
+                                                 AND OG1.OG_TP_CD = 'W02' -- M조직
+                                                 AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN OG1.MNGT_STRT_DT AND OG1.MNGT_END_DT
+                                                 AND OG2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                                                 AND OG2.OG_ID = #{rgnlGrp}
+                                                 AND OG1.DTA_DL_YN = 'N'
+                                                )
+                  )
+                </if>
+                  )
+
         <if test='@MybatisUtils@isNotEmpty(branch)'>
-                           AND PORG.DGR3_LEVL_OG_ID=  #{branch}
+               AND ( OGIZ_1.DGR3_LEVL_OG_CD = #{branch}
+                OR OGIZ_2.DGR3_LEVL_OG_CD = #{branch}
+                )
         </if>
         <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                           AND AC201.MNGT_PRTNR_NO =  #{prtnrNo}
+              AND ( M1.MNGT_PRTNR_NO = #{prtnrNo}
+                OR M1.CNFM_PSIC_PRTNR_NO = #{prtnrNo}
+                )
         </if>
-                           AND AC201.DTA_DL_YN = 'N'
-                       ) MNG_CNT
-                     , (
-                        SELECT COUNT(1)
-                          FROM (
-                                SELECT VST_CNFMDT
-                                     , AC261.CNTR_NO
-                                  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261
-                                 INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ AC251
-                                    ON AC251.CST_SV_ASN_NO = AC261.CST_SV_ASN_NO
-                                 INNER JOIN TB_OGBS_PRTNR_BAS PBAS
-                                    ON PBAS.OG_TP_CD = 'W02'
-                                   AND PBAS.PRTNR_NO = AC261.CNFM_PSIC_PRTNR_NO
-                                 INNER JOIN TB_OGBS_MM_PRTNR_IZ T1
-                                    ON T1.BASE_YM = SUBSTR(#{baseDateFrom},1, 6)
-                                   AND T1.OG_TP_CD = 'W02'
-                                   AND T1.BZ_STAT_CD = '1'
-                                   AND T1.DTA_DL_YN = 'N'
-                                   AND T1.PRTNR_NO = AC261.CNFM_PSIC_PRTNR_NO
-                                   AND T1.BZ_STAT_CD = '1'
-                                 INNER JOIN TB_OGBS_MM_OG_IZ PORG
-                                    ON PORG.BASE_YM =  SUBSTR(#{baseDateFrom},1, 6)
-                                   AND PORG.OG_ID = PBAS.OG_ID
-                                   AND PORG.OG_TP_CD  = 'W02'
-                                   AND PORG.CLO_DT IS NULL
-                                   AND PORG.DTA_DL_YN = 'N'
-                                 INNER JOIN TB_PDBS_PD_BAS P1
-                                    ON AC251.PDCT_PD_CD = P1.PD_CD
-                            LEFT OUTER JOIN TB_SVPD_RGBS_PU_ITM_IZ F1
-                                    ON AC261.CNTR_NO  = F1.CNTR_NO
-                                   AND F1.ASN_OJ_YM =  SUBSTR(#{baseDateFrom},1, 6)
-                            LEFT OUTER JOIN TB_PDBS_PD_BAS F2
-                                    ON PU_PART_PD_CD = F2.PD_CD
-                                 WHERE AC261.ASN_OJ_YM = SUBSTR(#{baseDateFrom},1, 6)
-                                   AND AC261.DTA_DL_YN = 'N'
-        <if test='@MybatisUtils@isNotEmpty(mgtDept)'>
-                                   AND PORG.DGR1_LEVL_OG_ID =  #{mgtDept}
-        </if>
-	    <if test='@MybatisUtils@isNotEmpty(rgnlGrp)'>
-                                   AND PORG.DGR2_LEVL_OG_ID=  #{rgnlGrp}
-	    </if>
-	    <if test='@MybatisUtils@isNotEmpty(branch)'>
-                                   AND PORG.DGR3_LEVL_OG_ID=  #{branch}
-	    </if>
-	    <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                                   AND AC261.CNFM_PSIC_PRTNR_NO =  #{prtnrNo}
-	    </if>
-                                   AND VST_CNFMDT BETWEEN #{baseDateFrom} AND #{baseDateTo}
-                                   AND P1.DTA_DL_YN = 'N'
-                                   --AND F2.DTA_DL_YN = 'N'
-                                 GROUP BY VST_CNFMDT
-                                     , AC261.CNTR_NO
-                            )
-                       ) VST_CNT
-                     , (
-                        SELECT COUNT(1)
-                          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261
-                         INNER JOIN TB_OGBS_PRTNR_BAS PBAS
-                            ON PBAS.OG_TP_CD = 'W02'
-                           AND PBAS.PRTNR_NO = AC261.CNFM_PSIC_PRTNR_NO
-                         INNER JOIN TB_OGBS_MM_PRTNR_IZ T1
-                            ON T1.BASE_YM = SUBSTR(#{baseDateFrom},1, 6)
-                           AND T1.OG_TP_CD = 'W02'
-                           AND T1.BZ_STAT_CD = '1'
-                           AND T1.DTA_DL_YN = 'N'
-                           AND T1.PRTNR_NO = AC261.CNFM_PSIC_PRTNR_NO
-                           AND T1.BZ_STAT_CD = '1'
-                           AND T1.QLF_DV_CD != '2'
-                           AND T1.CLTN_DT IS NULL
-                         INNER JOIN TB_OGBS_MM_OG_IZ PORG
-                            ON PORG.BASE_YM =  SUBSTR(#{baseDateFrom},1, 6)
-                           AND PORG.OG_ID = PBAS.OG_ID
-                           AND PORG.OG_TP_CD  = 'W02'
-                           AND PORG.CLO_DT IS NULL
-                           AND PORG.DTA_DL_YN = 'N'
-                         WHERE ASN_OJ_YM = SUBSTR(#{baseDateFrom},1, 6)
-                           AND AC261.DTA_DL_YN = 'N'
-                           AND VST_PRGS_STAT_CD = '20'
-        <if test='@MybatisUtils@isNotEmpty(mgtDept)'>
-                           AND PORG.DGR1_LEVL_OG_ID =  #{mgtDept}
-        </if>
-	    <if test='@MybatisUtils@isNotEmpty(rgnlGrp)'>
-                           AND PORG.DGR2_LEVL_OG_ID=  #{rgnlGrp}
-        </if>
-        <if test='@MybatisUtils@isNotEmpty(branch)'>
-                           AND PORG.DGR3_LEVL_OG_ID=  #{branch}
-        </if>
-        <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
-                           AND AC261.CNFM_PSIC_PRTNR_NO =  #{prtnrNo}
-        </if>
-                           AND WK_EXCN_DT IS NOT NULL
-                           AND WK_EXCN_DT BETWEEN #{baseDateFrom} AND #{baseDateTo}
-                       ) WRK_CNT
-                  FROM DUAL
-       )
+
     </select>
 </mapper>
