@@ -25,8 +25,6 @@ public class WsnaStockContinueMonthStateDto {
         String itmKindCd,
         String useYn,
         String itmGdCd,
-        String pdCdFrom,
-        String pdCdTo,
         String itmPdCd,
         String strtSapCd,
         String endSapCd,
