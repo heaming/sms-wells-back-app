@@ -128,6 +128,20 @@ public interface WfeyFeeCalculationSqlFor202Mapper {
     /******************************************* 되물림 *************************************************/
 
     /**
+    * M조직 조직상조되물림 계산 SQL Mapper (W020126, 15,7)
+    *
+    * @param baseYm      기준년월
+    * @param ogTpCd      조직유형코드
+    * @param feeCd       수수료코드
+    * @param dtaCrtFeeCd 데이터생성수수료코드
+    * @return 처리개수
+    */
+    @SqlMethodInfo(methodTypeCode = "02", methodName = "M조직 플래너(지점장) 개인 상조되물림", methodExplanation = "M조직 플래너(지점장) 개인 상조되물림 계산 SQL 매퍼")
+    Integer insertManagerLifeAlncFeeRedf2(
+        String baseYm, String ogTpCd, String coCd, String feeCd, String dtaCrtFeeCd
+    );
+
+    /**
      * M조직 플래너지점장 정착수수료 되물림 계산 SQL Mapper (W020080)
      *
      * @param baseYm      기준년월
