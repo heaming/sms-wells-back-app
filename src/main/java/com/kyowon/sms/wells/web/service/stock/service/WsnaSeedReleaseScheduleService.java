@@ -55,7 +55,7 @@ public class WsnaSeedReleaseScheduleService {
 
     private static final String SV_BIZ_HCLSF_CD_INSTL = "1";
     private static final String SV_BIZ_HCLSF_CD_BS = "2";
-    private static final String PKG_DV_CD_FLOWER = "4";
+    private static final String PKG_DV_CD_FLORIN = "4";
     private static final String SV_BIZ_DCLSF_CD_PD_SPP = "1112";
 
     private static final String SPP_DV_CD_PCSV = "2";
@@ -185,8 +185,8 @@ public class WsnaSeedReleaseScheduleService {
                 this.visitPrdService.processVisitPeriodRegen(visitDto);
 
                 // 플로린이면서 제품배송일 경우 웰컴 BS 서비스 호출
-                if (PKG_DV_CD_FLOWER.equals(pkgDvCd) && SV_BIZ_DCLSF_CD_PD_SPP.equals(svBizDclsfCd)) {
-                    this.maaper.insertWelcomeBS(cntrNo, cntrSn, sppCnfmdt);
+                if (PKG_DV_CD_FLORIN.equals(pkgDvCd) && SV_BIZ_DCLSF_CD_PD_SPP.equals(svBizDclsfCd)) {
+                    this.createWelcomeBS(cntrNo, cntrSn, sppCnfmdt);
                 }
             }
 
@@ -217,6 +217,18 @@ public class WsnaSeedReleaseScheduleService {
         }
 
         return count;
+    }
+
+    /**
+     * 웰컴BS 데이터 생성
+     * @param cntrNo
+     * @param cntrSn
+     * @param istDt
+     */
+    @Transactional
+    public void createWelcomeBS(String cntrNo, int cntrSn, String istDt) {
+        // 주기표 데이터 생성
+        this.maaper.insertWelcomeBS(cntrNo, cntrSn, istDt);
     }
 
     /**
@@ -458,8 +470,8 @@ public class WsnaSeedReleaseScheduleService {
         this.visitPrdService.processVisitPeriodRegen(visitDto);
 
         // 플로린이면서 제품배송일 경우 웰컴 BS 서비스 호출
-        if (PKG_DV_CD_FLOWER.equals(pkgDvCd) && SV_BIZ_DCLSF_CD_PD_SPP.equals(svBizDclsfCd)) {
-            this.maaper.insertWelcomeBS(cntrNo, Integer.parseInt(cntrSn), curDt);
+        if (PKG_DV_CD_FLORIN.equals(pkgDvCd) && SV_BIZ_DCLSF_CD_PD_SPP.equals(svBizDclsfCd)) {
+            this.createWelcomeBS(cntrNo, Integer.parseInt(cntrSn), curDt);
         }
     }
 

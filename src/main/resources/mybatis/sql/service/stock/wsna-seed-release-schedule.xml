@@ -149,7 +149,10 @@
                     , D8.SOW_DT_LIST                                   /* 파종일자 리스트 */
                     , D9.OJ_DTL_CNTR_NO                                /* 기기계약번호 */
                     , D9.OJ_DTL_CNTR_SN                                /* 기기계약일련번호 */
-                    , D11.PD_PRP_VAL12              AS PKG_DV_CD       /* 패키지구분코드 */
+                    , CASE WHEN D11.PD_PRP_VAL12 IS NULL
+                            AND D12.PDCT_PD_CD IN ('WM05107266', 'WM05107267') THEN '4'   /* 플로린 */
+                           ELSE D11.PD_PRP_VAL12
+                      END                           AS PKG_DV_CD       /* 패키지구분코드 */
                  FROM TB_SVPD_SDING_SPP_PLAN_IZ D1            /* 모종배송계획내역 */
                 INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ D2      /* 고객서비스AS설치대상내역 */
                    ON D2.CNTR_NO         = D1.CNTR_NO
@@ -220,6 +223,9 @@
                    ON D11.PD_CD              = D10.BASE_PD_CD
                   AND D11.DTA_DL_YN          = 'N'
                   AND D11.PD_EXTS_PRP_GRP_CD = 'SPP'
+                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D12        /* 고객서비스수행내역(기기) */
+                   ON D12.CNTR_NO = D9.OJ_DTL_CNTR_NO
+                  AND D12.CNTR_SN = D9.OJ_DTL_CNTR_SN
                 WHERE D1.DTA_DL_YN          = 'N'
                   AND D2.DTA_DL_YN          = 'N'
                   AND D3.DTA_DL_YN          = 'N'
@@ -235,7 +241,10 @@
                   AND D9.DTA_DL_YN          = 'N'
                   AND D9.CNTR_REL_DTL_CD    = '216'              /* 모종결합(웰스팜+모종) */
                   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D9.VL_STRT_DTM AND D9.VL_END_DTM
-                  AND CASE WHEN D11.PD_PRP_VAL12 = '4'   /* 플로린일 경우 */
+                  AND D12.DTA_DL_YN         = 'N'
+                  AND CASE WHEN (    D11.PD_PRP_VAL12 = '4'
+                                  OR ( D11.PD_PRP_VAL12 IS NULL AND D12.PDCT_PD_CD IN ('WM05107266', 'WM05107267') )
+                                )   /* 플로린일 경우 */
                             AND D1.SV_BIZ_DCLSF_CD = '1112'
                             AND D3.WK_PRGS_STAT_CD IN ('00', '10')
                             AND (    ( SELECT COUNT(1)
@@ -319,7 +328,10 @@
                </choose>
                </if>
                <if test="@MybatisUtils@isNotEmpty(pkgDvCd)">
-                  AND D11.PD_PRP_VAL12   = #{pkgDvCd}
+                  AND CASE WHEN D11.PD_PRP_VAL12 IS NULL
+                            AND D12.PDCT_PD_CD IN ('WM05107266', 'WM05107267') THEN '4'   /* 플로린 */
+                           ELSE D11.PD_PRP_VAL12
+                      END                = #{pkgDvCd}
                </if>
                <if test='@MybatisUtils@equals(ostrYn, "Y")'>
                   AND D1.OSTR_CNFMDT IS NOT NULL
@@ -426,6 +438,9 @@
                 INNER JOIN TB_SSCT_CNTR_REL D9                /* 계약관계-(모종패키지 계약과 결합된) 웰스팜계약 */
                    ON D9.BASE_DTL_CNTR_NO = D1.CNTR_NO
                   AND D9.BASE_DTL_CNTR_SN = D1.CNTR_SN
+                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D10         /* 고객서비스수행내역(기기) */
+                   ON D10.CNTR_NO = D9.OJ_DTL_CNTR_NO
+                  AND D10.CNTR_SN = D9.OJ_DTL_CNTR_SN
                 WHERE D1.DTA_DL_YN          = 'N'
                   AND D1.SV_BIZ_HCLSF_CD    = '2'
                   AND D2.DTA_DL_YN          = 'N'
@@ -442,6 +457,7 @@
                   AND D9.DTA_DL_YN          = 'N'
                   AND D9.CNTR_REL_DTL_CD    = '216'              /* 모종결합(웰스팜+모종) */
                   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D9.VL_STRT_DTM AND D9.VL_END_DTM
+                  AND D10.DTA_DL_YN         = 'N'
                <if test="@MybatisUtils@isNotEmpty(svBizHclsfCd)">
                   AND D1.SV_BIZ_HCLSF_CD    = #{svBizHclsfCd}
                </if>
@@ -505,6 +521,23 @@
                 </choose>
                </if>
                <if test="@MybatisUtils@isNotEmpty(pkgDvCd)">
+               <choose>
+               <when test='@MybatisUtils@equals(pkgDvCd, "4")'>
+                  AND (    D10.PDCT_PD_CD IN ('WM05107266', 'WM05107267')
+                        OR EXISTS ( SELECT 1
+                                      FROM TB_PDBS_PD_REL S1
+                                     INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2
+                                        ON S2.PD_CD = S1.BASE_PD_CD
+                                     WHERE S1.DTA_DL_YN          = 'N'
+                                       AND S1.PD_REL_TP_CD       = '18'   /* 정기배송 */
+                                       AND S2.DTA_DL_YN          = 'N'
+                                       AND S2.PD_EXTS_PRP_GRP_CD = 'SPP'
+                                       AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN S1.VL_STRT_DTM AND S1.VL_END_DTM
+                                       AND S1.OJ_PD_CD           = D2.PDCT_PD_CD
+                                       AND S2.PD_PRP_VAL12       = #{pkgDvCd} )
+                      )
+               </when>
+               <otherwise>
                   AND EXISTS ( SELECT 1
                                  FROM TB_PDBS_PD_REL S1
                                 INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2
@@ -516,6 +549,8 @@
                                   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN S1.VL_STRT_DTM AND S1.VL_END_DTM
                                   AND S1.OJ_PD_CD           = D2.PDCT_PD_CD
                                   AND S2.PD_PRP_VAL12       = #{pkgDvCd} )
+               </otherwise>
+               </choose>
                </if>
                <if test='@MybatisUtils@equals(ostrYn, "Y")'>
                   AND D1.OSTR_CNFMDT IS NOT NULL
