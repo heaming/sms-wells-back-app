@@ -5,9 +5,10 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcDetailCmnCdInqrDto;
 import com.sds.sflex.system.config.response.SaveResponse;
 import org.springframework.web.bind.annotation.*;
-
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcDetailCmnCdInqrDto.CmnCdInqrRes;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcDetailListDto.SearchReq;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcDetailListDto.CttIzReq;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcDetailListDto.SaveCttNwRgstReq;
@@ -138,11 +139,24 @@ public class WsnbServiceProcDetailListController {
         @ApiImplicitParam(name = "charFw", value = "문자발송여부", paramType = "query", required = true),
         @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
         @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "svBizDclsfCd", value = "업무상세코드", paramType = "query", required = true),
     })
     @PostMapping("/save-wk-can")
     public SaveResponse saveCttNwRgst(@RequestBody @Valid @NotEmpty SaveWkCanRgstReq dto) throws Exception{
         return SaveResponse.builder()
             .processCount(this.service.saveWkCanRgst(dto))
             .build();
+    }
+
+    @ApiOperation(value = "서비스처리상세내역 외주직원 작업취소코드 공통코드 조회1", notes = "서비스처리상세내역 외주직원 작업취소코드 분류1 조회한다.")
+    @GetMapping("/common-code-inquiry1")
+    public List<CmnCdInqrRes> getServiceProcDetailCmnCdInqr1(WsnbServiceProcDetailCmnCdInqrDto dto) {
+        return service.getServiceProcDetailCmnCdInqr1(dto);
+    }
+
+    @ApiOperation(value = "서비스처리상세내역 외주직원 작업취소코드 공통코드 조회2", notes = "서비스처리상세내역 외주직원 작업취소코드 분류1 조회한다.")
+    @GetMapping("/common-code-inquiry2")
+    public List<CmnCdInqrRes> getServiceProcDetailCmnCdInqr2(WsnbServiceProcDetailCmnCdInqrDto dto) {
+        return service.getServiceProcDetailCmnCdInqr2(dto);
     }
 }

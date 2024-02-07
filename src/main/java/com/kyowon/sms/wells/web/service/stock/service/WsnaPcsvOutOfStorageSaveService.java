@@ -48,6 +48,12 @@ public class WsnaPcsvOutOfStorageSaveService {
 
     private final WsnbIndividualVisitPrdService visitPrdService;
 
+    /**
+     * 택배상품 출고관리 저장
+     * @param dtos
+     * @return
+     * @throws Exception
+     */
     @Transactional
     public int savePcsvOutOfStorages(List<SaveReq> dtos) throws Exception {
         int processCount = 0;
@@ -123,6 +129,26 @@ public class WsnaPcsvOutOfStorageSaveService {
 
                 // 10.BS주기표 생성
                 this.visitPrdService.processVisitPeriodRegen(this.setWsnbVisitPrdProcessReq(cntrNo, cntrSn, istDt));
+
+                // 웰컴BS 생성
+                if ("Y".equals(dvo.getWlcmBfsvcYn())) {
+//                    visitPrdService.saveWelcomeBS(this.setWsnbWelcomeBSReq(cntrNo, cntrSn));
+                    this.mapper.insertSvpdCstSvRgbsprIz(cntrNo, cntrSn);
+
+                    String asnOjYm = DateUtil.addDays(sppDueDt, 7);
+                    // B/S 배정
+                    WsnbIndividualVisitPrdDto.SearchProcessReq processReq = new WsnbIndividualVisitPrdDto.SearchProcessReq(
+                        cntrNo,
+                        cntrSn,
+                        "",
+                        "",
+                        "",
+                        asnOjYm,
+                        "",
+                        ""
+                    );
+                    visitPrdService.processBsAssign(processReq);
+                }
 
                 // 11.물류 인터페이스 연동
                 if (ObjectUtils.isNotEmpty(logisticDvos)) {
@@ -237,6 +263,11 @@ public class WsnaPcsvOutOfStorageSaveService {
         return processCount;
     }
 
+    /**
+     * 물류 파라미터 세팅
+     * @param vo
+     * @return List
+     */
     private List<WsnaPcsvSendDtlDvo> setWsnaPcsvSendDtlDvo(
         WsnaPcsvOutOfStorageSaveDvo vo
     ) {
@@ -333,16 +364,26 @@ public class WsnaPcsvOutOfStorageSaveService {
         String cntrNo, String cntrSn, String istDt
     ) {
         WsnbIndividualVisitPrdDto.SearchProcessReq visitDto = new WsnbIndividualVisitPrdDto.SearchProcessReq(
-            cntrNo,
-            cntrSn,
-            "",
-            "",
-            DateUtil.getNowDayString(),
-            istDt,
-            "",
-            ""
+            cntrNo,      /* 계약번호 */
+            cntrSn,      /* 계약일련번호 */
+            "",          /* 기준년월 */
+            "",          /* 방문차월 */
+            DateUtil.getNowDayString(), /* 삭제일자 */
+            istDt,      /* 배정년월 */
+            "",         /* 이월대상 */
+            ""          /* 요청사유 */
         );
         return visitDto;
     }
 
+    /* 웰컴BS 생성 */
+    private WsnbIndividualVisitPrdDto.WelcomeBSReq setWsnbWelcomeBSReq(
+        String cntrNo, String cntrSn
+    ) {
+        WsnbIndividualVisitPrdDto.WelcomeBSReq welcomeBS = new WsnbIndividualVisitPrdDto.WelcomeBSReq(
+            cntrNo,      /* 계약번호 */
+            cntrSn      /* 계약일련번호 */
+        );
+        return welcomeBS;
+    }
 }

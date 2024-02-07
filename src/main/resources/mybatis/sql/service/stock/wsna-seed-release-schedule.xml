@@ -149,7 +149,10 @@
                     , D8.SOW_DT_LIST                                   /* 파종일자 리스트 */
                     , D9.OJ_DTL_CNTR_NO                                /* 기기계약번호 */
                     , D9.OJ_DTL_CNTR_SN                                /* 기기계약일련번호 */
-                    , D11.PD_PRP_VAL12              AS PKG_DV_CD       /* 패키지구분코드 */
+                    , CASE WHEN D11.PD_PRP_VAL12 IS NULL
+                            AND D12.PDCT_PD_CD IN ('WM05107266', 'WM05107267') THEN '4'   /* 플로린 */
+                           ELSE D11.PD_PRP_VAL12
+                      END                           AS PKG_DV_CD       /* 패키지구분코드 */
                  FROM TB_SVPD_SDING_SPP_PLAN_IZ D1            /* 모종배송계획내역 */
                 INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ D2      /* 고객서비스AS설치대상내역 */
                    ON D2.CNTR_NO         = D1.CNTR_NO
@@ -220,6 +223,9 @@
                    ON D11.PD_CD              = D10.BASE_PD_CD
                   AND D11.DTA_DL_YN          = 'N'
                   AND D11.PD_EXTS_PRP_GRP_CD = 'SPP'
+                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D12        /* 고객서비스수행내역(기기) */
+                   ON D12.CNTR_NO = D9.OJ_DTL_CNTR_NO
+                  AND D12.CNTR_SN = D9.OJ_DTL_CNTR_SN
                 WHERE D1.DTA_DL_YN          = 'N'
                   AND D2.DTA_DL_YN          = 'N'
                   AND D3.DTA_DL_YN          = 'N'
@@ -235,7 +241,10 @@
                   AND D9.DTA_DL_YN          = 'N'
                   AND D9.CNTR_REL_DTL_CD    = '216'              /* 모종결합(웰스팜+모종) */
                   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D9.VL_STRT_DTM AND D9.VL_END_DTM
-                  AND CASE WHEN D11.PD_PRP_VAL12 = '4'   /* 플로린일 경우 */
+                  AND D12.DTA_DL_YN         = 'N'
+                  AND CASE WHEN (    D11.PD_PRP_VAL12 = '4'
+                                  OR ( D11.PD_PRP_VAL12 IS NULL AND D12.PDCT_PD_CD IN ('WM05107266', 'WM05107267') )
+                                )   /* 플로린일 경우 */
                             AND D1.SV_BIZ_DCLSF_CD = '1112'
                             AND D3.WK_PRGS_STAT_CD IN ('00', '10')
                             AND (    ( SELECT COUNT(1)
@@ -303,23 +312,26 @@
                </when>
                </choose>
                <if test="@MybatisUtils@isNotEmpty(refriDivCd)">
-                  AND D1.REFRI_DV_CD    = #{refriDivCd}
+                  AND D1.REFRI_DV_CD        = #{refriDivCd}
                </if>
                <if test="@MybatisUtils@isNotEmpty(sppDvCd)">
-                  AND D1.ITM_IOST_DV_CD = #{sppDvCd}
+                  AND D1.ITM_IOST_DV_CD     = #{sppDvCd}
                </if>
                <if test="@MybatisUtils@isNotEmpty(fshProcsCd)">
                <choose>
                 <when test='!@MybatisUtils@equals(fshProcsCd, "20")'>
-                  AND D3.WK_PRGS_STAT_CD IN ('00', '10')   /* 작업대기, 진행중 */
+                  AND D3.WK_PRGS_STAT_CD   IN ('00', '10')   /* 작업대기, 진행중 */
                 </when>
                 <otherwise>
-                  AND D3.WK_PRGS_STAT_CD = #{fshProcsCd}
+                  AND D3.WK_PRGS_STAT_CD    = #{fshProcsCd}
                 </otherwise>
                </choose>
                </if>
                <if test="@MybatisUtils@isNotEmpty(pkgDvCd)">
-                  AND D11.PD_PRP_VAL12   = #{pkgDvCd}
+                  AND CASE WHEN D11.PD_PRP_VAL12 IS NULL
+                            AND D12.PDCT_PD_CD IN ('WM05107266', 'WM05107267') THEN '4'   /* 플로린 */
+                           ELSE D11.PD_PRP_VAL12
+                      END                   = #{pkgDvCd}
                </if>
                <if test='@MybatisUtils@equals(ostrYn, "Y")'>
                   AND D1.OSTR_CNFMDT IS NOT NULL
@@ -426,6 +438,9 @@
                 INNER JOIN TB_SSCT_CNTR_REL D9                /* 계약관계-(모종패키지 계약과 결합된) 웰스팜계약 */
                    ON D9.BASE_DTL_CNTR_NO = D1.CNTR_NO
                   AND D9.BASE_DTL_CNTR_SN = D1.CNTR_SN
+                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D10         /* 고객서비스수행내역(기기) */
+                   ON D10.CNTR_NO = D9.OJ_DTL_CNTR_NO
+                  AND D10.CNTR_SN = D9.OJ_DTL_CNTR_SN
                 WHERE D1.DTA_DL_YN          = 'N'
                   AND D1.SV_BIZ_HCLSF_CD    = '2'
                   AND D2.DTA_DL_YN          = 'N'
@@ -442,6 +457,400 @@
                   AND D9.DTA_DL_YN          = 'N'
                   AND D9.CNTR_REL_DTL_CD    = '216'              /* 모종결합(웰스팜+모종) */
                   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D9.VL_STRT_DTM AND D9.VL_END_DTM
+                  AND D10.DTA_DL_YN         = 'N'
+               <if test="@MybatisUtils@isNotEmpty(svBizHclsfCd)">
+                  AND D1.SV_BIZ_HCLSF_CD    = #{svBizHclsfCd}
+               </if>
+               <choose>
+               <when test='@MybatisUtils@equals(dtTpCd, "1")'>
+                  AND D2.FST_RGST_DTM BETWEEN #{strtDt} || '000000' AND #{endDt} || '235959'   /* 접수일자 */
+               </when>
+               <when test='@MybatisUtils@equals(dtTpCd, "2")'>
+                  AND D3.VST_CNFMDT BETWEEN #{strtDt} AND #{endDt}                             /* 방문일자 */
+               </when>
+               <when test='@MybatisUtils@equals(dtTpCd, "3")'>
+                  AND D1.OSTR_CNFMDT BETWEEN #{strtDt} AND #{endDt}                            /* 확정일자 */
+               </when>
+               <when test='@MybatisUtils@equals(dtTpCd, "4")'>
+                  AND (
+                           (     ( SELECT SPP_DV_CD
+                                     FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
+                                    WHERE CNR_OG_CD = NVL(D4.OG_CD, D7.OG_CD)
+                                      AND DTA_DL_YN = 'N'
+                                      AND DOW_DV_CD = TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD'), 'D') - 1
+                                      AND #{strtDt} BETWEEN APY_STRTDT AND APY_ENDDT ) = '1'
+                             AND D3.VST_CNFMDT BETWEEN TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD') + 1, 'YYYYMMDD') AND TO_CHAR( TO_DATE(#{strtDt}, 'YYYYMMDD') + ( SELECT SPP_PRD
+                                                                                                                                                                 FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
+                                                                                                                                                                WHERE CNR_OG_CD = NVL(D4.OG_CD, D7.OG_CD)
+                                                                                                                                                                  AND DTA_DL_YN = 'N'
+                                                                                                                                                                  AND DOW_DV_CD = TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD'), 'D') - 1
+                                                                                                                                                                  AND #{strtDt} BETWEEN APY_STRTDT AND APY_ENDDT ), 'YYYYMMDD')
+                           )
+                        OR
+                           (     ( SELECT SPP_DV_CD
+                                     FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
+                                    WHERE CNR_OG_CD = NVL(D4.OG_CD, D7.OG_CD)
+                                      AND DTA_DL_YN = 'N'
+                                      AND DOW_DV_CD IN ('1', '2', '3', '4')
+                                      AND DOW_DV_CD = TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD'), 'D') - 1
+                                      AND #{strtDt} BETWEEN APY_STRTDT AND APY_ENDDT ) = '2'
+                             AND D3.VST_CNFMDT BETWEEN TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD') + 2, 'YYYYMMDD') AND TO_CHAR( TO_DATE(#{strtDt}, 'YYYYMMDD') + ( SELECT SPP_PRD
+                                                                                                                                                                 FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
+                                                                                                                                                                WHERE CNR_OG_CD = NVL(D4.OG_CD, D7.OG_CD)
+                                                                                                                                                                  AND DTA_DL_YN = 'N'
+                                                                                                                                                                  AND DOW_DV_CD = TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD'), 'D') - 1
+                                                                                                                                                                  AND #{strtDt} BETWEEN APY_STRTDT AND APY_ENDDT ), 'YYYYMMDD')
+                           )
+                      )
+               </when>
+               </choose>
+               <if test="@MybatisUtils@isNotEmpty(refriDivCd)">
+                  AND D1.REFRI_DV_CD        = #{refriDivCd}
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(sppDvCd)">
+                  AND D1.ITM_IOST_DV_CD     = #{sppDvCd}
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(fshProcsCd)">
+                <choose>
+                <when test='!@MybatisUtils@equals(fshProcsCd, "20")'>
+                  AND D3.VST_PRGS_STAT_CD  IN ('00', '10')   /* 작업대기, 진행중 */
+                </when>
+                <otherwise>
+                  AND D3.VST_PRGS_STAT_CD   = #{fshProcsCd}
+                </otherwise>
+                </choose>
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(pkgDvCd)">
+               <choose>
+               <when test='@MybatisUtils@equals(pkgDvCd, "4")'>
+                  AND (    D10.PDCT_PD_CD IN ('WM05107266', 'WM05107267')
+                        OR EXISTS ( SELECT 1
+                                      FROM TB_PDBS_PD_REL S1
+                                     INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2
+                                        ON S2.PD_CD = S1.BASE_PD_CD
+                                     WHERE S1.DTA_DL_YN          = 'N'
+                                       AND S1.PD_REL_TP_CD       = '18'   /* 정기배송 */
+                                       AND S2.DTA_DL_YN          = 'N'
+                                       AND S2.PD_EXTS_PRP_GRP_CD = 'SPP'
+                                       AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN S1.VL_STRT_DTM AND S1.VL_END_DTM
+                                       AND S1.OJ_PD_CD           = D2.PDCT_PD_CD
+                                       AND S2.PD_PRP_VAL12       = #{pkgDvCd} )
+                      )
+               </when>
+               <otherwise>
+                  AND EXISTS ( SELECT 1
+                                 FROM TB_PDBS_PD_REL S1
+                                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2
+                                   ON S2.PD_CD = S1.BASE_PD_CD
+                                WHERE S1.DTA_DL_YN          = 'N'
+                                  AND S1.PD_REL_TP_CD       = '18'   /* 정기배송 */
+                                  AND S2.DTA_DL_YN          = 'N'
+                                  AND S2.PD_EXTS_PRP_GRP_CD = 'SPP'
+                                  AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN S1.VL_STRT_DTM AND S1.VL_END_DTM
+                                  AND S1.OJ_PD_CD           = D2.PDCT_PD_CD
+                                  AND S2.PD_PRP_VAL12       = #{pkgDvCd} )
+               </otherwise>
+               </choose>
+               </if>
+               <if test='@MybatisUtils@equals(ostrYn, "Y")'>
+                  AND D1.OSTR_CNFMDT IS NOT NULL
+               </if>
+               <if test='@MybatisUtils@equals(ostrYn, "N")'>
+                  AND D1.OSTR_CNFMDT IS NULL
+               </if>
+            </if>
+             ) T1
+         INNER JOIN TB_SSCT_CNTR_DTL T3                /* 계약상세-웰스팜 */
+            ON T3.CNTR_NO = T1.OJ_DTL_CNTR_NO
+           AND T3.CNTR_SN = T1.OJ_DTL_CNTR_SN
+         INNER JOIN TB_PDBS_PD_BAS T4                  /* 상품기본-웰스팜 */
+            ON T4.PD_CD   = T3.BASE_PD_CD
+         INNER JOIN TB_SSCT_CNTR_CST_REL T5            /* 계약고객관계-웰스팜 */
+            ON T5.DTL_CNTR_NO = T3.CNTR_NO
+           AND T5.DTL_CNTR_SN = T3.CNTR_SN
+         INNER JOIN TB_CUBS_CST_BAS T6                 /* 고객기본-웰스팜 */
+            ON T6.CST_NO = T5.CST_NO
+         INNER JOIN TB_PDBS_PD_BAS T7                  /* 상품기본-현재패키지 */
+            ON T7.PD_CD     = T1.PDCT_PD_CD
+         INNER JOIN TB_PDBS_PD_BAS T8                  /* 상품기본-배송패키지 */
+            ON T8.PD_CD     = T1.SDING_PKG_PD_CD
+         INNER JOIN TB_SSCT_CNTR_ADR_REL T9            /* 계약주소관계-모종패키지 */
+            ON T9.DTL_CNTR_NO = T1.CNTR_NO
+           AND T9.DTL_CNTR_SN = T1.CNTR_SN
+          LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS T10   /* 계약주소지기본-모종패키지 */
+            ON T10.CNTR_ADRPC_ID = T9.CNTR_ADRPC_ID
+           AND T10.DTA_DL_YN     = 'N'
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T11        /* 파트너기본 */
+            ON T11.OG_TP_CD = T1.OG_TP_CD
+           AND T11.PRTNR_NO = T1.PRTNR_NO
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS T12          /* 주소기본 */
+            ON T12.ADR_ID    = NVL(T10.ADR_ID, T6.ADR_ID)
+           AND T12.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SVPD_BYZIP_SHPADR_IZ T13  /* 우편번호별배송처내역 */
+            ON T13.NEW_ADR_ZIP = T12.NEW_ADR_ZIP
+           AND T13.DTA_DL_YN   = 'N'
+         WHERE T3.DTA_DL_YN          = 'N'
+           AND T3.CNTR_DTL_STAT_CD <![CDATA[<>]]> '303'   /* 계약취소 */
+           AND T5.CNTR_CST_REL_TP_CD = '10'               /* 계약자 */
+           AND T9.DTA_DL_YN          = 'N'
+           AND T9.ADRPC_TP_CD       IN ('2', '3')         /* 배달주소, 설치주소 */
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T9.VL_STRT_DTM AND T9.VL_END_DTM
+         ORDER BY T1.CNTR_NO, T1.CNTR_SN, T1.SDING_SPP_NO, T1.SDING_SPP_SN
+    </select>
+
+    <select id="selectSeedReleaseSchedulesForFlorin" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaSeedReleaseScheduleSearchDvo">
+        SELECT T1.OSTR_CNFMDT                                                                     AS OSTR_CNFM_DT           /* 주문일자 */
+             , '교원웰스'                                                                          AS SNS_SHOP               /* 쇼핑몰명 */
+             , '0000147352'                                                                       AS ALLN_CO_CD             /* 제휴사코드 */
+             , '100'                                                                              AS REQ_TP_CD              /* 제휴사요청유형 */
+             , 'kyo' || T1.CNTR_NO                                                                AS ALLN_ORD_ID            /* 제휴사주문번호 */
+             , T1.CNTR_SN                                                                         AS ALLN_ORD_SEQ           /* 제휴사주문순번 */
+             , '[플로린] 모종'                                                                      AS PRD_NM                 /* 상품명 */
+             , 'GQ104DPA'                                                                         AS PRD_ID                 /* 상품ID */
+             , 1                                                                                  AS ORDER_QTY              /* 주문수량 */
+             , TO_CHAR(TO_DATE(T1.OSTR_CNFMDT, 'YYYYMMDD') + 1, 'YYYYMMDD')                       AS SPP_SCHE_DT            /* 배송예정일 */
+             , NVL(T10.RCGVP_KNM, T6.CST_KNM)                                                     AS CST_NM                 /* 고객명 */
+             , T10.CRAL_LOCARA_TNO                                                                AS CST_CRAL_LOCARA_TNO    /* 고객휴대지역전화번호 */
+             , T10.MEXNO_ENCR                                                                     AS CST_MEXNO_ENCR         /* 고객휴대전화국번호암호화 */
+             , T10.CRAL_IDV_TNO                                                                   AS CST_CRAL_IDV_TNO       /* 고객휴대개별전화번호 */
+             , T10.LOCARA_TNO                                                                     AS CST_LOCARA_TNO         /* 고객지역전화번호 */
+             , T10.EXNO_ENCR                                                                      AS CST_EXNO_ENCR          /* 고객전화국번호암호화 */
+             , T10.IDV_TNO                                                                        AS CST_IDV_TNO            /* 고객개별전화번호 */
+             , T12.NEW_ADR_ZIP                                                                    AS CST_ZIP                /* 고객우편번호 */
+             , T12.RNADR                                                                          AS CST_BSC_ADR            /* 배송지주소 */
+             , T12.RDADR                                                                          AS CST_DTL_ADR            /* 배송지상세주소 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_HCLSF_CD', T1.SV_BIZ_HCLSF_CD, #{session.langId})
+               || '_' || T8.PD_ABBR_NM                                                            AS INVC_MEMO              /* 외부송장 메모 */
+          FROM
+             (
+            <if test='!@MybatisUtils@equals(svBizHclsfCd, "2") or @MybatisUtils@isEmpty(svBizHclsfCd)'>
+               SELECT D1.CNTR_NO                                       /* 계약번호 */
+                    , D1.CNTR_SN                                       /* 계약일련번호 */
+                    , D1.SV_BIZ_HCLSF_CD                               /* 서비스업무대분류코드 */
+                    , D1.SDING_SPP_NO                                  /* 배송주문번호 */
+                    , D1.SDING_SPP_SN                                  /* 배송계획일련번호 */
+                    , D1.OSTR_CNFMDT                                   /* 출고확정일자 */
+                    , D1.SDING_PKG_PD_CD                               /* 배송 패키지 상품코드 */
+                    , D9.OJ_DTL_CNTR_NO                                /* 기기계약번호 */
+                    , D9.OJ_DTL_CNTR_SN                                /* 기기계약일련번호 */
+                 FROM TB_SVPD_SDING_SPP_PLAN_IZ D1            /* 모종배송계획내역 */
+                INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ D2      /* 고객서비스AS설치대상내역 */
+                   ON D2.CNTR_NO         = D1.CNTR_NO
+                  AND D2.CNTR_SN         = D1.CNTR_SN
+                  AND D2.SV_BIZ_HCLSF_CD = D1.SV_BIZ_HCLSF_CD
+                  AND D2.SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
+                  AND D2.CST_SV_ASN_NO   = D1.SDING_SPP_NO
+                INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ D3     /* 고객서비스AS설치배정내역 */
+                   ON D3.CST_SV_ASN_NO = D2.CST_SV_ASN_NO
+                 LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ D4       /* 월파트너내역 */
+                   ON D4.OG_TP_CD  = D3.ICHR_OG_TP_CD
+                  AND D4.PRTNR_NO  = D3.ICHR_PRTNR_NO
+                  AND D4.DTA_DL_YN = 'N'
+                  AND D4.BASE_YM   = SUBSTR(#{strtDt}, 1, 6)
+                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D5         /* 고객서비스수행내역 */
+                   ON D5.CNTR_NO = D1.CNTR_NO
+                  AND D5.CNTR_SN = D1.CNTR_SN
+                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D6        /* 상품각사속성상세 */
+                   ON D6.PD_CD = D2.PD_CD
+                 LEFT OUTER JOIN TB_OGBS_PRTNR_BAS D7        /* 파트너기본 */
+                   ON D7.OG_TP_CD  = D3.ICHR_OG_TP_CD
+                  AND D7.PRTNR_NO  = D3.ICHR_PRTNR_NO
+                  AND D7.DTA_DL_YN = 'N'
+                INNER JOIN TB_SSCT_CNTR_REL D9               /* 계약관계-(모종패키지 계약과 결합된) 웰스팜계약 */
+                   ON D9.BASE_DTL_CNTR_NO = D1.CNTR_NO
+                  AND D9.BASE_DTL_CNTR_SN = D1.CNTR_SN
+                 LEFT OUTER JOIN TB_PDBS_PD_REL D10
+                   ON D10.OJ_PD_CD     = D2.PD_CD
+                  AND D10.DTA_DL_YN    = 'N'
+                  AND D10.PD_REL_TP_CD = '18'   /* 정기배송 */
+                  AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D10.VL_STRT_DTM AND D10.VL_END_DTM
+                 LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL D11
+                   ON D11.PD_CD              = D10.BASE_PD_CD
+                  AND D11.DTA_DL_YN          = 'N'
+                  AND D11.PD_EXTS_PRP_GRP_CD = 'SPP'
+                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D12        /* 고객서비스수행내역(기기) */
+                   ON D12.CNTR_NO = D9.OJ_DTL_CNTR_NO
+                  AND D12.CNTR_SN = D9.OJ_DTL_CNTR_SN
+                WHERE D1.DTA_DL_YN          = 'N'
+                  AND D2.DTA_DL_YN          = 'N'
+                  AND D3.DTA_DL_YN          = 'N'
+                  AND D3.WK_PRGS_STAT_CD   IN ('00', '10', '20')   /* 작업대기, 진행중, 완료 */
+                  AND D5.DTA_DL_YN          = 'N'
+                  AND D5.CNTR_DTL_STAT_CD  IN ('101', '201', '202', '203')   /* 정상, 고객요청정지, 연체정지, 해약접수정지 */
+                  AND D6.DTA_DL_YN          = 'N'
+                  AND D6.PD_EXTS_PRP_GRP_CD = 'PART'
+                  AND D6.PD_PRP_VAL20       = '11'         /* 모종 */
+                  AND D6.PD_PRP_VAL19      IN ('3', '4')   /* 모종, 상품 */
+                  AND D1.CAN_DT IS NULL
+                  AND D1.OSTR_CNFMDT IS NOT NULL
+                  AND D5.REQD_DT IS NULL
+                  AND D9.DTA_DL_YN          = 'N'
+                  AND D9.CNTR_REL_DTL_CD    = '216'              /* 모종결합(웰스팜+모종) */
+                  AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D9.VL_STRT_DTM AND D9.VL_END_DTM
+                  AND D12.DTA_DL_YN         = 'N'
+                  AND CASE WHEN D11.PD_PRP_VAL12 IS NULL
+                            AND D12.PDCT_PD_CD IN ('WM05107266', 'WM05107267') THEN '4'   /* 플로린 */
+                           ELSE D11.PD_PRP_VAL12
+                      END                   = '4'
+                  AND CASE WHEN (    D11.PD_PRP_VAL12 = '4'
+                                  OR ( D11.PD_PRP_VAL12 IS NULL AND D12.PDCT_PD_CD IN ('WM05107266', 'WM05107267') )
+                                )   /* 플로린일 경우 */
+                            AND D1.SV_BIZ_DCLSF_CD = '1112'
+                            AND D3.WK_PRGS_STAT_CD IN ('00', '10')
+                            AND (    ( SELECT COUNT(1)
+                                         FROM TB_SVPD_CST_SVAS_IST_ASN_IZ
+                                        WHERE DTA_DL_YN       = 'N'
+                                          AND SV_BIZ_DCLSF_CD = '1112'
+                                          AND WK_PRGS_STAT_CD = '20'
+                                          AND CNTR_NO         = D9.OJ_DTL_CNTR_NO
+                                          AND CNTR_SN         = D9.OJ_DTL_CNTR_SN ) = 0   /* 기기배송완료가 아닌 경우 */
+                                  OR ( SELECT COUNT(1)
+                                         FROM TB_SVPD_CST_SVAS_IST_ASN_IZ
+                                        WHERE DTA_DL_YN        = 'N'
+                                          AND SV_BIZ_DCLSF_CD  = '3460'
+                                          AND WK_PRGS_STAT_CD IN ('00', '10', '20')
+                                          AND CNTR_NO         = D9.OJ_DTL_CNTR_NO
+                                          AND CNTR_SN         = D9.OJ_DTL_CNTR_SN ) <![CDATA[>]]> 0   /* 기기반품오더가 생성된 경우 */
+                                )
+                           THEN 0   /* 플로린의 경우 기기배송이 완료 + 기기반품오더가 생성되지 않아야 함 */
+                           ELSE 1
+                      END = 1
+               <if test="@MybatisUtils@isNotEmpty(svBizHclsfCd)">
+                  AND D1.SV_BIZ_HCLSF_CD    = #{svBizHclsfCd}
+               </if>
+               <choose>
+               <when test='@MybatisUtils@equals(dtTpCd, "1")'>
+                  AND D2.RCPDT BETWEEN #{strtDt} AND #{endDt}         /* 접수일자 */
+               </when>
+               <when test='@MybatisUtils@equals(dtTpCd, "2")'>
+                  AND D3.VST_CNFMDT BETWEEN #{strtDt} AND #{endDt}    /* 방문일자 */
+               </when>
+               <when test='@MybatisUtils@equals(dtTpCd, "3")'>
+                  AND D1.OSTR_CNFMDT BETWEEN #{strtDt} AND #{endDt}   /* 확정일자 */
+               </when>
+               <when test='@MybatisUtils@equals(dtTpCd, "4")'>
+                  AND (
+                           (     ( SELECT SPP_DV_CD
+                                     FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
+                                    WHERE CNR_OG_CD = NVL(D4.OG_CD, D7.OG_CD)
+                                      AND DTA_DL_YN = 'N'
+                                      AND DOW_DV_CD = TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD'), 'D') - 1
+                                      AND #{strtDt} BETWEEN APY_STRTDT AND APY_ENDDT ) = '1'
+                             AND D3.VST_CNFMDT BETWEEN TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD') + 1, 'YYYYMMDD') AND TO_CHAR( TO_DATE(#{strtDt}, 'YYYYMMDD') + ( SELECT SPP_PRD
+                                                                                                                                                                 FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
+                                                                                                                                                                WHERE CNR_OG_CD = NVL(D4.OG_CD, D7.OG_CD)
+                                                                                                                                                                  AND DTA_DL_YN = 'N'
+                                                                                                                                                                  AND DOW_DV_CD = TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD'), 'D') - 1
+                                                                                                                                                                  AND #{strtDt} BETWEEN APY_STRTDT AND APY_ENDDT ), 'YYYYMMDD')
+                           )
+                        OR
+                           (     ( SELECT SPP_DV_CD
+                                     FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
+                                    WHERE CNR_OG_CD = NVL(D4.OG_CD, D7.OG_CD)
+                                      AND DTA_DL_YN = 'N'
+                                      AND DOW_DV_CD IN ('1', '2', '3', '4')
+                                      AND DOW_DV_CD = TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD'), 'D') - 1
+                                      AND #{strtDt} BETWEEN APY_STRTDT AND APY_ENDDT ) = '2'
+                             AND D3.VST_CNFMDT BETWEEN TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD') + 2, 'YYYYMMDD') AND TO_CHAR( TO_DATE(#{strtDt}, 'YYYYMMDD') + ( SELECT SPP_PRD
+                                                                                                                                                                 FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
+                                                                                                                                                                WHERE CNR_OG_CD = NVL(D4.OG_CD, D7.OG_CD)
+                                                                                                                                                                  AND DTA_DL_YN = 'N'
+                                                                                                                                                                  AND DOW_DV_CD = TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD'), 'D') - 1
+                                                                                                                                                                  AND #{strtDt} BETWEEN APY_STRTDT AND APY_ENDDT ), 'YYYYMMDD')
+                           )
+                      )
+               </when>
+               </choose>
+               <if test="@MybatisUtils@isNotEmpty(refriDivCd)">
+                  AND D1.REFRI_DV_CD        = #{refriDivCd}
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(sppDvCd)">
+                  AND D1.ITM_IOST_DV_CD     = #{sppDvCd}
+               </if>
+               <if test="@MybatisUtils@isNotEmpty(fshProcsCd)">
+               <choose>
+                <when test='!@MybatisUtils@equals(fshProcsCd, "20")'>
+                  AND D3.WK_PRGS_STAT_CD   IN ('00', '10')   /* 작업대기, 진행중 */
+                </when>
+                <otherwise>
+                  AND D3.WK_PRGS_STAT_CD    = #{fshProcsCd}
+                </otherwise>
+               </choose>
+               </if>
+            </if>
+            <if test="@MybatisUtils@isEmpty(svBizHclsfCd)">
+                UNION ALL
+            </if>
+            <if test='@MybatisUtils@equals(svBizHclsfCd, "2") or @MybatisUtils@isEmpty(svBizHclsfCd)'>
+               SELECT D1.CNTR_NO                                     /* 계약번호 */
+                    , D1.CNTR_SN                                     /* 계약일련번호 */
+                    , D1.SV_BIZ_HCLSF_CD                             /* 서비스업무대분류코드 */
+                    , D1.SDING_SPP_NO                                /* 배송주문번호 */
+                    , D1.SDING_SPP_SN                                /* 배송계획일련번호 */
+                    , D1.OSTR_CNFMDT                                 /* 출고확정일자 */
+                    , D1.SDING_PKG_PD_CD                             /* 배송 패키지 상품코드 */
+                    , D9.OJ_DTL_CNTR_NO                              /* 기기계약번호 */
+                    , D9.OJ_DTL_CNTR_SN                              /* 기기계약일련번호 */
+                 FROM TB_SVPD_SDING_SPP_PLAN_IZ D1            /* 모종배송계획내역 */
+                INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ D2      /* 고객서비스BS대상내역 */
+                   ON D2.CNTR_NO         = D1.CNTR_NO
+                  AND D2.CNTR_SN         = D1.CNTR_SN
+                  AND D2.SV_BIZ_DCLSF_CD = D1.SV_BIZ_DCLSF_CD
+                  AND D2.CST_SV_ASN_NO   = D1.SDING_SPP_NO
+                INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ D3     /* 고객서비스BS배정내역 */
+                   ON D3.CST_SV_ASN_NO = D2.CST_SV_ASN_NO
+                  AND D3.ASN_OJ_YM     = D2.ASN_OJ_YM
+                 LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ D4       /* 월파트너내역 */
+                   ON D4.OG_TP_CD  = D3.CNFM_PSIC_PRTNR_OG_TP_CD
+                  AND D4.PRTNR_NO  = D3.CNFM_PSIC_PRTNR_NO
+                  AND D4.DTA_DL_YN = 'N'
+                  AND D4.BASE_YM   = SUBSTR(#{strtDt}, 1, 6)
+                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D5          /* 고객서비스수행내역 */
+                   ON D5.CNTR_NO = D1.CNTR_NO
+                  AND D5.CNTR_SN = D1.CNTR_SN
+                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D6         /* 상품각사속성상세 */
+                   ON D6.PD_CD = D2.PDCT_PD_CD
+                 LEFT OUTER JOIN TB_OGBS_PRTNR_BAS D7         /* 파트너기본 */
+                   ON D7.OG_TP_CD  = D3.CNFM_PSIC_PRTNR_OG_TP_CD
+                  AND D7.PRTNR_NO  = D3.CNFM_PSIC_PRTNR_NO
+                  AND D7.DTA_DL_YN = 'N'
+                INNER JOIN TB_SSCT_CNTR_REL D9                /* 계약관계-(모종패키지 계약과 결합된) 웰스팜계약 */
+                   ON D9.BASE_DTL_CNTR_NO = D1.CNTR_NO
+                  AND D9.BASE_DTL_CNTR_SN = D1.CNTR_SN
+                INNER JOIN TB_SVPD_CST_SV_EXCN_IZ D10         /* 고객서비스수행내역(기기) */
+                   ON D10.CNTR_NO = D9.OJ_DTL_CNTR_NO
+                  AND D10.CNTR_SN = D9.OJ_DTL_CNTR_SN
+                WHERE D1.DTA_DL_YN          = 'N'
+                  AND D1.SV_BIZ_HCLSF_CD    = '2'
+                  AND D2.DTA_DL_YN          = 'N'
+                  AND D3.DTA_DL_YN          = 'N'
+                  AND D3.VST_PRGS_STAT_CD  IN ('00', '10', '20')   /* 작업대기, 진행중, 완료 */
+                  AND D5.DTA_DL_YN          = 'N'
+                  AND D5.CNTR_DTL_STAT_CD   = '101'   /* 정상 */
+                  AND D6.DTA_DL_YN          = 'N'
+                  AND D6.PD_EXTS_PRP_GRP_CD = 'PART'
+                  AND D6.PD_PRP_VAL20       = '11'         /* 모종 */
+                  AND D6.PD_PRP_VAL19      IN ('3', '4')   /* 모종, 상품 */
+                  AND D1.CAN_DT IS NULL
+                  AND D1.OSTR_CNFMDT IS NOT NULL
+                  AND D5.REQD_DT IS NULL
+                  AND D9.DTA_DL_YN          = 'N'
+                  AND D9.CNTR_REL_DTL_CD    = '216'              /* 모종결합(웰스팜+모종) */
+                  AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D9.VL_STRT_DTM AND D9.VL_END_DTM
+                  AND D10.DTA_DL_YN         = 'N'
+                  AND (    D10.PDCT_PD_CD IN ('WM05107266', 'WM05107267')
+                        OR EXISTS ( SELECT 1
+                                      FROM TB_PDBS_PD_REL S1
+                                     INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2
+                                        ON S2.PD_CD = S1.BASE_PD_CD
+                                     WHERE S1.DTA_DL_YN          = 'N'
+                                       AND S1.PD_REL_TP_CD       = '18'   /* 정기배송 */
+                                       AND S2.DTA_DL_YN          = 'N'
+                                       AND S2.PD_EXTS_PRP_GRP_CD = 'SPP'
+                                       AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN S1.VL_STRT_DTM AND S1.VL_END_DTM
+                                       AND S1.OJ_PD_CD           = D2.PDCT_PD_CD
+                                       AND S2.PD_PRP_VAL12       = '4' )
+                      )
                <if test="@MybatisUtils@isNotEmpty(svBizHclsfCd)">
                   AND D1.SV_BIZ_HCLSF_CD    = #{svBizHclsfCd}
                </if>
@@ -504,25 +913,6 @@
                 </otherwise>
                 </choose>
                </if>
-               <if test="@MybatisUtils@isNotEmpty(pkgDvCd)">
-                  AND EXISTS ( SELECT 1
-                                 FROM TB_PDBS_PD_REL S1
-                                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL S2
-                                   ON S2.PD_CD = S1.BASE_PD_CD
-                                WHERE S1.DTA_DL_YN          = 'N'
-                                  AND S1.PD_REL_TP_CD       = '18'   /* 정기배송 */
-                                  AND S2.DTA_DL_YN          = 'N'
-                                  AND S2.PD_EXTS_PRP_GRP_CD = 'SPP'
-                                  AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN S1.VL_STRT_DTM AND S1.VL_END_DTM
-                                  AND S1.OJ_PD_CD           = D2.PDCT_PD_CD
-                                  AND S2.PD_PRP_VAL12       = #{pkgDvCd} )
-               </if>
-               <if test='@MybatisUtils@equals(ostrYn, "Y")'>
-                  AND D1.OSTR_CNFMDT IS NOT NULL
-               </if>
-               <if test='@MybatisUtils@equals(ostrYn, "N")'>
-                  AND D1.OSTR_CNFMDT IS NULL
-               </if>
             </if>
              ) T1
          INNER JOIN TB_SSCT_CNTR_DTL T3                /* 계약상세-웰스팜 */
@@ -535,8 +925,6 @@
            AND T5.DTL_CNTR_SN = T3.CNTR_SN
          INNER JOIN TB_CUBS_CST_BAS T6                 /* 고객기본-웰스팜 */
             ON T6.CST_NO = T5.CST_NO
-         INNER JOIN TB_PDBS_PD_BAS T7                  /* 상품기본-현재패키지 */
-            ON T7.PD_CD     = T1.PDCT_PD_CD
          INNER JOIN TB_PDBS_PD_BAS T8                  /* 상품기본-배송패키지 */
             ON T8.PD_CD     = T1.SDING_PKG_PD_CD
          INNER JOIN TB_SSCT_CNTR_ADR_REL T9            /* 계약주소관계-모종패키지 */
@@ -545,15 +933,9 @@
           LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS T10   /* 계약주소지기본-모종패키지 */
             ON T10.CNTR_ADRPC_ID = T9.CNTR_ADRPC_ID
            AND T10.DTA_DL_YN     = 'N'
-          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T11        /* 파트너기본 */
-            ON T11.OG_TP_CD = T1.OG_TP_CD
-           AND T11.PRTNR_NO = T1.PRTNR_NO
           LEFT OUTER JOIN TB_GBCO_ADR_BAS T12          /* 주소기본 */
             ON T12.ADR_ID    = NVL(T10.ADR_ID, T6.ADR_ID)
            AND T12.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_SVPD_BYZIP_SHPADR_IZ T13  /* 우편번호별배송처내역 */
-            ON T13.NEW_ADR_ZIP = T12.NEW_ADR_ZIP
-           AND T13.DTA_DL_YN   = 'N'
          WHERE T3.DTA_DL_YN          = 'N'
            AND T3.CNTR_DTL_STAT_CD <![CDATA[<>]]> '303'   /* 계약취소 */
            AND T5.CNTR_CST_REL_TP_CD = '10'               /* 계약자 */
@@ -750,7 +1132,12 @@
              , #{cntrSn}                                                /* 계약일련번호 */
              , '22'                                                     /* 서비스업무중분류코드 - 비정기 */
              , '2250'                                                   /* 서비스업무세분류코드 - 웰컴BS */
-             , 1                                                        /* 작업일련번호 */
+             , ( SELECT NVL(MAX(WK_SN), 0) + 1
+                   FROM TB_SVPD_CST_SV_RGBSPR_IZ
+                  WHERE CNTR_NO         = #{cntrNo}
+                    AND CNTR_SN         = #{cntrSn}
+                    AND SV_BIZ_MCLSF_CD = '22'
+                    AND SV_BIZ_DCLSF_CD = '2250' )                      /* 작업일련번호 */
              , TO_CHAR(TO_DATE(#{istDt}, 'YYYYMMDD') + 7, 'YYYYMMDD')   /* 방문예정일자 */
              , '00'                                                     /* 필터교체단계코드 */
              , '10'                                                     /* 방문구분코드 */

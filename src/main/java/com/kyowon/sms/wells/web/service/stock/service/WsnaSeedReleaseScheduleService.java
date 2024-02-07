@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaInstallationReqdDtInService;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncRegularBfsvcAsnDvo;
+import com.kyowon.sms.wells.web.service.allocate.service.WsncRegularBfsvcAsnService;
 import com.kyowon.sms.wells.web.service.common.service.WsnzHistoryService;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaSeedReleaseScheduleConverter;
 import com.kyowon.sms.wells.web.service.stock.dvo.*;
@@ -53,9 +55,12 @@ public class WsnaSeedReleaseScheduleService {
     // 계약서비스
     private final WctaInstallationReqdDtInService installationReqdDtInService;
 
+    // BS배정 서비스
+    private final WsncRegularBfsvcAsnService bfsvcAsnService;
+
     private static final String SV_BIZ_HCLSF_CD_INSTL = "1";
     private static final String SV_BIZ_HCLSF_CD_BS = "2";
-    private static final String PKG_DV_CD_FLOWER = "4";
+    private static final String PKG_DV_CD_FLORIN = "4";
     private static final String SV_BIZ_DCLSF_CD_PD_SPP = "1112";
 
     private static final String SPP_DV_CD_PCSV = "2";
@@ -87,6 +92,18 @@ public class WsnaSeedReleaseScheduleService {
     public List<SearchRes> getSeedReleaseSchedulesExcelDownload(SearchReq dto) {
 
         List<WsnaSeedReleaseScheduleSearchDvo> dvos = this.maaper.selectSeedReleaseSchedulesPaging(dto);
+
+        return this.converter.mapAllWsnaSeedReleaseScheduleSearchDvoToSearchRes(dvos);
+    }
+
+    /**
+     * 모종 출고 예정리스트 플로린 확정 엑셀다운로드
+     * @param dto
+     * @return
+     */
+    public List<SearchRes> getSeedReleaseSchedulesForFlorin(SearchReq dto) {
+
+        List<WsnaSeedReleaseScheduleSearchDvo> dvos = this.maaper.selectSeedReleaseSchedulesForFlorin(dto);
 
         return this.converter.mapAllWsnaSeedReleaseScheduleSearchDvoToSearchRes(dvos);
     }
@@ -161,8 +178,8 @@ public class WsnaSeedReleaseScheduleService {
 
             // 설치인 경우
             if (SV_BIZ_HCLSF_CD_INSTL.equals(svBizHclsfCd)) {
-                // 출고확정일 = 설치일자
-                String sppCnfmdt = dvo.getSppCnfmdt();
+                // 현재일자
+                String curDt = DateUtil.getNowDayString();
                 // 패키지구분
                 String pkgDvCd = dto.pkgDvCd();
                 // 서비스업무세분류코드
@@ -174,19 +191,19 @@ public class WsnaSeedReleaseScheduleService {
                 int cntrSn = dvo.getCntrSn();
 
                 // 수행내역에 설치일자 저장
-                this.maaper.updateCstSvExcnIzForInstl(cntrNo, cntrSn, sppCnfmdt);
+                this.maaper.updateCstSvExcnIzForInstl(cntrNo, cntrSn, curDt);
 
                 // 계약정보 update
                 this.installationReqdDtInService
-                    .saveInstallReqdDt(cntrNo, String.valueOf(cntrSn), sppCnfmdt, "", sppDuedt);
+                    .saveInstallReqdDt(cntrNo, String.valueOf(cntrSn), curDt, "", sppDuedt);
 
                 // BS주기표 생성
-                SearchProcessReq visitDto = this.convertVisitPrdProcessReq(cntrNo, String.valueOf(cntrSn), sppCnfmdt);
+                SearchProcessReq visitDto = this.convertVisitPrdProcessReq(cntrNo, String.valueOf(cntrSn), curDt);
                 this.visitPrdService.processVisitPeriodRegen(visitDto);
 
                 // 플로린이면서 제품배송일 경우 웰컴 BS 서비스 호출
-                if (PKG_DV_CD_FLOWER.equals(pkgDvCd) && SV_BIZ_DCLSF_CD_PD_SPP.equals(svBizDclsfCd)) {
-                    this.maaper.insertWelcomeBS(cntrNo, cntrSn, sppCnfmdt);
+                if (PKG_DV_CD_FLORIN.equals(pkgDvCd) && SV_BIZ_DCLSF_CD_PD_SPP.equals(svBizDclsfCd)) {
+                    this.createWelcomeBS(cntrNo, cntrSn, curDt);
                 }
             }
 
@@ -217,6 +234,29 @@ public class WsnaSeedReleaseScheduleService {
         }
 
         return count;
+    }
+
+    /**
+     * 웰컴BS 데이터 생성
+     * @param cntrNo
+     * @param cntrSn
+     * @param istDt
+     * @throws Exception
+     */
+    @Transactional
+    public void createWelcomeBS(String cntrNo, int cntrSn, String istDt) throws Exception {
+        // 주기표 데이터 생성
+        this.maaper.insertWelcomeBS(cntrNo, cntrSn, istDt);
+
+        String after7Day = DateUtil.addDays(istDt, 7);
+
+        WsncRegularBfsvcAsnDvo dvo = new WsncRegularBfsvcAsnDvo();
+        dvo.setAsnOjYm(after7Day.substring(0, 6));
+        dvo.setCntrNo(cntrNo);
+        dvo.setCntrSn(String.valueOf(cntrSn));
+
+        // BS 배정 생성
+        this.bfsvcAsnService.processRegularBfsvcAsn(dvo);
     }
 
     /**
@@ -458,8 +498,8 @@ public class WsnaSeedReleaseScheduleService {
         this.visitPrdService.processVisitPeriodRegen(visitDto);
 
         // 플로린이면서 제품배송일 경우 웰컴 BS 서비스 호출
-        if (PKG_DV_CD_FLOWER.equals(pkgDvCd) && SV_BIZ_DCLSF_CD_PD_SPP.equals(svBizDclsfCd)) {
-            this.maaper.insertWelcomeBS(cntrNo, Integer.parseInt(cntrSn), curDt);
+        if (PKG_DV_CD_FLORIN.equals(pkgDvCd) && SV_BIZ_DCLSF_CD_PD_SPP.equals(svBizDclsfCd)) {
+            this.createWelcomeBS(cntrNo, Integer.parseInt(cntrSn), curDt);
         }
     }
 

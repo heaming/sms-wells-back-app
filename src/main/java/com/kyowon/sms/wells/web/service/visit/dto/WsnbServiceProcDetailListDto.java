@@ -30,6 +30,10 @@ public class WsnbServiceProcDetailListDto {
         String cntrNo,// 계약번호
         @NotNull
         String cntrSn, // 계약일련번호
+
+        @NotNull
+        String cstSvAsnNo,
+
         @NotNull
         String cttRcpDtm, // 컨택일[컨택접수일시]
         @NotNull
@@ -42,7 +46,9 @@ public class WsnbServiceProcDetailListDto {
         String wkKnd, // 작업종류
         String beforeRcpDtm, // 기등록된 컨택일
         String beforeDuedt, // 기등록된 방문예정일
-        String beforeMoCn // 기등록된 메모
+        String beforeMoCn, // 기등록된 메모
+
+        String svBizDclsfCd // 업무유형상세
     ){}
 
     @ApiModel(value = "WsnbServiceProcDetailListDto-CttIzReq")
@@ -53,7 +59,8 @@ public class WsnbServiceProcDetailListDto {
         String cttSn,
         String cttMoCn,
         String cttRcpDtm,
-        String cttDuedt
+        String cttDuedt,
+        String svBizDclsfCd
     ) {}
 
     @ApiModel(value = "WsnbServiceProcDetailListDto-SaveWkCanRgstReq")
@@ -69,7 +76,9 @@ public class WsnbServiceProcDetailListDto {
         @NotNull
         String cstSvAsnNo,
         String cntrNo,
-        String cntrSn
+        String cntrSn,
+        String cttRcpDtm,
+        String svBizDclsfCd
     ){}
 
     @ApiModel(value = "WsnbServiceProcDetailListDto-WkCanRes")
@@ -85,4 +94,6 @@ public class WsnbServiceProcDetailListDto {
         String wkCanMoCn,
         String wkPrgsStatCd
     ) {}
+
+
 }

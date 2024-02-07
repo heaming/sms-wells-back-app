@@ -14,6 +14,7 @@ public interface WsnaSeedReleaseScheduleConverter {
 
     @Mapping(target = "ichrCtnt", expression = "java(StringUtils.defaultString(dvo.getIchrCralLocaraTno()) + StringUtils.defaultString(dvo.getIchrMexnoEncr()) + StringUtils.defaultString(dvo.getIchrCralIdvTno()))")
     @Mapping(target = "cstCtnt", expression = "java(StringUtils.defaultString(dvo.getCstCralLocaraTno()) + StringUtils.defaultString(dvo.getCstMexnoEncr()) + StringUtils.defaultString(dvo.getCstCralIdvTno()))")
+    @Mapping(target = "cstTelCtnt", expression = "java(StringUtils.defaultString(dvo.getCstLocaraTno()) + StringUtils.defaultString(dvo.getCstExnoEncr()) + StringUtils.defaultString(dvo.getCstIdvTno()))")
     SearchRes mapWsnaSeedReleaseScheduleSearchDvoToSearchRes(WsnaSeedReleaseScheduleSearchDvo dvo);
 
     List<SearchRes> mapAllWsnaSeedReleaseScheduleSearchDvoToSearchRes(List<WsnaSeedReleaseScheduleSearchDvo> dvos);

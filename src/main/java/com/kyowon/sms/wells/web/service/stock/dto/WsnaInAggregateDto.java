@@ -4,6 +4,8 @@ import javax.validation.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModel;
 
+import java.util.List;
+
 /**
  *
  * <pre>
@@ -27,6 +29,8 @@ public class WsnaInAggregateDto {
         String baseDateTo,
         @NotBlank
         String itmKndCd,
+        String itmGrpCd,
+        List<String> itmPdCds,
         String pdCd,
         String pdGdCd,
         String wareDvCd,

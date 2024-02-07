@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
+import java.util.List;
+
 import javax.validation.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModel;
@@ -20,7 +22,8 @@ public class WsnaByDayMaterialInOutSearchDto {
         String wareDvCd,
         String hgrWareNo,
         String itmKndCd,
-        String itmPdCds,
+        String itmGrpCd,
+        List<String> itmPdCds,
         String ostrAkTpCd,
         String baseDateFrom,
         String baseDateTo,

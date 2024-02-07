@@ -3,6 +3,8 @@ package com.kyowon.sms.wells.web.service.stock.dvo;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 /**
  *
  * <pre>
@@ -33,6 +35,8 @@ public class WsnaInAggregateDvo {
     String baseDateFrom;
     String baseDateTo;
     String itmKndCd;
+    String itmGrpCd;
+    List<String> itmPdCds;
     String pdCd;
     String pdGdCd;
     String wareDvCd;

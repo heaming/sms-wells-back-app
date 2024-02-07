@@ -18,7 +18,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
-@Api(tags = "[WSNA] 택배설치상품 출고관리 REST API")
+@Api(tags = "[WSNA] 택배상품 출고관리 REST API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/pcsv-out-of-storage")
@@ -26,7 +26,7 @@ public class WsnaPcsvOutOfStorageMgtController {
 
     private final WsnaPcsvOutOfStorageMgtService service;
 
-    @ApiOperation(value = "택배설치상품 출고관리", notes = "조회조건에 일치하는 택배설치상품 출고관리 데이터를 조회한다.")
+    @ApiOperation(value = "택배상품 출고관리", notes = "조회조건에 일치하는 택배설치상품 출고관리 데이터를 조회한다.")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "startDt", value = "계약시작일자", paramType = "query", required = true),
         @ApiImplicitParam(name = "endDt", value = "계약종료일자", paramType = "query", required = true),
@@ -45,7 +45,7 @@ public class WsnaPcsvOutOfStorageMgtController {
         return service.getPcsvOutOfStorages(dto);
     }
 
-    @ApiOperation(value = "택배설치상품 출고관리 저장", notes = "출고관리 정보를 저장한다.")
+    @ApiOperation(value = "택배상품 출고관리 저장", notes = "출고관리 정보를 저장한다.")
     @PostMapping
     public SaveResponse savePcsvOutOfStorages(
         @Valid
@@ -64,7 +64,7 @@ public class WsnaPcsvOutOfStorageMgtController {
         return service.getPcsvLogisticsCenters();
     }
 
-    @ApiOperation(value = "택배 상품 목록 조회", notes = "조회조건에 일치하는 정보를 조회한다.")
+    @ApiOperation(value = "택배상품 목록 조회", notes = "조회조건에 일치하는 정보를 조회한다.")
     @GetMapping("/products")
     public List<FindProductsRes> getPcsvProducts() {
         return service.getPcsvProducts();

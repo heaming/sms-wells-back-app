@@ -2,10 +2,12 @@ package com.kyowon.sms.wells.web.service.stock.service;
 
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaInAggregateDto.SearchReq;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.util.StringUtils;
 
@@ -25,6 +27,7 @@ import lombok.RequiredArgsConstructor;
  * @author 37758 이재훈
  * @since 2023.08.07
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class WsnaInAggregateService {
@@ -44,6 +47,17 @@ public class WsnaInAggregateService {
         WsnaInAggregateDvo dvo = convertPivotInOfStorageAgrgDvo(
             converter.mapSearchResDvo(dto)
         );
+        dvo.setItmGrpCd(dto.itmGrpCd());
+
+        log.info("dto.itmPdCds() ::::" + dto.itmPdCds());
+        if(dto.itmPdCds() != null && !dto.itmPdCds().isEmpty()) {
+            ArrayList<String> pdCds = new ArrayList<String>();
+            for(int i = 0; i < dto.itmPdCds().size(); i++){
+                pdCds.add(dto.itmPdCds().get(i));
+            }
+            dvo.setItmPdCds(pdCds);
+        }
+
         return mapper.selectInAggregateList(dvo);
     }
 
@@ -83,6 +97,7 @@ public class WsnaInAggregateService {
         dvo.setWareLogisticsFieldsSumStr(wareLogisticsFieldsSumStr);
         dvo.setWareServiceFieldsSumStr(wareServiceFieldsSumStr);
         dvo.setWareBusinessFieldsSumStr(wareBusinessFieldsSumStr);
+
         return dvo;
 
     }

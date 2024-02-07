@@ -80,13 +80,13 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
         String rsgAplcDt, //해지신청일자
 
-        String rsgFshDt,
+        String rsgFshDt, // 취소일자
 
         String cstSvAsnNo,  // 고객서비스배정번호
 
         String pdctPdCd,  // 제품코드
 
-        String pdctPdNm,
+        String pdctPdNm, // 제품명
 
         String svPdCd,     // 서비스상품코드
 
@@ -98,15 +98,15 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
         String svBizDclsfCd,  // 서비스업무세분류코드
 
-        String svBizDclsfNm,
+        String svBizDclsfNm, // 서비스업무세분류명
 
         String wkPrgsStatCd,  // 작업진행상태코드
 
-        String wkPrgsStatNm,
+        String wkPrgsStatNm, // 작업진행상태코드명
 
         String istDt,        // 설치일
 
-        String reqdDt,
+        String reqdDt, // 철거일자
 
         String ogId,     // 조직ID
 
@@ -142,7 +142,7 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
         String lgstOstrAkNo,  // 물류요청번호
 
-        String ostrNo,
+        String ostrNo, // 물류출고번호
 
         /* 작업결과 필수 코드   */
         String pdGrpCd, // 상품그룹코드
@@ -161,7 +161,7 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
         /* 상품 */
 
-        int partCnt,
+        int partCnt, // 투입부품모델수
 
         String partCd1,
 
@@ -221,7 +221,9 @@ public class WsnaPcsvOutOfStorageMgtDto {
 
         String partNm10,
 
-        String partQty10
+        String partQty10,
+
+        String wlcmBfsvcYn  // 웰컴BS 생성여부
 
     ) {}
 
@@ -312,6 +314,8 @@ public class WsnaPcsvOutOfStorageMgtDto {
         String cntrCstNo, // 계약자 고객번호
 
         String wareMngtPrtnrOgTpCd, // 창고관리파트너조직유형코드
+
+        String wlcmBfsvcYn, // 웰컴BS 생성여부
 
         List<WsnaPcsvOutOfStorageSaveProductDvo> products //상품 목록
     ) {}
