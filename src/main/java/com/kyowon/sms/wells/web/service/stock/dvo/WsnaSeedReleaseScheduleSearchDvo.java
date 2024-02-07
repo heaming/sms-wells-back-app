@@ -214,4 +214,39 @@ public class WsnaSeedReleaseScheduleSearchDvo {
     private String svPdCd;
     // 패키지 구분코드
     private String pkgDvCd;
+
+    /**
+     * 플로린 송장 관련
+     */
+    // 쇼핑몰명
+    private String snsShop;
+    // 제휴사코드
+    private String allnCoCd;
+    // 제휴사요청유형
+    private String reqTpCd;
+    // 제휴사주문번호
+    private String allnOrdId;
+    // 제휴사주문순번
+    private Integer allnOrdSeq;
+    // 상품명
+    private String prdNm;
+    // 상품ID
+    private String prdId;
+    // 주문수량
+    private Integer orderQty;
+    // 배송예정일
+    private String sppScheDt;
+    // 고객지역전화번호
+    private String cstLocaraTno;
+    // 고객전화국번호암호화
+    @DBDecField
+    private String cstExnoEncr;
+    // 고객개별전화번호
+    private String cstIdvTno;
+    // 배송지주소
+    private String cstBscAdr;
+    // 배송지상세주소
+    private String cstDtlAdr;
+    // 외부송장메모
+    private String invcMemo;
 }

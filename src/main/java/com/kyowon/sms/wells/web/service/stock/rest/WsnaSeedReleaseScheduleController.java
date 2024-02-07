@@ -81,6 +81,23 @@ public class WsnaSeedReleaseScheduleController {
         return this.service.getSeedReleaseSchedulesExcelDownload(dto);
     }
 
+    @GetMapping("/florin/excel-download")
+    @ApiOperation(value = "모종 출고 예정리스트 플로린확정 엑셀 다운로드", notes = "조회조건에 일치하는 플로릭 확정 데이터를 엑셀다운로드 한다.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "svBizHclsfCd", value = "조회구분", paramType = "query", example = "1"),
+        @ApiImplicitParam(name = "dtTpCd", value = "일자유형코드", paramType = "query", example = "1", required = true),
+        @ApiImplicitParam(name = "dayOfWeek", value = "요일코드", paramType = "query", example = "2"),
+        @ApiImplicitParam(name = "strtDt", value = "시작일자", paramType = "query", example = "20230703", required = true),
+        @ApiImplicitParam(name = "endDt", value = "종료일자", paramType = "query", example = "20230703", required = true),
+        @ApiImplicitParam(name = "refriDivCd", value = "유/무상구분코드", paramType = "query", example = "2"),
+        @ApiImplicitParam(name = "sppDvCd", value = "배송구분코드", paramType = "query", example = "1"),
+        @ApiImplicitParam(name = "fshProcsCd", value = "완료처리코드", paramType = "query", example = "00")
+    })
+    public List<SearchRes> getSeedReleaseSchedulesForFlorin(@Valid
+    SearchReq dto) {
+        return this.service.getSeedReleaseSchedulesForFlorin(dto);
+    }
+
     @GetMapping("/aggregations")
     @ApiOperation(value = "모종 출고 예정리스트 집계표 조회", notes = "모종 출고예정 리스트의 집계표를 조회한다.")
     @ApiImplicitParams(value = {

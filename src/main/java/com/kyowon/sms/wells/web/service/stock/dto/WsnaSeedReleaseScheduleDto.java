@@ -235,7 +235,33 @@ public class WsnaSeedReleaseScheduleDto {
         // 서비스상품코드
         String svPdCd,
         // 패키지구분코드
-        String pkgDvCd
+        String pkgDvCd,
+        // 쇼핑몰명
+        String snsShop,
+        // 제휴사코드
+        String allnCoCd,
+        // 제휴사요청유형
+        String reqTpCd,
+        // 제휴사주문번호
+        String allnOrdId,
+        // 제휴사주문순번
+        Integer allnOrdSeq,
+        // 상품명
+        String prdNm,
+        // 상품ID
+        String prdId,
+        // 주문수량
+        Integer orderQty,
+        // 배송예정일
+        String sppScheDt,
+        // 고객전화번호
+        String cstTelCtnt,
+        // 배송지주소
+        String cstBscAdr,
+        // 배송지상세주소
+        String cstDtlAdr,
+        // 외부송장메모
+        String invcMemo
     ) {}
 
     @Builder
