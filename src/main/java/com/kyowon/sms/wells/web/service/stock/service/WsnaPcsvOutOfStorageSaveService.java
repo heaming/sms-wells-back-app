@@ -1,21 +1,9 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ObjectUtils;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaInstallationReqdDtInService;
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaPcsvOutOfStorageSaveConverter;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaPcsvOutOfStorageMgtDto.SaveReq;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvOutOfStorageSaveDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvOutOfStorageSaveProductDvo;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaPcsvSendDtlDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.*;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaPcsvOutOfStorageSaveMapper;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaPcsvSendDtlMapper;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualVisitPrdDto;
@@ -23,9 +11,15 @@ import com.kyowon.sms.wells.web.service.visit.service.WsnbIndividualVisitPrdServ
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
 import com.sds.sflex.system.config.validation.BizAssert;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -50,6 +44,7 @@ public class WsnaPcsvOutOfStorageSaveService {
 
     /**
      * 택배상품 출고관리 저장
+     *
      * @param dtos
      * @return
      * @throws Exception
@@ -135,7 +130,7 @@ public class WsnaPcsvOutOfStorageSaveService {
 //                    visitPrdService.saveWelcomeBS(this.setWsnbWelcomeBSReq(cntrNo, cntrSn));
                     this.mapper.insertSvpdCstSvRgbsprIz(cntrNo, cntrSn);
 
-                    String asnOjYm = DateUtil.addDays(sppDueDt, 7);
+                    String asnOjYm = DateUtil.addDays(sppDueDt, 7).substring(0, 6);
                     // B/S 배정
                     WsnbIndividualVisitPrdDto.SearchProcessReq processReq = new WsnbIndividualVisitPrdDto.SearchProcessReq(
                         cntrNo,
@@ -143,7 +138,7 @@ public class WsnaPcsvOutOfStorageSaveService {
                         "",
                         "",
                         "",
-                        asnOjYm,
+                        asnOjYm,  /* 배정년월 */
                         "",
                         ""
                     );
@@ -265,6 +260,7 @@ public class WsnaPcsvOutOfStorageSaveService {
 
     /**
      * 물류 파라미터 세팅
+     *
      * @param vo
      * @return List
      */
