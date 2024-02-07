@@ -46,26 +46,6 @@ public class WsniParcelServiceRegController {
     private static final Logger logger = LoggerFactory.getLogger(WsniParcelServiceRegController.class);
 
     @ApiOperation(value = "집하지시 오더저장", notes = "집하지시 오더를 생성/취소한다.")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "reqdvCd", value = "요청구분코드", paramType = "query", required = true),
-        @ApiImplicitParam(name = "custNo", value = "계약번호", paramType = "query", required = true),
-        @ApiImplicitParam(name = "cntrSn", value = "계약차수", paramType = "query", required = true),
-        @ApiImplicitParam(name = "sendrAddr", value = "발송주소", paramType = "query", required = true),
-        @ApiImplicitParam(name = "sendrAddrDtl", value = "발송주소상세", paramType = "query", required = true),
-        @ApiImplicitParam(name = "sendrtelNo1", value = "발송전번1", paramType = "query", required = false),
-        @ApiImplicitParam(name = "sendrtelNo2", value = "발송전번2", paramType = "query", required = false),
-        @ApiImplicitParam(name = "sendrtelNo3", value = "발송전번3", paramType = "query", required = false),
-        @ApiImplicitParam(name = "sendrcellNo1", value = "발송핸폰1", paramType = "query", required = true),
-        @ApiImplicitParam(name = "sendrcellNo2", value = "발송핸폰2", paramType = "query", required = true),
-        @ApiImplicitParam(name = "sendrcellNo3", value = "발송핸폰3", paramType = "query", required = true),
-        @ApiImplicitParam(name = "sendrZipNo", value = "발송우편번호", paramType = "query", required = true),
-        @ApiImplicitParam(name = "gdsCd", value = "제품코드", paramType = "query", required = true),
-        @ApiImplicitParam(name = "gdsNm", value = "상품명", paramType = "query", required = false),
-        @ApiImplicitParam(name = "gdsQty", value = "상품수량", paramType = "query", required = true),
-        @ApiImplicitParam(name = "sendrNm", value = "발송자명", paramType = "query", required = true),
-        @ApiImplicitParam(name = "recpId", value = "접수자ID", paramType = "query", required = true),
-        @ApiImplicitParam(name = "recpOgTpCd", value = "접수자조직유형", paramType = "query", required = true),
-    })
     @PostMapping("/regist")
     public EaiWrapper saveParcelServiceRegistration(
         @Valid
