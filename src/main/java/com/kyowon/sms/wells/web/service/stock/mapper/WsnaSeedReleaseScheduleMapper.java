@@ -17,6 +17,8 @@ public interface WsnaSeedReleaseScheduleMapper {
 
     List<WsnaSeedReleaseScheduleSearchDvo> selectSeedReleaseSchedulesPaging(SearchReq dto);
 
+    List<WsnaSeedReleaseScheduleSearchDvo> selectSeedReleaseSchedulesForFlorin(SearchReq dto);
+
     int updateSdingSppPlanIzDpDt(WsnaSeedReleaseScheduleDvo dvo);
 
     Integer selectSdingSppCnfmIzCount(WsnaSeedReleaseScheduleCnfmDvo dvo);
