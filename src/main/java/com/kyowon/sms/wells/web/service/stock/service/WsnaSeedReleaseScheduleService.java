@@ -248,8 +248,10 @@ public class WsnaSeedReleaseScheduleService {
         // 주기표 데이터 생성
         this.maaper.insertWelcomeBS(cntrNo, cntrSn, istDt);
 
+        String after7Day = DateUtil.addDays(istDt, 7);
+
         WsncRegularBfsvcAsnDvo dvo = new WsncRegularBfsvcAsnDvo();
-        dvo.setAsnOjYm(istDt.substring(0, 6));
+        dvo.setAsnOjYm(after7Day.substring(0, 6));
         dvo.setCntrNo(cntrNo);
         dvo.setCntrSn(String.valueOf(cntrSn));
 
