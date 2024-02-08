@@ -173,51 +173,43 @@
     </select>
 
     <select id='selectEstimateP' resultType="com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto$EstimateP">
-        SELECT NVL(SUM(NVL(CASE WHEN T3.FEE_CALC_UNIT_TP_CD = '101' AND T2.FEE_CD = 'W010001' THEN T2.FEE_CALC_AMT ELSE 0 END, 0)), 0) PRSNL_FEE_ELHM_PRPN
-             , NVL(SUM(NVL(CASE WHEN T3.FEE_CALC_UNIT_TP_CD = '101' AND T2.FEE_CD = 'W010002' THEN T2.FEE_CALC_AMT ELSE 0 END, 0)), 0) PRSNL_FEE_ELHM_EXCP_PRPN
-             , NVL(SUM(NVL(CASE WHEN T3.FEE_CALC_UNIT_TP_CD = '101' AND T2.FEE_CD = 'W010003' THEN T2.FEE_CALC_AMT ELSE 0 END, 0)), 0) PRSNL_FEE_SAL_INTV
-             , 9999 AS PRSNL_FEE_METG
-             , NVL(SUM(NVL(CASE WHEN T3.FEE_CALC_UNIT_TP_CD = '101' AND T2.FEE_CD = 'W010005' THEN T2.FEE_CALC_AMT ELSE 0 END, 0)), 0) PRSNL_FEE_STMNT
-             , NVL(SUM(NVL(CASE WHEN T3.FEE_CALC_UNIT_TP_CD = '101' AND T2.FEE_CD = 'W010021' THEN T2.FEE_CALC_AMT ELSE 0 END, 0)), 0) PRSNL_FEE_MUTU
-             <choose>
-             <when test='@MybatisUtils@equals(userDvCd, "OG")'>
-             , NVL(SUM(NVL(CASE WHEN T3.FEE_CALC_UNIT_TP_CD = '102' AND T2.FEE_CD = 'W010011' THEN T2.FEE_CALC_AMT ELSE 0 END, 0)), 0) ORGNSTN_FEE_ELHM_OG_PRPN
-             , NVL(SUM(NVL(CASE WHEN T3.FEE_CALC_UNIT_TP_CD = '102' AND T2.FEE_CD = 'W010012' THEN T2.FEE_CALC_AMT ELSE 0 END, 0)), 0) ORGNSTN_FEE_ELHM_OG_EXCP_PRPN
-             , NVL(SUM(NVL(CASE WHEN T3.FEE_CALC_UNIT_TP_CD = '102' AND T2.FEE_CD = 'W010013' THEN T2.FEE_CALC_AMT ELSE 0 END, 0)), 0) ORGNSTN_FEE_OG_SELL_ENCRG
-             , 9 AS ORGNSTN_FEE_OG_EJT1
-             , 9 AS ORGNSTN_FEE_OG_EJT2
-             , 9 AS ORGNSTN_FEE_NB_BRCH
-             , 9 AS ORGNSTN_FEE_PRFMT_FEE
-            </when>
-            <otherwise>
-             , 0 AS ORGNSTN_FEE_ELHM_OG_PRPN
-             , 0 AS ORGNSTN_FEE_ELHM_OG_EXCP_PRPN
-             , 0 AS ORGNSTN_FEE_OG_SELL_ENCRG
-             , 0 AS ORGNSTN_FEE_OG_EJT1
-             , 0 AS ORGNSTN_FEE_OG_EJT2
-             , 0 AS ORGNSTN_FEE_NB_BRCH
-             , 0 AS ORGNSTN_FEE_PRFMT_FEE
-            </otherwise>
-            </choose>
-          FROM TB_OGBS_PRTNR_BAS T1 /* 파트너기본           */
-          LEFT OUTER JOIN TB_FEAM_FEE_SML_BAS  T2 /* 수수료시뮬레이션기본 */
-            ON T2.OG_TP_CD = T1.OG_TP_CD
-           AND T2.PRTNR_NO = T1.PRTNR_NO
-           AND T2.BASE_YM = #{req.perfYm}
-           AND T2.DTA_DL_YN = 'N'
-          LEFT OUTER JOIN TB_FEAM_FEE_CD       T3 /* 수수료코드 */
-            ON T3.FEE_CD = T2.FEE_CD
-           AND T3.OG_TP_CD = T2.OG_TP_CD
-           AND T3.FEE_CALC_UNIT_TP_CD IN ('101', '102' )
-          LEFT OUTER JOIN TB_FEAM_FEE_BASE_DTL T4 /* 수수료기준상세       */
-            ON T4.FEE_CD       = T3.FEE_CD
-           AND T4.APY_STRT_YM <![CDATA[<=]]> #{req.perfYm}
-           AND T4.APY_END_YM  >= #{req.perfYm}
-           AND T4.FNL_FEE_YN   = 'Y'
-           AND T4.DTA_DL_YN    = 'N'
-         WHERE T1.OG_TP_CD  = 'W01'
-           AND T1.PRTNR_NO  = #{req.sellPrtnrNo}
-           AND T1.DTA_DL_YN = 'N'
+        SELECT T2.DTA_CRT_FEE_CD AS FEE_CD
+             , T2.FEE_NM
+             , SUM(NVL(T3.FEE_CALC_AMT, 0)) AS ESTI_VAL_SUM
+             , T2.FEE_ATC_TP_CD
+             , T2.SRN_MARK_ODR_SN
+          FROM TB_OGBS_MM_PRTNR_IZ T1
+          LEFT OUTER JOIN (SELECT CD.FEE_CD
+                                             , CD.DTA_CRT_FEE_CD
+                                             , DTL.SRN_MARK_FEE_NM AS FEE_NM
+                                             , CD.SRN_MARK_ODR_SN
+                                             , CD_DTL.FEE_ATC_TP_CD
+                                          FROM TB_FEAM_FEE_CD CD /* 수수료코드           */
+                                               INNER JOIN TB_FEAM_FEE_BASE_DTL DTL
+                                                          ON (CD.FEE_CD = DTL.FEE_CD)
+                                               LEFT OUTER JOIN TB_FEAM_FEE_CD_DTL CD_DTL
+                                                               ON (CD.FEE_CD = CD_DTL.FEE_CD)
+                                         WHERE 1=1
+                                           AND (DTL.FEE_CD, DTL.APY_TN) IN
+                                                     <foreach collection="feeCds" item="item" open="(" close=")" separator=",">
+                                                        (#{item.feeCd}, #{item.apyTn})
+                                                      </foreach>
+                                        ) T2
+                                       ON (1 = 1)
+                       LEFT OUTER JOIN TB_FEAM_FEE_SML_BAS T3 /* 수수료시뮬레이션기본 */
+                                       ON T1.OG_TP_CD = T3.OG_TP_CD
+                                           AND T1.PRTNR_NO = T3.PRTNR_NO
+                                           AND T1.BASE_YM = T3.OJ_DSB_YM
+                                           AND T2.FEE_CD = T3.FEE_CD
+                                           AND T2.DTA_CRT_FEE_CD = T3.DTA_CRT_FEE_CD
+                                           AND T3.DTA_DL_YN = 'N'
+                                           AND T3.SML_CRT_TP_CD = DECODE(#{req.perType}, '00', '01', '02')
+                 WHERE T1.BASE_YM = #{req.perfYm}
+                   AND T1.OG_TP_CD = 'W01'
+                   AND T1.PRTNR_NO = #{req.sellPrtnrNo}
+                   AND T1.DTA_DL_YN = 'N'
+                 GROUP BY T2.DTA_CRT_FEE_CD, T2.FEE_NM, T2.FEE_ATC_TP_CD, T2.SRN_MARK_ODR_SN
+        ORDER BY T2.SRN_MARK_ODR_SN
     </select>
 
     <select id='selectSaleP' resultType="com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto$SaleP">

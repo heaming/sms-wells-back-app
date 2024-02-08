@@ -44,7 +44,7 @@ public class WfefEstimateFeeMgtController {
         @ApiImplicitParam(name = "sellPrtnrNo", value = "번호", paramType = "query", required = true),
     })
     @PostMapping("/p-og")
-    public EstimateP getEstimateFeeOgP(@Valid SearchEstimateReq req, @RequestBody Map<String, Object> addPerformances) {
+    public List<EstimateP> getEstimateFeeOgP(@Valid SearchEstimateReq req, @RequestBody Map<String, Object> addPerformances) {
         return service.getEstimateFeeOgP(req, addPerformances);
     }
 

@@ -41,19 +41,11 @@ public class WfefEstimateFeeMgtDto {
     ) {}
 
     public record EstimateP(
-        Long prsnlFeeElhmPrpn,
-        Long prsnlFeeElhmExcpPrpn,
-        Long prsnlFeeSalIntv,
-        Long prsnlFeeMetg,
-        Long prsnlFeeStmnt,
-        Long prsnlFeeMutu,
-        Long orgnstnFeeElhmOgPrpn,
-        Long orgnstnFeeElhmOgExcpPrpn,
-        Long orgnstnFeeOgSellEncrg,
-        Long orgnstnFeeOgEjt1,
-        Long orgnstnFeeOgEjt2,
-        Long orgnstnFeeNbBrch,
-        Long orgnstnFeePrfmtFee
+        String feeCd,
+        String feeNm,
+        Integer estiValSum,
+        String feeAtcTpCd,
+        Integer srnMarkOdrSn
     ) {}
 
     public record SaleP(
@@ -76,7 +68,7 @@ public class WfefEstimateFeeMgtDto {
         BaseP base,
         MeetingP meeting,
         List<PerformanceP> performances,
-        EstimateP estimate,
+        List<EstimateP> estimate,
         List<SaleP> sales
     ) {}
 

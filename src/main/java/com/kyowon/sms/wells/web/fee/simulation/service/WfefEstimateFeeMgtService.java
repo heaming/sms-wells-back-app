@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.fee.simulation.service;
 
 import com.kyowon.sms.common.web.fee.simulation.dvo.ZfefMacupCntrPerfDvo;
 import com.kyowon.sms.common.web.fee.simulation.service.ZfefFeeSmlCalculationService;
+import com.kyowon.sms.common.web.fee.standard.dvo.ZfeyTargetPartnerConditionDvo;
+import com.kyowon.sms.common.web.fee.standard.service.ZfeyFeeStandardService;
 import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.*;
 import com.kyowon.sms.wells.web.fee.simulation.mapper.WfefEstimateFeeMgtMapper;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +11,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -25,6 +28,8 @@ public class WfefEstimateFeeMgtService {
     public static final String P_OG_TP_CD = "W01";
     public static final String M_OG_TP_CD = "W02";
     public static final String HOME_OG_TP_CD = "W03";
+
+    private final ZfeyFeeStandardService feeStandardService;
     private final ZfefFeeSmlCalculationService feeSmlCalculationService;
     private final WfefEstimateFeeMgtMapper mapper;
 
@@ -46,12 +51,13 @@ public class WfefEstimateFeeMgtService {
                 feeCalcUnitTpCd = "102";
             }
         feeSmlCalculationService.processFeeSmlCalculation(req.perfYm(), feeCalcUnitTpCd, req.perType(), req.sellPrtnrNo());
+        List<ZfeyTargetPartnerConditionDvo> feeCds = feeStandardService.getSimulationTargetFeeCodes(req.perfYm(), P_OG_TP_CD, req.sellPrtnrNo());
         return new SearchOgPRes(
             userDvCd,
             mapper.selectBaseP(req, userDvCd),
             mapper.selectMeetingP(req, userDvCd),
             mapper.selectPerformanceP(req, userDvCd),
-            mapper.selectEstimateP(req, userDvCd),
+            mapper.selectEstimateP(req, userDvCd, feeCds),
             mapper.selectSaleP(req, userDvCd)
         );
     }
@@ -71,7 +77,7 @@ public class WfefEstimateFeeMgtService {
      * @return
      */
     @Transactional
-    public EstimateP getEstimateFeeOgP(SearchEstimateReq req, Map<String, Object> addPerformances) {
+    public List<EstimateP> getEstimateFeeOgP(SearchEstimateReq req, Map<String, Object> addPerformances) {
 
         /* 추가실적이 있다면 실적을 DB에 넣고, 시뮬레이션 계산을 수행 */
         if(ObjectUtils.isNotEmpty(addPerformances)) {
@@ -83,11 +89,14 @@ public class WfefEstimateFeeMgtService {
             /* 직급에 따른 수수료시뮬레이션 계산 호출 */
             if ("15".equals(pstnDvCd)) {
                 feeCalcUnitTpCd = "101";
-                perfAgrgCrtDvCd = "101";
             } else if ("7".equals(pstnDvCd)) {
                 feeCalcUnitTpCd = "102";
-                perfAgrgCrtDvCd = "102";
             }
+            if ("00".equals(req.perType())) {
+                perfAgrgCrtDvCd = "999";
+            } else {
+                 perfAgrgCrtDvCd = "101";
+             }
 
             /* 추가실적 저장 */
             String finalPerfAgrgCrtDvCd = perfAgrgCrtDvCd;
@@ -175,7 +184,8 @@ public class WfefEstimateFeeMgtService {
 
         /* 화면에 필요한 데이터 조회 */
         String userDvCd = mapper.selectUserDvCd(req.perfYm(), P_OG_TP_CD, req.sellPrtnrNo());
-        EstimateP response = mapper.selectEstimateP(req, userDvCd);
+        List<ZfeyTargetPartnerConditionDvo> feeCds = feeStandardService.getSimulationTargetFeeCodes(req.perfYm(), P_OG_TP_CD, req.sellPrtnrNo());
+        List<EstimateP> response = mapper.selectEstimateP(req, userDvCd, feeCds);
 
         if(ObjectUtils.isNotEmpty(addPerformances)) {
              /* 추가실적 ROLLBACK */
