@@ -32,7 +32,10 @@
                          , C2.BASE_PD_CD
                          , C4.DP_TP_CD
                          , C4.MPY_BSDT
-                         , CASE WHEN TO_CHAR(ADD_MONTHS(TO_DATE(Q1.PERF_YM, 'YYYYMM'), 1), 'YYYYMM') = TO_CHAR(SYSDATE,'YYYYMM') THEN TO_CHAR(SYSDATE,'YYYYMM') || '01' ELSE Q1.PERF_YM || C4.MPY_BSDT END AS OC_BSDT /*발생일자-MPY_BSDT 납부기준일자*/
+                         , (CASE WHEN TO_CHAR(ADD_MONTHS(TO_DATE(Q1.PERF_YM, 'YYYYMM'), 1), 'YYYYMM') = #{baseYm}
+                                THEN #{baseYm} || '01'
+                                ELSE Q1.PERF_YM || C4.MPY_BSDT END
+                           ) AS OC_BSDT /*발생일자-MPY_BSDT 납부기준일자*/
                          , ROW_NUMBER() OVER (PARTITION BY C2.CNTR_NO, C2.CNTR_SN ORDER BY C4.FNL_MDFC_DTM DESC) AS RN
                       FROM TB_SSCT_CNTR_BAS C1
                     INNER JOIN TB_SSCT_CNTR_DTL C2
@@ -40,7 +43,7 @@
                     LEFT JOIN TB_CBCL_DLQ_BAS Q1
                         ON C2.CNTR_NO = Q1.CNTR_NO
                        AND C2.CNTR_SN = Q1.CNTR_SN
-                       AND Q1.PERF_YM = TO_CHAR(ADD_MONTHS(SYSDATE,-1),'YYYYMM') /*전월기준*/
+                       AND Q1.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),-1),'YYYYMM') /*전월기준*/
                        AND Q1.DTA_DL_YN = 'N'
                    LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS Q2
                         ON Q1.CNTR_NO = Q2.CNTR_NO
@@ -50,11 +53,11 @@
                     INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ S1
                         ON C2.CNTR_NO = S1.CNTR_NO
                        AND C2.CNTR_SN = S1.CNTR_SN
-                       AND S1.SL_CL_YM = TO_CHAR(SYSDATE,'YYYYMM') /*당월기준*/
+                       AND S1.SL_CL_YM = #{baseYm} /*당월기준*/
                     INNER JOIN TB_SSCT_CNTR_STLM_REL C3
                         ON C2.CNTR_NO = C3.DTL_CNTR_NO
                        AND C2.CNTR_SN = C3.DTL_CNTR_SN
-                       AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN C3.VL_STRT_DTM AND C3.VL_END_DTM
+                       AND #{baseYm} BETWEEN SUBSTR(C3.VL_STRT_DTM, 1, 6) AND SUBSTR(C3.VL_END_DTM, 1, 6)
                 INNER JOIN TB_SSCT_CNTR_STLM_BAS C4
                         ON C3.CNTR_STLM_ID = C4.CNTR_STLM_ID
                      WHERE 1 = 1
@@ -67,7 +70,8 @@
                                          FROM TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ X1
                                         WHERE C1.CNTR_CST_NO = X1.CST_NO
                                           AND X1.RENTAL_CB_RGST_DV_CD IN ('1','3')
-                                          AND X1.NOTY_RCV_YN = 'Y')
+                                          AND X1.NOTY_RCV_YN = 'Y'
+                                          AND X1.DTA_DL_YN = 'N')
                     ) Y1
               WHERE 1 = 1
                 AND Y1.RN = 1
@@ -128,8 +132,9 @@
            AND NOT EXISTS (SELECT 1
                              FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ X1
                             WHERE T1.CNTR_CST_NO = X1.CST_NO
-                              AND X1.CTNT_EXCD_BND_BIZ_CD = '02' -- 렌털CB
-                              AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN X1.APY_STRTDT AND X1.APY_ENDDT)
+                              AND X1.CTNT_EXCD_BND_BIZ_CD = '02' -- 렌탈CB
+                              AND X1.DTA_DL_YN = 'N'
+                              AND #{baseYm} BETWEEN SUBSTR(X1.APY_STRTDT, 1, 6) AND SUBSTR(X1.APY_ENDDT, 1, 6))
     </select>
 
     <select id="selectRentalCbMessageObjectsByContract" resultType="com.kyowon.sms.wells.web.bond.credit.dvo.WbndRentalCbDelinquentIzDvo">
@@ -163,7 +168,10 @@
                          , C2.BASE_PD_CD
                          , C4.DP_TP_CD
                          , C4.MPY_BSDT
-                         , CASE WHEN TO_CHAR(ADD_MONTHS(TO_DATE(Q1.PERF_YM, 'YYYYMM'), 1), 'YYYYMM') = TO_CHAR(SYSDATE,'YYYYMM') THEN TO_CHAR(SYSDATE,'YYYYMM') || '01' ELSE Q1.PERF_YM || C4.MPY_BSDT END AS OC_BSDT /*발생일자-MPY_BSDT 납부기준일자*/
+                         , (CASE WHEN TO_CHAR(ADD_MONTHS(TO_DATE(Q1.PERF_YM, 'YYYYMM'), 1), 'YYYYMM') = #{baseYm}
+                                THEN #{baseYm} || '01'
+                                ELSE Q1.PERF_YM || C4.MPY_BSDT END
+                         ) AS OC_BSDT /*발생일자-MPY_BSDT 납부기준일자*/
                          , ROW_NUMBER() OVER (PARTITION BY C2.CNTR_NO, C2.CNTR_SN ORDER BY C4.FNL_MDFC_DTM DESC) AS RN
                       FROM TB_SSCT_CNTR_BAS C1
                     INNER JOIN TB_SSCT_CNTR_DTL C2
@@ -171,7 +179,7 @@
                     LEFT JOIN TB_CBCL_DLQ_BAS Q1
                         ON C2.CNTR_NO = Q1.CNTR_NO
                        AND C2.CNTR_SN = Q1.CNTR_SN
-                       AND Q1.PERF_YM = TO_CHAR(ADD_MONTHS(SYSDATE,-1),'YYYYMM') /*전월기준*/
+                       AND Q1.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),-1),'YYYYMM') /*전월기준*/
                        AND Q1.DTA_DL_YN = 'N'
                    LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS Q2
                         ON Q1.CNTR_NO = Q2.CNTR_NO
@@ -181,11 +189,11 @@
                     INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ S1
                         ON C2.CNTR_NO = S1.CNTR_NO
                        AND C2.CNTR_SN = S1.CNTR_SN
-                       AND S1.SL_CL_YM = TO_CHAR(SYSDATE,'YYYYMM') /*당월기준*/
+                       AND S1.SL_CL_YM = #{baseYm} /*당월기준*/
                     INNER JOIN TB_SSCT_CNTR_STLM_REL C3
                         ON C2.CNTR_NO = C3.DTL_CNTR_NO
                        AND C2.CNTR_SN = C3.DTL_CNTR_SN
-                       AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN C3.VL_STRT_DTM AND C3.VL_END_DTM
+                       AND #{baseYm} BETWEEN SUBSTR(C3.VL_STRT_DTM, 1, 6) AND SUBSTR(C3.VL_END_DTM, 1, 6)
                 INNER JOIN TB_SSCT_CNTR_STLM_BAS C4
                         ON C3.CNTR_STLM_ID = C4.CNTR_STLM_ID
                      WHERE 1 = 1
@@ -198,7 +206,8 @@
                                          FROM TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ X1
                                         WHERE C1.CNTR_CST_NO = X1.CST_NO
                                           AND X1.RENTAL_CB_RGST_DV_CD IN ('1','3')
-                                          AND X1.NOTY_RCV_YN = 'Y')
+                                          AND X1.NOTY_RCV_YN = 'Y'
+                                          AND X1.DTA_DL_YN = 'N')
                     ) Y1
               WHERE 1 = 1
                 AND Y1.RN = 1
@@ -266,8 +275,9 @@
         AND NOT EXISTS (SELECT 1
                          FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ X1
                         WHERE T1.CNTR_CST_NO = X1.CST_NO
-                          AND X1.CTNT_EXCD_BND_BIZ_CD = '02' -- 렌털CB
-                          AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN X1.APY_STRTDT AND X1.APY_ENDDT)
+                          AND X1.CTNT_EXCD_BND_BIZ_CD = '02' -- 렌탈CB
+                          AND X1.DTA_DL_YN = 'N'
+                          AND #{baseYm} BETWEEN SUBSTR(X1.APY_STRTDT, 1, 6) AND SUBSTR(X1.APY_ENDDT, 1, 6))
     </select>
 
     <update id="updateMessageObjectYn" >
