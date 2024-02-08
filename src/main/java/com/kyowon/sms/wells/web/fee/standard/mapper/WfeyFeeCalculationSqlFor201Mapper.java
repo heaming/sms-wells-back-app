@@ -65,7 +65,7 @@ public interface WfeyFeeCalculationSqlFor201Mapper {
     );
 
     /**
-    * M조직 플래너(지점장) 개인 상조수수료 계산 SQL Mapper (W020015, 15,7)
+    * M조직 플래너(지점장) 개인 상조수수료 계산 (파트너단위) SQL Mapper (W020015, 15,7)
     *
     * @param baseYm      기준년월
     * @param ogTpCd      조직유형코드
@@ -78,9 +78,23 @@ public interface WfeyFeeCalculationSqlFor201Mapper {
         String baseYm, String ogTpCd, String coCd, String feeCd, String dtaCrtFeeCd, String feeTcntDvCd, String fnlFeeYn
     );
 
+    /**
+    * M조직 플래너(지점장) 개인 상조수수료 계산 (계약단위) SQL Mapper (W020015, 15,7)
+    *
+    * @param baseYm      기준년월
+    * @param ogTpCd      조직유형코드
+    * @param feeCd       수수료코드
+    * @param feeTcntDvCd 수수료차수구분코드
+    * @return 처리개수
+    */
+    @SqlMethodInfo(methodTypeCode = "01", methodName = "M조직 플래너(지점장) 개인 상조수수료", methodExplanation = "M조직 플래너(지점장) 개인 상조수수료 계산 SQL 매퍼")
+    Integer insertManagerLifeAlncFee3(
+        String baseYm, String ogTpCd, String coCd, String feeCd, String dtaCrtFeeCd, String feeTcntDvCd
+    );
+
     /******************************************* 되물림 *************************************************/
     /**
-    * M조직 플래너(지점장) 개인 상조되물림 계산 SQL Mapper (W020015,W020127, 15,7)
+    * M조직 플래너(지점장) 개인 상조되물림 계산 (파트너단위) SQL Mapper (W020015,W020127, 15,7)
     *
     * @param baseYm      기준년월
     * @param ogTpCd      조직유형코드
@@ -91,6 +105,21 @@ public interface WfeyFeeCalculationSqlFor201Mapper {
     */
     @SqlMethodInfo(methodTypeCode = "02", methodName = "M조직 플래너(지점장) 개인 상조되물림", methodExplanation = "M조직 플래너(지점장) 개인 상조되물림 계산 SQL 매퍼")
     Integer insertManagerLifeAlncFeeRedf(
+        String baseYm, String ogTpCd, String coCd, String feeCd, String dtaCrtFeeCd
+    );
+
+    /**
+    * M조직 플래너(지점장) 개인 상조되물림 계산 (계약단위) SQL Mapper (W020015,W020127, 15,7)
+    *
+    * @param baseYm      기준년월
+    * @param ogTpCd      조직유형코드
+    * @param coCd        회사코드
+    * @param feeCd       수수료코드
+    * @param dtaCrtFeeCd 데이터생성수수료코드
+    * @return 처리개수
+    */
+    @SqlMethodInfo(methodTypeCode = "02", methodName = "M조직 플래너(지점장) 개인 상조되물림", methodExplanation = "M조직 플래너(지점장) 개인 상조되물림 계산 SQL 매퍼")
+    Integer insertManagerLifeAlncFeeRedf3(
         String baseYm, String ogTpCd, String coCd, String feeCd, String dtaCrtFeeCd
     );
 

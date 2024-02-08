@@ -541,8 +541,11 @@
     </insert>
 
     <insert id="insertManagerLifeAlncFee2">
-        /* 조직 상조수수료(W020126) 계산 SQL  */
-        /* 2024.01 이후 상조개인 수수료 계산 SQL */
+        /* 2024.01 이후 상조개인 수수료 (판매자단위) 계산 SQL (W020126, 7) */
+        /*
+            2024.01. 기준으로 수수료 금액 변경되었으며, 오픈시점 이전은 파트너단위, 오픈 이후는 계약단위(insertManagerLifeAlncFee4)로 분리됨.
+            (2023.12까지는 건당 40000원, 2024.01이후는 건당 30000원)
+        */
          INSERT INTO TB_FEAM_FEE_CALC_BAS (  /* 수수료계산계약상세내역 */
                                                   BASE_YM            /* 기준년월 */
                                                 , PERF_YM            /* 실적년월 */
@@ -602,6 +605,89 @@
                             AND M.PRTNR_NO != M.BRMGR_PRTNR_NO /* 본인 대상 제외 */
                             AND M.LIF_CNTR_OC_TN = 1
                           GROUP BY M.FEE_DSB_YM, M.OG_TP_CD, M.BRMGR_PRTNR_NO
+                        ) B
+                     ON (A.BASE_YM = B.BASE_YM
+                        AND A.OG_TP_CD = B.OG_TP_CD
+                        AND A.PRTNR_NO = B.PRTNR_NO)
+                  WHERE 1 = 1
+                    AND A.BASE_YM = #{baseYm} -- 변수
+                    AND A.PSTN_DV_CD = '7'
+                    AND A.OG_TP_CD = 'W02'
+                ) AA
+          WHERE 1 = 1
+            AND AA.FEE_CALC_AMT > 0
+    </insert>
+
+    <insert id="insertManagerLifeAlncFee4">
+    /* 2024.01 이후 상조개인 수수료 (계약단위) 계산 SQL (W020126, 7) */
+    /*
+      2024.01. 기준으로 수수료 금액 변경되었으며, 오픈시점 이전은 파트너단위(insertManagerLifeAlncFee2), 오픈 이후는 계약단위로 분리됨.
+      (2023.12까지는 건당 40000원, 2024.01이후는 건당 30000원)
+     */
+    INSERT INTO TB_FEAM_FEE_CALC_CNTR_DTL_IZ (  /* 수수료계산계약상세내역 */
+                      BASE_YM            /* 기준년월 */
+                    , PERF_YM            /* 실적년월 */
+                    , OJ_DSB_YM          /* 대상지급년월 */
+                    , CO_CD              /* 회사코드 */
+                    , OG_TP_CD           /* 조직유형코드 */
+                    , PRTNR_NO           /* 파트너번호 */
+                    , FEE_CD             /* 수수료코드 */
+                    , DTA_CRT_FEE_CD     /* 데이터생성수수료코드 */
+                    , FEE_TCNT_DV_CD     /* 수수료차수구분코드 */
+                    , SPMT_DSB_DV_CD     /* 추가지급구분코드 */
+                    , FEE_CALC_TP_CD     /* 수수료계산유형코드 */
+                    , FEE_CALC_AMT       /* 수수료계산금액 */
+                    , FEE_CTR_CNFM_AMT   /* 수수료조정확정금액 */
+                    , CNTR_NO            /* 계약번호 */
+                    , CNTR_SN            /* 계약일련번호 */
+                    <include refid="COMMON.insertSystemField" />)
+    SELECT AA.BASE_YM
+               , AA.PERF_YM
+               , AA.OJ_DSB_YM
+               , AA.CO_CD
+               , AA.OG_TP_CD
+               , AA.PRTNR_NO
+               , #{feeCd}         AS FEE_CD
+               , #{dtaCrtFeeCd}   AS DTA_CRT_FEE_CD
+               , #{feeTcntDvCd}   AS FEE_TCNT_DV_CD -- 수수료차수(변수)
+               , '01'             AS SPMT_DSB_DV_CD -- 추후 확인 필요 01/정상지급, 02/추가지급
+               , '01'             AS FEE_CALC_TP_CD -- 01 / 수수료계산
+               , AA.FEE_CALC_AMT
+               , AA.FEE_CTR_CNFM_AMT
+               , AA.CNTR_NO
+               , AA.CNTR_SN
+                <include refid="COMMON.insertSystemFieldValue" />
+           FROM (
+                SELECT A.BASE_YM
+                       , A.BASE_YM      AS PERF_YM
+                       , A.BASE_YM      AS OJ_DSB_YM
+                       , #{coCd}          AS CO_CD
+                       , A.OG_TP_CD
+                       , A.PRTNR_NO
+                       , B.CNTR_NO
+                       , B.CNTR_SN
+                       , (NVL(B.PRE_CNT, 0) * 40000 + NVL(B.NXT_CNT, 0) * 30000) AS FEE_CALC_AMT
+                       , (NVL(B.PRE_CNT, 0) * 40000 + NVL(B.NXT_CNT, 0) * 30000) AS FEE_CTR_CNFM_AMT
+                   FROM TB_OGBS_MM_PRTNR_IZ A
+                   LEFT OUTER JOIN (
+                         SELECT M.FEE_DSB_YM BASE_YM
+                                ,M.OG_TP_CD
+                                ,M.CNTR_NO
+                                ,M.CNTR_SN
+                                ,M.BRMGR_PRTNR_NO PRTNR_NO
+                                ,SUM(CASE WHEN SUBSTR(M.CNTR_DT, 1, 6) <![CDATA[>=]]> '202401' THEN 1 ELSE 0 END) NXT_CNT
+                                ,SUM(CASE WHEN SUBSTR(M.CNTR_DT, 1, 6) <![CDATA[<]]> '202401' THEN 1 ELSE 0 END) PRE_CNT
+                           FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ M
+                          WHERE M.FEE_DSB_YM = #{baseYm}
+                            AND M.ET_CNFM_DV_CD = '00' /* 확정 */
+                            AND NVL(M.CAN_DT,0) = 0    /* 취소X */
+                            AND M.LIF_CNTR_STAT_CD = 0 /* 수수료 */
+                            AND M.OG_TP_CD = 'W02' /* M영업 조직 */
+                            AND M.DTA_DL_YN = 'N'
+                            AND M.CNFM_YN = 'Y'     /* 상조수수료실적 확정여부 */
+                            AND M.PRTNR_NO != M.BRMGR_PRTNR_NO /* 본인 대상 제외 */
+                            AND M.LIF_CNTR_OC_TN = 1
+                          GROUP BY M.FEE_DSB_YM, M.OG_TP_CD, M.BRMGR_PRTNR_NO, M.CNTR_NO, M.CNTR_SN
                         ) B
                      ON (A.BASE_YM = B.BASE_YM
                         AND A.OG_TP_CD = B.OG_TP_CD
@@ -1550,7 +1636,8 @@
     </insert>
 
     <insert id="insertManagerLifeAlncFeeRedf2">
-     /* 2024.01 이후 조직상조 되물림 (W020126) */
+     /* 2024.01 이후 조직상조 되물림 (W020126, 7) */
+     /* 2024.01. 기준으로 수수료 금액 변경되었으며, 오픈시점 이전은 파트너단위, 오픈 이후는 계약단위(insertManagerLifeAlncFeeRedf4)로 분리됨. (2023.12까지는 건당 40000원, 2024.01이후는 건당 30000원) */
      INSERT INTO TB_FEDD_FEE_REDF_ADSB_BAS(
                FEE_REDF_ADSB_ID   /* 수수료되물림재지급ID */
              , REDF_ADSB_OC_YM         /* 되물림재지급발생년월 */
@@ -1581,66 +1668,179 @@
              , SRC.REDF_ADSB_OC_AMT /* 되물림재지급발생금액 */
              , SRC.REDF_ADSB_CTR_CNFM_AMT /* 되물림재지급조정확정금액 */
              <include refid="COMMON.insertSystemFieldValue" />
-     SELECT B.BASE_YM AS PERF_YM /* 귀속년월 */
-           ,B.FEE_REDF_YM AS BASE_YM /* 발생년월 */
-           ,#{coCd} AS CO_CD
-           ,A.OG_TP_CD
-           ,A.PRTNR_NO
-           ,(NVL(SUM(B.NXT_CNT), 0) * 30000 + NVL(SUM(B.PRE_CNT), 0) * 40000) REDF_ADSB_OC_AMT
-           ,(NVL(SUM(B.NXT_CNT), 0) * 30000 + NVL(SUM(B.PRE_CNT), 0) * 40000) REDF_ADSB_CTR_CNFM_AMT
-      FROM TB_OGBS_MM_PRTNR_IZ A
-     INNER JOIN (
-                SELECT C.BASE_YM /* 귀속월 */
-                       ,D.FEE_REDF_YM	/* 발생월 */
-                       ,D.LIF_CNTR_NO	/* 상조계약번호 */
-                       ,C.PRTNR_NO	/* 파트너번호 */
-                       ,C.BRMGR_PRTNR_NO /* 지점장번호 */
-                       ,C.RCPDT /* 시작일자 */
-                       ,C.OG_TP_CD /* 조직코드 */
-                       ,CASE WHEN SUBSTR(C.RCPDT, 1, 6) <![CDATA[>]]> 20231231 THEN 1 ELSE 0 END NXT_CNT	/* 2024.01 이후 수당건수 */
-                       ,CASE WHEN SUBSTR(C.RCPDT, 1, 6) <![CDATA[<=]]> 20231231 THEN 1 ELSE 0 END PRE_CNT	/* 2024.01 이전 수당건수 */
-                  FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ C	/* 지급 수수료 */
-                 INNER JOIN TB_IFIN_LIF_ALNC_FEE_CNTR_IZ D /* 취소 */
-                    ON C.LIF_CNTR_NO = D.LIF_CNTR_NO
-                   AND C.ET_CNFM_DV_CD = D.ET_CNFM_DV_CD
-                   AND C.OG_TP_CD = D.OG_TP_CD
-                   AND D.LIF_CNTR_STAT_CD = '1'	/* 취소 */
-                   AND D.FEE_REDF_YM = #{baseYm}
-                   AND D.CNFM_YN = 'Y'
-                   AND D.PRTNR_NO != D.BRMGR_PRTNR_NO /* 본인대상제외 */
-                   AND NVL(D.CAN_DT,0) > 0    /* 취소O */
-                   AND D.DTA_DL_YN = 'N'
-                   AND NOT EXISTS (	/* 연체시 취소 불가 처리 */
-                        SELECT 0
-                          FROM WSMDBS.TB_IFIN_LIF_ALNC_FEE_CNTR_IZ A
+        FROM (
+             SELECT B.BASE_YM AS PERF_YM /* 귀속년월 */
+                   ,B.FEE_REDF_YM AS BASE_YM /* 발생년월 */
+                   ,#{coCd} AS CO_CD
+                   ,A.OG_TP_CD
+                   ,A.PRTNR_NO
+                   ,(NVL(SUM(B.NXT_CNT), 0) * 30000 + NVL(SUM(B.PRE_CNT), 0) * 40000) REDF_ADSB_OC_AMT
+                   ,(NVL(SUM(B.NXT_CNT), 0) * 30000 + NVL(SUM(B.PRE_CNT), 0) * 40000) REDF_ADSB_CTR_CNFM_AMT
+              FROM TB_OGBS_MM_PRTNR_IZ A
+             INNER JOIN (
+                        SELECT C.BASE_YM /* 귀속월 */
+                               ,D.FEE_REDF_YM	/* 발생월 */
+                               ,D.LIF_CNTR_NO	/* 상조계약번호 */
+                               ,C.PRTNR_NO	/* 파트너번호 */
+                               ,C.BRMGR_PRTNR_NO /* 지점장번호 */
+                               ,C.RCPDT /* 시작일자 */
+                               ,C.OG_TP_CD /* 조직코드 */
+                               ,CASE WHEN SUBSTR(C.RCPDT, 1, 6) <![CDATA[>]]> 20231231 THEN 1 ELSE 0 END NXT_CNT	/* 2024.01 이후 수당건수 */
+                               ,CASE WHEN SUBSTR(C.RCPDT, 1, 6) <![CDATA[<=]]> 20231231 THEN 1 ELSE 0 END PRE_CNT	/* 2024.01 이전 수당건수 */
+                          FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ C	/* 지급 수수료 */
+                         INNER JOIN TB_IFIN_LIF_ALNC_FEE_CNTR_IZ D /* 취소 */
+                            ON C.LIF_CNTR_NO = D.LIF_CNTR_NO
+                           AND C.ET_CNFM_DV_CD = D.ET_CNFM_DV_CD
+                           AND C.OG_TP_CD = D.OG_TP_CD
+                           AND D.LIF_CNTR_STAT_CD = '1'	/* 취소 */
+                           AND D.FEE_REDF_YM = #{baseYm}
+                           AND D.CNFM_YN = 'Y'
+                           AND D.PRTNR_NO != D.BRMGR_PRTNR_NO /* 본인대상제외 */
+                           AND NVL(D.CAN_DT,0) > 0    /* 취소O */
+                           AND D.DTA_DL_YN = 'N'
+                           AND NOT EXISTS (	/* 연체시 취소 불가 처리 */
+                                SELECT 0
+                                  FROM WSMDBS.TB_IFIN_LIF_ALNC_FEE_CNTR_IZ A
+                                 WHERE 1 = 1
+                                   AND A.ET_CNFM_DV_CD = '00' /* 확정 */
+                                   AND A.LIF_CNTR_STAT_CD IN ('2', '3')   /* 2-연체,3-재지급 */
+                                   AND A.OG_TP_CD = D.OG_TP_CD 		  /* M영업 조직 */
+                                   AND A.LIF_CNTR_NO = D.LIF_CNTR_NO
+                                   AND C.CNFM_YN = 'Y'
+                                   AND A.DTA_DL_YN = 'N'
+                                 GROUP BY A.ET_CNFM_DV_CD, A.LIF_CNTR_NO
+                                 HAVING MOD(COUNT(*), 2) > 0
+                                )
                          WHERE 1 = 1
-                           AND A.ET_CNFM_DV_CD = '00' /* 확정 */
-                           AND A.LIF_CNTR_STAT_CD IN ('2', '3')   /* 2-연체,3-재지급 */
-                           AND A.OG_TP_CD = D.OG_TP_CD 		  /* M영업 조직 */
-                           AND A.LIF_CNTR_NO = D.LIF_CNTR_NO
-                           --  AND C.CNFM_YN = 'Y'
-                           AND A.DTA_DL_YN = 'N'
-                         GROUP BY A.ET_CNFM_DV_CD, A.LIF_CNTR_NO
-                         HAVING MOD(COUNT(*), 2) > 0
-                        )
-                 WHERE 1 = 1
-                   AND C.ET_CNFM_DV_CD = '00' /* 확정 */
-                   AND NVL(C.CAN_DT,0) = 0    /* 취소X */
-                   AND C.LIF_CNTR_STAT_CD = 0 /* 수수료 */
-                   AND C.OG_TP_CD = 'W02' 	   /* M영업 조직 */
-                   AND C.DTA_DL_YN = 'N'
-                   AND C.PRTNR_NO != C.BRMGR_PRTNR_NO /* 본인대상제외 */
-                   AND C.LIF_CNTR_OC_TN = 1		/* 1차월 */
-                   AND C.CNFM_YN = 'Y'
-                   AND C.BASE_YM <![CDATA[<]]> #{baseYm}
-           ) B
-        ON A.BASE_YM = B.FEE_REDF_YM
-       AND A.PRTNR_NO = B.BRMGR_PRTNR_NO
-       AND A.OG_TP_CD = B.OG_TP_CD
-     WHERE 1 = 1
-       AND A.BASE_YM = #{baseYm}
-       AND A.OG_TP_CD = 'W02'
-       AND A.PSTN_DV_CD = '7'
-     GROUP BY B.BASE_YM, B.FEE_REDF_YM, A.PRTNR_NO, A.OG_TP_CD
+                           AND C.ET_CNFM_DV_CD = '00' /* 확정 */
+                           AND NVL(C.CAN_DT,0) = 0    /* 취소X */
+                           AND C.LIF_CNTR_STAT_CD = 0 /* 수수료 */
+                           AND C.OG_TP_CD = 'W02' 	   /* M영업 조직 */
+                           AND C.DTA_DL_YN = 'N'
+                           AND C.PRTNR_NO != C.BRMGR_PRTNR_NO /* 본인대상제외 */
+                           AND C.LIF_CNTR_OC_TN = 1		/* 1차월 */
+                           AND C.CNFM_YN = 'Y'
+                           AND C.BASE_YM <![CDATA[<]]> #{baseYm}
+                   ) B
+                ON A.BASE_YM = B.BASE_YM
+               AND A.PRTNR_NO = B.BRMGR_PRTNR_NO
+               AND A.OG_TP_CD = B.OG_TP_CD
+             WHERE 1 = 1
+               AND B.FEE_REDF_YM = #{baseYm}
+               AND A.OG_TP_CD = 'W02'
+               AND A.PSTN_DV_CD = '7'
+             GROUP BY B.BASE_YM, B.FEE_REDF_YM, A.PRTNR_NO, A.OG_TP_CD
+             ) SRC
+       WHERE 1 = 1
+         AND SRC.REDF_ADSB_CTR_CNFM_AMT > 0
+
+    </insert>
+
+    <insert id="insertManagerLifeAlncFeeRedf4">
+    /* 2024.01 이후 조직상조 되물림 (W020126, 7) */
+    /* 2024.01. 기준으로 수수료 금액 변경되었으며, 오픈시점 이전은 파트너단위(insertManagerLifeAlncFeeRedf2), 오픈 이후는 계약단위로 분리됨. (2023.12까지는 건당 40000원, 2024.01이후는 건당 30000원) */
+     INSERT INTO TB_FEDD_FEE_REDF_ADSB_DTL(
+               FEE_REDF_ADSB_DTL_ID /* 수수료되물림재지급상세ID */
+             , REDF_ADSB_OC_YM /* 되물림재지급발생년월 */
+             , PERF_YM /* 실적년월 */
+             , PERF_DV_CD /* 실적구분코드 */
+             , CO_CD /* 회사코드 */
+             , OG_TP_CD /* 조직유형코드 */
+             , PRTNR_NO /* 파트너번호 */
+             , CNTR_NO /* 계약번호 */
+             , CNTR_SN /* 계약일련번호 */
+             , FEE_CD /* 수수료코드 */
+             , DTA_CRT_FEE_CD /* 데이터생성수수료코드 */
+             , REDF_ADSB_DV_CD /* 되물림재지급구분코드 */
+             , REDF_ADSB_TP_CD /* 되물림재지급유형코드 */
+             , REDF_ADSB_OC_AMT /* 되물림재지급발생금액 */
+             , REDF_ADSB_CTR_CNFM_AMT /* 되물림재지급조정확정금액 */
+            <include refid="COMMON.insertSystemField" />
+               )
+        SELECT 'WFEDD0500020202' || SRC.BASE_YM || LPAD(SQ_FEDD_FEE_REDF_ADSB_BAS$FEE_REDF_ADSB_ID.NEXTVAL, 9, '0') AS FEE_REDF_ADSB_ID /* 수수료되물림재지급ID */
+             , SRC.BASE_YM AS REDF_ADSB_OC_YM /* 되물림재지급발생년월 */
+             , SRC.PERF_YM /* 실적년월 */
+             , '2'                       AS PERF_DV_CD /* 실적구분코드 */
+             , SRC.CO_CD /* 회사코드 */
+             , SRC.OG_TP_CD /* 조직유형코드 */
+             , SRC.PRTNR_NO /* 파트너번호 */
+             , SRC.CNTR_NO  /* 계약번호 */
+             , SRC.CNTR_SN  /* 계약일련번호 */
+             , #{feeCd} AS FEE_CD /* 수수료코드 */
+             , NVL(#{dtaCrtFeeCd}, #{feeCd}) AS DTA_CRT_FEE_CD /* 데이터생성수수료코드 */
+             , '02' AS REDF_ADSB_DV_CD /* 되물림재지급구분코드 */
+             , '0202' AS REDF_ADSB_TP_CD /* 되물림재지급유형코드 */
+             , SRC.REDF_ADSB_OC_AMT /* 되물림재지급발생금액 */
+             , SRC.REDF_ADSB_CTR_CNFM_AMT /* 되물림재지급조정확정금액 */
+             <include refid="COMMON.insertSystemFieldValue" />
+        FROM (
+             SELECT B.BASE_YM AS PERF_YM /* 귀속년월 */
+                   ,B.FEE_REDF_YM AS BASE_YM /* 발생년월 */
+                   ,#{coCd} AS CO_CD
+                   ,A.OG_TP_CD
+                   ,A.PRTNR_NO
+                   ,B.CNTR_NO
+                   ,B.CNTR_SN
+                   ,(NVL(SUM(B.NXT_CNT), 0) * 30000 + NVL(SUM(B.PRE_CNT), 0) * 40000) REDF_ADSB_OC_AMT
+                   ,(NVL(SUM(B.NXT_CNT), 0) * 30000 + NVL(SUM(B.PRE_CNT), 0) * 40000) REDF_ADSB_CTR_CNFM_AMT
+              FROM TB_OGBS_MM_PRTNR_IZ A
+             INNER JOIN (
+                        SELECT C.BASE_YM /* 귀속월 */
+                               ,D.FEE_REDF_YM	/* 발생월 */
+                               ,D.LIF_CNTR_NO	/* 상조계약번호 */
+                               ,C.PRTNR_NO	/* 파트너번호 */
+                               ,C.BRMGR_PRTNR_NO /* 지점장번호 */
+                               ,C.RCPDT /* 시작일자 */
+                               ,C.OG_TP_CD /* 조직코드 */
+                               ,C.CNTR_NO
+                               ,C.CNTR_SN
+                               ,CASE WHEN SUBSTR(C.RCPDT, 1, 6) <![CDATA[>]]> 20231231 THEN 1 ELSE 0 END NXT_CNT	/* 2024.01 이후 수당건수 */
+                               ,CASE WHEN SUBSTR(C.RCPDT, 1, 6) <![CDATA[<=]]> 20231231 THEN 1 ELSE 0 END PRE_CNT	/* 2024.01 이전 수당건수 */
+                          FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ C	/* 지급 수수료 */
+                         INNER JOIN TB_IFIN_LIF_ALNC_FEE_CNTR_IZ D /* 취소 */
+                            ON C.LIF_CNTR_NO = D.LIF_CNTR_NO
+                           AND C.ET_CNFM_DV_CD = D.ET_CNFM_DV_CD
+                           AND C.OG_TP_CD = D.OG_TP_CD
+                           AND D.LIF_CNTR_STAT_CD = '1'	/* 취소 */
+                           AND D.FEE_REDF_YM = #{baseYm}
+                           AND D.CNFM_YN = 'Y'
+                           AND D.PRTNR_NO != D.BRMGR_PRTNR_NO /* 본인대상제외 */
+                           AND NVL(D.CAN_DT,0) > 0    /* 취소O */
+                           AND D.DTA_DL_YN = 'N'
+                           AND NOT EXISTS (	/* 연체시 취소 불가 처리 */
+                                SELECT 0
+                                  FROM WSMDBS.TB_IFIN_LIF_ALNC_FEE_CNTR_IZ A
+                                 WHERE 1 = 1
+                                   AND A.ET_CNFM_DV_CD = '00' /* 확정 */
+                                   AND A.LIF_CNTR_STAT_CD IN ('2', '3')   /* 2-연체,3-재지급 */
+                                   AND A.OG_TP_CD = D.OG_TP_CD 		  /* M영업 조직 */
+                                   AND A.LIF_CNTR_NO = D.LIF_CNTR_NO
+                                   AND C.CNFM_YN = 'Y'
+                                   AND A.DTA_DL_YN = 'N'
+                                 GROUP BY A.ET_CNFM_DV_CD, A.LIF_CNTR_NO
+                                 HAVING MOD(COUNT(*), 2) > 0
+                                )
+                         WHERE 1 = 1
+                           AND C.ET_CNFM_DV_CD = '00' /* 확정 */
+                           AND NVL(C.CAN_DT,0) = 0    /* 취소X */
+                           AND C.LIF_CNTR_STAT_CD = 0 /* 수수료 */
+                           AND C.OG_TP_CD = 'W02' 	   /* M영업 조직 */
+                           AND C.DTA_DL_YN = 'N'
+                           AND C.PRTNR_NO != C.BRMGR_PRTNR_NO /* 본인대상제외 */
+                           AND C.LIF_CNTR_OC_TN = 1		/* 1차월 */
+                           AND C.CNFM_YN = 'Y'
+                           AND C.BASE_YM <![CDATA[<]]> #{baseYm}
+                   ) B
+                ON A.BASE_YM = B.BASE_YM
+               AND A.PRTNR_NO = B.BRMGR_PRTNR_NO
+               AND A.OG_TP_CD = B.OG_TP_CD
+             WHERE 1 = 1
+               AND B.FEE_REDF_YM = #{baseYm}
+               AND A.OG_TP_CD = 'W02'
+               AND A.PSTN_DV_CD = '7'
+             GROUP BY B.BASE_YM, B.FEE_REDF_YM, A.PRTNR_NO, A.OG_TP_CD, B.CNTR_NO, B.CNTR_SN
+             ) SRC
+       WHERE 1 = 1
+         AND SRC.REDF_ADSB_CTR_CNFM_AMT > 0
     </insert>
 </mapper>
