@@ -5,6 +5,7 @@ import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.*;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface WfefEstimateFeeMgtMapper {
@@ -26,7 +27,7 @@ public interface WfefEstimateFeeMgtMapper {
 
     BaseHome selectBaseHome(SearchEstimateReq req);
     List<PerformanceHome> selectPerformanceHome(SearchEstimateReq req);
-    List<EstimateHome> selectEstimateHome(SearchEstimateReq req);
+    List<Map<String, Object>> selectEstimateHome(SearchEstimateReq req, List<ZfeyTargetPartnerConditionDvo> feeCds, String pivotColums);
     List<SaleHome> selectSaleHome(SearchEstimateReq req);
 
 }
