@@ -88,7 +88,7 @@ public class WfefEstimateFeeMgtController {
         @ApiImplicitParam(name = "sellPrtnrNo", value = "번호", paramType = "query", required = true),
     })
     @PostMapping("/home")
-    public SearchHomeRes getEstimateFeeHome(@Valid SearchEstimateReq req, @RequestBody Map<String, Object> addPerformances) {
+    public List<Map<String, Object>> getEstimateFeeHome(@Valid SearchEstimateReq req, @RequestBody Map<String, Object> addPerformances) {
         return service.getEstimateFeeHome(req, addPerformances);
     }
 }

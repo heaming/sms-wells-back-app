@@ -1,6 +1,8 @@
 package com.kyowon.sms.wells.web.fee.simulation.service;
 
 import com.kyowon.sms.common.web.fee.simulation.dvo.ZfefMacupCntrPerfDvo;
+import com.kyowon.sms.common.web.fee.simulation.dvo.ZfefMacupPerfClDvo;
+import com.kyowon.sms.common.web.fee.simulation.dvo.ZfefPrtnrPerfMmAcuClDvo;
 import com.kyowon.sms.common.web.fee.simulation.service.ZfefFeeSmlCalculationService;
 import com.kyowon.sms.common.web.fee.standard.dvo.ZfeyTargetPartnerConditionDvo;
 import com.kyowon.sms.common.web.fee.standard.service.ZfeyFeeStandardService;
@@ -13,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <pre>
@@ -40,16 +43,16 @@ public class WfefEstimateFeeMgtService {
      */
     @Transactional
     public SearchOgPRes getEstimateFeeOgP(SearchEstimateReq req) {
-        // @todo 조직관련 데이터 확정되면 데이터 0박아놓은거 정리 필요
         String userDvCd = mapper.selectUserDvCd(req.perfYm(), P_OG_TP_CD, req.sellPrtnrNo());
         String feeCalcUnitTpCd = null;
 
-            /* 직급에 따른 수수료시뮬레이션 계산 호출 */
-            if ("INDV".equals(userDvCd)) {
-                feeCalcUnitTpCd = "101";
-            } else if ("OG".equals(userDvCd)) {
-                feeCalcUnitTpCd = "102";
-            }
+        /* 직급에 따른 수수료시뮬레이션 계산 호출 */
+        if ("INDV".equals(userDvCd)) {
+            feeCalcUnitTpCd = "101";
+        } else if ("OG".equals(userDvCd)) {
+            feeCalcUnitTpCd = "102";
+        }
+
         feeSmlCalculationService.processFeeSmlCalculation(req.perfYm(), feeCalcUnitTpCd, req.perType(), req.sellPrtnrNo());
         List<ZfeyTargetPartnerConditionDvo> feeCds = feeStandardService.getSimulationTargetFeeCodes(req.perfYm(), P_OG_TP_CD, req.sellPrtnrNo());
         return new SearchOgPRes(
@@ -78,13 +81,11 @@ public class WfefEstimateFeeMgtService {
      */
     @Transactional
     public List<EstimateP> getEstimateFeeOgP(SearchEstimateReq req, Map<String, Object> addPerformances) {
-
         /* 추가실적이 있다면 실적을 DB에 넣고, 시뮬레이션 계산을 수행 */
         if(ObjectUtils.isNotEmpty(addPerformances)) {
             /* 파트너번호에 해당하는 직급 조회 */
             String pstnDvCd = feeSmlCalculationService.getPstnDvCdByPrtnrNo(req.perfYm(), P_OG_TP_CD, req.sellPrtnrNo());
             String feeCalcUnitTpCd = null;
-            String perfAgrgCrtDvCd = null;
 
             /* 직급에 따른 수수료시뮬레이션 계산 호출 */
             if ("15".equals(pstnDvCd)) {
@@ -92,14 +93,9 @@ public class WfefEstimateFeeMgtService {
             } else if ("7".equals(pstnDvCd)) {
                 feeCalcUnitTpCd = "102";
             }
-            if ("00".equals(req.perType())) {
-                perfAgrgCrtDvCd = "999";
-            } else {
-                 perfAgrgCrtDvCd = "101";
-             }
 
             /* 추가실적 저장 */
-            String finalPerfAgrgCrtDvCd = perfAgrgCrtDvCd;
+            String perfAgrgCrtDvCd = getPerfAgrgCrtDvCd(req.perType());
             addPerformances.keySet().forEach(keyName -> {
                 switch(keyName) {
                     /* 가전실적(개인), 가전외실적(개인) */
@@ -109,7 +105,7 @@ public class WfefEstimateFeeMgtService {
                         feeSmlCalculationService.saveMacupCntrPerf(ZfefMacupCntrPerfDvo.builder()
                                 .mmAcuPerfAgrgCrtDvCd(req.perType())
                                 .baseYm(req.perfYm())
-                                .perfAgrgCrtDvCd(finalPerfAgrgCrtDvCd)
+                                .perfAgrgCrtDvCd(perfAgrgCrtDvCd)
                                 .ogTpCd(P_OG_TP_CD)
                                 .prtnrNo(req.sellPrtnrNo())
                                 .hooPrtnrNo(req.sellPrtnrNo())
@@ -119,7 +115,7 @@ public class WfefEstimateFeeMgtService {
                         feeSmlCalculationService.saveMacupCntrPerf(ZfefMacupCntrPerfDvo.builder()
                                 .mmAcuPerfAgrgCrtDvCd(req.perType())
                                 .baseYm(req.perfYm())
-                                .perfAgrgCrtDvCd(finalPerfAgrgCrtDvCd)
+                                .perfAgrgCrtDvCd(perfAgrgCrtDvCd)
                                 .ogTpCd(P_OG_TP_CD)
                                 .prtnrNo(req.sellPrtnrNo())
                                 .hooPrtnrNo(req.sellPrtnrNo())
@@ -133,7 +129,7 @@ public class WfefEstimateFeeMgtService {
                         feeSmlCalculationService.saveMacupCntrPerf(ZfefMacupCntrPerfDvo.builder()
                                 .mmAcuPerfAgrgCrtDvCd(req.perType())
                                 .baseYm(req.perfYm())
-                                .perfAgrgCrtDvCd(finalPerfAgrgCrtDvCd)
+                                .perfAgrgCrtDvCd(perfAgrgCrtDvCd)
                                 .ogTpCd(P_OG_TP_CD)
                                 .prtnrNo(feeSmlCalculationService.getPrtnrNoFromPrtnrHoo(req.perfYm(), P_OG_TP_CD, req.sellPrtnrNo()))
                                 .hooPrtnrNo(req.sellPrtnrNo())
@@ -143,7 +139,7 @@ public class WfefEstimateFeeMgtService {
                         feeSmlCalculationService.saveMacupCntrPerf(ZfefMacupCntrPerfDvo.builder()
                                 .mmAcuPerfAgrgCrtDvCd(req.perType())
                                 .baseYm(req.perfYm())
-                                .perfAgrgCrtDvCd(finalPerfAgrgCrtDvCd)
+                                .perfAgrgCrtDvCd(perfAgrgCrtDvCd)
                                 .ogTpCd(P_OG_TP_CD)
                                 .prtnrNo(feeSmlCalculationService.getPrtnrNoFromPrtnrHoo(req.perfYm(), P_OG_TP_CD, req.sellPrtnrNo()))
                                 .hooPrtnrNo(req.sellPrtnrNo())
@@ -156,7 +152,7 @@ public class WfefEstimateFeeMgtService {
                         feeSmlCalculationService.saveMacupCntrPerf(ZfefMacupCntrPerfDvo.builder()
                                 .mmAcuPerfAgrgCrtDvCd(req.perType())
                                 .baseYm(req.perfYm())
-                                .perfAgrgCrtDvCd(finalPerfAgrgCrtDvCd)
+                                .perfAgrgCrtDvCd(perfAgrgCrtDvCd)
                                 .ogTpCd(P_OG_TP_CD)
                                 .prtnrNo(req.sellPrtnrNo())
                                 .hooPrtnrNo(req.sellPrtnrNo())
@@ -168,7 +164,7 @@ public class WfefEstimateFeeMgtService {
                         feeSmlCalculationService.saveMacupCntrPerf(ZfefMacupCntrPerfDvo.builder()
                                 .mmAcuPerfAgrgCrtDvCd(req.perType())
                                 .baseYm(req.perfYm())
-                                .perfAgrgCrtDvCd(finalPerfAgrgCrtDvCd)
+                                .perfAgrgCrtDvCd(perfAgrgCrtDvCd)
                                 .ogTpCd(P_OG_TP_CD)
                                 .prtnrNo(feeSmlCalculationService.getPrtnrNoFromPrtnrHoo(req.perfYm(), P_OG_TP_CD, req.sellPrtnrNo()))
                                 .hooPrtnrNo(req.sellPrtnrNo())
@@ -286,33 +282,82 @@ public class WfefEstimateFeeMgtService {
      */
      @Transactional
     public SearchHomeRes getEstimateFeeHome(SearchEstimateReq req) {
-        return new SearchHomeRes(mapper.selectBaseHome(req), mapper.selectPerformanceHome(req), mapper.selectEstimateHome(req) ,mapper.selectSaleHome(req));
+         feeSmlCalculationService.processFeeSmlCalculation(req.perfYm(), "301", req.perType(), req.sellPrtnrNo());
+        List<ZfeyTargetPartnerConditionDvo> feeCds = feeStandardService.getSimulationTargetFeeCodes(req.perfYm(), HOME_OG_TP_CD, req.sellPrtnrNo());
+        String pivotColumns = feeCds.stream().map(item -> "'" + item.getDtaCrtFeeCd() + "' AS " + item.getDtaCrtFeeCd()).collect(Collectors.joining(", "));
+        return new SearchHomeRes(mapper.selectBaseHome(req), mapper.selectPerformanceHome(req), mapper.selectEstimateHome(req, feeCds, pivotColumns) ,mapper.selectSaleHome(req));
     }
 
     /**
      * 추가실적 입력 예상수수료 조회 - 홈마스터
      *
-     * 가전인정건수 :
-     * 일시불 :
-     * 전체처리건 :
-     * 가전처리건 :
-     * 교육수료 :
+     * 가전인정건수 : 'W03P00002', TB_FEAM_MACUP_PERF_CL
+     * 일시불 : 'W00P00080', TB_FEAM_MACUP_CNTR_PERF_CL
+     * 전체처리건 : 'W03P00085', TB_FEAM_MACUP_PERF_CL
+     * 가전처리건 : 'W03P00117', TB_FEAM_MACUP_PERF_CL
+     * 교육수료 : 'W03P00111', 'W03P00112' TB_FEAM_PRTNR_PERF_MM_ACU_CL
      *
      * @param req
      * @param addPerformances
      * @return
      */
      @Transactional
-    public SearchHomeRes getEstimateFeeHome(SearchEstimateReq req, Map<String, Object> addPerformances) {
+    public List<Map<String, Object>> getEstimateFeeHome(SearchEstimateReq req, Map<String, Object> addPerformances) {
         /* 추가실적이 있다면 실적을 DB에 넣고, 시뮬레이션 계산을 수행 */
         if(ObjectUtils.isNotEmpty(addPerformances)) {
             /* 추가실적 저장 */
-            /* TODO 추가실적 저장하는 로직 구현 */
+            String perfAgrgCrtDvCd = getPerfAgrgCrtDvCd(req.perType());
+            addPerformances.keySet().forEach(keyName -> {
+                switch(keyName) {
+                    /* 가전인정건수, 전체처리건, 가전처리건 */
+                    case "W03P00002":
+                    case "W03P00085":
+                    case "W03P00117":
+                        /* 가전인정건수, 전체처리건, 가전처리건로 파트너단위 업데이트 */
+                        feeSmlCalculationService.saveMacupPerfCl(ZfefMacupPerfClDvo.builder()
+                                .mmAcuPerfAgrgCrtDvCd(req.perType())
+                                .baseYm(req.perfYm())
+                                .perfAgrgCrtDvCd(perfAgrgCrtDvCd)
+                                .ogTpCd(HOME_OG_TP_CD)
+                                .prtnrNo(req.sellPrtnrNo())
+                                .perfAtcCd(keyName)
+                                .perfVal((Integer)addPerformances.get(keyName)).build());
+                        break;
+                    /* 일시불 */
+                    case "W00P00080":
+                        /* 일시불로 DUMMY 계약으로 INSERT */
+                        feeSmlCalculationService.saveMacupCntrPerf(ZfefMacupCntrPerfDvo.builder()
+                                .mmAcuPerfAgrgCrtDvCd(req.perType())
+                                .baseYm(req.perfYm())
+                                .perfAgrgCrtDvCd(perfAgrgCrtDvCd)
+                                .ogTpCd(HOME_OG_TP_CD)
+                                .prtnrNo(req.sellPrtnrNo())
+                                .hooPrtnrNo(req.sellPrtnrNo())
+                                .perfAtcCd(keyName)
+                                .perfVal((Integer)addPerformances.get(keyName)).build());
+                        break;
+                    /* 교육수료 SUM */
+                    case "W03P00111":
+                    case "W03P00112":
+                        /* 신입교육, 동행교육 파트너 실적으로 업데이트 */
+                        feeSmlCalculationService.savePrtnrPerfMmAcuCl(ZfefPrtnrPerfMmAcuClDvo.builder()
+                                .mmAcuPerfAgrgCrtDvCd(req.perType())
+                                .baseYm(req.perfYm())
+                                .perfAgrgCrtDvCd(perfAgrgCrtDvCd)
+                                .ogTpCd(HOME_OG_TP_CD)
+                                .prtnrNo(req.sellPrtnrNo())
+                                .perfAtcCd(keyName)
+                                .feePerfAtcVal(String.valueOf(addPerformances.get(keyName))).build());
+                        break;
+                }
+            });
 
             feeSmlCalculationService.processFeeSmlCalculation(req.perfYm(), "301", req.perType(), req.sellPrtnrNo());
         }
         /* 화면에 필요한 데이터 조회 */
-        /* TODO 화면 데이터 조회 */
+        List<ZfeyTargetPartnerConditionDvo> feeCds = feeStandardService.getSimulationTargetFeeCodes(req.perfYm(), HOME_OG_TP_CD, req.sellPrtnrNo());
+        String pivotColumns = feeCds.stream().map(item -> "'" + item.getDtaCrtFeeCd() + "' AS " + item.getDtaCrtFeeCd()).collect(Collectors.joining(", "));
+        List<Map<String, Object>> response = mapper.selectEstimateHome(req, feeCds, pivotColumns);
 
         /* 추가실적 ROLLBACK */
         if(ObjectUtils.isNotEmpty(addPerformances)) {
@@ -320,6 +365,16 @@ public class WfefEstimateFeeMgtService {
         }
 
         /* 조회한 데이터 화면에 리턴 */
-        return null;
+        return response;
+    }
+
+    private static String getPerfAgrgCrtDvCd(String perType) {
+        String perfAgrgCrtDvCd = null;
+        if ("00".equals(perType)) {
+            perfAgrgCrtDvCd = "999";
+        } else {
+             perfAgrgCrtDvCd = "101";
+         }
+        return perfAgrgCrtDvCd;
     }
 }

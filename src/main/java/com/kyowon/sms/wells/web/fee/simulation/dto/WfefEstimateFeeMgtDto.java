@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.fee.simulation.dto;
 
 import javax.validation.constraints.NotBlank;
 import java.util.List;
+import java.util.Map;
 
 public class WfefEstimateFeeMgtDto {
     public record SearchEstimateReq(
@@ -178,10 +179,7 @@ public class WfefEstimateFeeMgtDto {
     public record BaseHome(
         String prtnrKnm,
         String ogCd, // 조직코드
-        String rsbDvCd, // 직책구분코드
-        Long amtEstSalFee, // 예상판매수수료
-        Long amtEstSerFee, // 예상서비스수수료
-        Long amtFeeSum // 수수료합계
+        String rsbDvCd // 직책구분코드
     ) {}
 
     public record PerformanceHome(
@@ -192,17 +190,6 @@ public class WfefEstimateFeeMgtDto {
         Integer elhmProcCt,
         String nwcmrEducYn,
         String acpnEducYn
-    ) {}
-
-    public record EstimateHome(
-        Long amtEstSalPrpn,
-        Long amtEstSalEarlySttlmnt,
-        Long amtEstSalEnrg,
-        Long amtEstSvcScene,
-        Long amtEstSvcActi1,
-        Long amtEstSvcActi2,
-        Long amtEstSvcAcml,
-        Long amtEstSvcEdu
     ) {}
 
     public record SaleHome(
@@ -223,7 +210,7 @@ public class WfefEstimateFeeMgtDto {
     public record SearchHomeRes(
         BaseHome base,
         List<PerformanceHome> performances,
-        List<EstimateHome> estimates,
+        List<Map<String, Object>> estimates,
         List<SaleHome> sales
     ) {}
 }
