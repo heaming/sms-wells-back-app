@@ -41,7 +41,7 @@ public class WfefEstimateFeeMgtDto {
         Long amtMutu599 // 상조-599
     ) {}
 
-    public record EstimateP(
+    public record EstimatePM(
         String feeCd,
         String feeNm,
         Integer estiValSum,
@@ -69,7 +69,7 @@ public class WfefEstimateFeeMgtDto {
         BaseP base,
         MeetingP meeting,
         List<PerformanceP> performances,
-        List<EstimateP> estimate,
+        List<EstimatePM> estimate,
         List<SaleP> sales
     ) {}
 
@@ -130,25 +130,6 @@ public class WfefEstimateFeeMgtDto {
         Long etProcsRt
     ) {}
 
-    public record EstimateM(
-        Long estSalCommElhmPrpn,
-        Long estSalCommElhmExcpPrpn,
-        Long estSalCommElhmEnrg,
-        Long estSalCommMetg,
-        Long estSalCommEduc,
-        Long estSalCommStmnt,
-        Long estSalCommMchnCh,
-        Long estBsFeeBsMgmt,
-        Long estBsFeeBsEnrg,
-        Long estBsFeeRglvl,
-        Long estOgFeeElhmOgPrpn,
-        Long estOgFeeElhmOgExcpPrpn,
-        Long estOgFeeOgSellEncrg,
-        Long estOgFeeNincMgt,
-        Long estOgFeeOgEjt1,
-        Long estOgFeeOgEjt2,
-        Long estOgFeeNbBrch
-    ) {}
 
     public record SaleM(
         String prtnrKnm,
@@ -172,7 +153,7 @@ public class WfefEstimateFeeMgtDto {
         List<PerformanceM> performances,
         List<BsM> bses,
         List<OgBsM> ogBses,
-        EstimateM estimate,
+        List<EstimatePM> estimate,
         List<SaleM> sales
     ) {}
 

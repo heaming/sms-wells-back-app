@@ -14,7 +14,7 @@ public interface WfefEstimateFeeMgtMapper {
     BaseP selectBaseP(SearchEstimateReq req, String userDvCd);
     MeetingP selectMeetingP(SearchEstimateReq req, String userDvCd);
     List<PerformanceP> selectPerformanceP(SearchEstimateReq req, String userDvCd);
-    List<EstimateP> selectEstimateP(SearchEstimateReq req, String userDvCd, List<ZfeyTargetPartnerConditionDvo> feeCds);
+    List<EstimatePM> selectEstimatePM(SearchEstimateReq req, String ogTpCd, List<ZfeyTargetPartnerConditionDvo> feeCds);
     List<SaleP> selectSaleP(SearchEstimateReq req, String userDvCd);
 
     BaseM selectBaseM(SearchEstimateReq req, String userDvCd);
@@ -22,7 +22,6 @@ public interface WfefEstimateFeeMgtMapper {
     List<PerformanceM> selectPerformanceM(SearchEstimateReq req, String userDvCd);
     List<BsM> selectBsM(SearchEstimateReq req, String userDvCd);
     List<OgBsM> selectOgBsM(SearchEstimateReq req, String userDvCd);
-    EstimateM selectEstimateM(SearchEstimateReq req, String userDvCd);
     List<SaleM> selectSaleM(SearchEstimateReq req, String userDvCd);
 
     BaseHome selectBaseHome(SearchEstimateReq req);

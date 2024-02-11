@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.fee.simulation.rest;
 
-import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto;
 import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.*;
 import com.kyowon.sms.wells.web.fee.simulation.service.WfefEstimateFeeMgtService;
 import com.kyowon.sms.wells.web.fee.zcommon.constants.CtFeeConst;
@@ -44,7 +43,7 @@ public class WfefEstimateFeeMgtController {
         @ApiImplicitParam(name = "sellPrtnrNo", value = "번호", paramType = "query", required = true),
     })
     @PostMapping("/p-og")
-    public List<EstimateP> getEstimateFeeOgP(@Valid SearchEstimateReq req, @RequestBody Map<String, Object> addPerformances) {
+    public List<EstimatePM> getEstimateFeeOgP(@Valid SearchEstimateReq req, @RequestBody Map<String, Object> addPerformances) {
         return service.getEstimateFeeOgP(req, addPerformances);
     }
 
@@ -66,7 +65,7 @@ public class WfefEstimateFeeMgtController {
         @ApiImplicitParam(name = "sellPrtnrNo", value = "번호", paramType = "query", required = true),
     })
     @PostMapping("/m-og")
-    public SearchOgMRes getEstimateFeeOgM(@Valid SearchEstimateReq req, @RequestBody Map<String, Object> addPerformances) {
+    public List<EstimatePM> getEstimateFeeOgM(@Valid SearchEstimateReq req, @RequestBody Map<String, Object> addPerformances) {
         return service.getEstimateFeeOgM(req, addPerformances);
     }
 

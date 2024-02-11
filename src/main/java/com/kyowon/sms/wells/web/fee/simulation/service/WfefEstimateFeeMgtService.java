@@ -60,7 +60,7 @@ public class WfefEstimateFeeMgtService {
             mapper.selectBaseP(req, userDvCd),
             mapper.selectMeetingP(req, userDvCd),
             mapper.selectPerformanceP(req, userDvCd),
-            mapper.selectEstimateP(req, userDvCd, feeCds),
+            mapper.selectEstimatePM(req, "W01", feeCds),
             mapper.selectSaleP(req, userDvCd)
         );
     }
@@ -80,7 +80,7 @@ public class WfefEstimateFeeMgtService {
      * @return
      */
     @Transactional
-    public List<EstimateP> getEstimateFeeOgP(SearchEstimateReq req, Map<String, Object> addPerformances) {
+    public List<EstimatePM> getEstimateFeeOgP(SearchEstimateReq req, Map<String, Object> addPerformances) {
         /* 추가실적이 있다면 실적을 DB에 넣고, 시뮬레이션 계산을 수행 */
         if(ObjectUtils.isNotEmpty(addPerformances)) {
             /* 파트너번호에 해당하는 직급 조회 */
@@ -179,9 +179,8 @@ public class WfefEstimateFeeMgtService {
         }
 
         /* 화면에 필요한 데이터 조회 */
-        String userDvCd = mapper.selectUserDvCd(req.perfYm(), P_OG_TP_CD, req.sellPrtnrNo());
         List<ZfeyTargetPartnerConditionDvo> feeCds = feeStandardService.getSimulationTargetFeeCodes(req.perfYm(), P_OG_TP_CD, req.sellPrtnrNo());
-        List<EstimateP> response = mapper.selectEstimateP(req, userDvCd, feeCds);
+        List<EstimatePM> response = mapper.selectEstimatePM(req, "W01", feeCds);
 
         if(ObjectUtils.isNotEmpty(addPerformances)) {
              /* 추가실적 ROLLBACK */
@@ -199,8 +198,18 @@ public class WfefEstimateFeeMgtService {
      */
      @Transactional
     public SearchOgMRes getEstimateFeeOgM(SearchEstimateReq req) {
-        // @todo 조직관련 데이터 확정되면 데이터 0박아놓은거 정리 필요
         String userDvCd = mapper.selectUserDvCd(req.perfYm(), "W02", req.sellPrtnrNo());
+        String feeCalcUnitTpCd = null;
+
+        /* 직급에 따른 수수료시뮬레이션 계산 호출 */
+        if ("INDV".equals(userDvCd)) {
+            feeCalcUnitTpCd = "101";
+        } else if ("OG".equals(userDvCd)) {
+            feeCalcUnitTpCd = "102";
+        }
+
+        feeSmlCalculationService.processFeeSmlCalculation(req.perfYm(), feeCalcUnitTpCd, req.perType(), req.sellPrtnrNo());
+        List<ZfeyTargetPartnerConditionDvo> feeCds = feeStandardService.getSimulationTargetFeeCodes(req.perfYm(), M_OG_TP_CD, req.sellPrtnrNo());
         return new SearchOgMRes(
             userDvCd,
             mapper.selectBaseM(req, userDvCd),
@@ -208,7 +217,7 @@ public class WfefEstimateFeeMgtService {
             mapper.selectPerformanceM(req, userDvCd),
             mapper.selectBsM(req, userDvCd),
             "OG".equals(userDvCd) ? mapper.selectOgBsM(req, userDvCd) : null,
-            mapper.selectEstimateM(req, userDvCd),
+            mapper.selectEstimatePM(req, "W02", feeCds),
             mapper.selectSaleM(req, userDvCd)
         );
     }
@@ -216,40 +225,95 @@ public class WfefEstimateFeeMgtService {
     /**
      * 추가실적 입력 예상수수료 조회 - M추진단
      *
-     * 가전인정건수(개인) :
-     * 가전인정건수(조직) :
-     * 렌탈기준가(개인) :
-     * 렌탈기준가(조직) :
-     * 일시불기준가(개인) :
-     * 일시불기준가(조직) :
-     * 가전외인정실적(개인) :
-     * 가전외인정실적(조직) :
-     * 순증(개인) :
-     * 순증(조직) :
-     * BS정수기1완료건수 :
-     * BS정수기2완료건수 :
-     * BS정수기3완료건수 :
-     * BS정수기4완료건수 :
-     * BS비정수기완료건수 :
-     * BS청정기1완료건수 :
-     * BS청정기2완료건수 :
-     * BS아웃소싱류완료건수 :
-     * BS비데,연수기완료건수 :
-     * W1급지 :
-     * W2급지 :
-     * 조직BS완료건수 :
+     * 가전인정건수(개인) : W02P00103_0, TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성
+     * 가전인정건수(조직) : W02P00103_2, TB_FEAM_MACUP_CNTR_PERF_CL, 지점장 소속 플래너로 생성
+     * 렌탈기준가(개인) : W00P00033_0, TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성
+     * 렌탈기준가(조직) : W00P00033_2, TB_FEAM_MACUP_CNTR_PERF_CL, 지점장 소속 플래너로 생성
+     * 일시불기준가(개인) : W00P00006_0, TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성
+     * 일시불기준가(조직) : W00P00006_2, TB_FEAM_MACUP_CNTR_PERF_CL, 지점장 소속 플래너로 생성
+     * 가전외인정실적(개인) : W02P00112_0, TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성
+     * 가전외인정실적(조직) : W02P00112_2, TB_FEAM_MACUP_CNTR_PERF_CL, 지점장 소속 플래너로 생성
+     * 순증(개인) : W02P00113_0, TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성
+     * 순증(조직) : W02P00113_2, TB_FEAM_MACUP_CNTR_PERF_CL, 지점장 소속 플래너로 생성
+     * BS정수기1완료건수 : wrfr01Ct, TB_FEAM_WELS_SV_PERF_IZ
+     * BS정수기2완료건수 : wrfr02Ct, TB_FEAM_WELS_SV_PERF_IZ
+     * BS정수기3완료건수 : wrfr03Ct, TB_FEAM_WELS_SV_PERF_IZ
+     * BS정수기4완료건수 : wrfr04Ct, TB_FEAM_WELS_SV_PERF_IZ
+     * BS비정수기완료건수 : unWrfrCt, TB_FEAM_WELS_SV_PERF_IZ
+     * BS청정기1완료건수 : puf01Ct, TB_FEAM_WELS_SV_PERF_IZ
+     * BS청정기2완료건수 : puf02Ct, TB_FEAM_WELS_SV_PERF_IZ
+     * BS아웃소싱류완료건수 : otscEtcCt, TB_FEAM_WELS_SV_PERF_IZ
+     * BS비데,연수기완료건수 : bdtEtcCt, TB_FEAM_WELS_SV_PERF_IZ
+     * W1급지 : w1Ct, TB_FEAM_WELS_SV_PERF_IZ
+     * W2급지 : w2Ct, TB_FEAM_WELS_SV_PERF_IZ
+     * 조직BS완료건수 : ogBsAddPerfCt, TB_FEAM_WELS_SV_PERF_IZ
      * @param req
      * @param addPerformances
      * @return
      */
     @Transactional
-    public SearchOgMRes getEstimateFeeOgM(SearchEstimateReq req, Map<String, Object> addPerformances) {
+    public List<EstimatePM> getEstimateFeeOgM(SearchEstimateReq req, Map<String, Object> addPerformances) {
         /* 추가실적이 있다면 실적을 DB에 넣고, 시뮬레이션 계산을 수행 */
         if(ObjectUtils.isNotEmpty(addPerformances)) {
             /* 추가실적 저장 */
-            /* TODO 추가실적 저장하는 로직 구현 */
+            String perfAgrgCrtDvCd = getPerfAgrgCrtDvCd(req.perType());
+            addPerformances.keySet().forEach(keyName -> {
+                switch(keyName) {
+                    /* 가전인정건수(개인), 렌탈기준가(개인), 일시불기준가(개인),가전외인정실적(개인), 순증(개인) */
+                    case "W02P00103_0":
+                    case "W00P00033_0":
+                    case "W00P00006_0":
+                    case "W02P00112_0":
+                    case "W02P00113_0":
+                        /* 가전인정건수(개인), 렌탈기준가(개인), 일시불기준가(개인),가전외인정실적(개인), 순증(개인)로 DUMMY 계약으로 INSERT */
+                        feeSmlCalculationService.saveMacupCntrPerf(ZfefMacupCntrPerfDvo.builder()
+                                .mmAcuPerfAgrgCrtDvCd(req.perType())
+                                .baseYm(req.perfYm())
+                                .perfAgrgCrtDvCd(perfAgrgCrtDvCd)
+                                .ogTpCd(M_OG_TP_CD)
+                                .prtnrNo(req.sellPrtnrNo())
+                                .hooPrtnrNo(req.sellPrtnrNo())
+                                .perfAtcCd(keyName.split("_")[0])
+                                .perfVal((Integer)addPerformances.get(keyName)).build());
+                        break;
+                    /* 가전인정건수(조직), 렌탈기준가(조직), 일시불기준가(조직),가전외인정실적(조직), 순증(조직) */
+                    case "W02P00103_2":
+                    case "W00P00033_2":
+                    case "W00P00006_2":
+                    case "W02P00112_2":
+                    case "W02P00113_2":
+                        /* 가전인정건수(조직), 렌탈기준가(조직), 일시불기준가(조직),가전외인정실적(조직), 순증(조직)로 DUMMY 계약으로 INSERT */
+                        feeSmlCalculationService.saveMacupCntrPerf(ZfefMacupCntrPerfDvo.builder()
+                                .mmAcuPerfAgrgCrtDvCd(req.perType())
+                                .baseYm(req.perfYm())
+                                .perfAgrgCrtDvCd(perfAgrgCrtDvCd)
+                                .ogTpCd(M_OG_TP_CD)
+                                .prtnrNo(feeSmlCalculationService.getPrtnrNoFromPrtnrHoo(req.perfYm(), M_OG_TP_CD, req.sellPrtnrNo()))
+                                .hooPrtnrNo(req.sellPrtnrNo())
+                                .perfAtcCd(keyName.split("_")[0])
+                                .perfVal((Integer)addPerformances.get(keyName)).build());
+                        break;
+                    /* BS정수기1완료건수, BS정수기2완료건수, BS정수기3완료건수, BS정수기4완료건수, BS비정수기완료건수
+                    *  BS청정기1완료건수, BS청정기2완료건수, BS아웃소싱류완료건수, 연수기완료건수, W1급지, W2급지 */
+                    case "wrfr01Ct":
+                    case "wrfr02Ct":
+                    case "wrfr03Ct":
+                    case "wrfr04Ct":
+                    case "unWrfrCt":
+                    case "puf01Ct":
+                    case "puf02Ct":
+                    case "otscEtcCt":
+                    case "bdtEtcCt":
+                    case "w1Ct":
+                    case "w2Ct":
+                        break;
+                        /* 조직BS완료건수 */
+                    case "ogBsAddPerfCt":
+                        break;
+                }
+            });
 
-                        /* 파트너번호에 해당하는 직급 조회 */
+            /* 파트너번호에 해당하는 직급 조회 */
             String pstnDvCd = feeSmlCalculationService.getPstnDvCdByPrtnrNo(req.perfYm(), "W02", req.sellPrtnrNo());
 
             String feeCalcUnitTpCd = null;
@@ -264,7 +328,8 @@ public class WfefEstimateFeeMgtService {
             feeSmlCalculationService.processFeeSmlCalculation(req.perfYm(), feeCalcUnitTpCd, req.perType(), req.sellPrtnrNo());
         }
         /* 화면에 필요한 데이터 조회 */
-        /* TODO 화면 데이터 조회 */
+        List<ZfeyTargetPartnerConditionDvo> feeCds = feeStandardService.getSimulationTargetFeeCodes(req.perfYm(), M_OG_TP_CD, req.sellPrtnrNo());
+        List<EstimatePM> response = mapper.selectEstimatePM(req, "W02", feeCds);
 
         /* 추가실적 ROLLBACK */
         if(ObjectUtils.isNotEmpty(addPerformances)) {
@@ -272,7 +337,7 @@ public class WfefEstimateFeeMgtService {
         }
 
         /* 조회한 데이터 화면에 리턴 */
-        return null;
+        return response;
     }
 
      /**
