@@ -49,6 +49,7 @@ public class WbnaFosterTransferMgtDto {
         Double woDlqAddAmt, /* 전체 - 연체가산금액 */
         Double woRsgBorAmt, /* 전체 - 위약금액 */
         Double woLsRntf, /* 전체 - 분실손료 */
+        Double woDfaAmt, /* 전체 - 대손금액 */
         Double rentalCstCt, /* 렌탈 - 고객수 */
         Double rentalCntrCt, /* 렌탈 - 계약수 */
         Double rentalUcAmt, /* 렌탈 - 미수금 */
@@ -58,6 +59,7 @@ public class WbnaFosterTransferMgtDto {
         Double rentalDlqAddAmt, /* 렌탈 - 연체가산금액 */
         Double rentalRsgBorAmt, /* 렌탈 - 위약금액 */
         Double rentalLsRntf, /* 렌탈 - 분실손료 */
+        Double rentalDfaAmt, /* 렌탈 - 대손금액 */
         Double leaseCstCt, /* 금융리스 - 고객수 */
         Double leaseCntrCt, /* 금융리스 - 계약수 */
         Double leaseUcAmt, /* 금융리스 - 미수금 */
@@ -67,6 +69,7 @@ public class WbnaFosterTransferMgtDto {
         Double leaseDlqAddAmt, /* 금융리스 - 연체가산금액 */
         Double leaseRsgBorAmt, /* 금융리스 - 위약금액 */
         Double leaseLsRntf, /* 금융리스 - 분실손료 */
+        Double leaseDfaAmt, /* 금융리스 - 대손금액 */
         Double mshCstCt, /* 일반멤버십 - 고객수 */
         Double mshCntrCt, /* 일반멤버십 - 계약수 */
         Double mshUcAmt, /* 일반멤버십 - 미수금 */
@@ -76,6 +79,7 @@ public class WbnaFosterTransferMgtDto {
         Double mshDlqAddAmt, /* 일반멤버십 - 연체가산금액 */
         Double mshRsgBorAmt, /* 일반멤버십 - 위약금액 */
         Double mshLsRntf, /* 일반멤버십 - 분실손료 */
+        Double mshDfaAmt, /* 일반멤버십 - 대손금액 */
         Double rglrSppCstCt, /* 홈케어멤버십 - 고객수 */
         Double rglrSppCntrCt, /* 홈케어멤버십 - 계약수 */
         Double rglrSppUcAmt, /* 홈케어멤버십 - 미수금 */
@@ -85,6 +89,7 @@ public class WbnaFosterTransferMgtDto {
         Double rglrSppDlqAddAmt, /* 홈케어멤버십 - 연체가산금액 */
         Double rglrSppRsgBorAmt, /* 홈케어멤버십 - 위약금액 */
         Double rglrSppLsRntf, /* 홈케어멤버십 - 분실손료 */
+        Double rglrSppDfaAmt, /* 홈케어멤버십 - 대손금액 */
         Double hcrCstCt, /* 일시불 - 고객수 */
         Double hcrCntrCt, /* 일시불 - 계약수 */
         Double hcrUcAmt, /* 일시불 - 미수금 */
@@ -94,6 +99,7 @@ public class WbnaFosterTransferMgtDto {
         Double hcrDlqAddAmt, /* 일시불 - 연체가산금액 */
         Double hcrRsgBorAmt, /* 일시불 - 위약금액 */
         Double hcrLsRntf, /* 일시불 - 분실손료 */
+        Double hcrDfaAmt, /* 일시불 - 대손금액 */
         Double spayCstCt, /* 정기배송 - 고객수 */
         Double spayCntrCt, /* 정기배송 - 계약수 */
         Double spayUcAmt, /* 정기배송 - 미수금 */
@@ -102,7 +108,8 @@ public class WbnaFosterTransferMgtDto {
         Double spayThmChramAmt, /* 정기배송 - 당월요금 */
         Double spayDlqAddAmt, /* 정기배송 - 연체가산금액 */
         Double spayRsgBorAmt, /* 정기배송 - 위약금액 */
-        Double spayLsRntf/* 정기배송 - 분실손료 */
+        Double spayLsRntf, /* 정기배송 - 분실손료 */
+        Double spayDfaAmt/* 정기배송 - 대손금액 */
     ) {}
     @Builder
     @ApiModel("WbnaFosterTransferMgtDto-SearchDetailRes")
@@ -125,6 +132,7 @@ public class WbnaFosterTransferMgtDto {
         Double dlqAddAmt, /* 연체가산금 */
         Double rsgBorAmt, /* 위약금액 */
         Double lsRntf, /* 분실손료 */
+        Double dfaAmt, /* 대손금액 */
         String bndClctnPrpDvNm, /* 속성 */
         String bndClctnPrpRsonNm, /* 사유 */
         String lwmTp, /* 법조치유형 */
@@ -145,7 +153,8 @@ public class WbnaFosterTransferMgtDto {
         String thmChramAmt, /*총 당월요금*/
         String dlqAddAmt, /*총 연체가산금액*/
         String rsgBorAmt, /*총 위약금액*/
-        String lsRntf /*총 분실손료*/
+        String lsRntf, /*총 분실손료*/
+        String dfaAmt /*총 대손금액*/
     ) {}
     @ApiModel("WbnaFosterTransferMgtDto-SaveReq")
     public record SaveReq(

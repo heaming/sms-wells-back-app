@@ -5,14 +5,30 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface WfebAgainDisbursementFeeMapper {
     /**
-     * P조직/M조직 상조 연체 재지급 계약데이터 생성
+     * P조직 상조 연체 재지급 계약데이터 생성
      * @param baseYm
      * @param ogTpCd
      * @param cntrPerfCrtDvCd
      * @param feeRedfAdsbDtlId
      * @return
      */
-    Integer insertLifeContractDlqAdsbsForPog(String baseYm, String ogTpCd, String cntrPerfCrtDvCd, String feeRedfAdsbDtlId, String plarIndvFeeCd, String brmgrIndvFeeCd, String brmgrOgFeeCd);
+    Integer insertLifeContractDlqAdsbsForPog(
+        String baseYm, String ogTpCd, String cntrPerfCrtDvCd, String feeRedfAdsbDtlId, String plarIndvFeeCd,
+        String brmgrIndvFeeCd, String brmgrOgFeeCd
+    );
+
+    /**
+     * M조직 상조 연체 재지급 계약데이터 생성 (2024.01 M조직 상조 수수료 변경으로 분리함.)
+     * @param baseYm
+     * @param ogTpCd
+     * @param cntrPerfCrtDvCd
+     * @param feeRedfAdsbDtlId
+     * @return
+     */
+    Integer insertMLifeContractDlqAdsbsForPog(
+        String baseYm, String ogTpCd, String cntrPerfCrtDvCd, String feeRedfAdsbDtlId, String plarIndvFeeCd,
+        String brmgrIndvFeeCd, String brmgrOgFeeCd
+    );
 
     /**
      * M조직 연체재지급 계약 데이터 생성
@@ -23,6 +39,7 @@ public interface WfebAgainDisbursementFeeMapper {
      * @return
      */
     Integer insertContractDlqAdsbsForMog(String baseYm, String ogTpCd, String cntrPerfCrtDvCd, String feeRedfAdsbDtlId);
+
     /**
      * 총판 기본수수료 연체재지급 계약 데이터 생성
      * @param baseYm 기준년월
