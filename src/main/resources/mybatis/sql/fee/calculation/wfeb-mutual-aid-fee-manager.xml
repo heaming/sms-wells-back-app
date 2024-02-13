@@ -1,7 +1,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.fee.calculation.mapper.WfebMutualAidFeeManagerMgtMapper">
 
-    <!-- 상조 수수료 조회 개인 -->
+    <!-- M조직 개인 상조 수수료 조회 -->
     <select id='selectMutualAidIndividualFee' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebMutualAidFeeManagerMgtDto$AidIndividual">
         SELECT T1.BASE_YM                                          /* 발생월 (기준년월)         */
              , CASE WHEN T1.LIF_CNTR_STAT_CD = '0' THEN '수수료'
@@ -24,15 +24,23 @@
              , T1.RCPDT                                            /* 접수일                    */
              , T1.CNTR_DT                                          /* 계약일(1회출금일)         */
              , T1.CAN_DT                                           /* 취소일                    */
-             , TF.BASE_FEE         AS SELL_FEE                     /* 판매자 수수료             */
+             /* 2024.02.13. 2024.01이후 기준금액 변경으로 수정함. F50000, T40000 */
+             , CASE WHEN SUBSTR(T1.CNTR_DT, 1, 6) <![CDATA[>=]]> '202401' THEN 40000
+                    ELSE 50000 END AS SELL_FEE                     /* 판매자 수수료             */
              , T1.TOT_DSB_OJ_DV_CD                                 /* 총 지급대상               */
              , T1.LIF_CNTR_OC_TN                                   /* 회차 (라이프계약발생회차) */
              , T1.SL_OC_ACU_AMT                                    /* 누적발생 매출             */
              , T1.DP_ACU_AMT                                       /* 누적입금                  */
              , T1.FLPYM_TN                                         /* 완납 회차                 */
-             , TF.BASE_FEE * NVL(T7.CNT, 0) AS PRE_AMT_SUM         /* 기지급금 (50000 * CNT)    */
-             , CASE WHEN T1.CAN_DT IS NULL
-                    THEN TF.BASE_FEE
+             /* 2024.02.13. 2024.01이후 기준금액 변경으로 수정함. F50000, T40000 */
+             , CASE WHEN NVL(T1.CAN_DT, 0) > 0 THEN
+                         CASE WHEN SUBSTR(T1.CNTR_DT, 1, 6) <![CDATA[>=]]> '202401' THEN NVL(T7.CNT, 0) * 40000
+                              ELSE NVL(T7.CNT, 0) * 50000 END
+                    ELSE 0 END AS PRE_AMT_SUM    /* 기지급금 (50000 * CNT)    */
+             /* 2024.02.13. 2024.01이후 기준금액 변경으로 수정함. F50000, T40000 */
+             , CASE WHEN NVL(T1.CAN_DT, 0) > 0 THEN
+                         CASE WHEN SUBSTR(T1.CNTR_DT, 1, 6) <![CDATA[>=]]> '202401' THEN 40000
+                              ELSE 50000 END
                     ELSE 0 END CUR_AMT                             /* 당월지급  (50000) - 20230703 수정 */
              , CASE WHEN T1.ET_CNFM_DV_CD = '00'
                     THEN 'Y' ELSE 'N' END ET_CNFM_DV_NM            /* 라이프 확정               */
@@ -63,11 +71,6 @@
                             GROUP BY LIF_CNTR_NO, PRTNR_NO )       T7  /* 기지급을 위한 지급회수 COUNT */
            ON T1.LIF_CNTR_NO = T7.LIF_CNTR_NO
           AND T1.PRTNR_NO    = T7.PRTNR_NO
-        INNER JOIN ( SELECT TO_NUMBER(SUBSTR(CALF_CN, INSTR(CALF_CN, '*', 1, 1) + 1, LENGTHB(CALF_CN) - INSTR(CALF_CN, '*', 1, 1))) BASE_FEE
-                       FROM TB_FEAM_FEE_BASE_DTL
-                      WHERE FEE_CD = 'W020125' /* W020125(15직급개인), W020126(조직) */
-                        AND TO_CHAR(SYSDATE, 'YYYYMM') BETWEEN APY_STRT_YM AND APY_END_YM ) TF /* 상조 FEE 기준금액 */
-           ON  1 = 1
         WHERE 1 = 1
           AND T1.BASE_YM          = #{baseYm}
           AND T1.LIF_CNTR_STAT_CD = '0'                 --20230703 - 라이프계약상태코드 - 0수수료, 3재지급, 2연체, 1되물림
@@ -87,6 +90,7 @@
         ORDER BY T1.PRTNR_NO, T2.CNTR_CST_NO
     </select>
 
+    <!-- M조직 개인 상조 되물림 조회 -->
     <select id='selectMutualAidIndividualRedf' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebMutualAidFeeManagerMgtDto$AidIndividual">
         SELECT T1.BASE_YM                                          /* 발생월 (기준년월)         */
              , CASE WHEN T1.LIF_CNTR_STAT_CD = '0' THEN '수수료'
@@ -115,7 +119,9 @@
              , T1.SL_OC_ACU_AMT                                    /* 누적발생 매출             */
              , T1.DP_ACU_AMT                                       /* 누적입금                  */
              , T1.FLPYM_TN                                         /* 완납 회차                 */
-             , TF.BASE_FEE AS PRE_AMT_SUM                          /* 기지급금 (50000)          */
+             /* 2024.02.13. 2024.01이후 기준금액 변경으로 수정함. F50000, T40000 */
+             , CASE WHEN SUBSTR(T1.CNTR_DT, 1, 6) <![CDATA[>=]]> '202401' THEN 40000
+                    ELSE 50000 END AS PRE_AMT_SUM                  /* 기지급금 (50000)          */
              , 0 CUR_AMT                                           /* 당월지급                  */
              , CASE WHEN T1.ET_CNFM_DV_CD = '00'
                     THEN 'Y' ELSE 'N' END ET_CNFM_DV_NM            /* 라이프 확정               */
@@ -134,11 +140,6 @@
            AND T1.CNTR_SN    = T4.CNTR_SN
          INNER JOIN       TB_PDBS_PD_BAS                T5  /* 상품기본                 */
             ON T4.BASE_PD_CD = T5.PD_CD
-         INNER JOIN ( SELECT TO_NUMBER(SUBSTR(CALF_CN, INSTR(CALF_CN, '*', 1, 1) + 1, LENGTHB(CALF_CN) - INSTR(CALF_CN, '*', 1, 1))) BASE_FEE
-                        FROM TB_FEAM_FEE_BASE_DTL
-                       WHERE FEE_CD = 'W020125' /* W020125(15직급개인), W020126(조직) */
-                         AND TO_CHAR(SYSDATE, 'YYYYMM') BETWEEN APY_STRT_YM AND APY_END_YM ) TF /* 상조 FEE 기준금액 */
-            ON 1=1
          INNER JOIN ( SELECT A.LIF_CNTR_NO    --라이프계약번호
                            , A.PRTNR_NO       --파트너 번호
                            , A.FEE_REDF_YM    --되물림 수수료월
@@ -174,6 +175,7 @@
          ORDER BY T1.PRTNR_NO, T2.CNTR_CST_NO
     </select>
 
+    <!-- M조직 개인 상조 연체 되물림 조회 -->
     <select id='selectMutualAidIndividualEtc' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebMutualAidFeeManagerMgtDto$AidIndividual">
         SELECT T1.BASE_YM                                          /* 발생월 (기준년월)         */
              , CASE WHEN T1.LIF_CNTR_STAT_CD = '0' THEN '수수료'
@@ -205,7 +207,9 @@
              , T1.SL_OC_ACU_AMT                                    /* 누적발생 매출             */
              , T1.DP_ACU_AMT                                       /* 누적입금                  */
              , T1.FLPYM_TN                                         /* 완납 회차                 */
-             , TF.BASE_FEE AS PRE_AMT_SUM                          /* 기지급금 (50000)          */
+             /* 2024.02.13. 2024.01이후 기준금액 변경으로 수정함. F50000, T40000 */
+             , CASE WHEN SUBSTR(T1.CNTR_DT, 1, 6) <![CDATA[>=]]> '202401' THEN 40000
+                    ELSE 50000 END AS PRE_AMT_SUM                  /* 기지급금 (50000)          */
              , 0 CUR_AMT                                           /* 당월지급                  */
              , CASE WHEN T1.ET_CNFM_DV_CD = '00'
                     THEN 'Y' ELSE 'N' END ET_CNFM_DV_NM            /* 라이프 확정               */
@@ -226,11 +230,6 @@
           AND T1.CNTR_SN    = T4.CNTR_SN
         INNER JOIN       TB_PDBS_PD_BAS                T5  /* 상품기본                 */
            ON T4.BASE_PD_CD = T5.PD_CD
-        INNER JOIN ( SELECT TO_NUMBER(SUBSTR(CALF_CN, INSTR(CALF_CN, '*', 1, 1) + 1, LENGTHB(CALF_CN) - INSTR(CALF_CN, '*', 1, 1))) BASE_FEE
-                       FROM TB_FEAM_FEE_BASE_DTL
-                      WHERE FEE_CD = 'W020125' /* W020125(15직급개인), W020126(조직) */
-                        AND TO_CHAR(SYSDATE, 'YYYYMM') BETWEEN APY_STRT_YM AND APY_END_YM ) TF /* 상조 FEE 기준금액 */
-           ON  1=1
         INNER JOIN ( SELECT LIF_CNTR_NO    --라이프계약번호
                           , PRTNR_NO       --파트너 번호
                           , FEE_REDF_YM    --되물림 수수료월
@@ -268,7 +267,7 @@
     </select>
 
 
-    <!-- 상조 수수료 조회 조직 -->
+    <!-- M조직 조직 상조 수수료 조회 -->
      <select id='selectMutualAidGroupFee' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebMutualAidFeeManagerMgtDto$AidGroup">
         SELECT T1.BASE_YM                                          /* 발생월 (기준년월) */
              , CASE WHEN T1.LIF_CNTR_STAT_CD = '0' THEN '수수료'
@@ -281,7 +280,8 @@
              , T3.PRTNR_KNM                                        /* 성명 - 지점장             */
              , T3.RSB_DV_CD                                          /* 직책명 - 지점장           */
              , COUNT(1) AS BRCH_CT                                 /* 건수 - 지점               */
-             , TF.BASE_FEE * COUNT(1) AS  BRCH_AMT                 /* 금액 - 지점               */
+             , (NVL(SUM(CASE WHEN SUBSTR(T1.CNTR_DT, 1, 6) <![CDATA[>=]]> '202401' THEN 1 ELSE 0 END), 0) * 30000
+                + NVL(SUM(CASE WHEN SUBSTR(T1.CNTR_DT, 1, 6) <![CDATA[<]]> '202401' THEN 1 ELSE 0 END), 0) * 40000) AS BRCH_AMT                 /* 금액 - 지점               */
              , T1.FEE_DSB_YM                                       /* 수수료 지급월             */
              , T1.FEE_REDF_YM                                      /* 수수료 되물림월           */
              , CASE WHEN T1.ET_CNFM_DV_CD = '00'
@@ -294,11 +294,6 @@
             ON T1.BASE_YM        = T3.BASE_YM
            AND T1.BRMGR_PRTNR_NO = T3.PRTNR_NO
            AND T1.OG_TP_CD   = T3.OG_TP_CD
-         INNER JOIN ( SELECT TO_NUMBER(SUBSTR(CALF_CN, INSTR(CALF_CN, '*', 1, 1) + 1, LENGTHB(CALF_CN) - INSTR(CALF_CN, '*', 1, 1))) BASE_FEE
-                        FROM TB_FEAM_FEE_BASE_DTL
-                       WHERE FEE_CD = 'W020126' /* W020125(15직급개인), W020126(조직) */
-                         AND TO_CHAR(SYSDATE, 'YYYYMM') BETWEEN APY_STRT_YM AND APY_END_YM ) TF /* 상조 FEE 기준금액 */
-            ON 1=1
          WHERE 1=1
            AND T1.BASE_YM             = #{baseYm}
            AND T1.LIF_CNTR_STAT_CD    = '0'               /* 수수료  라이프계약상태코드 */
@@ -322,11 +317,11 @@
                 , T3.RSB_DV_CD
                 , T1.FEE_DSB_YM
                 , T1.FEE_REDF_YM
-                , TF.BASE_FEE
                 , T1.ET_CNFM_DV_CD
                 , T1.CNFM_YN
     </select>
 
+    <!-- M조직 조직상조 되물림 조회 -->
     <select id='selectMutualAidGroupRedf' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebMutualAidFeeManagerMgtDto$AidGroup">
         SELECT T1.BASE_YM                                          /* 발생월 (기준년월) */
              , CASE WHEN T1.LIF_CNTR_STAT_CD = '0' THEN '수수료'
@@ -339,7 +334,8 @@
              , T3.PRTNR_KNM                                        /* 성명 - 지점장             */
              , T3.RSB_DV_CD                                          /* 직책명 - 지점장           */
              , COUNT(1) AS BRCH_CT                                 /* 건수 - 지점               */
-             , TF.BASE_FEE * COUNT(1) AS  BRCH_AMT                 /* 금액 - 지점 (40000 * CNT) */
+             , (NVL(SUM(CASE WHEN SUBSTR(T1.CNTR_DT, 1, 6) <![CDATA[>=]]> '202401' THEN 1 ELSE 0 END), 0) * 30000
+                + NVL(SUM(CASE WHEN SUBSTR(T1.CNTR_DT, 1, 6) <![CDATA[<]]> '202401' THEN 1 ELSE 0 END), 0) * 40000) AS  BRCH_AMT                 /* 금액 - 지점 (40000 * CNT) */
              , T1.FEE_DSB_YM                                       /* 수수료 지급월             */
              , T1.FEE_REDF_YM                                      /* 수수료 되물림월           */
              , CASE WHEN T1.ET_CNFM_DV_CD = '00'
@@ -352,11 +348,6 @@
             ON T1.BASE_YM        = T3.BASE_YM
            AND T1.BRMGR_PRTNR_NO = T3.PRTNR_NO
            AND T1.OG_TP_CD   = T3.OG_TP_CD
-         INNER JOIN ( SELECT TO_NUMBER(SUBSTR(CALF_CN, INSTR(CALF_CN, '*', 1, 1) + 1, LENGTHB(CALF_CN) - INSTR(CALF_CN, '*', 1, 1))) BASE_FEE
-                        FROM TB_FEAM_FEE_BASE_DTL
-                       WHERE FEE_CD = 'W020126' /* W020125(15직급개인), W020126(조직) */
-                         AND TO_CHAR(SYSDATE, 'YYYYMM') BETWEEN APY_STRT_YM AND APY_END_YM) TF /* 상조 FEE 기준금액 */
-            ON 1=1
          INNER JOIN ( SELECT A.LIF_CNTR_NO    --라이프계약번호
                            , A.PRTNR_NO
                         FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ A
@@ -395,11 +386,11 @@
                 , T3.RSB_DV_CD
                 , T1.FEE_DSB_YM
                 , T1.FEE_REDF_YM
-                , TF.BASE_FEE
                 , T1.ET_CNFM_DV_CD
                 , T1.CNFM_YN
     </select>
 
+    <!-- M조직 조직상조 연체 되물림 조회 -->
     <select id='selectMutualAidGroupEtc' resultType="com.kyowon.sms.wells.web.fee.calculation.dto.WfebMutualAidFeeManagerMgtDto$AidGroup">
         SELECT T1.BASE_YM                                          /* 발생월 (기준년월) */
              , CASE WHEN T1.LIF_CNTR_STAT_CD = '0' THEN '수수료'
@@ -412,7 +403,8 @@
              , T3.PRTNR_KNM                                        /* 성명 - 지점장             */
              , T3.RSB_DV_CD                                        /* 직책명 - 지점장           */
              , COUNT(1) AS BRCH_CT                                 /* 건수 - 지점               */
-             , TF.BASE_FEE * COUNT(1) AS  BRCH_AMT                 /* 금액 - 지점 (40000 * CNT) */
+             , (NVL(SUM(CASE WHEN SUBSTR(T1.CNTR_DT, 1, 6) <![CDATA[>=]]> '202401' THEN 1 ELSE 0 END), 0) * 30000
+                + NVL(SUM(CASE WHEN SUBSTR(T1.CNTR_DT, 1, 6) <![CDATA[<]]> '202401' THEN 1 ELSE 0 END), 0) * 40000) AS  BRCH_AMT                 /* 금액 - 지점 (40000 * CNT) */
              , T1.FEE_DSB_YM                                       /* 수수료 지급월             */
              , T1.FEE_REDF_YM                                      /* 수수료 되물림월           */
              , CASE WHEN T1.ET_CNFM_DV_CD = '00'
@@ -425,11 +417,6 @@
            ON T1.BASE_YM        = T3.BASE_YM
           AND T1.BRMGR_PRTNR_NO = T3.PRTNR_NO
           AND T3.OG_TP_CD       = T2.SELL_OG_TP_CD
-        INNER JOIN ( SELECT TO_NUMBER(SUBSTR(CALF_CN, INSTR(CALF_CN, '*', 1, 1) + 1, LENGTHB(CALF_CN) - INSTR(CALF_CN, '*', 1, 1))) BASE_FEE
-                      FROM TB_FEAM_FEE_BASE_DTL
-                     WHERE FEE_CD = 'W020126' /* W020125(15직급개인), W020126(조직) */
-                       AND TO_CHAR(SYSDATE, 'YYYYMM') BETWEEN APY_STRT_YM AND APY_END_YM ) TF /* 상조 FEE 기준금액 */
-           ON 1=1
         INNER JOIN ( SELECT LIF_CNTR_NO    --라이프계약번호
                         --, BRMGR_PRTNR_NO --지점장 파트너 번호
                           , PRTNR_NO --지점장 파트너 번호
@@ -464,7 +451,6 @@
                 , T3.RSB_DV_CD
                 , T1.FEE_DSB_YM
                 , T1.FEE_REDF_YM
-                , TF.BASE_FEE
                 , T1.ET_CNFM_DV_CD
                 , T1.CNFM_YN
     </select>

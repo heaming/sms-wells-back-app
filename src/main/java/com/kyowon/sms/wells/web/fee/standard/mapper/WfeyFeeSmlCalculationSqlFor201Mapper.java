@@ -103,7 +103,7 @@ public interface WfeyFeeSmlCalculationSqlFor201Mapper {
      * @return 처리개수
      */
     @SqlMethodInfo(methodTypeCode = "04", methodName = "M조직 플래너(지점장) 개인 상조 수료계산", methodExplanation = "M조직 플래너(지점장) 개인 상조 수료계산 SQL 매퍼")
-    Integer insertManagerLifeAlncFee(
+    Integer insertManagerLifeAlncFee3(
         String baseYm, String ogTpCd, String coCd, String feeCd, String dtaCrtFeeCd,
         String fnlFeeYn, String mmAcuPerfAgrgCrtDvCd, String smlCrtTpCd, String prtnrNo
     );
