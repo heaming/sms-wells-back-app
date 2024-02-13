@@ -137,6 +137,148 @@
                  GROUP BY T2.ADSB_OJ_REDF_DTL_ID, T1.BASE_YM, T1.CNTR_NO, T1.CNTR_SN, T1.BRMGR_PRTNR_NO)
     </insert>
 
+        <insert id="insertMLifeContractDlqAdsbsForPog">
+    /* M조직 상조 재지급 */
+    INSERT INTO TB_FEDD_FEE_REDF_ADSB_DTL (  /* 수수료되물림재지급상세 */
+                          FEE_REDF_ADSB_DTL_ID   /* 수수료되물림재지급상세ID */
+                        , ADSB_OJ_REDF_DTL_ID    /* 재지급대상되물림상세ID */
+                        , REDF_ADSB_OC_YM        /* 되물림재지급발생년월 */
+                        , PERF_YM                /* 실적년월 */
+                        , PERF_DV_CD             /* 실적구분코드 */
+                        , CO_CD                  /* 회사코드 */
+                        , OG_TP_CD               /* 조직유형코드 */
+                        , PRTNR_NO               /* 파트너번호 */
+                        , CNTR_NO                /* 계약번호 */
+                        , CNTR_SN                /* 계약일련번호 */
+                        , FEE_CD                 /* 수수료코드 */
+                        , DTA_CRT_FEE_CD         /* 데이터생성수수료코드 */
+                        , REDF_ADSB_DV_CD        /* 되물림재지급구분코드 */
+                        , REDF_ADSB_TP_CD        /* 되물림재지급유형코드 */
+                        , REDF_ADSB_OC_AMT       /* 되물림재지급발생금액 */
+                        , REDF_ADSB_CTR_CNFM_AMT /* 되물림재지급조정확정금액 */
+                        <include refid="COMMON.insertSystemField" />
+                )
+        WITH DATA AS (SELECT T1.BASE_YM
+                     , '2000' AS CO_CD
+                     , T1.OG_TP_CD
+                     , T1.PRTNR_NO
+                     , T1.BRMGR_PRTNR_NO
+                     , T1.CNTR_NO
+                     , T1.CNTR_SN
+                     , T1.LIF_CNTR_OC_TN
+                     , T1.LIF_CNTR_NO   /* 라이프계약번호 */
+                     , SUBSTR(T1.CNTR_DT, 1, 6) AS CNTR_YM /* 계약년월 */
+                  FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ T1
+                 INNER JOIN (SELECT CNTR_NO
+                                  , CNTR_SN
+                                  , LIF_CNTR_NO
+                                  , OG_TP_CD
+                                  , FEE_REDF_YM
+                               FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ T1
+                              WHERE T1.OG_TP_CD = #{ogTpCd}
+                                AND T1.LIF_CNTR_STAT_CD = '2' -- 연체
+                                AND T1.ET_CNFM_DV_CD = '00' /* 2024.01.25 추가 */
+                                AND TO_CHAR(ADD_MONTHS(TO_DATE(T1.FEE_REDF_YM, 'YYYYMM'), 3), 'YYYYMM') >= #{baseYm}
+                                AND EXISTS (SELECT 1
+                                              FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ T2
+                                             WHERE T1.LIF_CNTR_NO = T2.LIF_CNTR_NO
+                                               AND T2.LIF_CNTR_STAT_CD = '3' -- 재지급
+                                               AND T2.ET_CNFM_DV_CD = '00' /* 2024.01.25 추가 */
+                                               AND T2.FEE_DSB_YM = #{baseYm} )) T2
+                            ON (T1.LIF_CNTR_NO = T2.LIF_CNTR_NO)
+                 WHERE T1.LIF_CNTR_STAT_CD = '0'
+                   AND T1.ET_CNFM_DV_CD = '00' /* 2024.01.25 추가 */
+                   AND NVL(T1.FEE_DSB_YM, '0') > '0'
+                   AND NVL(T1.FEE_DSB_YM, '0') <![CDATA[<]]> NVL(T2.FEE_REDF_YM, '0')
+                   AND T1.CNFM_YN = 'Y')
+        SELECT ${feeRedfAdsbDtlId} AS FEE_REDF_ADSB_DTL_ID
+             , ADSB_OJ_REDF_DTL_ID
+             , #{baseYm} AS REDF_ADSB_OC_YM
+             , PERF_YM
+             , PERF_DV_CD
+             , '2000'            AS CO_CD
+             , #{ogTpCd}         AS OG_TP_CD
+             , PRTNR_NO
+             , CNTR_NO
+             , CNTR_SN
+             , FEE_CD
+             , FEE_CD AS DTA_CRT_FEE_CD
+             , '03' AS REDF_ADSB_DV_CD /* 재지급 */
+             , '0302' AS REDF_ADSB_TP_CD /* 연체재지급 */
+             , REDF_ADSB_OC_AMT
+             , REDF_ADSB_OC_AMT AS REDF_ADSB_CTR_CNFM_AMT
+        <include refid="COMMON.insertSystemFieldValue" />
+          FROM (SELECT T2.ADSB_OJ_REDF_DTL_ID
+                     , T1.BASE_YM        AS PERF_YM
+                     , '0'               AS PERF_DV_CD
+                     , T1.PRTNR_NO
+                     , T1.CNTR_NO
+                     , T1.CNTR_SN
+                     , CASE WHEN T1.PRTNR_NO = T1.BRMGR_PRTNR_NO THEN #{brmgrIndvFeeCd} ELSE #{plarIndvFeeCd} END AS FEE_CD
+                     ,(NVL(SUM(CASE WHEN T1.CNTR_YM <![CDATA[>=]]> '202401' THEN 1 END), 0) * 40000
+                        + NVL(SUM(CASE WHEN T1.CNTR_YM <![CDATA[<]]> '202401' THEN 1 END), 0) * 50000) AS REDF_ADSB_OC_AMT /* 2024.01이후 40000원(이전 50000만원) */
+                 FROM DATA T1
+                INNER JOIN TB_FEAM_FEE_CALC_BAS BAS /* 해당 실적년월에 수수료를 지급받은 이력이 있는지 체크 */
+                   ON (T1.BASE_YM = BAS.BASE_YM AND T1.OG_TP_CD = BAS.OG_TP_CD AND T1.PRTNR_NO = BAS.PRTNR_NO AND BAS.FEE_TCNT_DV_CD = '02'
+                  AND BAS.SPMT_DSB_DV_CD = '01' AND BAS.FEE_CALC_TP_CD = '01' AND BAS.FEE_DSB_MTHD_CD = '01'
+                  AND BAS.FEE_CD = CASE WHEN T1.PRTNR_NO = T1.BRMGR_PRTNR_NO THEN #{brmgrIndvFeeCd} ELSE #{plarIndvFeeCd} END)
+                 LEFT OUTER JOIN LATERAL(SELECT ADSB_OJ_REDF_DTL_ID
+                                          FROM (SELECT T5.FEE_REDF_ADSB_DTL_ID AS ADSB_OJ_REDF_DTL_ID
+                                                     , ROW_NUMBER() OVER (PARTITION BY T5.PERF_YM,T5.PERF_DV_CD,T5.OG_TP_CD,T5.PRTNR_NO,T5.CNTR_NO,T5.CNTR_SN ORDER BY T5.REDF_ADSB_OC_YM DESC) AS RN
+                                                  FROM TB_FEDD_FEE_REDF_ADSB_DTL T5
+                                                 WHERE T5.REDF_ADSB_OC_YM <![CDATA[<]]> #{baseYm}
+                                                   AND T5.REDF_ADSB_DV_CD = '02'
+                                                   AND T5.REDF_ADSB_TP_CD = '0203'
+                                                   AND T5.PERF_DV_CD = '0'
+                                                   AND T5.OG_TP_CD = #{ogTpCd}
+                                                   AND T1.CO_CD = T5.CO_CD
+                                                   AND CASE WHEN T1.PRTNR_NO = T1.BRMGR_PRTNR_NO THEN 'W020127' ELSE 'W020125' END = T5.FEE_CD
+                                                   AND T1.OG_TP_CD = T5.OG_TP_CD
+                                                   AND T1.PRTNR_NO = T5.PRTNR_NO
+                                                   AND T1.CNTR_NO = T5.CNTR_NO
+                                                   AND T1.CNTR_SN = T5.CNTR_SN
+                                                   AND T1.BASE_YM = T5.PERF_YM)
+                                         WHERE RN = 1) T2
+                   ON (1=1)
+                GROUP BY T2.ADSB_OJ_REDF_DTL_ID, T1.BASE_YM, T1.PRTNR_NO, T1.CNTR_NO, T1.CNTR_SN, T1.BRMGR_PRTNR_NO
+                UNION ALL
+                SELECT T2.ADSB_OJ_REDF_DTL_ID
+                     , T1.BASE_YM        AS PERF_YM
+                     , '2'               AS PERF_DV_CD
+                     , T1.BRMGR_PRTNR_NO   AS PRTNR_NO
+                     , T1.CNTR_NO
+                     , T1.CNTR_SN
+                     , #{brmgrOgFeeCd} AS FEE_CD
+                     ,(NVL(SUM(CASE WHEN CNTR_YM <![CDATA[>=]]> '202401' THEN 1 END), 0) * 30000
+                        + NVL(SUM(CASE WHEN CNTR_YM <![CDATA[<]]> '202401' THEN 1 END), 0) * 40000) AS REDF_ADSB_OC_AMT
+                  FROM DATA T1
+                 INNER JOIN TB_FEAM_FEE_CALC_BAS BAS /* 해당 실적년월에 수수료를 지급받은 이력이 있는지 체크 */
+                 ON (T1.BASE_YM = BAS.BASE_YM AND T1.OG_TP_CD = BAS.OG_TP_CD AND T1.BRMGR_PRTNR_NO = BAS.PRTNR_NO AND BAS.FEE_TCNT_DV_CD = '02'
+                     AND BAS.SPMT_DSB_DV_CD = '01' AND BAS.FEE_CALC_TP_CD = '01' AND BAS.FEE_DSB_MTHD_CD = '01' AND BAS.FEE_CD = #{brmgrOgFeeCd})
+                  LEFT OUTER JOIN LATERAL(SELECT ADSB_OJ_REDF_DTL_ID
+                                                  FROM (SELECT T5.FEE_REDF_ADSB_DTL_ID AS ADSB_OJ_REDF_DTL_ID
+                                                             , ROW_NUMBER() OVER (PARTITION BY T5.PERF_YM,T5.PERF_DV_CD,T5.OG_TP_CD,T5.PRTNR_NO,T5.CNTR_NO,T5.CNTR_SN ORDER BY T5.REDF_ADSB_OC_YM DESC) AS RN
+                                                          FROM TB_FEDD_FEE_REDF_ADSB_DTL T5
+                                                         WHERE T5.REDF_ADSB_OC_YM <![CDATA[<]]> #{baseYm}
+                                                           AND T5.REDF_ADSB_DV_CD = '02'
+                                                           AND T5.REDF_ADSB_TP_CD = '0203'
+                                                           AND T5.PERF_DV_CD = '0'
+                                                           AND T5.OG_TP_CD = #{ogTpCd}
+                                                           AND T1.CO_CD = T5.CO_CD
+                                                           AND T5.FEE_CD = 'W020126'
+                                                           AND T1.OG_TP_CD = T5.OG_TP_CD
+                                                           AND T1.PRTNR_NO = T5.PRTNR_NO
+                                                           AND T1.CNTR_NO = T5.CNTR_NO
+                                                           AND T1.CNTR_SN = T5.CNTR_SN
+                                                           AND T1.BASE_YM = T5.PERF_YM)
+                                                WHERE RN = 1) T2
+                    ON (1=1)
+                 WHERE T1.LIF_CNTR_OC_TN = 1
+                   AND T1.PRTNR_NO != T1.BRMGR_PRTNR_NO
+                 GROUP BY T2.ADSB_OJ_REDF_DTL_ID, T1.BASE_YM, T1.PRTNR_NO, T1.CNTR_NO, T1.CNTR_SN, T1.BRMGR_PRTNR_NO
+                )
+    </insert>
+
     <insert id='insertContractDlqAdsbsForMog'>
         INSERT INTO TB_FEDD_FEE_REDF_ADSB_DTL (  /* 수수료되물림재지급상세 */
                   FEE_REDF_ADSB_DTL_ID   /* 수수료되물림재지급상세ID */
