@@ -772,6 +772,77 @@
          GROUP BY MST.BASE_YM, MST.OG_TP_CD, MST.PRTNR_NO
     </insert>
 
+    <insert id="insertManagerLifeAlncFee4">
+    /* 2024.01 이후 조직상조 수수료 (계약단위) 계산 SQL (W020126, 7) */
+    INSERT INTO TB_FEAM_FEE_SML_CNTR_DTL_IZ(
+                   BASE_YM           /* 기준년월 */
+                 , PERF_YM           /* 실적년월 */
+                 , OJ_DSB_YM         /* 대상지급년월 */
+                 , CO_CD             /* 회사코드 */
+                 , OG_TP_CD          /* 조직유형코드 */
+                 , PRTNR_NO          /* 파트너번호 */
+                 , FEE_CD            /* 수수료코드 */
+                 , DTA_CRT_FEE_CD    /* 데이터생성수수료코드 */
+                 , SML_CRT_TP_CD    /* 시뮬레이션생성유형코드 */
+                 , CNTR_NO           /* 계약번호 */
+                 , CNTR_SN           /* 계약일련번호 */
+                 , FEE_CALC_AMT      /* 수수료계산금액 */
+             <include refid="COMMON.insertSystemField" />
+             )
+    SELECT MST.BASE_YM
+             , MST.PERF_YM
+             , MST.OJ_DSB_YM
+             , #{coCd}          AS CO_CD
+             , MST.OG_TP_CD
+             , MST.PRTNR_NO
+             , #{feeCd}         AS FEE_CD
+             , #{dtaCrtFeeCd}   AS DTA_CRT_FEE_CD
+             , #{smlCrtTpCd}    AS SML_CRT_TP_CD
+             , MST.CNTR_NO
+             , MST.CNTR_SN
+             , MST.FEE_CALC_AMT
+            <include refid="COMMON.insertSystemFieldValue" />
+      FROM (
+            SELECT A.BASE_YM
+                   , A.BASE_YM      AS PERF_YM
+                   , A.BASE_YM      AS OJ_DSB_YM
+                   , A.OG_TP_CD
+                   , A.PRTNR_NO
+                   , B.CNTR_NO
+                   , B.CNTR_SN
+                   , (NVL(B.PRE_CNT, 0) * 40000 + NVL(B.NXT_CNT, 0) * 30000) AS FEE_CALC_AMT
+               FROM TB_OGBS_MM_PRTNR_IZ A
+               LEFT OUTER JOIN (
+                     SELECT M.FEE_DSB_YM BASE_YM
+                            ,M.OG_TP_CD
+                            ,M.CNTR_NO
+                            ,M.CNTR_SN
+                            ,M.BRMGR_PRTNR_NO PRTNR_NO
+                            ,SUM(CASE WHEN SUBSTR(M.CNTR_DT, 1, 6) <![CDATA[>=]]> '202401' THEN 1 ELSE 0 END) NXT_CNT
+                            ,SUM(CASE WHEN SUBSTR(M.CNTR_DT, 1, 6) <![CDATA[<]]> '202401' THEN 1 ELSE 0 END) PRE_CNT
+                       FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ M
+                      WHERE M.FEE_DSB_YM = #{baseYm}
+                        AND M.ET_CNFM_DV_CD = '01' /* 예상 */
+                        AND NVL(M.CAN_DT,0) = 0    /* 취소X */
+                        AND M.LIF_CNTR_STAT_CD = 0 /* 수수료 */
+                        AND M.OG_TP_CD = 'W02' /* M영업 조직 */
+                        AND M.DTA_DL_YN = 'N'
+                        AND M.PRTNR_NO != M.BRMGR_PRTNR_NO /* 본인 대상 제외 */
+                        AND M.LIF_CNTR_OC_TN = 1
+                      GROUP BY M.FEE_DSB_YM, M.OG_TP_CD, M.BRMGR_PRTNR_NO, M.CNTR_NO, M.CNTR_SN
+                    ) B
+                 ON (A.BASE_YM = B.BASE_YM
+                    AND A.OG_TP_CD = B.OG_TP_CD
+                    AND A.PRTNR_NO = B.PRTNR_NO)
+              WHERE 1 = 1
+                AND A.BASE_YM = #{baseYm} -- 변수
+                AND A.PSTN_DV_CD = '7'
+                AND A.OG_TP_CD = 'W02'
+            ) MST
+      WHERE 1 = 1
+        AND MST.FEE_CALC_AMT <![CDATA[>]]> 0
+    </insert>
+
     <insert id="insertPlarBrmgrSettleFeeRedf">
 
     </insert>
@@ -787,4 +858,5 @@
     <insert id="insertBrmgrOgMngtFeeRedfForApyTn4">
 
     </insert>
+
 </mapper>

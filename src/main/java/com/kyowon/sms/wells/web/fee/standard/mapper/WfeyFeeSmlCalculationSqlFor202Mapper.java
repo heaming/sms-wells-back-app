@@ -139,4 +139,24 @@ public interface WfeyFeeSmlCalculationSqlFor202Mapper {
         String baseYm, String ogTpCd, String coCd, String feeCd, String dtaCrtFeeCd, String fnlFeeYn,
         String mmAcuPerfAgrgCrtDvCd, String smlCrtTpCd, String prtnrNo
     );
+
+    /**
+     /* M조직 지국장 조직상조수수료계산 (계약단위) SQL Mapper (W020126, 7)
+     *
+     * @param baseYm      기준년월
+     * @param coCd      회사코드
+     * @param ogTpCd      조직유형코드
+     * @param feeCd       수수료코드
+     * @param dtaCrtFeeCd 데이터생성수수료코드
+     * @param fnlFeeYn 최종수수료여부
+     * @param mmAcuPerfAgrgCrtDvCd 월누적실적집계생성구분코드
+     * @param smlCrtTpCd 시뮬레이션생성유형코드
+     * @param prtnrNo 파트너번호
+     * @return 처리개수
+     */
+    @SqlMethodInfo(methodTypeCode = "04", methodName = "M조직 지점장 조직상조 수수료계산", methodExplanation = "M조직 지점장 조직상조 수수료계산 SQL 매퍼")
+    Integer insertManagerLifeAlncFee4(
+        String baseYm, String ogTpCd, String coCd, String feeCd, String dtaCrtFeeCd,
+        String fnlFeeYn, String mmAcuPerfAgrgCrtDvCd, String smlCrtTpCd, String prtnrNo
+    );
 }
