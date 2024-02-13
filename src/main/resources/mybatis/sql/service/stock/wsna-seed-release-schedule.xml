@@ -282,36 +282,45 @@
                   AND D1.OSTR_CNFMDT BETWEEN #{strtDt} AND #{endDt}   /* 확정일자 */
                </when>
                <when test='@MybatisUtils@equals(dtTpCd, "4")'>
-                  AND (
-                           (     ( SELECT SPP_DV_CD
-                                     FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
-                                    WHERE CNR_OG_CD = NVL(D4.OG_CD, D7.OG_CD)
-                                      AND DTA_DL_YN = 'N'
-                                      AND DOW_DV_CD = TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD'), 'D') - 1
-                                      AND #{strtDt} BETWEEN APY_STRTDT AND APY_ENDDT ) = '1'
-                             AND D3.VST_CNFMDT BETWEEN TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD') + 1, 'YYYYMMDD') AND TO_CHAR( TO_DATE(#{strtDt}, 'YYYYMMDD') + ( SELECT SPP_PRD
-                                                                                                                                                                 FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
-                                                                                                                                                                WHERE CNR_OG_CD = NVL(D4.OG_CD, D7.OG_CD)
-                                                                                                                                                                  AND DTA_DL_YN = 'N'
-                                                                                                                                                                  AND DOW_DV_CD = TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD'), 'D') - 1
-                                                                                                                                                                  AND #{strtDt} BETWEEN APY_STRTDT AND APY_ENDDT ), 'YYYYMMDD')
-                           )
-                        OR
-                           (     ( SELECT SPP_DV_CD
-                                     FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
-                                    WHERE CNR_OG_CD = NVL(D4.OG_CD, D7.OG_CD)
-                                      AND DTA_DL_YN = 'N'
-                                      AND DOW_DV_CD IN ('1', '2', '3', '4')
-                                      AND DOW_DV_CD = TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD'), 'D') - 1
-                                      AND #{strtDt} BETWEEN APY_STRTDT AND APY_ENDDT ) = '2'
-                             AND D3.VST_CNFMDT BETWEEN TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD') + 2, 'YYYYMMDD') AND TO_CHAR( TO_DATE(#{strtDt}, 'YYYYMMDD') + ( SELECT SPP_PRD
-                                                                                                                                                                 FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
-                                                                                                                                                                WHERE CNR_OG_CD = NVL(D4.OG_CD, D7.OG_CD)
-                                                                                                                                                                  AND DTA_DL_YN = 'N'
-                                                                                                                                                                  AND DOW_DV_CD = TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD'), 'D') - 1
-                                                                                                                                                                  AND #{strtDt} BETWEEN APY_STRTDT AND APY_ENDDT ), 'YYYYMMDD')
-                           )
-                      )
+                  AND CASE WHEN (    D11.PD_PRP_VAL12 = '4'
+                                  OR ( D11.PD_PRP_VAL12 IS NULL AND D12.PDCT_PD_CD IN ('WM05107266', 'WM05107267') )
+                                )   /* 플로린일 경우 */
+                            AND D3.VST_CNFMDT <![CDATA[<=]]> #{strtDt}
+                           THEN 1
+                           WHEN NOT( D11.PD_PRP_VAL12 = '4' OR ( D11.PD_PRP_VAL12 IS NULL AND D12.PDCT_PD_CD IN ('WM05107266', 'WM05107267') ) )
+                            AND (
+                                     (     ( SELECT SPP_DV_CD
+                                               FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
+                                              WHERE CNR_OG_CD = NVL(D4.OG_CD, D7.OG_CD)
+                                                AND DTA_DL_YN = 'N'
+                                                AND DOW_DV_CD = TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD'), 'D') - 1
+                                                AND #{strtDt} BETWEEN APY_STRTDT AND APY_ENDDT ) = '1'
+                                       AND D3.VST_CNFMDT BETWEEN TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD') + 1, 'YYYYMMDD') AND TO_CHAR( TO_DATE(#{strtDt}, 'YYYYMMDD') + ( SELECT SPP_PRD
+                                                                                                                                                                           FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
+                                                                                                                                                                          WHERE CNR_OG_CD = NVL(D4.OG_CD, D7.OG_CD)
+                                                                                                                                                                            AND DTA_DL_YN = 'N'
+                                                                                                                                                                            AND DOW_DV_CD = TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD'), 'D') - 1
+                                                                                                                                                                            AND #{strtDt} BETWEEN APY_STRTDT AND APY_ENDDT ), 'YYYYMMDD')
+                                     )
+                                  OR
+                                     (     ( SELECT SPP_DV_CD
+                                               FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
+                                              WHERE CNR_OG_CD = NVL(D4.OG_CD, D7.OG_CD)
+                                                AND DTA_DL_YN = 'N'
+                                                AND DOW_DV_CD IN ('1', '2', '3', '4')
+                                                AND DOW_DV_CD = TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD'), 'D') - 1
+                                                AND #{strtDt} BETWEEN APY_STRTDT AND APY_ENDDT ) = '2'
+                                       AND D3.VST_CNFMDT BETWEEN TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD') + 2, 'YYYYMMDD') AND TO_CHAR( TO_DATE(#{strtDt}, 'YYYYMMDD') + ( SELECT SPP_PRD
+                                                                                                                                                                           FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
+                                                                                                                                                                          WHERE CNR_OG_CD = NVL(D4.OG_CD, D7.OG_CD)
+                                                                                                                                                                            AND DTA_DL_YN = 'N'
+                                                                                                                                                                            AND DOW_DV_CD = TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD'), 'D') - 1
+                                                                                                                                                                            AND #{strtDt} BETWEEN APY_STRTDT AND APY_ENDDT ), 'YYYYMMDD')
+                                     )
+                                )
+                           THEN 1
+                           ELSE 0
+                       END                  = 1
                </when>
                </choose>
                <if test="@MybatisUtils@isNotEmpty(refriDivCd)">
@@ -735,36 +744,7 @@
                   AND D1.OSTR_CNFMDT BETWEEN #{strtDt} AND #{endDt}   /* 확정일자 */
                </when>
                <when test='@MybatisUtils@equals(dtTpCd, "4")'>
-                  AND (
-                           (     ( SELECT SPP_DV_CD
-                                     FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
-                                    WHERE CNR_OG_CD = NVL(D4.OG_CD, D7.OG_CD)
-                                      AND DTA_DL_YN = 'N'
-                                      AND DOW_DV_CD = TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD'), 'D') - 1
-                                      AND #{strtDt} BETWEEN APY_STRTDT AND APY_ENDDT ) = '1'
-                             AND D3.VST_CNFMDT BETWEEN TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD') + 1, 'YYYYMMDD') AND TO_CHAR( TO_DATE(#{strtDt}, 'YYYYMMDD') + ( SELECT SPP_PRD
-                                                                                                                                                                 FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
-                                                                                                                                                                WHERE CNR_OG_CD = NVL(D4.OG_CD, D7.OG_CD)
-                                                                                                                                                                  AND DTA_DL_YN = 'N'
-                                                                                                                                                                  AND DOW_DV_CD = TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD'), 'D') - 1
-                                                                                                                                                                  AND #{strtDt} BETWEEN APY_STRTDT AND APY_ENDDT ), 'YYYYMMDD')
-                           )
-                        OR
-                           (     ( SELECT SPP_DV_CD
-                                     FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
-                                    WHERE CNR_OG_CD = NVL(D4.OG_CD, D7.OG_CD)
-                                      AND DTA_DL_YN = 'N'
-                                      AND DOW_DV_CD IN ('1', '2', '3', '4')
-                                      AND DOW_DV_CD = TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD'), 'D') - 1
-                                      AND #{strtDt} BETWEEN APY_STRTDT AND APY_ENDDT ) = '2'
-                             AND D3.VST_CNFMDT BETWEEN TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD') + 2, 'YYYYMMDD') AND TO_CHAR( TO_DATE(#{strtDt}, 'YYYYMMDD') + ( SELECT SPP_PRD
-                                                                                                                                                                 FROM TB_SVPD_SDING_CNR_SPP_DOW_IZ
-                                                                                                                                                                WHERE CNR_OG_CD = NVL(D4.OG_CD, D7.OG_CD)
-                                                                                                                                                                  AND DTA_DL_YN = 'N'
-                                                                                                                                                                  AND DOW_DV_CD = TO_CHAR(TO_DATE(#{strtDt}, 'YYYYMMDD'), 'D') - 1
-                                                                                                                                                                  AND #{strtDt} BETWEEN APY_STRTDT AND APY_ENDDT ), 'YYYYMMDD')
-                           )
-                      )
+                  AND D3.VST_CNFMDT <![CDATA[<=]]> #{strtDt}
                </when>
                </choose>
                <if test="@MybatisUtils@isNotEmpty(refriDivCd)">
