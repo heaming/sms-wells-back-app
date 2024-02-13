@@ -58,7 +58,7 @@ public class WsnaPcsvOutOfStorageSaveService {
         List<WsnaPcsvOutOfStorageSaveDvo> dvos = converter.mapSaveReqToPcsvOutOfStorageDvo(dtos);
         String lgstOstrAkNo = mapper.selectNewLgstOstrAkNo(); // 물류요청번호 생성
 
-        // 택배 출고 저장 - 정상출고[1112] / 재배송출고[1113]
+        // 택배 출고 저장 - 정상출고[1112] / 재배송출고[1113] / 사은품상품 출고 [1410]
         for (WsnaPcsvOutOfStorageSaveDvo dvo : dvos) {
             if ("1112".equals(dvo.getSvBizDclsfCd())) {
                 // --- 정상출고----
@@ -125,7 +125,7 @@ public class WsnaPcsvOutOfStorageSaveService {
                 // 10.BS주기표 생성
                 this.visitPrdService.processVisitPeriodRegen(this.setWsnbVisitPrdProcessReq(cntrNo, cntrSn, istDt));
 
-                // 웰컴BS 생성
+                // 웰컴BS 플로린  생성
                 if ("Y".equals(dvo.getWlcmBfsvcYn())) {
 //                    visitPrdService.saveWelcomeBS(this.setWsnbWelcomeBSReq(cntrNo, cntrSn));
                     this.mapper.insertSvpdCstSvRgbsprIz(cntrNo, cntrSn);
