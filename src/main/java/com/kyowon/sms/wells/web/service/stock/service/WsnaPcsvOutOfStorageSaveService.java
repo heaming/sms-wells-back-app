@@ -85,8 +85,8 @@ public class WsnaPcsvOutOfStorageSaveService {
 
                 dvo.setLgstOstrAkNo(lgstOstrAkNo); // 물류요청번호
 
-                String idvTno = dvo.getLocaraTno() + dvo.getExnoEncr() + dvo.getIdvTno(); // 전화번호
-                String cralIdvTno = dvo.getCralLocaraTno() + dvo.getMexnoEncr() + dvo.getCralIdvTno(); //휴대폰 번호
+                String idvTno = this.concatStringForTno(dvo.getLocaraTno(), dvo.getExnoEncr(), dvo.getIdvTno()); // 전화번호
+                String cralIdvTno = this.concatStringForTno(dvo.getCralLocaraTno(), dvo.getMexnoEncr(), dvo.getCralIdvTno()); //휴대폰 번호
 
                 // 4.상품 내역 등록 및 수불 처리 (물류)
                 List<WsnaPcsvSendDtlDvo> pcsvSendDtlDvos = this.setWsnaPcsvSendDtlDvo(dvo);
@@ -213,8 +213,8 @@ public class WsnaPcsvOutOfStorageSaveService {
 
                 dvo.setLgstOstrAkNo(lgstOstrAkNo); // 물류요청번호
 
-                String idvTno = dvo.getLocaraTno() + dvo.getExnoEncr() + dvo.getIdvTno(); // 전화번호
-                String cralIdvTno = dvo.getCralLocaraTno() + dvo.getMexnoEncr() + dvo.getCralIdvTno(); //휴대폰 번호
+                String idvTno = this.concatStringForTno(dvo.getLocaraTno(), dvo.getExnoEncr(), dvo.getIdvTno()); // 전화번호
+                String cralIdvTno = this.concatStringForTno(dvo.getCralLocaraTno(), dvo.getMexnoEncr(), dvo.getCralIdvTno()); //휴대폰 번호
 
                 // 4.상품 내역 등록 및 수불 처리 (물류)
                 List<WsnaPcsvSendDtlDvo> pcsvSendDtlDvos = this.setWsnaPcsvSendDtlDvo(dvo);
@@ -259,6 +259,13 @@ public class WsnaPcsvOutOfStorageSaveService {
     }
 
     /**
+     * 전화번호 형식
+     */
+    private String concatStringForTno(String args1, String args2, String args3) {
+        return String.format("%s%s%s", args1, args2, args3);
+    }
+
+    /**
      * 물류 파라미터 세팅
      *
      * @param vo
@@ -288,8 +295,8 @@ public class WsnaPcsvOutOfStorageSaveService {
         sendDtlDvo.setWareMngtPrtnrNo(vo.getWareMngtPrtnrNo());      // 창고관리파트너번호
         sendDtlDvo.setWareMngtPrtnrOgTpCd(vo.getWareMngtPrtnrOgTpCd());  // 배송창고(파트너조직유형코드)
 
-        String idvTno = vo.getLocaraTno() + vo.getExnoEncr() + vo.getIdvTno(); // 전화번호
-        String cralIdvTno = vo.getCralLocaraTno() + vo.getMexnoEncr() + vo.getCralIdvTno(); //휴대폰 번호
+        String idvTno = this.concatStringForTno(vo.getLocaraTno(), vo.getExnoEncr(), vo.getIdvTno()); // 전화번호
+        String cralIdvTno = this.concatStringForTno(vo.getCralLocaraTno(), vo.getMexnoEncr(), vo.getCralIdvTno()); //휴대폰 번호
 
         // 고객정보 파라미터 세팅
         sendDtlDvo.setCstSvAsnNo(vo.getCstSvAsnNo()); // 고객서비스배정번호
