@@ -27,4 +27,6 @@ public interface WsnbServiceProcessingMapper {
 
     List<WsnbServiceProcessingDvo> selectServiceProcessings(SearchReq dto);
 
+    List<WsnbServiceProcessingDvo> selectServiceProcessingsNoBlob(SearchReq dto);
+
 }

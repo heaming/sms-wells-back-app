@@ -104,7 +104,6 @@ public class WsnbServiceProcessingService {
      * 서비스 처리내역 엑셀 다운로드
      */
     public List<WsnbServiceProcessingDvo> getServiceProcessingsForExcel(SearchReq dto) {
-        return mapper.selectServiceProcessings(dto);
+        return mapper.selectServiceProcessingsNoBlob(dto);
     }
-
 }
