@@ -76,9 +76,11 @@ public class WbndRentalCbMgtObjectDto {
         String mexnoEncr, /*휴대폰번호2*/
         String cralIdvTno, /*휴대폰번호3*/
         String cralTno, /*휴대폰번호 통합*/
+        String dpDt, /*입금일자*/
         String mpyBsdt, /*자동이체 약정일자*/
         String fntDvNm, /*결제수단*/
         Long dlqAmt, /*연체금액*/
+        Long totalDpAmt, /*연체입금액*/
         Long dlqBlam, /*연체잔액*/
         String clctamPrtnrNo, /*집금담당자번호*/
         String prtnrKnm, /*집금담당자명*/
