@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import javax.validation.constraints.NotBlank;
 
@@ -27,12 +28,16 @@ public class WsnaWasteFilterCollectionPsDto {
         // 창고구분
         @NotBlank
         String wareDvCd,
-        // 센터
+        // 상위창고번호
         String hgrWareNo,
-        // 엔지니어
+        // 창고번호
         String wareNo,
         // 업무유형
-        String svBizHclsfCd
+        String svBizHclsfCd,
+        // 품목그룹
+        String itmGrpCd,
+        // 품목코드 리스트
+        List<String> itmPdCds
     ) {}
 
     @Builder

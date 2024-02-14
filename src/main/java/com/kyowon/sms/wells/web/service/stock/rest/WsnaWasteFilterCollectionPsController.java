@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.stock.rest;
 
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnStockAggregationDto.SearchPdRes;
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaWasteFilterCollectionPsDto.SearchReq;
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaWasteFilterCollectionPsDto.SearchRes;
 
@@ -39,6 +40,12 @@ public class WsnaWasteFilterCollectionPsController {
 
     private final WsnaWasteFilterCollectionPsService service;
 
+    @GetMapping("/products")
+    @ApiOperation(value = "품목 조회", notes = "품목을 조회한다.")
+    public List<SearchPdRes> getProducts() {
+        return this.service.getProducts();
+    }
+
     @GetMapping
     @ApiOperation(value = "폐필터 회수 현황 조회", notes = "폐필터 회수 현황을 조회한다.")
     @ApiImplicitParams(value = {
@@ -46,7 +53,9 @@ public class WsnaWasteFilterCollectionPsController {
         @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query", example = "2", required = true),
         @ApiImplicitParam(name = "hgrWareNo", value = "상위창고번호", paramType = "query", example = "200609"),
         @ApiImplicitParam(name = "wareNo", value = "창고번호", paramType = "query", example = "200898"),
-        @ApiImplicitParam(name = "svBizHclsfCd", value = "업무유형", paramType = "query", example = "1")
+        @ApiImplicitParam(name = "svBizHclsfCd", value = "업무유형", paramType = "query", example = "1"),
+        @ApiImplicitParam(name = "itmGrpCd", value = "품목그룹코드", paramType = "query", example = "1"),
+        @ApiImplicitParam(name = "itmPdCds", value = "품목코드 리스트", paramType = "query", example = "[WM07102157]", dataType = "array"),
     })
     public List<SearchRes> getWasteFilterCollections(@Valid
     SearchReq dto) {

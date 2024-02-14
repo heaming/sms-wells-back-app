@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnStockAggregationDto.SearchPdRes;
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaWasteFilterCollectionPsDto.SearchReq;
 import static com.kyowon.sms.wells.web.service.stock.dto.WsnaWasteFilterCollectionPsDto.SearchRes;
 
@@ -25,6 +26,14 @@ import lombok.RequiredArgsConstructor;
 public class WsnaWasteFilterCollectionPsService {
 
     private final WsnaWasteFilterCollectionPsMapper mapper;
+
+    /**
+     * 품목 리스트 조회
+     * @return
+     */
+    public List<SearchPdRes> getProducts() {
+        return this.mapper.selectProducts();
+    }
 
     /**
      * 폐필터 회수현황 조회
