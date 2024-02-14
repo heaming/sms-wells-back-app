@@ -225,28 +225,25 @@ public class WfefEstimateFeeMgtService {
     /**
      * 추가실적 입력 예상수수료 조회 - M추진단
      *
-     * 가전인정건수(개인) : W02P00103_0, TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성
-     * 가전인정건수(조직) : W02P00103_2, TB_FEAM_MACUP_CNTR_PERF_CL, 지점장 소속 플래너로 생성
-     * 렌탈기준가(개인) : W00P00033_0, TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성
-     * 렌탈기준가(조직) : W00P00033_2, TB_FEAM_MACUP_CNTR_PERF_CL, 지점장 소속 플래너로 생성
-     * 일시불기준가(개인) : W00P00006_0, TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성
-     * 일시불기준가(조직) : W00P00006_2, TB_FEAM_MACUP_CNTR_PERF_CL, 지점장 소속 플래너로 생성
+     * 가전인정건수(개인) : W02P00002_0, TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성
+     * 가전인정건수(조직) : W02P00002_2, TB_FEAM_MACUP_CNTR_PERF_CL, 지점장 소속 플래너로 생성
+     * 렌탈기준가(개인) : W00P00003_0, TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성
+     * 렌탈기준가(조직) : W00P00003_2, TB_FEAM_MACUP_CNTR_PERF_CL, 지점장 소속 플래너로 생성
+     * 일시불기준가(개인) : W00P00004_0, TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성
+     * 일시불기준가(조직) : W00P00004_2, TB_FEAM_MACUP_CNTR_PERF_CL, 지점장 소속 플래너로 생성
      * 가전외인정실적(개인) : W02P00112_0, TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성
      * 가전외인정실적(조직) : W02P00112_2, TB_FEAM_MACUP_CNTR_PERF_CL, 지점장 소속 플래너로 생성
      * 순증(개인) : W02P00113_0, TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성
      * 순증(조직) : W02P00113_2, TB_FEAM_MACUP_CNTR_PERF_CL, 지점장 소속 플래너로 생성
-     * BS정수기1완료건수 : wrfr01Ct, TB_FEAM_WELS_SV_PERF_IZ
-     * BS정수기2완료건수 : wrfr02Ct, TB_FEAM_WELS_SV_PERF_IZ
-     * BS정수기3완료건수 : wrfr03Ct, TB_FEAM_WELS_SV_PERF_IZ
-     * BS정수기4완료건수 : wrfr04Ct, TB_FEAM_WELS_SV_PERF_IZ
-     * BS비정수기완료건수 : unWrfrCt, TB_FEAM_WELS_SV_PERF_IZ
-     * BS청정기1완료건수 : puf01Ct, TB_FEAM_WELS_SV_PERF_IZ
-     * BS청정기2완료건수 : puf02Ct, TB_FEAM_WELS_SV_PERF_IZ
-     * BS아웃소싱류완료건수 : otscEtcCt, TB_FEAM_WELS_SV_PERF_IZ
-     * BS비데,연수기완료건수 : bdtEtcCt, TB_FEAM_WELS_SV_PERF_IZ
-     * W1급지 : w1Ct, TB_FEAM_WELS_SV_PERF_IZ
-     * W2급지 : w2Ct, TB_FEAM_WELS_SV_PERF_IZ
-     * 조직BS완료건수 : ogBsAddPerfCt, TB_FEAM_WELS_SV_PERF_IZ
+     * BS관리수수료기준금액 : W02P00096, TB_FEAM_MACUP_PERF_CL, 각 상품별 완료건수 * 기준금액의 합
+     *                     BS정수기1완료건수(7000원), BS정수기2완료건수(8000원), BS정수기3완료건수(8500원), BS정수기4완료건수(10000원)
+     *                   , BS비정수기완료건수(5000원), BS청정기1완료건수(6300원), BS청정기2완료건수(6700원), BS아웃소싱류완료건수(6500원)
+     *                   , BS비데,연수기완료건수(5500원)
+     * BS실적건수 : W02P00085_0, TB_FEAM_MACUP_PERF_CL, 각 상품별 완료건수의 합
+     * BS실적비율 : W02R00095, TB_FEAM_MACUP_PERF_CL, 실적건수 / 전체 배정건수. %
+     * 급지기준금액(W1급지,W2급지) : W02P00100, 1급지건수 * 1000원 + 2급지건수 * 3000원
+     * 조직BS완료건수 : W02P00085_2, 지점장 조직 데이터만 업데이트
+     *
      * @param req
      * @param addPerformances
      * @return
@@ -260,9 +257,9 @@ public class WfefEstimateFeeMgtService {
             addPerformances.keySet().forEach(keyName -> {
                 switch(keyName) {
                     /* 가전인정건수(개인), 렌탈기준가(개인), 일시불기준가(개인),가전외인정실적(개인), 순증(개인) */
-                    case "W02P00103_0":
-                    case "W00P00033_0":
-                    case "W00P00006_0":
+                    case "W02P00002_0":
+                    case "W00P00003_0":
+                    case "W00P00004_0":
                     case "W02P00112_0":
                     case "W02P00113_0":
                         /* 가전인정건수(개인), 렌탈기준가(개인), 일시불기준가(개인),가전외인정실적(개인), 순증(개인)로 DUMMY 계약으로 INSERT */
@@ -277,9 +274,9 @@ public class WfefEstimateFeeMgtService {
                                 .perfVal((Integer)addPerformances.get(keyName)).build());
                         break;
                     /* 가전인정건수(조직), 렌탈기준가(조직), 일시불기준가(조직),가전외인정실적(조직), 순증(조직) */
-                    case "W02P00103_2":
-                    case "W00P00033_2":
-                    case "W00P00006_2":
+                    case "W02P00002_2":
+                    case "W00P00003_2":
+                    case "W00P00004_2":
                     case "W02P00112_2":
                     case "W02P00113_2":
                         /* 가전인정건수(조직), 렌탈기준가(조직), 일시불기준가(조직),가전외인정실적(조직), 순증(조직)로 DUMMY 계약으로 INSERT */
@@ -293,22 +290,29 @@ public class WfefEstimateFeeMgtService {
                                 .perfAtcCd(keyName.split("_")[0])
                                 .perfVal((Integer)addPerformances.get(keyName)).build());
                         break;
-                    /* BS정수기1완료건수, BS정수기2완료건수, BS정수기3완료건수, BS정수기4완료건수, BS비정수기완료건수
-                    *  BS청정기1완료건수, BS청정기2완료건수, BS아웃소싱류완료건수, 연수기완료건수, W1급지, W2급지 */
-                    case "wrfr01Ct":
-                    case "wrfr02Ct":
-                    case "wrfr03Ct":
-                    case "wrfr04Ct":
-                    case "unWrfrCt":
-                    case "puf01Ct":
-                    case "puf02Ct":
-                    case "otscEtcCt":
-                    case "bdtEtcCt":
-                    case "w1Ct":
-                    case "w2Ct":
+                    case "W02P00095": // BS실적비율
+                    case "W02P00096": // BS관리수수료기준금액
+                    case "W02P00100": // 급지기준금액
+                        feeSmlCalculationService.saveMacupPerfCl(ZfefMacupPerfClDvo.builder()
+                                .mmAcuPerfAgrgCrtDvCd(req.perType())
+                                .baseYm(req.perfYm())
+                                .perfAgrgCrtDvCd(perfAgrgCrtDvCd)
+                                .ogTpCd(M_OG_TP_CD)
+                                .prtnrNo(req.sellPrtnrNo())
+                                .perfAtcCd(keyName)
+                                .perfVal((Integer)addPerformances.get(keyName)).build());
                         break;
-                        /* 조직BS완료건수 */
-                    case "ogBsAddPerfCt":
+                    case "W02P00085_0": // BS실적건수(개인)
+                    case "W02P00085_2": // Bs실적건수(조직)
+                        feeSmlCalculationService.saveMacupPerfCl(ZfefMacupPerfClDvo.builder()
+                                .mmAcuPerfAgrgCrtDvCd(req.perType())
+                                .baseYm(req.perfYm())
+                                .perfAgrgCrtDvCd(perfAgrgCrtDvCd)
+                                .ogTpCd(M_OG_TP_CD)
+                                .prtnrNo(req.sellPrtnrNo())
+                                .perfAtcCd(keyName.split("_")[0])
+                                .perfDvCd(keyName.split("_")[1])
+                                .perfVal((Integer)addPerformances.get(keyName)).build());
                         break;
                 }
             });
