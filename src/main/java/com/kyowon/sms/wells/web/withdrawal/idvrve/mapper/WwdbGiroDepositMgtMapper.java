@@ -55,7 +55,7 @@ public interface WwdbGiroDepositMgtMapper {
     int inertIntegrationItemizationHistory(WwdbGiroDepositSaveInfoDvo dvo);
 
     /* 지로 입금 등록 조회 */
-    List<WwdbGiroDepositSaveInfoDvo> selectGiroDepositItemizationInfo();
+    List<WwdbGiroDepositSaveInfoDvo> selectGiroDepositItemizationInfo(String date);
 
     /* 지로 입금 삭제 - 지로입금원장내역 삭제 */
     int deleteGiroDeposit();

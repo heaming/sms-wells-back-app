@@ -115,17 +115,17 @@ public class WwdbGiroDepositMgtService {
                 processCount += mapper.inertGiroDeposit(dvo); //원장내역 저장
             }
 
-            List<WwdbGiroDepositSaveInfoDvo> dvos = mapper.selectGiroDepositItemizationInfo(); //원장내역 데이터를 가공한다.
+            List<WwdbGiroDepositSaveInfoDvo> dvos = mapper.selectGiroDepositItemizationInfo(date); //원장내역 데이터를 가공한다.
 
             for (WwdbGiroDepositSaveInfoDvo infoDvo : dvos) {
                 SearchDtlStateRes selectDtlState = mapper.selectDtlState(infoDvo);
 
                 if (Objects.isNull(selectDtlState)) { //자료가없으면 주문 x
                     errorChk = "1";
-                } else if (StringUtil.isNotEmpty(selectDtlState.cntrCanDtm())) { //정상처리가 아니면 2
+                } else if (StringUtil.isNotEmpty(selectDtlState.cntrCanDtm())) {
                     errorChk = "2";
                 } else {
-                    errorChk = "4"; //정상처리
+                    errorChk = "3"; //정상처리
                 }
                 infoDvo.setProcsErrTpCd(errorChk);
 
