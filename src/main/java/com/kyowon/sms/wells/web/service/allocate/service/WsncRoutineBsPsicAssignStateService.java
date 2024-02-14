@@ -32,6 +32,8 @@ public class WsncRoutineBsPsicAssignStateService {
     private final SqlSession priSqlSession;
 
     public PagingResult<SearchRes> getRoutineBsPsicAssignStates(SearchReq req, PageInfo pageInfo) {
+        // 엑셀 출력시 그리드에서 변경되서 보여주는 항목이 있어 쿼리 새로 만듬
+        // 추가되는 항목있으면 selectRoutineBsPsicAssignStateBulkExcelDownload 같이 수정해줘야 함
         return mapper.selectRoutineBsPsicAssignState(req, pageInfo);
     }
 

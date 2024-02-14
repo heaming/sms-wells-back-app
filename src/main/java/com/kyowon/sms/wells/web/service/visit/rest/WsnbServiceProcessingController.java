@@ -84,6 +84,7 @@ public class WsnbServiceProcessingController {
 
     /**
      * 서비스처리 내역 조회 (엑셀 다운로드)
+     * (BLOB 컬럼 제외하고 조회.)
      * @param dto 조회조건
      * @return 서비스처리 내역
      */
@@ -92,5 +93,6 @@ public class WsnbServiceProcessingController {
     public List<WsnbServiceProcessingDvo> getServiceProcessingsForExcel(SearchReq dto) {
         return this.service.getServiceProcessingsForExcel(dto);
     }
+
 
 }

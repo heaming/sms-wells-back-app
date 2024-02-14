@@ -36,7 +36,7 @@
     </select>
 
     <select id='selectMeetingP' resultType="com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto$MeetingP">
-        SELECT (SELECT MAX(EDUC_CPC_ACKMT_DT)
+        SELECT (SELECT SUBSTR(MAX(EDUC_CPC_ACKMT_DT), 1, 6)
                   FROM TB_PSCA_MCPTN_EDUC_IZ
                  WHERE PRTNR_NO          =  #{req.sellPrtnrNo}
                    AND EDUC_CPC_ACKMT_DT >= (SELECT NVL(RCNTR_DT, CNTR_DT)
@@ -47,7 +47,7 @@
                    AND EDUC_CPC_ACKMT_YN = 'Y'               --교육수료인정여부
                    AND DTA_DL_YN         = 'N'
                    AND EDUC_CRSE_NO = '14') AS PLAR_SRTUP
-             , (SELECT MAX(EDUC_CPC_ACKMT_DT)
+             , (SELECT SUBSTR(MAX(EDUC_CPC_ACKMT_DT), 1, 6)
                   FROM TB_PSCA_MCPTN_EDUC_IZ
                  WHERE PRTNR_NO          =  #{req.sellPrtnrNo}
                    AND EDUC_CPC_ACKMT_DT >= (SELECT NVL(RCNTR_DT, CNTR_DT)
@@ -326,117 +326,244 @@
     </select>
 
     <select id='selectMeetingM' resultType="com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto$MeetingM">
-        SELECT MAX(CASE WHEN EDUC_CRSE_NO = 143 THEN EDUC_CPC_ACKMT_DT ELSE '' END) AS PRE_SRTUP
-             , MAX(CASE WHEN EDUC_CRSE_NO = 96  THEN EDUC_CPC_ACKMT_DT ELSE '' END) AS SRTUP
+        SELECT (SELECT MAX(SUBSTR(EDUC_CPC_ACKMT_DT, 1,6))
+                  FROM TB_PSCA_MCPTN_EDUC_IZ
+                 WHERE PRTNR_NO          =  #{req.sellPrtnrNo}
+                   AND EDUC_CPC_ACKMT_DT >= (SELECT NVL(RCNTR_DT, CNTR_DT)
+                                               FROM TB_OGBS_MM_PRTNR_IZ
+                                              WHERE BASE_YM = #{req.perfYm} --교육수료인정일자
+                                                AND OG_TP_CD = 'W02'
+                                                AND PRTNR_NO = #{req.sellPrtnrNo})
+                   AND EDUC_CPC_ACKMT_YN = 'Y'               --교육수료인정여부
+                   AND DTA_DL_YN         = 'N'
+                   AND EDUC_CRSE_NO = '143') AS PRE_SRTUP
+             , (SELECT MAX(SUBSTR(EDUC_CPC_ACKMT_DT, 1,6))
+                  FROM TB_PSCA_MCPTN_EDUC_IZ
+                 WHERE PRTNR_NO          =  #{req.sellPrtnrNo}
+                   AND EDUC_CPC_ACKMT_DT >= (SELECT NVL(RCNTR_DT, CNTR_DT)
+                                               FROM TB_OGBS_MM_PRTNR_IZ
+                                              WHERE BASE_YM = #{req.perfYm} --교육수료인정일자
+                                                AND OG_TP_CD = 'W02'
+                                                AND PRTNR_NO = #{req.sellPrtnrNo})
+                   AND EDUC_CPC_ACKMT_YN = 'Y'               --교육수료인정여부
+                   AND DTA_DL_YN         = 'N'
+                   AND EDUC_CRSE_NO = '96') AS SRTUP
              , ( SELECT NVL(SUM(PERF_VAL), 0)
-                   FROM TB_FEAM_MACUP_CNTR_PERF_CL  /* 월누적파트너계약실적마감 */
+                   FROM TB_FEAM_PRTNR_PERF_MM_ACU_CL  /* 월누적파트너계약실적마감 */
                   WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
                     AND BASE_YM                    = #{req.perfYm}
-                    AND PERF_AGRG_CRT_DV_CD        = '201'
-                    AND OG_TP_CD                   = 'W02'
-                    AND PRTNR_NO                   =  #{req.sellPrtnrNo}
+                    AND OG_TP_CD                   = 'W01'
+                    AND PRTNR_NO                   = #{req.sellPrtnrNo}
                     AND PERF_ATC_CD                = 'W02P00093'
                     AND DTA_DL_YN                  = 'N'  ) AS METG_PRSC_D
-             , MAX(CASE WHEN EDUC_CRSE_NO = 129 THEN EDUC_CPC_ACKMT_DT ELSE '' END) AS CMPF_EDUC
-             , MAX(CASE WHEN EDUC_CRSE_NO = 4   THEN EDUC_CPC_ACKMT_DT ELSE '' END) AS STMNT_1
-             , MAX(CASE WHEN EDUC_CRSE_NO = 119 THEN EDUC_CPC_ACKMT_DT ELSE '' END) AS STMNT_2
-             , MAX(CASE WHEN EDUC_CRSE_NO = 140 THEN EDUC_CPC_ACKMT_DT ELSE '' END) AS STMNT_345
-             , MAX(CASE WHEN EDUC_CRSE_NO = 135 THEN EDUC_CPC_ACKMT_DT ELSE '' END) AS BRMGR_ONLINE
-          FROM TB_PSCA_MCPTN_EDUC_IZ
-         WHERE PRTNR_NO          =   #{req.sellPrtnrNo}
-           AND EDUC_CPC_ACKMT_DT >= #{req.perfYm} || '01'
-           AND EDUC_CPC_ACKMT_DT <![CDATA[<=]]>  #{req.perfYm} || '31'
-           AND EDUC_CPC_ACKMT_YN = 'Y'
-           AND DTA_DL_YN         = 'N'
-         GROUP BY EDUC_CRSE_NO
+             , (SELECT MAX(SUBSTR(EDUC_CPC_ACKMT_DT, 1,6))
+                  FROM TB_PSCA_MCPTN_EDUC_IZ
+                 WHERE PRTNR_NO          =  #{req.sellPrtnrNo}
+                   AND EDUC_CPC_ACKMT_DT >= (SELECT NVL(RCNTR_DT, CNTR_DT)
+                                               FROM TB_OGBS_MM_PRTNR_IZ
+                                              WHERE BASE_YM = #{req.perfYm} --교육수료인정일자
+                                                AND OG_TP_CD = 'W02'
+                                                AND PRTNR_NO = #{req.sellPrtnrNo})
+                   AND EDUC_CPC_ACKMT_YN = 'Y'               --교육수료인정여부
+                   AND DTA_DL_YN         = 'N'
+                   AND EDUC_CRSE_NO = '129') AS CMPF_EDUC
+             , (SELECT MAX(SUBSTR(EDUC_CPC_ACKMT_DT, 1,6))
+                  FROM TB_PSCA_MCPTN_EDUC_IZ
+                 WHERE PRTNR_NO          =  #{req.sellPrtnrNo}
+                   AND EDUC_CPC_ACKMT_DT >= (SELECT NVL(RCNTR_DT, CNTR_DT)
+                                               FROM TB_OGBS_MM_PRTNR_IZ
+                                              WHERE BASE_YM = #{req.perfYm} --교육수료인정일자
+                                                AND OG_TP_CD = 'W02'
+                                                AND PRTNR_NO = #{req.sellPrtnrNo})
+                   AND EDUC_CPC_ACKMT_YN = 'Y'               --교육수료인정여부
+                   AND DTA_DL_YN         = 'N'
+                   AND EDUC_CRSE_NO = '4') AS STMNT_1
+             , (SELECT MAX(SUBSTR(EDUC_CPC_ACKMT_DT, 1,6))
+                  FROM TB_PSCA_MCPTN_EDUC_IZ
+                 WHERE PRTNR_NO          =  #{req.sellPrtnrNo}
+                   AND EDUC_CPC_ACKMT_DT >= (SELECT NVL(RCNTR_DT, CNTR_DT)
+                                               FROM TB_OGBS_MM_PRTNR_IZ
+                                              WHERE BASE_YM = #{req.perfYm} --교육수료인정일자
+                                                AND OG_TP_CD = 'W02'
+                                                AND PRTNR_NO = #{req.sellPrtnrNo})
+                   AND EDUC_CPC_ACKMT_YN = 'Y'               --교육수료인정여부
+                   AND DTA_DL_YN         = 'N'
+                   AND EDUC_CRSE_NO = '119') AS STMNT_2
+             , (SELECT MAX(SUBSTR(EDUC_CPC_ACKMT_DT, 1,6))
+                  FROM TB_PSCA_MCPTN_EDUC_IZ
+                 WHERE PRTNR_NO          =  #{req.sellPrtnrNo}
+                   AND EDUC_CPC_ACKMT_DT >= (SELECT NVL(RCNTR_DT, CNTR_DT)
+                                               FROM TB_OGBS_MM_PRTNR_IZ
+                                              WHERE BASE_YM = #{req.perfYm} --교육수료인정일자
+                                                AND OG_TP_CD = 'W02'
+                                                AND PRTNR_NO = #{req.sellPrtnrNo})
+                   AND EDUC_CPC_ACKMT_YN = 'Y'               --교육수료인정여부
+                   AND DTA_DL_YN         = 'N'
+                   AND EDUC_CRSE_NO = '140') AS STMNT_345
+             , (SELECT MAX(SUBSTR(EDUC_CPC_ACKMT_DT, 1,6))
+                  FROM TB_PSCA_MCPTN_EDUC_IZ
+                 WHERE PRTNR_NO          =  #{req.sellPrtnrNo}
+                   AND EDUC_CPC_ACKMT_DT >= (SELECT NVL(RCNTR_DT, CNTR_DT)
+                                               FROM TB_OGBS_MM_PRTNR_IZ
+                                              WHERE BASE_YM = #{req.perfYm} --교육수료인정일자
+                                                AND OG_TP_CD = 'W02'
+                                                AND PRTNR_NO = #{req.sellPrtnrNo})
+                   AND EDUC_CPC_ACKMT_YN = 'Y'               --교육수료인정여부
+                   AND DTA_DL_YN         = 'N'
+                   AND EDUC_CRSE_NO = '135') AS BRMGR_ONLINE
+        FROM DUAL
     </select>
 
     <select id='selectPerformanceM' resultType="com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto$PerformanceM">
-        WITH T0 AS ( SELECT T2.BASE_YM
-                          , T2.PERF_DV_CD       /* 실적구분코드     */
-                          , T2.PERF_ATC_CD      /* 실적항목코드     */
-                          , T2.PERF_VAL         /* 실적값           */
-                          , T4.FEE_PERF_ATC_VAL /* 수수료실적항목값 */
-                       FROM TB_OGBS_MM_PRTNR_IZ T1   /* 월파트너내역   */
-                       LEFT OUTER JOIN TB_FEAM_MACUP_CNTR_PERF_CL T2   /* 월누적파트너계약실적마감 */
-                         ON T2.OG_TP_CD                   = T1.OG_TP_CD
-                        AND T2.PRTNR_NO                   = T1.PRTNR_NO
-                        AND T2.MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
-                        AND T2.BASE_YM                    = T1.BASE_YM
-                        AND T2.PERF_AGRG_CRT_DV_CD        = '201'
-                      --AND T2.PERF_DV_CD                 IN ('0', '2' )
-                        AND T2.DTA_DL_YN                  = 'N'
-                       LEFT OUTER JOIN  TB_FEAM_PRTNR_PERF_MM_ACU_CL T4   /* 파트너실적월누적마감 */
-                         ON T4.MM_ACU_PERF_AGRG_CRT_DV_CD = T2.MM_ACU_PERF_AGRG_CRT_DV_CD
-                        AND T4.BASE_YM                    = T2.BASE_YM
-                        AND T4.PERF_AGRG_CRT_DV_CD        = T2.PERF_AGRG_CRT_DV_CD
-                        AND T4.CO_CD                      = T2.CO_CD
-                        AND T4.OG_TP_CD                   = T2.OG_TP_CD
-                        AND T4.PRTNR_NO                   = T2.PRTNR_NO
-                        AND T4.PERF_ATC_CD                = T2.PERF_ATC_CD
-                      WHERE T1.BASE_YM   = #{req.perfYm}
-                        AND T1.OG_TP_CD  = 'W02'
-                        AND T1.PRTNR_NO  =  #{req.sellPrtnrNo}
-                        AND T1.DTA_DL_YN = 'N' )
-        SELECT 'A' AS TYPE /* 실적현황 */
-             , NVL(SUM(NVL(CASE WHEN (T0.PERF_ATC_CD = 'W02P00103') THEN T0.PERF_VAL ELSE 0 END, 0)), 0) AS ELHM_ACKMT_CT /* 가전인정건수 */
-             , NVL(SUM(NVL(CASE WHEN (T0.PERF_ATC_CD = 'W00P00033') THEN T0.PERF_VAL ELSE 0 END, 0)), 0) AS RENTAL_BASE_PRC   /* 기준렌탈료   */
-             , NVL(SUM(NVL(CASE WHEN (T0.PERF_ATC_CD = 'W00P00006') THEN T0.PERF_VAL ELSE 0 END, 0)), 0) AS SNGL_PMNT_BASE_PRC  /* 일시불/할부  */
-             , NVL(SUM(NVL(CASE WHEN (T0.PERF_ATC_CD = 'W02P00112') THEN T0.PERF_VAL ELSE 0 END, 0)), 0) AS ELHM_EXCP_ACKMT_PERF /* 가전외인정실적금액 */
-             , NVL(SUM(NVL(CASE WHEN (T0.PERF_ATC_CD = 'W02P00113') THEN T0.PERF_VAL ELSE 0 END, 0)), 0) AS NINC /* 계정순증건수 */
-         FROM T0
+        WITH INDV_PERF AS (SELECT (SELECT NVL(PERF_VAL, 0)
+                                      FROM TB_FEAM_MACUP_PERF_CL
+                                     WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
+                                       AND BASE_YM = #{req.perfYm}
+                                       AND OG_TP_CD = 'W02'
+                                       AND PRTNR_NO = #{req.sellPrtnrNo}
+                                       AND PERF_ATC_CD = 'W02P00002' /* 가전인정건수 */
+                                       AND PERF_DV_CD = '0'
+                                       AND ROWNUM = 1)  AS ELHM_ACKMT_CT
+                                 , (SELECT NVL(PERF_VAL, 0)
+                                      FROM TB_FEAM_MACUP_PERF_CL
+                                     WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
+                                       AND BASE_YM = #{req.perfYm}
+                                       AND OG_TP_CD = 'W02'
+                                       AND PRTNR_NO = #{req.sellPrtnrNo}
+                                       AND PERF_ATC_CD = 'W00P00003' /* 기준렌탈료 */
+                                       AND PERF_DV_CD = '0'
+                                       AND ROWNUM = 1)  AS RENTAL_BASE_PRC
+                                 , (SELECT NVL(PERF_VAL, 0)
+                                      FROM TB_FEAM_MACUP_PERF_CL
+                                     WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
+                                       AND BASE_YM = #{req.perfYm}
+                                       AND OG_TP_CD = 'W02'
+                                       AND PRTNR_NO = #{req.sellPrtnrNo}
+                                       AND PERF_ATC_CD = 'W00P00004' /* 일시불/할부 */
+                                       AND PERF_DV_CD = '0'
+                                       AND ROWNUM = 1)  AS SNGL_PMNT_BASE_PRC
+                                 , (SELECT NVL(PERF_VAL, 0)
+                                      FROM TB_FEAM_MACUP_PERF_CL
+                                     WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
+                                       AND BASE_YM = #{req.perfYm}
+                                       AND OG_TP_CD = 'W02'
+                                       AND PRTNR_NO = #{req.sellPrtnrNo}
+                                       AND PERF_ATC_CD = 'W02P00112' /* 가전외인정실적금액 */
+                                       AND PERF_DV_CD = '0'
+                                       AND ROWNUM = 1)  AS ELHM_EXCP_ACKMT_PERF
+                                 , (SELECT NVL(PERF_VAL, 0)
+                                      FROM TB_FEAM_MACUP_PERF_CL
+                                     WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
+                                       AND BASE_YM = #{req.perfYm}
+                                       AND OG_TP_CD = 'W02'
+                                       AND PRTNR_NO = #{req.sellPrtnrNo}
+                                       AND PERF_ATC_CD = 'W02P00113' /* 계정순증건수 */
+                                       AND PERF_DV_CD = '0'
+                                       AND ROWNUM = 1)  AS NINC
+                            FROM DUAL)
+        , OG_PERF AS (SELECT  (SELECT NVL(PERF_VAL, 0)
+                                  FROM TB_FEAM_MACUP_PERF_CL
+                                 WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
+                                   AND BASE_YM = #{req.perfYm}
+                                   AND OG_TP_CD = 'W02'
+                                   AND PRTNR_NO = #{req.sellPrtnrNo}
+                                   AND PERF_ATC_CD = 'W02P00103' /* 가전인정건수 */
+                                   AND PERF_DV_CD = '2'
+                                   AND ROWNUM = 1)  AS ELHM_ACKMT_CT
+                             , (SELECT NVL(PERF_VAL, 0)
+                                  FROM TB_FEAM_MACUP_PERF_CL
+                                 WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
+                                   AND BASE_YM = #{req.perfYm}
+                                   AND OG_TP_CD = 'W02'
+                                   AND PRTNR_NO = #{req.sellPrtnrNo}
+                                   AND PERF_ATC_CD = 'W00P00033' /* 기준렌탈료 */
+                                   AND PERF_DV_CD = '2'
+                                   AND ROWNUM = 1)  AS RENTAL_BASE_PRC
+                             , (SELECT NVL(PERF_VAL,0)
+                                  FROM TB_FEAM_MACUP_PERF_CL
+                                 WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
+                                   AND BASE_YM = #{req.perfYm}
+                                   AND OG_TP_CD = 'W02'
+                                   AND PRTNR_NO = #{req.sellPrtnrNo}
+                                   AND PERF_ATC_CD = 'W00P00006' /* 일시불/할부 */
+                                   AND PERF_DV_CD = '2'
+                                   AND ROWNUM = 1)  AS SNGL_PMNT_BASE_PRC
+                             , (SELECT NVL(PERF_VAL, 0)
+                                  FROM TB_FEAM_MACUP_PERF_CL
+                                 WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
+                                   AND BASE_YM = #{req.perfYm}
+                                   AND OG_TP_CD = 'W02'
+                                   AND PRTNR_NO = #{req.sellPrtnrNo}
+                                   AND PERF_ATC_CD = 'W02P00112' /* 가전외인정실적금액 */
+                                   AND PERF_DV_CD = '2'
+                                   AND ROWNUM = 1)  AS ELHM_EXCP_ACKMT_PERF
+                             , (SELECT NVL(PERF_VAL, 0)
+                                  FROM TB_FEAM_MACUP_PERF_CL
+                                 WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
+                                   AND BASE_YM = #{req.perfYm}
+                                   AND OG_TP_CD = 'W02'
+                                   AND PRTNR_NO = #{req.sellPrtnrNo}
+                                   AND PERF_ATC_CD = 'W02P00113' /* 계정순증건수 */
+                                   AND PERF_DV_CD = '2'
+                                   AND ROWNUM = 1)  AS NINC
+                        FROM DUAL)
+        SELECT 'A' AS TYPE
+             , ELHM_ACKMT_CT /* 가전인정건수 */
+             , RENTAL_BASE_PRC  /* 기준렌탈료  */
+             , SNGL_PMNT_BASE_PRC   /* 일시불/할부   */
+             , ELHM_EXCP_ACKMT_PERF   /* 가전외인정실적금액 */
+             , NINC  /* 계정순증건수 */
+          FROM INDV_PERF
         UNION ALL
-       SELECT 'B' AS TYPE /* 예상 실적 */
-            , 0   AS ELHM_ACKMT_CT /* 가전인정건수 */
-            , 0   AS RENTAL_BASE_PRC  /* 일시불/할부  */
-            , 0   AS SNGL_PMNT_BASE_PRC   /* 기준렌탈료   */
-            , 0   AS ELHM_EXCP_ACKMT_PERF   /* 가전외인정실적금액 */
-            , 0   AS NINC  /* 계정순증건수 */
-        FROM T0
+        SELECT 'B' AS TYPE
+             , ELHM_ACKMT_CT /* 가전인정건수 */
+             , RENTAL_BASE_PRC  /* 기준렌탈료  */
+             , SNGL_PMNT_BASE_PRC   /* 일시불/할부   */
+             , ELHM_EXCP_ACKMT_PERF   /* 가전외인정실적금액 */
+             , NINC  /* 계정순증건수 */
+          FROM INDV_PERF
         <if test='@MybatisUtils@equals(userDvCd, "OG")'>
         UNION ALL
-       SELECT 'C' AS TYPE /* 조직 실적 */
-            , 9   AS ELHM_ACKMT_CT /* 가전인정건수 */
-            , 9   AS RENTAL_BASE_PRC  /* 일시불/할부  */
-            , 9   AS SNGL_PMNT_BASE_PRC   /* 기준렌탈료   */
-            , 9   AS ELHM_EXCP_ACKMT_PERF   /* 가전외인정실적금액 */
-            , 9   AS NINC  /* 계정순증건수 */
-        FROM T0
+        SELECT 'C' AS TYPE
+             , ELHM_ACKMT_CT /* 가전인정건수 */
+             , RENTAL_BASE_PRC  /* 기준렌탈료  */
+             , SNGL_PMNT_BASE_PRC   /* 일시불/할부   */
+             , ELHM_EXCP_ACKMT_PERF   /* 가전외인정실적금액 */
+             , NINC  /* 계정순증건수 */
+          FROM OG_PERF
         UNION ALL
-       SELECT 'D' AS TYPE /* 조직예상 실적 */
-            , 9   AS ELHM_ACKMT_CT /* 가전인정건수 */
-            , 0   AS RENTAL_BASE_PRC  /* 일시불/할부  */
-            , 0   AS SNGL_PMNT_BASE_PRC   /* 기준렌탈료   */
-            , 0   AS ELHM_EXCP_ACKMT_PERF   /* 가전외인정실적금액 */
-            , 0   AS NINC  /* 계정순증건수 */
-        FROM T0
+        SELECT 'D' AS TYPE
+             , ELHM_ACKMT_CT /* 가전인정건수 */
+             , RENTAL_BASE_PRC  /* 기준렌탈료  */
+             , SNGL_PMNT_BASE_PRC   /* 일시불/할부   */
+             , ELHM_EXCP_ACKMT_PERF   /* 가전외인정실적금액 */
+             , NINC  /* 계정순증건수 */
+          FROM OG_PERF
         </if>
-
     </select>
 
     <select id='selectBsM' resultType="com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto$BsM">
-        WITH T0 AS ( SELECT SUM(CASE WHEN T1.SV_FEE_PD_DV_CD = '01' THEN T1.FEE_CALC_AMT ELSE 0 END) AS WRFR_01    /* 정수기1             */
-                          , SUM(CASE WHEN T1.SV_FEE_PD_DV_CD = '02' THEN T1.FEE_CALC_AMT ELSE 0 END) AS WRFR_02    /* 정수기2             */
-                          , SUM(CASE WHEN T1.SV_FEE_PD_DV_CD = '03' THEN T1.FEE_CALC_AMT ELSE 0 END) AS WRFR_03    /* 정수기3             */
-                          , SUM(CASE WHEN T1.SV_FEE_PD_DV_CD = '04' THEN T1.FEE_CALC_AMT ELSE 0 END) AS WRFR_04    /* 정수기4             */
-                          , SUM(CASE WHEN T1.SV_FEE_PD_DV_CD = '05' THEN T1.FEE_CALC_AMT ELSE 0 END) AS UN_WRFR    /* 비정수기            */
-                          , SUM(CASE WHEN T1.SV_FEE_PD_DV_CD = '06' THEN T1.FEE_CALC_AMT ELSE 0 END) AS PUF_01     /* 청정기1             */
-                          , SUM(CASE WHEN T1.SV_FEE_PD_DV_CD = '07' THEN T1.FEE_CALC_AMT ELSE 0 END) AS PUF_02     /* 청정기2             */
-                          , SUM(CASE WHEN T1.SV_FEE_PD_DV_CD = '08' THEN T1.FEE_CALC_AMT ELSE 0 END) AS OTSC_ETC   /* 아웃소싱,커피,삼성  */
-                          , SUM(CASE WHEN T1.SV_FEE_PD_DV_CD = '09' THEN T1.FEE_CALC_AMT ELSE 0 END) AS BDT_ETC    /* 비데,연수기         */
-                          , SUM(CASE WHEN T1.SV_FEE_PD_DV_CD IN ('01', '02', '03', '04', '05', '06', '07', '08', '09') THEN T1.FEE_CALC_AMT ELSE 0 END) AS PRD_SUM  /* 합계 */
-                          , SUM(CASE WHEN T2.RGLVL_DV_CD     = '1'  THEN T1.FEE_CALC_AMT ELSE 0 END) AS W1         /* 급지구분    - 1:1급지, 2:2급지, 3:3급지 */
-                          , SUM(CASE WHEN T2.RGLVL_DV_CD     = '2'  THEN T1.FEE_CALC_AMT ELSE 0 END) AS W2         /* 급지구분    - 1:1급지, 2:2급지, 3:3급지 */
+        WITH T0 AS ( SELECT SUM(CASE WHEN T1.SV_FEE_PD_DV_CD = '01' THEN 1 ELSE 0 END) AS WRFR_01    /* 정수기1             */
+                          , SUM(CASE WHEN T1.SV_FEE_PD_DV_CD = '02' THEN 1 ELSE 0 END) AS WRFR_02    /* 정수기2             */
+                          , SUM(CASE WHEN T1.SV_FEE_PD_DV_CD = '03' THEN 1 ELSE 0 END) AS WRFR_03    /* 정수기3             */
+                          , SUM(CASE WHEN T1.SV_FEE_PD_DV_CD = '04' THEN 1 ELSE 0 END) AS WRFR_04    /* 정수기4             */
+                          , SUM(CASE WHEN T1.SV_FEE_PD_DV_CD = '05' THEN 1 ELSE 0 END) AS UN_WRFR    /* 비정수기            */
+                          , SUM(CASE WHEN T1.SV_FEE_PD_DV_CD = '06' THEN 1 ELSE 0 END) AS PUF_01     /* 청정기1             */
+                          , SUM(CASE WHEN T1.SV_FEE_PD_DV_CD = '07' THEN 1 ELSE 0 END) AS PUF_02     /* 청정기2             */
+                          , SUM(CASE WHEN T1.SV_FEE_PD_DV_CD = '08' THEN 1 ELSE 0 END) AS OTSC_ETC   /* 아웃소싱,커피,삼성  */
+                          , SUM(CASE WHEN T1.SV_FEE_PD_DV_CD = '09' THEN 1 ELSE 0 END) AS BDT_ETC    /* 비데,연수기         */
+                          , SUM(CASE WHEN T1.SV_FEE_PD_DV_CD IN ('01', '02', '03', '04', '05', '06', '07', '08', '09') THEN 1 ELSE 0 END) AS PRD_SUM  /* 합계 */
+                          , SUM(CASE WHEN T2.RGLVL_DV_CD     = '1'  THEN 1 ELSE 0 END) AS W1         /* 급지구분    - 1:1급지, 2:2급지, 3:3급지 */
+                          , SUM(CASE WHEN T2.RGLVL_DV_CD     = '2'  THEN 1 ELSE 0 END) AS W2         /* 급지구분    - 1:1급지, 2:2급지, 3:3급지 */
                           , NVL(T1.VST_DUEDT, 'X')  AS VST_DUEDT  /* 방문예정일자        */
                           , NVL(T1.WK_EXCN_DT, 'X') AS WK_EXCN_DT /* 작업수행일자        */
-                      FROM TB_FEAM_WELS_SV_PERF_IZ T1 /* 웰스서비스실적내역     */
+                      FROM TB_FEAM_WELS_SV_PED_IZ T1 /* 웰스서비스실적일내역     */
                       LEFT OUTER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ T2 /* 월별고객서비스대상내역 */
                         ON T2.MNGT_YM   = T1.BASE_YM
                        AND T2.CNTR_NO   = T1.CNTR_NO
                        AND T2.CNTR_SN   = T1.CNTR_SN
                      WHERE T1.BASE_YM      = #{req.perfYm}
                        AND T1.FEE_SV_TP_CD = '1'   --수수료서비스유형코드 - 1:B/S, 2:A/S
-                       AND T1.CL_DV_CD     = '02'    --마감구분코드 - 00:총주문, 01:순주문1차, 02:순주문2차
                        AND T1.OG_TP_CD     = 'W02' --조직유형코드 - W02:M추진단
                        AND T1.PRTNR_NO     = #{req.sellPrtnrNo}
                        AND T1.DTA_DL_YN    = 'N'
@@ -473,36 +600,36 @@
         FROM T0
        WHERE T0.WK_EXCN_DT != 'X'  --작업수행일자
        UNION ALL
-      SELECT 'C' AS TYPE /* 예상완료건수 */
-            , 0 AS WRFR_01
-            , 0 AS WRFR_02
-            , 0 AS WRFR_03
-            , 0 AS WRFR_04
-            , 0 AS UN_WRFR
-            , 0 AS PUF_01
-            , 0 AS PUF_02
-            , 0 AS OTSC_ETC
-            , 0 AS BDT_ETC
-            , 0 AS W1
-            , 0 AS W2
-            , NULL AS PRD_SUM
-        FROM DUAL
+      SELECT 'C' AS TYPE /* 완료건수 */
+           , NVL(SUM(WRFR_01), 0)  AS WRFR_01
+           , NVL(SUM(WRFR_02), 0)  AS WRFR_02
+           , NVL(SUM(WRFR_03), 0)  AS WRFR_03
+           , NVL(SUM(WRFR_04), 0)  AS WRFR_04
+           , NVL(SUM(UN_WRFR), 0)  AS UN_WRFR
+           , NVL(SUM(PUF_01), 0)   AS PUF_01
+           , NVL(SUM(PUF_02), 0)   AS PUF_02
+           , NVL(SUM(OTSC_ETC), 0) AS OTSC_ETC
+           , NVL(SUM(BDT_ETC), 0)  AS BDT_ETC
+           , NVL(SUM(W1), 0)       AS W1
+           , NVL(SUM(W2), 0)       AS W2
+           , NVL(SUM(PRD_SUM), 0) AS PRD_SUM
+      FROM T0
+     WHERE T0.WK_EXCN_DT != 'X'  --작업수행일자
     </select>
 
     <select id='selectOgBsM' resultType="com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto$OgBsM">
         SELECT 'A' AS TYPE
-             , SUM(CASE WHEN T1.VST_DUEDT  = NULL THEN 0 ELSE 1 END) ASGN_CT  /* 배정건수 */
-             , SUM(CASE WHEN T1.WK_EXCN_DT = NULL THEN 0 ELSE 1 END) FHS_CT /* 완료건수 */
-             , (SUM(CASE WHEN T1.WK_EXCN_DT = NULL THEN 0 ELSE 1 END) / SUM(CASE WHEN T1.VST_DUEDT  = NULL THEN 0 ELSE 1 END)  * 100 ) AS PROCS_RT
-             , 0 AS ET_FHS_CT
-             , 0 AS ET_PROCS_RT
+             , SUM(DECODE(T1.VST_DUEDT, NULL, 0, 1)) ASGN_CT  /* 배정건수 */
+             , SUM(DECODE(T1.WK_EXCN_DT, NULL, 0, 1)) FHS_CT /* 완료건수 */
+             , (SUM(DECODE(T1.WK_EXCN_DT, NULL, 0, 1)) / SUM(DECODE(T1.VST_DUEDT, NULL, 0, 1))  * 100 ) AS PROCS_RT
+             , SUM(DECODE(T1.WK_EXCN_DT, NULL, 0, 1)) ET_FHS_CT /* 예상완료건수 */
+             , (SUM(DECODE(T1.WK_EXCN_DT, NULL, 0, 1)) / SUM(DECODE(T1.VST_DUEDT, NULL, 0, 1))  * 100 ) AS ET_PROCS_RT
           FROM TB_OGBS_MM_PRTNR_IZ       T0 /* 월파트너내역           */
-          LEFT OUTER JOIN  TB_FEAM_WELS_SV_PERF_IZ   T1 /* 웰스서비스실적내역     */
+          LEFT OUTER JOIN  TB_FEAM_WELS_SV_PED_IZ T1 /* 웰스서비스실적일내역     */
             ON T1.BASE_YM      = T0.BASE_YM
            AND T1.OG_TP_CD     = T0.OG_TP_CD
            AND T1.PRTNR_NO     = T0.PRTNR_NO
            AND T1.FEE_SV_TP_CD = '1'
-           AND T1.CL_DV_CD     = '00'
            AND T1.DTA_DL_YN    = 'N'
          WHERE T0.BASE_YM      = #{req.perfYm}
            AND T0.OG_TP_CD     = 'W02'
@@ -512,7 +639,7 @@
                                     AND OG_TP_CD     = 'W02'
                                     AND PRTNR_NO     = #{req.sellPrtnrNo} )
            AND T0.DTA_DL_YN    = 'N'
-         GROUP BY T1.VST_DUEDT, T1.WK_EXCN_DT
+        GROUP BY T0.BASE_YM
     </select>
 
     <select id='selectSaleM' resultType="com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto$SaleM">

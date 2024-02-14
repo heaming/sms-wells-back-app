@@ -2,6 +2,31 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaWasteFilterCollectionPsMapper">
 
+    <select id="selectProducts" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaQomAsnStockAggregationDto$SearchPdRes">
+        SELECT DISTINCT D1.PD_CD                                     /* 품목코드 */
+             , D1.PD_ABBR_NM                         AS PD_NM        /* 품목명 */
+             , D2.PD_PRP_VAL19                       AS ITM_KND_CD   /* 품목종류코드 */
+             , NVL(D2.PD_PRP_VAL20, D4.PD_PRP_VAL20) AS ITM_GRP_CD   /* 품목그룹코드 */
+          FROM TB_PDBS_PD_BAS D1                       /* 상품기본 */
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D2         /* 상품각사속성상세 */
+            ON D2.PD_CD = D1.PD_CD
+          LEFT OUTER JOIN TB_PDBS_PD_REL D3            /* 상품관계 */
+            ON D3.OJ_PD_CD = D1.PD_CD
+           AND D3.DTA_DL_YN          = 'N'
+           AND D3.PD_REL_TP_CD       = '14'   /* AS부품 */
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN D3.VL_STRT_DTM AND D3.VL_END_DTM
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL D4   /* 상품각사속성상세 */
+            ON D4.PD_CD              = D3.BASE_PD_CD
+           AND D4.DTA_DL_YN          = 'N'
+           AND D4.PD_EXTS_PRP_GRP_CD = 'PART'
+         WHERE D1.DTA_DL_YN          = 'N'
+           AND D1.PD_TP_CD           = 'M'
+           AND D2.DTA_DL_YN          = 'N'
+           AND D2.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND D2.PD_PRP_VAL19       = '5'
+         ORDER BY PD_NM, D1.PD_CD
+    </select>
+
     <select id="selectWasteFilterCollections" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaWasteFilterCollectionPsDto$SearchRes">
         SELECT TO_CHAR(TO_NUMBER(T1.SAP_MAT_CD)) AS SAP_MAT_CD   /* SAP코드 */
              , T1.PD_CD                                          /* 품목코드 */
@@ -69,6 +94,27 @@
                          AND D2.DTA_DL_YN          = 'N'
                          AND D2.PD_EXTS_PRP_GRP_CD = 'PART'
                          AND D2.PD_PRP_VAL19       = '5'
+                    <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                         AND D1.PD_CD IN
+                                    <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                          #{itmPdCd}
+                                    </foreach>
+                    </if>
+                    <if test="@MybatisUtils@isNotEmpty(itmGrpCd)">
+                         AND (    D2.PD_PRP_VAL20 = #{itmGrpCd}
+                               OR EXISTS ( SELECT 1
+                                             FROM TB_PDBS_PD_REL T1
+                                            INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+                                               ON T2.PD_CD = T1.BASE_PD_CD
+                                            WHERE T1.DTA_DL_YN          = 'N'
+                                              AND T1.PD_REL_TP_CD       = '14'   /* AS부품 */
+                                              AND T2.DTA_DL_YN          = 'N'
+                                              AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+                                              AND T1.OJ_PD_CD           = D1.PD_CD
+                                              AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
+                                              AND T2.PD_PRP_VAL20       = #{itmGrpCd} )
+                             )
+                    </if>
                     ) S1
                 INNER JOIN T_CMZ_MLNG_D S2
                    ON 1 = 1
@@ -105,7 +151,7 @@
                          AND D4.PD_EXTS_PRP_GRP_CD = 'PART'
                          AND D4.PD_PRP_VAL19       = '5'
                          AND D5.DTA_DL_YN          = 'N'
-                         AND D1.SV_BIZ_HCLSF_CD   IN ('1', '2', '3', '4')
+                         AND D1.SV_BIZ_HCLSF_CD   IN ('1', '2', '3')
                          AND D1.CST_SV_ASN_NO NOT LIKE '9%'
                          AND D1.FNL_VST_FSH_DT LIKE #{baseYm} || '%'
                          AND D5.WARE_DV_CD         = #{wareDvCd}
@@ -117,6 +163,12 @@
                     </if>
                     <if test="@MybatisUtils@isNotEmpty(wareNo)">
                          AND D5.WARE_NO            = #{wareNo}
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                         AND D1.ITM_PD_CD IN
+                                        <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                              #{itmPdCd}
+                                        </foreach>
                     </if>
                        GROUP BY SUBSTR(D1.FNL_VST_FSH_DT, 7, 2), D1.ITM_PD_CD
                        UNION ALL
@@ -145,7 +197,7 @@
                          AND D4.PD_PRP_VAL19       = '5'
                          AND D5.DTA_DL_YN          = 'N'
                          AND D1.STKR_PRNT_YN       = 'Y'   /* 반납 */
-                         AND D1.SV_BIZ_HCLSF_CD   IN ('1', '2', '3', '4')
+                         AND D1.SV_BIZ_HCLSF_CD   IN ('1', '2', '3')
                          AND D1.CST_SV_ASN_NO NOT LIKE '9%'
                          AND D1.FNL_VST_FSH_DT LIKE #{baseYm} || '%'
                          AND D5.WARE_DV_CD         = #{wareDvCd}
@@ -157,6 +209,12 @@
                     </if>
                     <if test="@MybatisUtils@isNotEmpty(wareNo)">
                          AND D5.WARE_NO            = #{wareNo}
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                         AND D1.ITM_PD_CD IN
+                                        <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                              #{itmPdCd}
+                                        </foreach>
                     </if>
                        GROUP BY SUBSTR(D1.FNL_VST_FSH_DT, 7, 2), D1.ITM_PD_CD
                        UNION ALL
@@ -185,7 +243,7 @@
                          AND D4.PD_PRP_VAL19       = '5'
                          AND D5.DTA_DL_YN          = 'N'
                          AND D1.STKR_PRNT_YN       = 'N'   /* 미반납 */
-                         AND D1.SV_BIZ_HCLSF_CD   IN ('1', '2', '3', '4')
+                         AND D1.SV_BIZ_HCLSF_CD   IN ('1', '2', '3')
                          AND D1.CST_SV_ASN_NO NOT LIKE '9%'
                          AND D1.FNL_VST_FSH_DT LIKE #{baseYm} || '%'
                          AND D5.WARE_DV_CD         = #{wareDvCd}
@@ -197,6 +255,12 @@
                     </if>
                     <if test="@MybatisUtils@isNotEmpty(wareNo)">
                          AND D5.WARE_NO            = #{wareNo}
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(itmPdCds)'>
+                         AND D1.ITM_PD_CD IN
+                                        <foreach collection="itmPdCds" item="itmPdCd" separator=", " open="(" close=")">
+                                              #{itmPdCd}
+                                        </foreach>
                     </if>
                        GROUP BY SUBSTR(D1.FNL_VST_FSH_DT, 7, 2), D1.ITM_PD_CD
                     ) S1
