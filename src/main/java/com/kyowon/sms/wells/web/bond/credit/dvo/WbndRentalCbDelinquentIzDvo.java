@@ -25,9 +25,11 @@ public class WbndRentalCbDelinquentIzDvo {
     private String cstNo; /* 고객번호 */
     private String rentalCbRgstDvCd; /* 렌탈CB등록구분코드 */
     private Long dlqAmt; /* 연체금액 */
+    private Long totalDpAmt; /* 연체입금액 */
     private Long dlqBlam; /* 연체잔액 */
     private String fstOcDt; /* 최초발생일자 */
     private String ocBsdt; /* 발생기준일자 */
+    private String dpDt; /* 입금일자 */
     private String ocCrtDt; /* 발생생성일자 */
     private String ocFileCrtDt; /* 발생파일생성일자 */
     private String chgFileCrtDt; /* 변동파일생성일자 */
