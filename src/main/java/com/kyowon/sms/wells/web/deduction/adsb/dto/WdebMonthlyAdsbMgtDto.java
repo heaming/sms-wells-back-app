@@ -26,7 +26,6 @@ public class WdebMonthlyAdsbMgtDto {
         String perfYm, // 실적년월
         String ogCd, // 소속코드
         String prtnrNo, // 파트너번호
-        @MaskRequired(type = MaskingType.NAME)
         String prtnrKnm, // 파트너성명
         String rsbDvNm, // 직급
         String cltnYm, // 해약년월
@@ -44,7 +43,6 @@ public class WdebMonthlyAdsbMgtDto {
         String cntrSn, // 계약일련번호
         String cntrNoSn, // 계약상세번호
         String prtnrNo, // 파트너번호.판매자
-        @MaskRequired(type = MaskingType.NAME)
         String prtnrKnm, // 파트너성명.판매자
         String sellPrtnrAdsbAmt, // 재지급액.판매자
         String brchPrtnrNo, // 파트너번호.지점장
