@@ -69,9 +69,9 @@ public class WdeaAllowanceRedfMgtService {
      * @param dto
      * @return PagingResult<SearchRedfBizdRes>
      */
-    //    public PagingResult<SearchRedfBizdRes> getRedfBizdMgtTest(SearchRedfBizdReq dto, PageInfo pageInfo) {
+    //    public PagingResult<SearchRedfBizdTestRes> getRedfBizdMgtTest(SearchRedfBizdReq dto, PageInfo pageInfo) {
     //
-    //        PagingResult<SearchRedfBizdRes> returnList = null;
+    //        PagingResult<SearchRedfBizdTestRes> returnList = null;
     //        PagingResult<WdeaAllowanceRedfMgtDvo> dvo = new PagingResult<>();
     //
     //        if ("W02".equals(dto.ogTpCd())) {
