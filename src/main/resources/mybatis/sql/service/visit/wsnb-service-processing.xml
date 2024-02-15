@@ -1244,7 +1244,7 @@
                ORDER BY CNTR_NO_SN
     </select>
 
-    <select id="selectServiceProcessingsNoBlob" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbServiceProcessingDvo" fetchSize="10000">
+    <select id="selectServiceProcessingsNoBlob" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcessingDto$SearchExcelRes" fetchSize="10000">
             <if test='!@MybatisUtils@equals(serviceType, "2")'>
             SELECT <if test='@MybatisUtils@equals(inquiryBase, "1")'>
                    /*+ USE_NL(S2 S1 S3 S4 S5 S6 S7 C1 C2 C3 C4 O11 O12 O2 O3 P1) LEADING(S2 S1 S4 C3 O2)
@@ -1411,6 +1411,16 @@
                  , (CASE WHEN S4.VST_FSH_DT IS NOT NULL THEN TO_DATE(S4.VST_FSH_DT, 'YYYYMMDD') - TO_DATE(S1.VST_DUEDT, 'YYYYMMDD') ELSE 0 END) IST_DELAY /* 설치지연일 */
                  , ((TO_DATE(S4.VST_FSH_DT, 'YYYYMMDD') - TO_DATE(S1.ARV_DT,'YYYYMMDD')) * 60 * 24
                       + (TO_DATE(S4.VST_FSH_HH, 'HH24MISS') - TO_DATE(S1.ARV_HH,'HH24MISS')) * 60 * 24) AS WK_LDTM /* 소요시간 */
+                 , (CASE WHEN S4.VST_FSH_DT IS NOT NULL AND S1.ARV_DT IS NOT NULL
+                          THEN (
+                               FLOOR(((TO_DATE(S4.VST_FSH_DT, 'YYYYMMDD') - TO_DATE(S1.ARV_DT,'YYYYMMDD')) * 60 * 24 + (TO_DATE(S4.VST_FSH_HH, 'HH24MISS') - TO_DATE(S1.ARV_HH,'HH24MISS')) * 60 * 24) / 60)
+			                   || '시 '
+			                   || FLOOR(MOD(((TO_DATE(S4.VST_FSH_DT, 'YYYYMMDD') - TO_DATE(S1.ARV_DT,'YYYYMMDD')) * 60 * 24 + (TO_DATE(S4.VST_FSH_HH, 'HH24MISS') - TO_DATE(S1.ARV_HH,'HH24MISS')) * 60 * 24), 60))
+			                   || '분'
+                          )
+                          ELSE ''
+                          END
+                    ) AS WK_LDTM_EXCEL
                  , F_CMZ_CD_NM(#{session.tenantId}, 'WK_PRGS_STAT_CD', S1.WK_PRGS_STAT_CD) AS WK_PRGS_STAT_NM /* 작업상태 */
                  , F_CMZ_CD_NM(#{session.tenantId}, 'SV_WK_CAN_RSON_CD', S1.WK_CAN_RSON_CD) AS WK_CAN_RSON_NM /* 취소사유 */
                  , S1.WK_CAN_MO_CN /* 취소상세내역 */
@@ -1460,6 +1470,8 @@
                  , F_CMZ_CD_NM(#{session.tenantId}, 'PRTNR_GD_CD', O3.PRTNR_GD_CD) AS ACPN_PRTNR_GD_NM /* 동행작업자 직급구분 */
                  , S1.CST_SV_ASN_NO /* 고객서비스배정번호 */
                  , CASE WHEN M1.OJ_CNTR_NO IS NOT NULL THEN M1.OJ_CNTR_NO || '-' || M1.OJ_CNTR_SN END AS BF_CNTR_NO_SN /* 전상대코드 */
+                 , '' AS CRAL_TNO /* Excel Bulk Download 용도 컬럼 */
+                 , '' AS CONTACT_CRAL_TNO /* Excel Bulk Download 용도 컬럼 */
               FROM TB_SVPD_CST_SVAS_IST_ASN_IZ S1
              INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ S2
                 ON S2.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
@@ -1818,6 +1830,16 @@
                   , (CASE WHEN S4.VST_FSH_DT IS NOT NULL THEN TO_DATE(S4.VST_FSH_DT, 'YYYYMMDD') - TO_DATE(S1.VST_DUEDT, 'YYYYMMDD') ELSE 0 END) IST_DELAY /* 설치지연일 */
                   , ((TO_DATE(S4.VST_FSH_DT, 'YYYYMMDD') - TO_DATE(S1.ARV_DT,'YYYYMMDD')) * 60 * 24
                       + (TO_DATE(S4.VST_FSH_HH, 'HH24MISS') - TO_DATE(S1.ARV_HH,'HH24MISS')) * 60 * 24) AS WK_LDTM /* 소요시간 */
+                  , (CASE WHEN S4.VST_FSH_DT IS NOT NULL AND S1.ARV_DT IS NOT NULL
+                          THEN (
+                               FLOOR(((TO_DATE(S4.VST_FSH_DT, 'YYYYMMDD') - TO_DATE(S1.ARV_DT,'YYYYMMDD')) * 60 * 24 + (TO_DATE(S4.VST_FSH_HH, 'HH24MISS') - TO_DATE(S1.ARV_HH,'HH24MISS')) * 60 * 24) / 60)
+			                   || '시 '
+			                   || FLOOR(MOD(((TO_DATE(S4.VST_FSH_DT, 'YYYYMMDD') - TO_DATE(S1.ARV_DT,'YYYYMMDD')) * 60 * 24 + (TO_DATE(S4.VST_FSH_HH, 'HH24MISS') - TO_DATE(S1.ARV_HH,'HH24MISS')) * 60 * 24), 60))
+			                   || '분'
+                          )
+                          ELSE ''
+                          END
+                    ) AS WK_LDTM_EXCEL
                   , F_CMZ_CD_NM(#{session.tenantId}, 'WK_PRGS_STAT_CD', S1.WK_PRGS_STAT_CD) AS WK_PRGS_STAT_NM /* 작업상태 */
                   , F_CMZ_CD_NM(#{session.tenantId}, 'SV_WK_CAN_RSON_CD', S1.WK_CAN_RSON_CD) AS WK_CAN_RSON_NM /* 취소사유 */
                   , S1.WK_CAN_MO_CN /* 취소상세내역 */
@@ -1867,6 +1889,8 @@
                   , F_CMZ_CD_NM(#{session.tenantId}, 'PRTNR_GD_CD', O3.PRTNR_GD_CD) AS ACPN_PRTNR_GD_NM /* 동행작업자 직급 */
                   , S1.CST_SV_ASN_NO /* 고객서비스배정번호 */
                   , CASE WHEN M1.OJ_CNTR_NO IS NOT NULL THEN M1.OJ_CNTR_NO || '-' || M1.OJ_CNTR_SN END AS BF_CNTR_NO_SN /* 전상대코드 */
+                  , '' AS CRAL_TNO /* Excel Bulk Download 용도 컬럼 */
+                  , '' AS CONTACT_CRAL_TNO /* Excel Bulk Download 용도 컬럼 */
                FROM TB_SVPD_CST_SVAS_IST_ASN_IZ S1
               INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ S2
                  ON S2.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
@@ -2217,6 +2241,16 @@
                   , (CASE WHEN S4.VST_FSH_DT IS NOT NULL THEN TO_DATE(S4.VST_FSH_DT, 'YYYYMMDD') - TO_DATE(S1.VST_DUEDT, 'YYYYMMDD') ELSE 0 END) IST_DELAY /* 설치지연일 */
                   , ((TO_DATE(S4.VST_FSH_DT, 'YYYYMMDD') - TO_DATE(S1.ARV_DT,'YYYYMMDD')) * 60 * 24
                        + (TO_DATE(S4.VST_FSH_HH, 'HH24MISS') - TO_DATE(S1.ARV_HH,'HH24MISS')) * 60 * 24) AS WK_LDTM /* 소요시간 */
+                  , (CASE WHEN S4.VST_FSH_DT IS NOT NULL AND S1.ARV_DT IS NOT NULL
+                          THEN (
+                               FLOOR(((TO_DATE(S4.VST_FSH_DT, 'YYYYMMDD') - TO_DATE(S1.ARV_DT,'YYYYMMDD')) * 60 * 24 + (TO_DATE(S4.VST_FSH_HH, 'HH24MISS') - TO_DATE(S1.ARV_HH,'HH24MISS')) * 60 * 24) / 60)
+			                   || '시 '
+			                   || FLOOR(MOD(((TO_DATE(S4.VST_FSH_DT, 'YYYYMMDD') - TO_DATE(S1.ARV_DT,'YYYYMMDD')) * 60 * 24 + (TO_DATE(S4.VST_FSH_HH, 'HH24MISS') - TO_DATE(S1.ARV_HH,'HH24MISS')) * 60 * 24), 60))
+			                   || '분'
+                          )
+                          ELSE ''
+                          END
+                    ) AS WK_LDTM_EXCEL
                   , F_CMZ_CD_NM('TNT_WELLS', 'WK_PRGS_STAT_CD', S1.VST_PRGS_STAT_CD) AS WK_PRGS_STAT_NM /* 작업상태 */
                   , F_CMZ_CD_NM('TNT_WELLS', 'SV_WK_CAN_RSON_CD', S1.WK_CAN_RSON_CD) AS WK_CAN_RSON_NM /* 취소사유 */
                   , '' AS WK_CAN_MO_CN /* 취소상세내역 */
@@ -2266,6 +2300,8 @@
                   , F_CMZ_CD_NM('TNT_WELLS', 'PRTNR_GD_CD', O3.PRTNR_GD_CD) AS ACPN_PRTNR_GD_NM /* 동행작업자등급명 */
                   , S1.CST_SV_ASN_NO /* 고객서비스배정번호 */
                   , CASE WHEN M1.OJ_CNTR_NO IS NOT NULL THEN M1.OJ_CNTR_NO || '-' || M1.OJ_CNTR_SN END AS BF_CNTR_NO_SN /* 전상대코드 */
+                  , '' AS CRAL_TNO /* Excel Bulk Download 용도 컬럼 */
+                  , '' AS CONTACT_CRAL_TNO /* Excel Bulk Download 용도 컬럼 */
                FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ S1 /* 고객서비스BS배정내역 */
               INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ S2 /* 고객서비스BS대상내역 */
                  ON S2.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
