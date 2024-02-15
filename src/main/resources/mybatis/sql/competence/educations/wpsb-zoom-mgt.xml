@@ -3,7 +3,8 @@
 <mapper namespace="com.kyowon.sms.wells.web.competence.educations.mapper.WpsbZoomMgtMapper">
 
     <select id="getZooms" resultType="com.kyowon.sms.wells.web.competence.educations.dto.WpsbZoomMgtDto$SearchRes">
-        SELECT A.SV_EDUC_MNAL_ID     /* 서비스교육매뉴얼ID */
+        SELECT A.OG_TP_CD            /* 조직유형코드 */
+             , A.SV_EDUC_MNAL_ID     /* 서비스교육매뉴얼ID */
              , A.HGR_SV_EDUC_MNAL_ID /* 상위서비스교육매뉴얼ID */
              , A.SV_EDUC_MNAL_NM     /* 서비스교육매뉴얼명 */
              , A.INQR_LV_TCNT        /* 조회단계차수 */
@@ -14,7 +15,8 @@
              , A.DTA_DL_YN           /* 데이터삭제여부 */
              , A.ORG_PATH
           FROM
-             ( SELECT SV_EDUC_MNAL_ID     /* 서비스교육매뉴얼ID */
+             ( SELECT OG_TP_CD            /* 조직유형코드 */
+                    , SV_EDUC_MNAL_ID     /* 서비스교육매뉴얼ID */
                     , HGR_SV_EDUC_MNAL_ID /* 상위서비스교육매뉴얼ID */
                     , SV_EDUC_MNAL_NM     /* 서비스교육매뉴얼명 */
                     , INQR_LV_TCNT        /* 조회단계차수 */
@@ -26,6 +28,9 @@
                     , SUBSTR(SYS_CONNECT_BY_PATH(SV_EDUC_MNAL_ID, '.'),2) AS ORG_PATH
                  FROM TB_PSCA_SV_EDUC_MNAL_BAS
                 WHERE DTA_DL_YN = 'N'
+                  <if test='@MybatisUtils@isNotEmpty(ogTpCd)'>
+                  AND OG_TP_CD = #{ogTpCd}
+                  </if>
                 START WITH SV_EDUC_MNAL_ID = 'WELS0000000000'
               CONNECT BY PRIOR SV_EDUC_MNAL_ID = HGR_SV_EDUC_MNAL_ID )A
          WHERE 1=1
@@ -53,6 +58,7 @@
             , EXPSR_ODR           /* 노출순서 */
             , SV_EDUC_CTG_NM      /* 서비스교육카테고리명 */
             , SV_EDUC_MNAL_CN     /* 서비스교육매뉴얼내용 */
+            , OG_TP_CD
             , RSB_DV_CD           /* 직책구분코드 */
             , DTA_DL_YN           /* 데이터삭제여부 */
             <include refid="COMMON.insertSystemField" />
@@ -64,6 +70,7 @@
             , #{expsrOdr}
             , #{svEducCtgNm}
             , #{svEducMnalCn}
+            , #{ogTpCd}
             , #{rsbDvCd}
             , 'N'
             <include refid="COMMON.insertSystemFieldValue" /> )
