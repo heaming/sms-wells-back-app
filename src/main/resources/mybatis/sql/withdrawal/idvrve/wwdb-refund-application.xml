@@ -388,7 +388,7 @@
              , NVL(E1.RENTAL_AMT, 0) AS MM_ISTM_AMT /* 월 납부금(월 납입금) */
              , NVL(F1.EOT_BOR_AMT, 0) AS BOR_AMT /* 위약금 */
              , NVL(DECODE(E1.EOT_SV_AMT, 0, E2.SV_DP_SUM_AMT, E1.EOT_SV_AMT), 0) AS SV_AMT /* 서비스금액 */
-             , NVL(M2.RFND_ALLOW_AMT,0) - NVL(FREE_AMT , 0) AS RFND_PSB_AMT
+             , NVL(M2.RFND_ALLOW_AMT,0) - NVL(FREE_AMT , 0) - NVL(SERVICE_AMT, 0) AS RFND_PSB_AMT
              , #{cntrStartDay} AS CNTR_START_DAY
              , #{cntrEndDay} AS CNTR_END_DAY
           FROM (
@@ -403,10 +403,11 @@
                      , A3.CST_KNM
                      , A3.COPN_DV_CD
                      , SUM(CASE WHEN A3.DP_DV_CD IN ('1', '3') THEN A3.DP_AMT
-                                ELSE -A3.DP_AMT
-                                 END ) DP_AMT
+                                ELSE (A3.DP_AMT*-1)
+                            END ) DP_AMT
                      , SUM(A3.SELL_AMT) SELL_AMT
                      , SUM(A3.FREE_AMT) FREE_AMT
+                     , SUM(A3.SERVICE_AMT) SERVICE_AMT
                   FROM (
                         SELECT A1.KW_GRP_CO_CD
                              , A1.CNTR_NO
@@ -421,13 +422,18 @@
                              , (SELECT A2.COPN_DV_CD FROM TB_CUBS_CST_BAS A2 WHERE A2.CST_NO = D1.CNTR_CST_NO) COPN_DV_CD /* 법인격유형코드 (01.개인 , 02.법인 )*/
                              , A1.DP_DT   /* 입금일자 */
                              , A1.RVE_DT  /* 수납일자 */
-                             , A1.RVE_AMT AS DP_AMT  /* 입금금액 */
+                             , CASE WHEN A1.DP_DV_CD IN ('1', '3') AND A1.RVE_DV_CD IN ('14', '17') THEN 0
+                                    ELSE A1.RVE_AMT
+                                END AS DP_AMT  /* 입금금액 */
                              , A1.DP_TP_CD
                              , NVL(C1.SELL_AMT, 0) AS SELL_AMT /* 주문금액 */
                              , A1.DP_DV_CD
-                             , CASE WHEN A1.DP_DV_CD = '3' AND A1.RVE_DV_CD = '17' THEN RVE_AMT
+                             , CASE WHEN A1.DP_DV_CD IN ('1', '3') AND A1.RVE_DV_CD = '17' THEN RVE_AMT
                                     ELSE 0
                                      END FREE_AMT
+                             , CASE WHEN A1.DP_DV_CD IN ('1', '3') AND A1.RVE_DV_CD = '14' THEN RVE_AMT
+                                    ELSE 0
+                                     END SERVICE_AMT
                           FROM TB_RVDW_RVE_DTL A1         /* 수납상세 */
                     INNER JOIN TB_SSCT_CNTR_DTL C1 /*계약상세*/
                             ON C1.CNTR_NO = A1.CNTR_NO
@@ -843,7 +849,7 @@
                 , T1.DP_MES_CD
                 , T1.RVE_DV_CD
                 , T1.DP_AMT
-                , CASE WHEN RVE_DV_CD = '17' THEN 0
+                , CASE WHEN DP_DV_CD IN ('1', '3') AND RVE_DV_CD IN ('14', '17') THEN 0
                        ELSE CASE WHEN DP_DV_CD IN ('1', '3') THEN (NVL(T1.DP_AMT, 0) - NVL(RFND_AMT, 0))
                                  ELSE 0
                                   END
@@ -932,7 +938,7 @@
                        AND I1.FNIT_DV_CD = DECODE(B1.FNIT_CD, NULL, '2', '1')
                      WHERE 1 = 1
                        AND A1.DTA_DL_YN = 'N'
-                       AND A1.RVE_DV_CD NOT IN ('98')
+                       AND A1.RVE_DV_CD NOT IN ('98', '14', '17') /*기타선수, 서비스입금, 수수료*/
                        AND A1.CNTR_NO = #{cntrNo}
                        AND A1.CNTR_SN = #{cntrSn}
                       <if test="@MybatisUtils@isNotEmpty(rveNo)">
