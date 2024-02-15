@@ -2,9 +2,11 @@ package com.kyowon.sms.wells.web.service.visit.service;
 
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbNewPdctMThreeAcuAfSvRtDto.*;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbNewPdctMThreeAcuAfSvRtMapper;
+import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -52,6 +54,11 @@ public class WsnbNewPdctMThreeAcuAfSvRtService {
 
             switch (dto.rowState()){
                 case CommConst.ROW_STATE_CREATED -> {
+                    if(StringUtil.isEmpty(dto.otscDvCd())){
+                        throw new BizException("MSG_ALT_EMPTY_REQUIRED_VAL");
+                    }
+                    int existCnt = mapper.selectDuplicationPdCdCnt(dto);
+                    BizAssert.isFalse(existCnt > 0, "MSG_ALT_ALREADY_RGST_INFO");
                     result += mapper.insertNewPdctMThreeAcuAfSvRtInfo(dto);
                 }
                 case CommConst.ROW_STATE_UPDATED -> {
