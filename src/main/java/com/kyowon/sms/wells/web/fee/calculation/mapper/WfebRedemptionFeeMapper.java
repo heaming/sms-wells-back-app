@@ -15,6 +15,7 @@ public interface WfebRedemptionFeeMapper {
 
     /**
      * M조직 연체되물림 계약데이터 생성
+     * 되물림 기준년월에 2, 4직급이면 되물림 제외
      * @param baseYm
      * @param cntrPerfCrtDvCd
      * @param feeRedfAdsbDtlId
