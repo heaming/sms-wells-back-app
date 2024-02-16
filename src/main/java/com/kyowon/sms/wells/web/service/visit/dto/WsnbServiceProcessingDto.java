@@ -158,7 +158,9 @@ public class WsnbServiceProcessingDto {
         String istCelngPhoPhDocId, // 설치천장사진 DOC_ID
         String acpnPrtnrKnm, // 동행작업자명
         String acpnPrtnrGdNm, // 동행작업자직급
-        String bfCntrNoSn  // 전상대코드
+        String bfCntrNoSn, // 전상대코드
+        String cstSignCn,
+        String istImg
     ) {
         public SearchExcelRes {
 //            mexnoEncr = StringUtils.isNotEmpty(mexnoEncr) ? DbEncUtil.dec(mexnoEncr) : "";
