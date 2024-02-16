@@ -432,8 +432,8 @@
              , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_MCLSF_CD', SUBSTR(TS1.SV_BIZ_DCLSF_CD, 1, 2), 'ko') AS SV_BIZ_MCLSF_CD_NM
              , SUBSTR(TS1.SV_BIZ_DCLSF_CD, 1, 3) AS SV_BIZ_LCLSF_CD
              , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_LCLSF_CD', SUBSTR(TS1.SV_BIZ_DCLSF_CD, 1, 3), 'ko') AS SV_BIZ_LCLSF_CD_NM
-             , TS1.SV_BIZ_DCLSF_CD AS SV_BIZ_DCLSF_CD
-             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', TS1.SV_BIZ_DCLSF_CD, 'ko') AS SV_BIZ_DCLSF_CD_NM
+             , TS1.RLTD_SV_BIZ_DCLSF_CD AS SV_BIZ_DCLSF_CD
+             , TS1.CLSF_CD_SRN_PRNT_CN AS SV_BIZ_DCLSF_CD_NM
              , 'BS' AS REG_ID
              , '' AS REG_KNM
              , '' AS REG_MEMO
@@ -947,7 +947,7 @@
              , SUBSTR(TS1.SV_BIZ_DCLSF_CD, 1, 3) AS SV_BIZ_LCLSF_CD
              , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_LCLSF_CD', SUBSTR(TS1.SV_BIZ_DCLSF_CD, 1, 3), 'ko') AS SV_BIZ_LCLSF_CD_NM
              , TS1.SV_BIZ_DCLSF_CD AS SV_BIZ_DCLSF_CD
-             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', TS1.SV_BIZ_DCLSF_CD, 'ko') AS SV_BIZ_DCLSF_CD_NM
+             , TS1.SV_BIZ_DCLSF_CD_NM
              , 'BS' AS REG_ID
              , '' AS REG_KNM
              , '' AS REG_MEMO
@@ -1073,11 +1073,15 @@
              , '' AS SPP_AK_RS_CN /* 2024.01.06 홍세기 고객센터 요청 반품집하지시 상태값 표시 */
              , '' AS SPP_BZS_MB_NO
           FROM (
-                SELECT V1.CNTR_NO AS CNTR_NO
+                SELECT DISTINCT V1.CNTR_NO AS CNTR_NO
                      , V1.CNTR_SN AS CNTR_SN
                      , V1.VST_DUEDT AS VST_DUEDT
-                     , MAX(V1.WK_DT) AS WK_DT
-                     , MAX(V1.SV_BIZ_DCLSF_CD) AS SV_BIZ_DCLSF_CD
+                     , V1.WK_DT AS WK_DT
+
+                     , LISTAGG(V1.SV_BIZ_DCLSF_CD , ',')
+                       WITHIN GROUP(ORDER BY V1.SV_BIZ_DCLSF_CD) OVER (PARTITION BY V1.CNTR_NO, V1.CNTR_SN,  V1.VST_DUEDT) AS SV_BIZ_DCLSF_CD
+                     , LISTAGG(F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', V1.SV_BIZ_DCLSF_CD, 'ko') , ',')
+                       WITHIN GROUP(ORDER BY V1.SV_BIZ_DCLSF_CD) OVER (PARTITION BY V1.CNTR_NO, V1.CNTR_SN,  V1.VST_DUEDT) AS SV_BIZ_DCLSF_CD_NM
                   FROM TB_SVPD_CST_SV_RGBSPR_IZ V1
                  WHERE 1 = 1
                    AND V1.CNTR_NO = #{cntrNo}
@@ -1090,7 +1094,6 @@
                            AND V2.CNTR_NO = #{cntrNo}
                            AND V2.CNTR_SN = #{cntrSn}
                            AND V2.ASN_OJ_YM >= SUBSTR(V1.VST_DUEDT, 1, 6)) = 0
-                 GROUP BY V1.CNTR_NO, V1.CNTR_SN, V1.VST_DUEDT
                ) TS1
          INNER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ TS2
             ON TS2.CNTR_NO = TS1.CNTR_NO
