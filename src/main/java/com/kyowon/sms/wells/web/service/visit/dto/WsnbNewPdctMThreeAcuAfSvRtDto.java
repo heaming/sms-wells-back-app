@@ -75,7 +75,6 @@ public class WsnbNewPdctMThreeAcuAfSvRtDto {
         String rowState, /* 상태 */
         @NotBlank
         String pdCd, /* 상품코드 */
-        @NotBlank
         String otscDvCd, /* 아웃소싱구분코드 */
         String nmKor,
         String pdGrpCd,

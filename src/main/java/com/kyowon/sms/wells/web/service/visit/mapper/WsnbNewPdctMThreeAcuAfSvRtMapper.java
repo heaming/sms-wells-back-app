@@ -15,4 +15,5 @@ public interface WsnbNewPdctMThreeAcuAfSvRtMapper {
     int insertNewPdctMThreeAcuAfSvRtInfo(SaveReq saveReq);
     int updateNewPdctMThreeAcuAfSvRtInfo(SaveReq saveReq);
     List<PdDtlListRes> selectPdDtls();
+    int selectDuplicationPdCdCnt(SaveReq saveReq);
 }
