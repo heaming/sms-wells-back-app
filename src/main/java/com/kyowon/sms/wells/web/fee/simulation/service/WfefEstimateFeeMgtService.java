@@ -13,6 +13,8 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -227,13 +229,12 @@ public class WfefEstimateFeeMgtService {
      *
      * 가전인정건수(개인) : W02P00002_0, TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성
      * 가전인정건수(조직) : W02P00002_2, TB_FEAM_MACUP_CNTR_PERF_CL, 지점장 소속 플래너로 생성
-     * 렌탈기준가(개인) : W00P00003_0, TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성
-     * 렌탈기준가(조직) : W00P00003_2, TB_FEAM_MACUP_CNTR_PERF_CL, 지점장 소속 플래너로 생성
-     * 일시불기준가(개인) : W00P00004_0, TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성
-     * 일시불기준가(조직) : W00P00004_2, TB_FEAM_MACUP_CNTR_PERF_CL, 지점장 소속 플래너로 생성
-     * 가전외인정실적(개인) : W02P00112_0, TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성
-     * 가전외인정실적(조직) : W02P00112_2, TB_FEAM_MACUP_CNTR_PERF_CL, 지점장 소속 플래너로 생성
-     * 순증(개인) : W02P00113_0, TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성
+     * 렌탈기준가(개인) : W00P00003_0, TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성, W00P00004_0, W00P00005_0 동일계약번호로 0원 추가
+     * 렌탈기준가(조직) : W00P00003_2, TB_FEAM_MACUP_CNTR_PERF_CL, 지점장 소속 플래너로 생성, W00P00004_2, W00P00005_2 동일계약번호로 0원 추가
+     * 일시불기준가(개인) : W00P00004_0, TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성, W00P00003_0, W00P00005_0 동일계약번호로 0원 추가
+     * 일시불기준가(조직) : W00P00004_2, TB_FEAM_MACUP_CNTR_PERF_CL, 지점장 소속 플래너로 생성, W00P00003_2, W00P00005_2 동일계약번호로 0원 추가
+     * 가전외인정실적(개인) : W02P00112_0, TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성, W00P00007_0 동일계약번호로 0원 추가
+     * 가전외인정실적(조직) : W02P00112_2, TB_FEAM_MACUP_CNTR_PERF_CL, 지점장 소속 플래너로 생성, W00P00007_2 동일계약번호로 0원 추가
      * 순증(조직) : W02P00113_2, TB_FEAM_MACUP_CNTR_PERF_CL, 지점장 소속 플래너로 생성
      * BS관리수수료기준금액 : W02P00096, TB_FEAM_MACUP_PERF_CL, 각 상품별 완료건수 * 기준금액의 합
      *                     BS정수기1완료건수(7000원), BS정수기2완료건수(8000원), BS정수기3완료건수(8500원), BS정수기4완료건수(10000원)
@@ -256,13 +257,34 @@ public class WfefEstimateFeeMgtService {
             String perfAgrgCrtDvCd = getPerfAgrgCrtDvCd(req.perType());
             addPerformances.keySet().forEach(keyName -> {
                 switch(keyName) {
-                    /* 가전인정건수(개인), 렌탈기준가(개인), 일시불기준가(개인),가전외인정실적(개인), 순증(개인) */
-                    case "W02P00002_0":
+                    /* 렌탈기준가(개인), 일시불기준가(개인), 가전외인정실적(개인) */
                     case "W00P00003_0":
                     case "W00P00004_0":
                     case "W02P00112_0":
-                    case "W02P00113_0":
-                        /* 가전인정건수(개인), 렌탈기준가(개인), 일시불기준가(개인),가전외인정실적(개인), 순증(개인)로 DUMMY 계약으로 INSERT */
+                        List<String> addPerfAtcCds = new ArrayList<>();
+
+                        if("W00P00003_0".equals(keyName)) {
+                            addPerfAtcCds.add("W00P00004");
+                            addPerfAtcCds.add("W00P00005");
+                        } else if("W00P00004_0".equals(keyName)) {
+                            addPerfAtcCds.add("W00P00003");
+                            addPerfAtcCds.add("W00P00005");
+                        } else if("W02P00112_0".equals(keyName)) {
+                            addPerfAtcCds.add("W00P00007");
+                        }
+                        feeSmlCalculationService.saveMacupCntrPerf(ZfefMacupCntrPerfDvo.builder()
+                                .mmAcuPerfAgrgCrtDvCd(req.perType())
+                                .baseYm(req.perfYm())
+                                .perfAgrgCrtDvCd(perfAgrgCrtDvCd)
+                                .ogTpCd(M_OG_TP_CD)
+                                .prtnrNo(req.sellPrtnrNo())
+                                .hooPrtnrNo(req.sellPrtnrNo())
+                                .perfAtcCd(keyName.split("_")[0])
+                                .perfVal((Integer)addPerformances.get(keyName)).build(), addPerfAtcCds);
+                        break;
+                    /* 가전인정건수(개인) */
+                    case "W02P00002_0":
+                        /* 가전인정건수(개인)로 DUMMY 계약으로 INSERT */
                         feeSmlCalculationService.saveMacupCntrPerf(ZfefMacupCntrPerfDvo.builder()
                                 .mmAcuPerfAgrgCrtDvCd(req.perType())
                                 .baseYm(req.perfYm())
@@ -273,13 +295,36 @@ public class WfefEstimateFeeMgtService {
                                 .perfAtcCd(keyName.split("_")[0])
                                 .perfVal((Integer)addPerformances.get(keyName)).build());
                         break;
-                    /* 가전인정건수(조직), 렌탈기준가(조직), 일시불기준가(조직),가전외인정실적(조직), 순증(조직) */
-                    case "W02P00002_2":
+                    /* 렌탈기준가(조직), 일시불기준가(조직), 가전외인정실적(조직) */
                     case "W00P00003_2":
                     case "W00P00004_2":
                     case "W02P00112_2":
+                        List<String> addOgPerfAtcCds = new ArrayList<>();
+
+                        if("W00P00003_2".equals(keyName)) {
+                            addOgPerfAtcCds.add("W00P00004");
+                            addOgPerfAtcCds.add("W00P00005");
+                        } else if("W00P00004_2".equals(keyName)) {
+                            addOgPerfAtcCds.add("W00P00003");
+                            addOgPerfAtcCds.add("W00P00005");
+                        } else if("W02P00112_2".equals(keyName)) {
+                            addOgPerfAtcCds.add("W00P00007");
+                        }
+                        /* 일시불기준가(조직),가전외인정실적(조직), 가전외인정실적(조직)로 DUMMY 계약으로 INSERT */
+                        feeSmlCalculationService.saveMacupCntrPerf(ZfefMacupCntrPerfDvo.builder()
+                                .mmAcuPerfAgrgCrtDvCd(req.perType())
+                                .baseYm(req.perfYm())
+                                .perfAgrgCrtDvCd(perfAgrgCrtDvCd)
+                                .ogTpCd(M_OG_TP_CD)
+                                .prtnrNo(feeSmlCalculationService.getPrtnrNoFromPrtnrHoo(req.perfYm(), M_OG_TP_CD, req.sellPrtnrNo()))
+                                .hooPrtnrNo(req.sellPrtnrNo())
+                                .perfAtcCd(keyName.split("_")[0])
+                                .perfVal((Integer)addPerformances.get(keyName)).build(), addOgPerfAtcCds);
+                        break;
+                    /* 가전인정건수(조직), 순증(조직) */
+                    case "W02P00002_2":
                     case "W02P00113_2":
-                        /* 가전인정건수(조직), 렌탈기준가(조직), 일시불기준가(조직),가전외인정실적(조직), 순증(조직)로 DUMMY 계약으로 INSERT */
+                        /* 가전인정건수(조직), 순증(조직)로 DUMMY 계약으로 INSERT */
                         feeSmlCalculationService.saveMacupCntrPerf(ZfefMacupCntrPerfDvo.builder()
                                 .mmAcuPerfAgrgCrtDvCd(req.perType())
                                 .baseYm(req.perfYm())
