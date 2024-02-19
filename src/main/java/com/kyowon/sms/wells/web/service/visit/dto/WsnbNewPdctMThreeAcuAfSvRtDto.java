@@ -63,6 +63,7 @@ public class WsnbNewPdctMThreeAcuAfSvRtDto {
         String pdGrpCd,     /* 상품그룹코드 */
         String pdHclsfId,   /* 상품대분류 */
         String pdTpCd,      /* 상품유형코드 */
+        String otscDvCd,    /* 아웃소싱구분코드 */
         String lncStrtdt,   /* 출시시작일자 */
         String lncExdt      /* 출시만기일자 */
     ) {}
@@ -74,6 +75,7 @@ public class WsnbNewPdctMThreeAcuAfSvRtDto {
         String rowState, /* 상태 */
         @NotBlank
         String pdCd, /* 상품코드 */
+        String otscDvCd, /* 아웃소싱구분코드 */
         String nmKor,
         String pdGrpCd,
         @NotBlank

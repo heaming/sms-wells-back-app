@@ -8,7 +8,6 @@ import com.kyowon.sms.wells.web.competence.educations.dto.WpsbZoomMgtDto.SearchR
 import com.kyowon.sms.wells.web.competence.educations.dto.WpsbZoomMgtDto.SearchRes;
 import com.kyowon.sms.wells.web.competence.educations.dvo.WpsbZoomMgtDvo;
 import com.kyowon.sms.wells.web.competence.educations.mapper.WpsbZoomMgtMapper;
-import com.sds.sflex.system.config.constant.CommConst;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -59,7 +58,7 @@ public class WpsbZoomMgtService {
         int processCount = 0;
         WpsbZoomMgtDvo dvo = converter.mapSaveReq(dto);
         dvo.setDtaDlYn(DeDeductionConst.DELETE_N);
-        if (dto.rowState().equals(CommConst.ROW_STATE_CREATED)) {
+        if (StringUtils.equals(dvo.getRowState(), "created")) {
             processCount = mapper.insertZoom(dvo);
         } else {
             processCount = mapper.updateZoom(dvo);

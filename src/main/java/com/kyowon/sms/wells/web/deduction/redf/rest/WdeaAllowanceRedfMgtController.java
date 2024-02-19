@@ -138,7 +138,7 @@ public class WdeaAllowanceRedfMgtController {
     //    })
     //    @ApiOperation(value = "수당(실적) 되물림 관리 - 영업부 되물림 생성 목록 조회", notes = "수당(실적) 되물림 관리 - 영업부 되물림 생성 목록을 조회한다.")
     //    @GetMapping("/bizd-paging")
-    //    public PagingResult<SearchRedfBizdRes> getRedfBizdMgtTest(SearchRedfBizdReq dto, PageInfo pageInfo)
+    //    public PagingResult<SearchRedfBizdTestRes> getRedfBizdMgtTest(SearchRedfBizdReq dto, PageInfo pageInfo)
     //        throws Exception {
     //
     //        return service.getRedfBizdMgtTest(dto, pageInfo);
@@ -163,6 +163,7 @@ public class WdeaAllowanceRedfMgtController {
         return service.getRedfBizdMgtForExcelDownload(dto);
 
     }
+
     //    @ApiImplicitParams(value = {
     //        @ApiImplicitParam(name = "redfAdsbOcYmFrom", value = "발생년월(from)", paramType = "query", required = true),
     //        @ApiImplicitParam(name = "redfAdsbOcYmTo", value = "발생년월(to)", paramType = "query", required = true),

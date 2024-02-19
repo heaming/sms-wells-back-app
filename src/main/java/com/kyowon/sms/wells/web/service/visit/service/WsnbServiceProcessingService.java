@@ -1,21 +1,29 @@
 package com.kyowon.sms.wells.web.service.visit.service;
 
+import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcessingDto.FindProductRes;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcessingDto.SearchReq;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbServiceProcessingDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbServiceProcessingMapper;
+import com.sds.sflex.common.common.dto.ExcelBulkDownloadDto;
+import com.sds.sflex.common.common.service.ExcelDownloadService;
 import com.sds.sflex.common.docs.dvo.AttachFileDvo;
 import com.sds.sflex.common.docs.service.AttachFileService;
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.interceptor.ExcelResultHandler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +44,10 @@ public class WsnbServiceProcessingService {
     private final WsnbServiceProcessingMapper mapper;
 
     private final AttachFileService attachFileService;
+
+    private final SqlSession priSqlSession;
+
+    private final ExcelDownloadService excelDownloadService;
 
     /**
      * 상품 그룹별 상품 목록 조회
@@ -105,5 +117,18 @@ public class WsnbServiceProcessingService {
      */
     public List<WsnbServiceProcessingDvo> getServiceProcessingsForExcel(SearchReq dto) {
         return mapper.selectServiceProcessingsNoBlob(dto);
+    }
+
+    /**
+     * 서비스 처리내역 엑셀 다운로드
+     */
+    public void getServiceProcessingsForExcelBulk(ExcelBulkDownloadDto.DownloadReq req, HttpServletResponse response) throws IOException {
+        SXSSFWorkbook workbook = new SXSSFWorkbook(-1);
+        priSqlSession.select(
+            "com.kyowon.sms.wells.web.service.visit.mapper.WsnbServiceProcessingMapper.selectServiceProcessingsNoBlob",
+            req.parameter(),
+            new ExcelResultHandler(workbook, req.columns(), req.searchCondition())
+        );
+        excelDownloadService.downloadBulkExcel(workbook, response);
     }
 }

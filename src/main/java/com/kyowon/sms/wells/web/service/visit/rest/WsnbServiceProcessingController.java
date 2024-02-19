@@ -1,19 +1,19 @@
 package com.kyowon.sms.wells.web.service.visit.rest;
 
+import java.io.IOException;
 import java.util.List;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcessingDto.FindProductRes;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbServiceProcessingDto.SearchReq;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbServiceProcessingDvo;
 import com.kyowon.sms.wells.web.service.visit.service.WsnbServiceProcessingService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
+import com.sds.sflex.common.common.dto.ExcelBulkDownloadDto;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -92,6 +92,17 @@ public class WsnbServiceProcessingController {
     @GetMapping("/excel-download")
     public List<WsnbServiceProcessingDvo> getServiceProcessingsForExcel(SearchReq dto) {
         return this.service.getServiceProcessingsForExcel(dto);
+    }
+
+    /**
+     * 서비스처리 내역 조회 (엑셀 다운로드)
+     * (BLOB 컬럼 제외하고 조회.)
+     * @return 서비스처리 내역
+     */
+    @ApiOperation(value = "서비스처리 내역 조회 (엑셀 다운로드)", notes = "조회조건에 해당하는 고객 방문 후 서비스 처리 내역을 조회한다.")
+    @PostMapping("/excel-download-bulk")
+    public void getServiceProcessingsForExcelBulk(@RequestBody ExcelBulkDownloadDto.DownloadReq req, HttpServletResponse response) throws IOException {
+        this.service.getServiceProcessingsForExcelBulk(req, response);
     }
 
 
