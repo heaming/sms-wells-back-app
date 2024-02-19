@@ -48,24 +48,21 @@
                , L1.OSTR_AK_NO        /*서비스출고요청번호*/
                , L2.LGST_OSTR_AK_NO   /*물류출고요청번호*/
                , L1.OSTR_NO           /*물류출고번호*/
-            FROM TB_SVPD_CST_SVAS_IST_OJ_IZ S1                 /*고객서비스AS설치대상내역, AC211TB*/
-           INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ S2     /*고객서비스수행배정내역, AC221TB*/
+            FROM TB_SVPD_CST_SVAS_IST_ASN_IZ S2     /*고객서비스수행배정내역, AC221TB*/
+           INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ S1                 /*고객서비스AS설치대상내역, AC211TB*/
               ON S2.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
              AND S2.DTA_DL_YN = 'N'
             LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S3    /*고객서비스작업결과내역, VS106TB*/
-              ON S3.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
+              ON S3.CST_SV_ASN_NO = S2.CST_SV_ASN_NO
              AND S3.DTA_DL_YN = 'N'
-            LEFT OUTER JOIN TB_SVST_SV_WK_OSTR_IZ S4      /*서비스작업출고내역, ST163TB*/
-              ON S4.CST_SV_ASN_NO = S1.CST_SV_ASN_NO
-             AND S4.DTA_DL_YN = 'N'
             LEFT OUTER JOIN TB_SVPD_AS_TP_CD S5           /*AS유형코드, CO460TB*/
               ON S5.PD_CD = S1.PD_CD
              AND S5.SV_ANA_HCLSF_CD = S1.SV_BIZ_DCLSF_CD
              AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN S5.APY_STRTDT AND S5.APY_ENDDT
              AND S5.DTA_DL_YN = 'N'
            INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S6          /*고객서비스수행내역*/
-              ON S6.CNTR_NO = S1.CNTR_NO
-             AND S6.CNTR_SN = S1.CNTR_SN
+              ON S6.CNTR_NO = S2.CNTR_NO
+             AND S6.CNTR_SN = S2.CNTR_SN
              AND S6.DTA_DL_YN = 'N'
            INNER JOIN TB_SVST_MCBY_WARE_IZ S7 /*월별창고내역, KWAS.LC_STOCK_ST102TB 창고조직기본정보*/
               /* TODO 변경사항  ON T9.WARE_MNGT_PRTNR_NO = NVL(T4.PRTNR_NO, T2.ICHR_PRTNR_NO) */
@@ -77,31 +74,40 @@
              AND S7.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
              AND S7.DTA_DL_YN = 'N'
            INNER JOIN TB_SSCT_CNTR_BAS C0                /*계약기본*/
-              ON C0.CNTR_NO = S1.CNTR_NO
+              ON C0.CNTR_NO = S2.CNTR_NO
              AND C0.DTA_DL_YN = 'N'
            INNER JOIN TB_SSCT_CNTR_DTL C1                /*계약상세*/
-              ON C1.CNTR_NO = S1.CNTR_NO
-             AND C1.CNTR_SN = S1.CNTR_SN
+              ON C1.CNTR_NO = S2.CNTR_NO
+             AND C1.CNTR_SN = S2.CNTR_SN
              AND C1.DTA_DL_YN = 'N'
             LEFT OUTER JOIN TB_SSCT_CNTR_RSG_PROCS_IZ C3  /*계약해지처리내역*/
-              ON C3.CNTR_NO = S1.CNTR_NO
-             AND C3.CNTR_SN = S1.CNTR_SN
+              ON C3.CNTR_NO = S2.CNTR_NO
+             AND C3.CNTR_SN = S2.CNTR_SN
              AND C3.DTA_DL_YN = 'N'
-            LEFT OUTER JOIN TB_SVPD_OSTR_AK_PCSV_SEND_DTL L1 /*출고요청택배송신상세*/
-              ON L1.CNTR_NO = S3.CNTR_NO
-             AND L1.CNTR_SN = S3.CNTR_SN
-             AND L1.OSTR_RQDT = S3.VST_FSH_DT
-             AND L1.DTA_DL_YN = 'N'
-             AND ROWNUM = 1
-            LEFT OUTER JOIN TB_IFIN_OSTR_AK_DTL_SEND_ETXT L2 /*출고요청상세송신전문*/
-              ON L2.REL_NO = L1.OSTR_AK_NO
-             AND L2.DTA_DL_YN = 'N'
-             AND ROWNUM = 1
-           INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P1         /*상품각사속성상세*/
-              ON S6.PDCT_PD_CD = P1.PD_CD
-             AND P1.PD_PRP_VAL20 != '11'
-             AND P1.DTA_DL_YN = 'N'
-
+            LEFT OUTER JOIN LATERAL (SELECT DISTINCT
+                                            L1.OSTR_AK_NO    /*서비스출고요청번호*/
+                                          , L1.OSTR_NO    /*물류출고번호*/
+                                       FROM WSMDBS.TB_SVPD_OSTR_AK_PCSV_SEND_DTL L1 /*출고요청택배송신상세*/
+                                      WHERE 1=1
+                                        AND L1.CNTR_NO = S3.CNTR_NO
+                                        AND L1.CNTR_SN = S3.CNTR_SN
+                                        AND L1.OSTR_RQDT = S3.VST_FSH_DT
+                                        AND L1.DTA_DL_YN = 'N'
+                                    ) L1
+                                 ON 1=1
+            LEFT OUTER JOIN LATERAL (SELECT DISTINCT
+                                            L2.LGST_OSTR_AK_NO   /*물류출고요청번호*/
+                                       FROM WSMDBS.TB_IFIN_OSTR_AK_DTL_SEND_ETXT L2 /*출고요청상세송신전문*/
+                                      WHERE 1=1
+                                        AND L2.REL_NO = L1.OSTR_AK_NO
+                                        AND L2.DTA_DL_YN = 'N'
+                                    ) L2
+                                 ON 1=1
+           INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P1
+                    /*상품각사속성상세*/
+                    ON     S6.PDCT_PD_CD = P1.PD_CD
+                       AND P1.PD_PRP_VAL20 != '11'
+                       AND P1.DTA_DL_YN = 'N'
          WHERE 1=1
            /* 출고구분 */
            AND S1.SV_BIZ_DCLSF_CD = #{svBizDclsfCd}  /*서비스 업무 세분류 코드 : 1112 제품배송, 1113 제품재배송, 2250 웰컴BS, 3460 택배반품*/
