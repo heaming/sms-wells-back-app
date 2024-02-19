@@ -24,14 +24,26 @@
                  ) FNIT_NM /*출력값-금융기관명*/
                , C1.FNT_RS_CD AFTN_RS_CD /*출력값-자동이체결과코드*/
                , C1.ACNO_CDNO ACNO_CDNO /*출력값-계좌카드번호*/
-               , (
-                  SELECT B2.AFTN_RS_NM
-                    FROM TB_RVDW_AFTN_RS_CD B2 /*자동이체결과코드*/
-                   WHERE B2.AFTN_RS_DV_CD = CASE WHEN C1.DV_CD = 'AC' THEN '1'
-                                                 WHEN C1.DV_CD = 'CA' THEN '9'
-                                             END
-                     AND B2.AFTN_RS_CD = C1.FNT_RS_CD
-                 ) AFTN_RS_NM /*출력값-자동이체결과명*/
+               , CASE WHEN C1.RCV_DTM IS NULL THEN '청구진행'
+                      WHEN C1.DV_CD = 'AC' THEN (
+                                                   SELECT B2.AFTN_RS_NM
+                                                     FROM TB_RVDW_AFTN_RS_CD B2 /*자동이체결과코드*/
+                                                    WHERE 1 = 1
+                                                      AND B2.AFTN_RS_DV_CD = '1'
+                                                      AND B2.AFTN_RS_CD = C1.FNT_RS_CD
+                                                )
+                                           ELSE (
+                                                   SELECT CASE WHEN C1.RS_CD = '9999' THEN CASE WHEN C1.FNT_RS_CD = '0000' THEN '정상' ELSE (SELECT B2.AFTN_RS_NM
+																						                                                      FROM TB_RVCL_CRDCD_AFTN_RS_CD B2
+																						                                                     WHERE 1 = 1
+																						                                                       AND B2.CDCO_CD = C1.FNIT_CD
+																						                                                       AND B2.AFTN_RS_CD = C1.FNT_RS_CD
+																						                                                      ) END
+                                                   									  ELSE F_CMZ_CD_NM(#{session.tenantId}, 'CARD_FNT_IMPS_CD', C1.FNT_RS_CD , 'ko')
+                                                          END
+                                                     FROM DUAL
+                                                 )
+                  END AS AFTN_RS_NM /*출력값-자동이체결과명*/
                 </when>
                 <otherwise>
                , (SELECT A2.FNIT_NM
@@ -49,24 +61,30 @@
                <if test='@MybatisUtils@equals(fntDvCd, "01")'>
                , C1.AC_FNT_RS_CD AFTN_RS_CD /*출력값-자동이체결과코드*/
                , C1.ACNO_ENCR ACNO_CDNO /*출력값-계좌카드번호*/
-               </if>
-               <if test='@MybatisUtils@equals(fntDvCd, "02")'>
-               , C1.CARD_FNT_RS_CD AFTN_RS_CD /*출력값-자동이체결과코드*/
-               , C1.CRCDNO_ENCR ACNO_CDNO /*출력값-계좌카드번호*/
-               </if>
                , (
                   SELECT B2.AFTN_RS_NM
                     FROM TB_RVDW_AFTN_RS_CD B2 /*자동이체결과코드*/
-                   WHERE B2.AFTN_RS_DV_CD = CASE WHEN #{fntDvCd} = '01' THEN '1'
-                                                 WHEN #{fntDvCd} = '02' THEN '9'
-                                             END
-                    <if test='@MybatisUtils@equals(fntDvCd, "01")'>
+                   WHERE B2.AFTN_RS_DV_CD = '1'
                      AND B2.AFTN_RS_CD = C1.AC_FNT_RS_CD
-                    </if>
-                    <if test='@MybatisUtils@equals(fntDvCd, "02")'>
-                     AND B2.AFTN_RS_CD = C1.CARD_FNT_RS_CD
-                    </if>
                  ) AFTN_RS_NM /*출력값-자동이체결과명*/
+               </if>
+               <if test='@MybatisUtils@equals(fntDvCd, "02")'>
+               , C1.PCHS_RS_CD AFTN_RS_CD /*출력값-자동이체결과코드*/
+               , C1.CRCDNO_ENCR ACNO_CDNO /*출력값-계좌카드번호*/
+               , CASE WHEN C1.RCV_DTM IS NULL THEN '청구진행'
+                                           ELSE (
+                                                   SELECT CASE WHEN C1.CARD_FNT_RS_CD  = '9999' THEN CASE WHEN C1.PCHS_RS_CD = '0000' THEN '정상' ELSE (SELECT B2.AFTN_RS_NM
+																						                                                      FROM TB_RVCL_CRDCD_AFTN_RS_CD B2
+																						                                                     WHERE 1 = 1
+																						                                                       AND B2.CDCO_CD = C1.CDCO_CD
+																						                                                       AND B2.AFTN_RS_CD = C1.PCHS_RS_CD
+																						                                                      ) END
+                                                   									  ELSE F_CMZ_CD_NM(#{session.tenantId}, 'CARD_FNT_IMPS_CD', C1.CARD_FNT_RS_CD , 'ko')
+                                                          END
+                                                     FROM DUAL
+                                                 )
+                  END AS AFTN_RS_NM /*출력값-자동이체결과명*/
+               </if>
                 </otherwise>
             </choose>
 			   , TO_CHAR(TO_DATE(A1.FNL_MDFC_DTM,'YYYYMMDDHH24MISS'), 'YYYYMMDD') AS CH_DT /*변경일자*/
@@ -97,6 +115,8 @@
                                , C2.BNK_CD AS FNIT_CD
                                , C2.ACNO_ENCR AS ACNO_CDNO /*출력값-계좌카드번호*/
                                , C2.BIL_NO
+                               , '' AS RS_CD
+                               , C2.RCV_DTM
                             FROM TB_RVCL_AC_FNT_SEND_MTR_IZ C2 /*계좌이체송신내역*/
                            WHERE C2.DTA_DL_YN = 'N'
                             <if test='@MybatisUtils@isNotEmpty(acnoCdno)'>
@@ -104,10 +124,12 @@
                             </if>
                            UNION ALL
                           SELECT 'CA' DV_CD
-                               , C2.CARD_FNT_RS_CD AS FNT_RS_CD/*출력값-자동이체결과코드*/
+                               , C2.PCHS_RS_CD AS FNT_RS_CD/*출력값-자동이체결과코드*/
                                , C2.CDCO_CD AS FNIT_CD
                                , C2.CRCDNO_ENCR AS ACNO_CDNO /*출력값-계좌카드번호*/
                                , C2.BIL_NO
+                               , C2.CARD_FNT_RS_CD AS RS_CD
+                               , C2.RCV_DTM
                             FROM TB_RVCL_CARD_FNT_SEND_MTR_IZ C2 /*카드이체송신자료내역*/
                            WHERE C2.DTA_DL_YN = 'N'
                             <if test='@MybatisUtils@isNotEmpty(acnoCdno)'>
