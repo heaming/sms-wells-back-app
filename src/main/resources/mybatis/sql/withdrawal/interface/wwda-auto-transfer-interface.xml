@@ -61,12 +61,12 @@
                <if test='@MybatisUtils@equals(fntDvCd, "01")'>
                , C1.AC_FNT_RS_CD AFTN_RS_CD /*출력값-자동이체결과코드*/
                , C1.ACNO_ENCR ACNO_CDNO /*출력값-계좌카드번호*/
-               , (
+               , CASE WHEN C1.RCV_DTM IS NULL THEN '청구진행' ELSE (
                   SELECT B2.AFTN_RS_NM
                     FROM TB_RVDW_AFTN_RS_CD B2 /*자동이체결과코드*/
                    WHERE B2.AFTN_RS_DV_CD = '1'
                      AND B2.AFTN_RS_CD = C1.AC_FNT_RS_CD
-                 ) AFTN_RS_NM /*출력값-자동이체결과명*/
+                 ) END AS AFTN_RS_NM /*출력값-자동이체결과명*/
                </if>
                <if test='@MybatisUtils@equals(fntDvCd, "02")'>
                , C1.PCHS_RS_CD AFTN_RS_CD /*출력값-자동이체결과코드*/
@@ -124,7 +124,9 @@
                             </if>
                            UNION ALL
                           SELECT 'CA' DV_CD
-                               , C2.PCHS_RS_CD AS FNT_RS_CD/*출력값-자동이체결과코드*/
+                               , CASE WHEN C2.PCHS_RS_CD IS NOT NULL THEN C2.PCHS_RS_CD
+                                             						 ELSE C2.CARD_FNT_RS_CD
+                                 END AS FNT_RS_CD/*출력값-자동이체결과코드*/
                                , C2.CDCO_CD AS FNIT_CD
                                , C2.CRCDNO_ENCR AS ACNO_CDNO /*출력값-계좌카드번호*/
                                , C2.BIL_NO
@@ -172,7 +174,7 @@
         <if test='@MybatisUtils@isNotEmpty(fntDvCd)'>
              AND A1.FNT_DV_CD = #{fntDvCd} /*입력값-이체구분코드*/
         </if>
-        ORDER BY B1.DP_DT DESC
+        ORDER BY A1.BIL_DT DESC
     </select>
 
     <select id="selectChangeItemizations"
