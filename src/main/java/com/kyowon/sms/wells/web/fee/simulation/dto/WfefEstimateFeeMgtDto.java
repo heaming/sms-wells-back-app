@@ -77,6 +77,7 @@ public class WfefEstimateFeeMgtDto {
         String prtnrKnm,
         String ogCd, // 조직코드
         String rsbDvCd, // 직책구분코드
+        String qlfDvCd, // 자격구분코드
         String startYm, // 개시차월
         String prfmtYm, // 승진차월
         Long amtEstSalFee, // 예상판매수수료
@@ -149,7 +150,7 @@ public class WfefEstimateFeeMgtDto {
     public record SearchOgMRes(
         String userDvCd,
         BaseM base,
-        MeetingM meeting,
+        List<Map> meeting,
         List<PerformanceM> performances,
         List<BsM> bses,
         List<OgBsM> ogBses,

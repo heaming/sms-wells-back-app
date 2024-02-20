@@ -281,6 +281,7 @@
         SELECT T1.PRTNR_KNM                             /* 성명                        */
              , T1.OG_CD                                 /* 조직코드                    */
              , T2.RSB_DV_CD                             /* 직책구분코드 - T2.RSB_DV_CD */
+             , T2.QLF_DV_CD                             /* 자격구분코드 */
              , CEIL(MONTHS_BETWEEN(TO_DATE(T1.BASE_YM||'01', 'YYYYMMDD'), TO_DATE(T2.CNTR_DT, 'YYYYMMDD'))) START_YM    --개시차월(CNTR_DT  : 계약일자)
              , CEIL(MONTHS_BETWEEN(TO_DATE(T1.BASE_YM||'01', 'YYYYMMDD'), TO_DATE(T1.PRFMT_DT, 'YYYYMMDD'))) PRFMT_YM   --승진차월(PRFMT_DT : 승진일자)
              , NVL(SUM(CASE WHEN T3.FEE_CD IN ('W020017'   --조직판매장려(매니저지점장)
@@ -322,96 +323,76 @@
           AND T1.OG_TP_CD  = 'W02' /* 조직유형코드:M추진단 */
           AND T1.PRTNR_NO  = #{req.sellPrtnrNo}
           AND T1.DTA_DL_YN = 'N'
-        GROUP BY T1.PRTNR_KNM, T1.OG_CD, T2.RSB_DV_CD, T1.BASE_YM, T1.PRFMT_DT, T2.CNTR_DT
+        GROUP BY T1.PRTNR_KNM, T1.OG_CD, T2.RSB_DV_CD, T2.QLF_DV_CD, T1.BASE_YM, T1.PRFMT_DT, T2.CNTR_DT
     </select>
 
-    <select id='selectMeetingM' resultType="com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto$MeetingM">
-        SELECT (SELECT MAX(SUBSTR(EDUC_CPC_ACKMT_DT, 1,6))
-                  FROM TB_PSCA_MCPTN_EDUC_IZ
-                 WHERE PRTNR_NO          =  #{req.sellPrtnrNo}
-                   AND EDUC_CPC_ACKMT_DT >= (SELECT NVL(RCNTR_DT, CNTR_DT)
-                                               FROM TB_OGBS_MM_PRTNR_IZ
-                                              WHERE BASE_YM = #{req.perfYm} --교육수료인정일자
-                                                AND OG_TP_CD = 'W02'
-                                                AND PRTNR_NO = #{req.sellPrtnrNo})
-                   AND EDUC_CPC_ACKMT_YN = 'Y'               --교육수료인정여부
-                   AND DTA_DL_YN         = 'N'
-                   AND EDUC_CRSE_NO = '143') AS PRE_SRTUP
-             , (SELECT MAX(SUBSTR(EDUC_CPC_ACKMT_DT, 1,6))
-                  FROM TB_PSCA_MCPTN_EDUC_IZ
-                 WHERE PRTNR_NO          =  #{req.sellPrtnrNo}
-                   AND EDUC_CPC_ACKMT_DT >= (SELECT NVL(RCNTR_DT, CNTR_DT)
-                                               FROM TB_OGBS_MM_PRTNR_IZ
-                                              WHERE BASE_YM = #{req.perfYm} --교육수료인정일자
-                                                AND OG_TP_CD = 'W02'
-                                                AND PRTNR_NO = #{req.sellPrtnrNo})
-                   AND EDUC_CPC_ACKMT_YN = 'Y'               --교육수료인정여부
-                   AND DTA_DL_YN         = 'N'
-                   AND EDUC_CRSE_NO = '96') AS SRTUP
-             , ( SELECT NVL(SUM(PERF_VAL), 0)
-                   FROM TB_FEAM_PRTNR_PERF_MM_ACU_CL  /* 월누적파트너계약실적마감 */
-                  WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
-                    AND BASE_YM                    = #{req.perfYm}
-                    AND OG_TP_CD                   = 'W01'
-                    AND PRTNR_NO                   = #{req.sellPrtnrNo}
-                    AND PERF_ATC_CD                = 'W02P00093'
-                    AND DTA_DL_YN                  = 'N'  ) AS METG_PRSC_D
-             , (SELECT MAX(SUBSTR(EDUC_CPC_ACKMT_DT, 1,6))
-                  FROM TB_PSCA_MCPTN_EDUC_IZ
-                 WHERE PRTNR_NO          =  #{req.sellPrtnrNo}
-                   AND EDUC_CPC_ACKMT_DT >= (SELECT NVL(RCNTR_DT, CNTR_DT)
-                                               FROM TB_OGBS_MM_PRTNR_IZ
-                                              WHERE BASE_YM = #{req.perfYm} --교육수료인정일자
-                                                AND OG_TP_CD = 'W02'
-                                                AND PRTNR_NO = #{req.sellPrtnrNo})
-                   AND EDUC_CPC_ACKMT_YN = 'Y'               --교육수료인정여부
-                   AND DTA_DL_YN         = 'N'
-                   AND EDUC_CRSE_NO = '129') AS CMPF_EDUC
-             , (SELECT MAX(SUBSTR(EDUC_CPC_ACKMT_DT, 1,6))
-                  FROM TB_PSCA_MCPTN_EDUC_IZ
-                 WHERE PRTNR_NO          =  #{req.sellPrtnrNo}
-                   AND EDUC_CPC_ACKMT_DT >= (SELECT NVL(RCNTR_DT, CNTR_DT)
-                                               FROM TB_OGBS_MM_PRTNR_IZ
-                                              WHERE BASE_YM = #{req.perfYm} --교육수료인정일자
-                                                AND OG_TP_CD = 'W02'
-                                                AND PRTNR_NO = #{req.sellPrtnrNo})
-                   AND EDUC_CPC_ACKMT_YN = 'Y'               --교육수료인정여부
-                   AND DTA_DL_YN         = 'N'
-                   AND EDUC_CRSE_NO = '4') AS STMNT_1
-             , (SELECT MAX(SUBSTR(EDUC_CPC_ACKMT_DT, 1,6))
-                  FROM TB_PSCA_MCPTN_EDUC_IZ
-                 WHERE PRTNR_NO          =  #{req.sellPrtnrNo}
-                   AND EDUC_CPC_ACKMT_DT >= (SELECT NVL(RCNTR_DT, CNTR_DT)
-                                               FROM TB_OGBS_MM_PRTNR_IZ
-                                              WHERE BASE_YM = #{req.perfYm} --교육수료인정일자
-                                                AND OG_TP_CD = 'W02'
-                                                AND PRTNR_NO = #{req.sellPrtnrNo})
-                   AND EDUC_CPC_ACKMT_YN = 'Y'               --교육수료인정여부
-                   AND DTA_DL_YN         = 'N'
-                   AND EDUC_CRSE_NO = '119') AS STMNT_2
-             , (SELECT MAX(SUBSTR(EDUC_CPC_ACKMT_DT, 1,6))
-                  FROM TB_PSCA_MCPTN_EDUC_IZ
-                 WHERE PRTNR_NO          =  #{req.sellPrtnrNo}
-                   AND EDUC_CPC_ACKMT_DT >= (SELECT NVL(RCNTR_DT, CNTR_DT)
-                                               FROM TB_OGBS_MM_PRTNR_IZ
-                                              WHERE BASE_YM = #{req.perfYm} --교육수료인정일자
-                                                AND OG_TP_CD = 'W02'
-                                                AND PRTNR_NO = #{req.sellPrtnrNo})
-                   AND EDUC_CPC_ACKMT_YN = 'Y'               --교육수료인정여부
-                   AND DTA_DL_YN         = 'N'
-                   AND EDUC_CRSE_NO = '140') AS STMNT_345
-             , (SELECT MAX(SUBSTR(EDUC_CPC_ACKMT_DT, 1,6))
-                  FROM TB_PSCA_MCPTN_EDUC_IZ
-                 WHERE PRTNR_NO          =  #{req.sellPrtnrNo}
-                   AND EDUC_CPC_ACKMT_DT >= (SELECT NVL(RCNTR_DT, CNTR_DT)
-                                               FROM TB_OGBS_MM_PRTNR_IZ
-                                              WHERE BASE_YM = #{req.perfYm} --교육수료인정일자
-                                                AND OG_TP_CD = 'W02'
-                                                AND PRTNR_NO = #{req.sellPrtnrNo})
-                   AND EDUC_CPC_ACKMT_YN = 'Y'               --교육수료인정여부
-                   AND DTA_DL_YN         = 'N'
-                   AND EDUC_CRSE_NO = '135') AS BRMGR_ONLINE
-        FROM DUAL
+    <select id='selectMeetingM' resultType="java.util.Map">
+        SELECT *
+          FROM (
+              <foreach collection="meetingPerfAtcCds" item="item" separator="UNION ALL">
+                  <choose>
+                    <when test='@MybatisUtils@equals(item.type,"EDUC")'>
+                  SELECT 'A' AS TYPE
+                       , (SELECT TO_CHAR(MAX(SUBSTR(EDUC_CPC_ACKMT_DT, 1,4)||'-'||SUBSTR(EDUC_CPC_ACKMT_DT, 5,2)))
+                          FROM TB_PSCA_MCPTN_EDUC_IZ
+                         WHERE PRTNR_NO          =  #{req.sellPrtnrNo}
+                           AND EDUC_CPC_ACKMT_DT >= (SELECT NVL(RCNTR_DT, CNTR_DT)
+                                                       FROM TB_OGBS_MM_PRTNR_IZ
+                                                      WHERE BASE_YM = #{req.perfYm} --교육수료인정일자
+                                                        AND OG_TP_CD = 'W02'
+                                                        AND PRTNR_NO = #{req.sellPrtnrNo})
+                           AND EDUC_CPC_ACKMT_YN = 'Y'               --교육수료인정여부
+                           AND DTA_DL_YN         = 'N'
+                           AND EDUC_CRSE_NO = ${item.eduCd}) AS EDU_DT
+                        , #{item.perfAtcCd} AS PERF_ATC_CD
+                   FROM DUAL
+                    </when>
+                    <when test='@MybatisUtils@equals(item.type,"METG")'>
+                    SELECT 'A' AS TYPE
+                         , (SELECT TO_CHAR(PERF_VAL)
+                              FROM TB_FEAM_PRTNR_PERF_MM_ACU_CL
+                             WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
+                               AND BASE_YM = #{req.perfYm}
+                               AND PERF_ATC_CD = #{item.perfAtcCd}
+                               AND CO_CD = '2000'
+                               AND OG_TP_CD = 'W02'
+                               AND PRTNR_NO = #{req.sellPrtnrNo}) AS EDU_DT
+                        , 'W02P00093' AS PERF_ATC_CD
+                      FROM DUAL
+                    </when>
+                    <when test='@MybatisUtils@equals(item.type,"PERF")'>
+                    SELECT 'A' AS TYPE
+                         , (SELECT TO_CHAR(${item.perfColNm})
+                              FROM TB_FEAM_PRTNR_PERF_MM_ACU_CL
+                             WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
+                               AND BASE_YM = #{req.perfYm}
+                               AND PERF_ATC_CD = #{item.perfAtcCd}
+                               AND CO_CD = '2000'
+                               AND OG_TP_CD = 'W02'
+                               AND PRTNR_NO = #{req.sellPrtnrNo}) AS EDU_DT
+                        , #{item.perfAtcCd} AS PERF_ATC_CD
+                      FROM DUAL
+                    </when>
+                  </choose>
+              </foreach>
+          ) PIVOT (MAX(EDU_DT) FOR PERF_ATC_CD IN (${pivotColumn}))
+        UNION ALL
+        SELECT *
+          FROM (
+              <foreach collection="meetingPerfAtcCds" item="item" separator="UNION ALL">
+                SELECT 'B' AS TYPE
+                     , (SELECT TO_CHAR(${item.perfColNm})
+                            FROM TB_FEAM_PRTNR_PERF_MM_ACU_CL
+                           WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
+                             AND BASE_YM = #{req.perfYm}
+                             AND PERF_ATC_CD = #{item.perfAtcCd}
+                             AND CO_CD = '2000'
+                             AND OG_TP_CD = 'W02'
+                             AND PRTNR_NO = #{req.sellPrtnrNo}) AS PERF_VAL
+                       , #{item.perfAtcCd} AS PERF_ATC_CD
+                    FROM DUAL
+              </foreach>
+          ) PIVOT (MAX(PERF_VAL) FOR PERF_ATC_CD IN (${pivotColumn}))
     </select>
 
     <select id='selectPerformanceM' resultType="com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto$PerformanceM">
