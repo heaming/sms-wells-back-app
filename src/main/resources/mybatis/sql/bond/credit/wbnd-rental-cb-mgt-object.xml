@@ -3,409 +3,536 @@
 <mapper namespace="com.kyowon.sms.wells.web.bond.credit.mapper.WbndRentalCbMgtObjectMapper">
     <select id="selectRentalCbMessageObjectsByCustomer" resultType="com.kyowon.sms.wells.web.bond.credit.dvo.WbndRentalCbDelinquentIzDvo">
         /* 렌탈CB 연체정보 조회 (고객번호별) */
-        WITH RENTAL_CB AS (
-            SELECT Y1.LCDAMT - Y1.BTD_DLQ_ADD_AMT + Y1.THM_DLQ_ADD_DP_SUM_AMT AS DLQ_AMT
-                 , Y1.LCDAMT - Y1.BTD_DLQ_ADD_AMT - Y1.NET_DP_AMT AS DLQ_BLAM
-                 , Y1.*
-              FROM (
-                    SELECT C2.CNTR_NO
-                         , C2.CNTR_SN
-                         , C1.CNTR_CST_NO
-                         , C1.CNTR_CST_NM
-                         , C1.COPN_DV_CD
-                         , C1.CNTR_CNFM_DTM
-                         , C2.SELL_TP_CD
-                         , C2.SELL_TP_DTL_CD
-                         , C2.CNTR_DTL_STAT_CD
-                         , C2.CNTR_PD_STRTDT
-                         , C2.CNTR_PD_ENDDT
-                         , NVL(Q1.EOT_DLQ_AMT, 0) AS EOT_DLQ_AMT
-                         , NVL(Q1.EOT_DLQ_AMT, 0) + (NVL(Q1.BTD_DLQ_ADD_AMT, 0) - LEAST(NVL(Q1.THM_CTR_DLQ_ADD_AMT, 0) + NVL(Q1.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(Q1.THM_DLQ_ADD_RFND_SUM_AMT, 0), NVL(Q1.BTD_DLQ_ADD_AMT, 0))) + NVL(Q2.EOT_BOR_AMT, 0)AS LCDAMT -- 연체금액(LCDAMT)
-                         , NVL(Q1.BTD_DLQ_ADD_AMT, 0) AS BTD_DLQ_ADD_AMT-- 기초금액(LCAM81)
-                         , S1.MLG_DP_AMT
-                         , S1.MLG_RFND_AMT
-                         , S1.THM_ATAM_DP_AMT
-                         , S1.THM_ATAM_RFND_AMT
-                         , NVL(Q1.THM_DLQ_ADD_DP_SUM_AMT, 0) AS THM_DLQ_ADD_DP_SUM_AMT -- 당월연체가산입금합계금액
-                         , S1.MLG_DP_AMT - S1.MLG_RFND_AMT + S1.THM_ATAM_DP_AMT - S1.THM_ATAM_RFND_AMT AS NET_DP_AMT
-                         , S1.SL_RCOG_DT
-                         , C2.BASE_PD_CD
-                         , C4.DP_TP_CD
-                         , C4.MPY_BSDT
-                         , (CASE WHEN TO_CHAR(ADD_MONTHS(TO_DATE(Q1.PERF_YM, 'YYYYMM'), 1), 'YYYYMM') = #{baseYm}
-                                THEN #{baseYm} || '01'
-                                ELSE Q1.PERF_YM || C4.MPY_BSDT END
-                         ) AS OC_BSDT /*발생일자-MPY_BSDT 납부기준일자*/
-                         , ROW_NUMBER() OVER (PARTITION BY C2.CNTR_NO, C2.CNTR_SN ORDER BY C4.FNL_MDFC_DTM DESC) AS RN
-                      FROM TB_SSCT_CNTR_BAS C1
-                    INNER JOIN TB_SSCT_CNTR_DTL C2
-                        ON C1.CNTR_NO = C2.CNTR_NO
-                    LEFT JOIN TB_CBCL_DLQ_BAS Q1
-                        ON C2.CNTR_NO = Q1.CNTR_NO
-                       AND C2.CNTR_SN = Q1.CNTR_SN
-                       AND Q1.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),-1),'YYYYMM') /*전월기준*/
-                       AND Q1.DTA_DL_YN = 'N'
-                   LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS Q2
-                        ON Q1.CNTR_NO = Q2.CNTR_NO
-                       AND Q1.CNTR_SN = Q2.CNTR_SN
-                       AND Q1.PERF_YM = Q2.PERF_YM
-                       AND Q2.DTA_DL_YN = 'N'
-                    INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ S1
-                        ON C2.CNTR_NO = S1.CNTR_NO
-                       AND C2.CNTR_SN = S1.CNTR_SN
-                       AND S1.SL_CL_YM = #{baseYm} /*당월기준*/
-                    INNER JOIN TB_SSCT_CNTR_STLM_REL C3
-                        ON C2.CNTR_NO = C3.DTL_CNTR_NO
-                       AND C2.CNTR_SN = C3.DTL_CNTR_SN
-                       AND #{baseYm} BETWEEN SUBSTR(C3.VL_STRT_DTM, 1, 6) AND SUBSTR(C3.VL_END_DTM, 1, 6)
-                    INNER JOIN TB_SSCT_CNTR_STLM_BAS C4
-                        ON C3.CNTR_STLM_ID = C4.CNTR_STLM_ID
-                        AND C4.DP_TP_CD IN ('0102', '0203')
-                    WHERE 1 = 1
-                       AND C1.DTA_DL_YN = 'N'
-                       AND C2.DTA_DL_YN = 'N'
-                       AND C2.SELL_TP_CD = '2'
-                       AND C2.SELL_TP_DTL_CD IN ('22', '24', '25') /*판매유형상세코드-리스*/
-                       AND C1.CNTR_CNFM_DTM >= '20200901'
-                       AND NOT EXISTS (SELECT '1'
-                                         FROM TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ X1
-                                        WHERE C1.CNTR_CST_NO = X1.CST_NO
-                                          AND X1.RENTAL_CB_RGST_DV_CD IN ('1','3')
-                                          AND X1.NOTY_RCV_YN = 'Y'
-                                          AND X1.DTA_DL_YN = 'N')
-              ) Y1
-              WHERE 1 = 1
-                AND Y1.RN = 1
-        )
-        SELECT DISTINCT B1.CST_NO
-             , T1.CNTR_CST_NM AS CST_KNM
-             , T1.COPN_DV_CD
-             , F_CMZ_CD_NM('TNT_WELLS', 'COPN_DV_CD', T1.COPN_DV_CD) AS COPN_DV_NM /*법인격구분명*/
-             , T1.SELL_TP_CD
-             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T1.SELL_TP_CD) AS SELL_TP_NM
-             , B1.CRAL_LOCARA_TNO
-             , B1.MEXNO_ENCR
-             , B1.CRAL_IDV_TNO
-             , SUM(T1.DLQ_AMT) OVER(PARTITION BY B1.CST_NO) AS DLQ_AMT
-             , SUM(T1.DLQ_BLAM) OVER(PARTITION BY B1.CST_NO) AS DLQ_BLAM
-             , N1.CLCTAM_PRTNR_NO
-             , N2.PRTNR_KNM
-             , '1588-4113' AS DSPH_TNO              /*발신번호*/
-          FROM RENTAL_CB T1
-        INNER JOIN TB_CUBS_CST_BAS B1
-            ON T1.CNTR_CST_NO = B1.CST_NO
-        INNER JOIN TB_PDBS_PD_BAS P1
-            ON T1.BASE_PD_CD = P1.PD_CD
-        INNER JOIN TB_PDBS_PD_CLSF_BAS P2
-            ON P1.PD_CLSF_ID = P2.PD_CLSF_ID
-        INNER JOIN LATERAL (
-                SELECT X1.*
-                  FROM TB_CBBO_BND_CNTR_BAS X1
-                 WHERE T1.CNTR_NO = X1.CNTR_NO
-                   AND T1.CNTR_SN = X1.CNTR_SN
-                   AND X1.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'), -1),'YYYYMM')
-                   AND X1.BND_CLCTN_PRP_RSON_CD IN ('20', '3C', '80')
-                 ORDER BY X1.BASE_YM ASC
-                FETCH FIRST 1 ROW ONLY
-               ) N1
-            ON 1 = 1
-        LEFT JOIN TB_CBBO_CLCTAM_PRTNR_DTL N2
-            ON N1.CLCTAM_PRTNR_NO = N2.PRTNR_NO
-         WHERE 1 = 1
+        SELECT
+            A.CST_NO,
+            A.CST_KNM,
+            A.COPN_DV_CD,
+            A.COPN_DV_NM,
+            A.SELL_TP_CD,
+            A.SELL_TP_NM,
+            A.CRAL_LOCARA_TNO,
+            A.MEXNO_ENCR,
+            A.CRAL_IDV_TNO,
+            A.DLQ_AMT,
+            A.DLQ_BLAM,
+            A.CLCTAM_PRTNR_NO,
+            A.PRTNR_KNM,
+            A.DSPH_TNO,
+            A.RGST_SCH_DT
+        FROM (
+            SELECT
+                DISTINCT N1.CST_NO, /*고객번호*/
+                C1.CST_KNM, /*고객명*/
+                T1.COPN_DV_CD, /*법인격구분코드*/
+                F_CMZ_CD_NM('TNT_WELLS', 'COPN_DV_CD', T1.COPN_DV_CD) AS COPN_DV_NM, /*법인격구분명*/
+                T2.SELL_TP_CD, /*상품구분코드*/
+                F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T2.SELL_TP_CD) AS SELL_TP_NM, /*상품구분명*/
+                C1.CRAL_LOCARA_TNO,
+                C1.MEXNO_ENCR,
+                C1.CRAL_IDV_TNO,
+                SUM(D1.EOT_DLQ_AMT /*기말연체금액*/
+                    + D1.BTD_DLQ_ADD_AMT  /*기초연체가산금액*/
+                    - LEAST(D1.THM_CTR_DLQ_ADD_AMT + D1.THM_DLQ_ADD_DP_SUM_AMT - D1.THM_DLQ_ADD_RFND_SUM_AMT, D1.BTD_DLQ_ADD_AMT) /*(당월연체가산금액 변동분)*/
+                    + NVL(Q2.EOT_BOR_AMT, 0) /*기말위약금액*/
+                    - D1.BTD_DLQ_ADD_AMT
+                    + D1.THM_DLQ_ADD_DP_SUM_AMT
+                ) OVER(PARTITION BY N1.CST_NO)
+                AS DLQ_AMT, /*연체금액*/
+                SUM(D1.EOT_DLQ_AMT /*기말연체금액*/
+                    + D1.BTD_DLQ_ADD_AMT /*기초연체가산금액*/
+                    - LEAST(D1.THM_CTR_DLQ_ADD_AMT + D1.THM_DLQ_ADD_DP_SUM_AMT - D1.THM_DLQ_ADD_RFND_SUM_AMT, D1.BTD_DLQ_ADD_AMT) /*(당월연체가산금액 변동분)*/
+                    + NVL(Q2.EOT_BOR_AMT, 0) /*기말위약금액*/
+                    - D1.BTD_DLQ_ADD_AMT
+                    - (S1.MLG_DP_AMT - S1.MLG_RFND_AMT + S1.THM_ATAM_DP_AMT - S1.THM_ATAM_RFND_AMT) /*마일리지, 당월선수금*/
+                ) OVER(PARTITION BY N1.CST_NO)
+                AS DLQ_BLAM, /*연체잔액*/
+                N1.CLCTAM_PRTNR_NO, /*집금담당자번호*/
+                N2.PRTNR_KNM, /*집금담당자명*/
+                '1588-4113' AS DSPH_TNO, /*발신번호*/
+                TO_CHAR(TO_DATE(Z3.FWBOO_DTM,'YYYYMMDD') + 8,'YYYYMMDD') AS RGST_SCH_DT /*등록예정일자-알림톡발송일자 +8일*/
+            FROM
+                TB_CBCL_DLQ_BAS D1    /*연체기본*/
+                INNER JOIN TB_CBBO_BND_CNTR_BAS N1   /*채권계약기본*/
+                    ON N1.BASE_YM = #{baseYm}
+                    AND D1.CNTR_NO = N1.CNTR_NO
+                    AND D1.CNTR_SN = N1.CNTR_SN
+                    AND N1.BND_CLCTN_PRP_RSON_CD IN ('20', '3C', '80')
+                INNER JOIN TB_CBBO_CLCTAM_PRTNR_DTL N2 /*집금파트너상세*/
+                    ON N1.CLCTAM_PRTNR_NO = N2.PRTNR_NO
+                INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ S1 /* WELLS매출월마감내역 */
+                    ON N1.BASE_YM = S1.SL_CL_YM
+                    AND N1.CNTR_NO = S1.CNTR_NO
+                    AND N1.CNTR_SN = S1.CNTR_SN
+                    AND S1.SELL_TP_CD = '2' /*렌탈리스*/
+                    AND S1.SELL_TP_DTL_CD IN ('22', '24', '25') /*판매유형상세코드-리스*/
+                INNER JOIN TB_SSCT_CNTR_BAS T1 /*계약기본*/
+                    ON N1.CNTR_NO = T1.CNTR_NO
+                    AND T1.CNTR_CNFM_DTM >= '20200901'
+                    AND N1.CST_NO = T1.CNTR_CST_NO
+                    AND T1.DTA_DL_YN = 'N'
+                INNER JOIN TB_SSCT_CNTR_DTL T2  /* 계약상세 */
+                    ON D1.CNTR_NO = T2.CNTR_NO
+                    AND D1.CNTR_SN = T2.CNTR_SN
+                    AND T2.DTA_DL_YN = 'N'
+                    AND T2.SELL_TP_CD = '2' /*렌탈리스*/
+                    AND T2.SELL_TP_DTL_CD IN ('22', '24', '25') /*판매유형상세코드-리스*/
+                INNER JOIN TB_SSCT_CNTR_STLM_REL T3 /*계약결제관계*/
+                    ON D1.CNTR_NO = T3.DTL_CNTR_NO
+                    AND D1.CNTR_SN = T3.DTL_CNTR_SN
+                    AND T3.DTA_DL_YN = 'N'
+                    AND S1.SL_CL_YM BETWEEN SUBSTR(T3.VL_STRT_DTM, 1, 6) AND SUBSTR(T3.VL_END_DTM, 1, 6)
+                INNER JOIN TB_SSCT_CNTR_STLM_BAS T4 /*계약결제기본*/
+                    ON T3.CNTR_STLM_ID = T4.CNTR_STLM_ID
+                    AND T4.DTA_DL_YN = 'N'
+                    AND T4.DP_TP_CD IN ('0102', '0203')
+                INNER JOIN TB_CUBS_CST_BAS C1 /*고객기본*/
+                    ON N1.CST_NO = C1.CST_NO
+                INNER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
+                    ON T2.BASE_PD_CD = P1.PD_CD
+                    AND P1.DTA_DL_YN = 'N'
+                INNER JOIN TB_PDBS_PD_CLSF_BAS P2 /*상품분류*/
+                    ON P1.PD_CLSF_ID = P2.PD_CLSF_ID
+                LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS Q2   /* WELLS위약금액기본 */
+                    ON N1.BASE_YM = Q2.PERF_YM
+                    AND N1.CNTR_NO = Q2.CNTR_NO
+                    AND N1.CNTR_SN = Q2.CNTR_SN
+                    AND Q2.DTA_DL_YN = 'N'
+                LEFT JOIN TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ X1 /*WELLS렌탈CB연체내역*/
+                    ON N1.CNTR_NO = X1.CNTR_NO
+                    AND N1.CST_NO = X1.CST_NO
+                    AND X1.RENTAL_CB_RGST_DV_CD IN ('1','3')
+                    AND NVL(X1.DLQ_BLAM, 0) > 0  /* 연체잔액 */
+                    AND X1.DTA_DL_YN = 'N'
+                LEFT JOIN TB_CBBO_BND_MSG_RELY_IZ Z3  /* 채권메시지중계내역 */
+                    ON N1.CNTR_NO = Z3.CNTR_NO
+                    AND N1.CNTR_SN = Z3.CNTR_SN
+                    AND Z3.FW_BIZ_NM = 'BN_KAKAO_MESSAGE' /*발송업무명*/
+                    AND Z3.MSG_FW_TP_CD = '01' /*메시지발송유형코드-01:카카오알림톡*/
+                    AND Z3.BND_MSG_TP_VAL1 = 'B' /*채권알림톡업무코드-B:등록관련*/
+                    AND Z3.BND_MSG_TP_VAL2 = 'B05' /*채권알림톡업무상세코드-B05:렌탈CB연체정보등록 예고*/
+                    AND N1.CST_NO = Z3.CST_NO
+                    AND Z3.DTA_DL_YN = 'N'
+            WHERE
+                D1.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'), -1),'YYYYMM')
+                AND D1.DLQ_MCN >= 0
+                AND (D1.EOT_DLQ_AMT + D1.BTD_DLQ_ADD_AMT) > 0
+                AND D1.DTA_DL_YN = 'N'
+                AND NOT EXISTS (SELECT 1 FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ X1
+                                WHERE N1.CST_NO = X1.CST_NO
+                                    AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN X1.APY_STRTDT AND X1.APY_ENDDT
+                                    AND X1.CTNT_EXCD_BND_BIZ_CD = '02'
+                                    AND X1.DTA_DL_YN = 'N')
+                AND NOT EXISTS (SELECT 1 FROM TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ X1
+                                WHERE N1.CST_NO = X1.CST_NO
+                                    AND X1.RENTAL_CB_RGST_DV_CD IN ('1','3')
+                                    AND X1.NOTY_RCV_YN = 'Y'
+                                    AND X1.DTA_DL_YN = 'N')
+        ) A
+        WHERE
+            A.DLQ_BLAM >= 100000
         <if test="@MybatisUtils@isNotEmpty(cstNo)">
-           AND B1.CST_NO = #{cstNo}                  /*고객번호*/
+            AND A.CST_NO = #{cstNo} /*고객번호*/
         </if>
         <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)">
-           AND B1.CRAL_LOCARA_TNO = #{cralLocaraTno} /*휴대폰번호1*/
+            AND A.CRAL_LOCARA_TNO = #{cralLocaraTno} /*휴대폰번호1*/
         </if>
         <if test="@MybatisUtils@isNotEmpty(mexnoEncr)">
-           AND B1.MEXNO_ENCR = #{mexnoEncr}          /*휴대폰번호2-입력된값을 암호화하여 대입*/
+            AND A.MEXNO_ENCR = #{mexnoEncr}          /*휴대폰번호2-입력된값을 암호화하여 대입*/
         </if>
         <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
-           AND B1.CRAL_IDV_TNO = #{cralIdvTno}       /*휴대폰번호3*/
+            AND A.CRAL_IDV_TNO = #{cralIdvTno}       /*휴대폰번호3*/
         </if>
-           AND T1.DLQ_AMT > 0
-           AND T1.DLQ_BLAM > 0
-           AND T1.CNTR_CST_NO IN (SELECT X1.CNTR_CST_NO
-                                    FROM RENTAL_CB X1
-                                 GROUP BY X1.CNTR_CST_NO
-                                 HAVING SUM(X1.DLQ_BLAM) >= 100000) /* 기준년월에 대하여 10만원 이상 연체자를 대상으로 함 */
-           AND NOT EXISTS (SELECT 1
-                             FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ X1
-                            WHERE T1.CNTR_CST_NO = X1.CST_NO
-                              AND X1.CTNT_EXCD_BND_BIZ_CD = '02' -- 렌탈CB
-                              AND X1.DTA_DL_YN = 'N'
-                              AND #{baseYm} BETWEEN SUBSTR(X1.APY_STRTDT, 1, 6) AND SUBSTR(X1.APY_ENDDT, 1, 6))
     </select>
 
     <select id="selectRentalCbMessageObjectsByContract" resultType="com.kyowon.sms.wells.web.bond.credit.dvo.WbndRentalCbDelinquentIzDvo">
         /* 렌탈CB 연체정보 조회 (계약별) */
         WITH RENTAL_CB AS (
-            SELECT Y1.LCDAMT - Y1.BTD_DLQ_ADD_AMT + Y1.THM_DLQ_ADD_DP_SUM_AMT AS DLQ_AMT
-                 , Y1.LCDAMT - Y1.BTD_DLQ_ADD_AMT - Y1.NET_DP_AMT AS DLQ_BLAM
-                 , Y1.*
-              FROM (
-                    SELECT C2.CNTR_NO
-                         , C2.CNTR_SN
-                         , C1.CNTR_CST_NO
-                         , C1.CNTR_CST_NM
-                         , C1.COPN_DV_CD
-                         , C1.CNTR_CNFM_DTM
-                         , C2.SELL_TP_CD
-                         , C2.SELL_TP_DTL_CD
-                         , C2.CNTR_DTL_STAT_CD
-                         , C2.CNTR_PD_STRTDT
-                         , C2.CNTR_PD_ENDDT
-                         , NVL(Q1.EOT_DLQ_AMT, 0) AS EOT_DLQ_AMT
-                         , NVL(Q1.EOT_DLQ_AMT, 0) + (NVL(Q1.BTD_DLQ_ADD_AMT, 0) - LEAST(NVL(Q1.THM_CTR_DLQ_ADD_AMT, 0) + NVL(Q1.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(Q1.THM_DLQ_ADD_RFND_SUM_AMT, 0), NVL(Q1.BTD_DLQ_ADD_AMT, 0))) + NVL(Q2.EOT_BOR_AMT, 0)AS LCDAMT -- 연체금액(LCDAMT)
-                         , NVL(Q1.BTD_DLQ_ADD_AMT, 0) AS BTD_DLQ_ADD_AMT-- 기초금액(LCAM81)
-                         , S1.MLG_DP_AMT
-                         , S1.MLG_RFND_AMT
-                         , S1.THM_ATAM_DP_AMT
-                         , S1.THM_ATAM_RFND_AMT
-                         , NVL(Q1.THM_DLQ_ADD_DP_SUM_AMT, 0) AS THM_DLQ_ADD_DP_SUM_AMT -- 당월연체가산입금합계금액
-                         , S1.MLG_DP_AMT - S1.MLG_RFND_AMT + S1.THM_ATAM_DP_AMT - S1.THM_ATAM_RFND_AMT AS NET_DP_AMT
-                         , S1.SL_RCOG_DT
-                         , C2.BASE_PD_CD
-                         , C4.DP_TP_CD
-                         , C4.MPY_BSDT
-                         , (CASE WHEN TO_CHAR(ADD_MONTHS(TO_DATE(Q1.PERF_YM, 'YYYYMM'), 1), 'YYYYMM') = #{baseYm}
-                                THEN #{baseYm} || '01'
-                                ELSE Q1.PERF_YM || C4.MPY_BSDT END
-                         ) AS OC_BSDT /*발생일자-MPY_BSDT 납부기준일자*/
-                         , ROW_NUMBER() OVER (PARTITION BY C2.CNTR_NO, C2.CNTR_SN ORDER BY C4.FNL_MDFC_DTM DESC) AS RN
-                      FROM TB_SSCT_CNTR_BAS C1
-                    INNER JOIN TB_SSCT_CNTR_DTL C2
-                        ON C1.CNTR_NO = C2.CNTR_NO
-                    LEFT JOIN TB_CBCL_DLQ_BAS Q1
-                        ON C2.CNTR_NO = Q1.CNTR_NO
-                       AND C2.CNTR_SN = Q1.CNTR_SN
-                       AND Q1.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),-1),'YYYYMM') /*전월기준*/
-                       AND Q1.DTA_DL_YN = 'N'
-                   LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS Q2
-                        ON Q1.CNTR_NO = Q2.CNTR_NO
-                       AND Q1.CNTR_SN = Q2.CNTR_SN
-                       AND Q1.PERF_YM = Q2.PERF_YM
-                       AND Q2.DTA_DL_YN = 'N'
-                    INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ S1
-                        ON C2.CNTR_NO = S1.CNTR_NO
-                       AND C2.CNTR_SN = S1.CNTR_SN
-                       AND S1.SL_CL_YM = #{baseYm} /*당월기준*/
-                    INNER JOIN TB_SSCT_CNTR_STLM_REL C3
-                        ON C2.CNTR_NO = C3.DTL_CNTR_NO
-                       AND C2.CNTR_SN = C3.DTL_CNTR_SN
-                       AND #{baseYm} BETWEEN SUBSTR(C3.VL_STRT_DTM, 1, 6) AND SUBSTR(C3.VL_END_DTM, 1, 6)
-                    INNER JOIN TB_SSCT_CNTR_STLM_BAS C4
-                        ON C3.CNTR_STLM_ID = C4.CNTR_STLM_ID
-                        AND C4.DP_TP_CD IN ('0102', '0203')
-                    WHERE 1 = 1
-                       AND C1.DTA_DL_YN = 'N'
-                       AND C2.DTA_DL_YN = 'N'
-                       AND C2.SELL_TP_CD = '2'
-                       AND C2.SELL_TP_DTL_CD IN ('22', '24', '25') /*판매유형상세코드-리스*/
-                       AND C1.CNTR_CNFM_DTM >= '20200901'
-                       AND NOT EXISTS (SELECT '1'
-                                         FROM TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ X1
-                                        WHERE C1.CNTR_CST_NO = X1.CST_NO
-                                          AND X1.RENTAL_CB_RGST_DV_CD IN ('1','3')
-                                          AND X1.NOTY_RCV_YN = 'Y'
-                                          AND X1.DTA_DL_YN = 'N')
-              ) Y1
-              WHERE 1 = 1
-                AND Y1.RN = 1
+            SELECT N1.CST_NO
+            FROM TB_CBCL_DLQ_BAS D1    /*연체기본*/
+            INNER JOIN TB_CBBO_BND_CNTR_BAS N1   /*채권계약기본*/
+                ON N1.BASE_YM = #{baseYm}
+                AND D1.CNTR_NO = N1.CNTR_NO
+                AND D1.CNTR_SN = N1.CNTR_SN
+                AND N1.BND_CLCTN_PRP_RSON_CD IN ('20', '3C', '80')
+            INNER JOIN TB_CBBO_CLCTAM_PRTNR_DTL N2 /*집금파트너상세*/
+                ON N1.CLCTAM_PRTNR_NO = N2.PRTNR_NO
+            INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ S1 /* WELLS매출월마감내역 */
+                ON N1.BASE_YM = S1.SL_CL_YM
+                AND N1.CNTR_NO = S1.CNTR_NO
+                AND N1.CNTR_SN = S1.CNTR_SN
+                AND S1.SELL_TP_CD = '2' /*렌탈리스*/
+                AND S1.SELL_TP_DTL_CD IN ('22', '24', '25') /*판매유형상세코드-리스*/
+            INNER JOIN TB_SSCT_CNTR_BAS T1 /*계약기본*/
+                ON N1.CNTR_NO = T1.CNTR_NO
+                AND T1.CNTR_CNFM_DTM >= '20200901'
+                AND N1.CST_NO = T1.CNTR_CST_NO
+                AND T1.DTA_DL_YN = 'N'
+            INNER JOIN TB_SSCT_CNTR_DTL T2  /* 계약상세 */
+                ON D1.CNTR_NO = T2.CNTR_NO
+                AND D1.CNTR_SN = T2.CNTR_SN
+                AND T2.DTA_DL_YN = 'N'
+                AND T2.SELL_TP_CD = '2' /*렌탈리스*/
+                AND T2.SELL_TP_DTL_CD IN ('22', '24', '25') /*판매유형상세코드-리스*/
+            INNER JOIN TB_SSCT_CNTR_STLM_REL T3 /*계약결제관계*/
+                ON D1.CNTR_NO = T3.DTL_CNTR_NO
+                AND D1.CNTR_SN = T3.DTL_CNTR_SN
+                AND T3.DTA_DL_YN = 'N'
+                AND S1.SL_CL_YM BETWEEN SUBSTR(T3.VL_STRT_DTM, 1, 6) AND SUBSTR(T3.VL_END_DTM, 1, 6)
+            INNER JOIN TB_SSCT_CNTR_STLM_BAS T4 /*계약결제기본*/
+                ON T3.CNTR_STLM_ID = T4.CNTR_STLM_ID
+                AND T4.DTA_DL_YN = 'N'
+                AND T4.DP_TP_CD IN ('0102', '0203')
+            LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS Q2   /* WELLS위약금액기본 */
+                ON N1.BASE_YM = Q2.PERF_YM
+                AND N1.CNTR_NO = Q2.CNTR_NO
+                AND N1.CNTR_SN = Q2.CNTR_SN
+                AND Q2.DTA_DL_YN = 'N'
+            WHERE
+                D1.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'), -1),'YYYYMM')
+                AND D1.DLQ_MCN >= 0
+                AND (D1.EOT_DLQ_AMT + D1.BTD_DLQ_ADD_AMT) > 0
+                AND D1.DTA_DL_YN = 'N'
+                AND NOT EXISTS (SELECT 1 FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ X1
+                                WHERE N1.CST_NO = X1.CST_NO
+                                    AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN X1.APY_STRTDT AND X1.APY_ENDDT
+                                    AND X1.CTNT_EXCD_BND_BIZ_CD = '02'
+                                    AND X1.DTA_DL_YN = 'N')
+                AND NOT EXISTS (SELECT 1 FROM TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ X1
+                                WHERE N1.CST_NO = X1.CST_NO
+                                    AND X1.RENTAL_CB_RGST_DV_CD IN ('1','3')
+                                    AND X1.NOTY_RCV_YN = 'Y'
+                                    AND X1.DTA_DL_YN = 'N')
+            GROUP BY N1.CST_NO
+            HAVING SUM(D1.EOT_DLQ_AMT /*기말연체금액*/
+                        + D1.BTD_DLQ_ADD_AMT /*기초연체가산금액*/
+                        - LEAST(D1.THM_CTR_DLQ_ADD_AMT + D1.THM_DLQ_ADD_DP_SUM_AMT - D1.THM_DLQ_ADD_RFND_SUM_AMT, D1.BTD_DLQ_ADD_AMT) /*(당월연체가산금액 변동분)*/
+                        + NVL(Q2.EOT_BOR_AMT, 0) /*기말위약금액*/
+                        - D1.BTD_DLQ_ADD_AMT
+                        - (S1.MLG_DP_AMT - S1.MLG_RFND_AMT + S1.THM_ATAM_DP_AMT - S1.THM_ATAM_RFND_AMT) /*마일리지, 당월선수금*/
+                    ) >= 100000
         )
-        SELECT B1.CST_NO
-             , T1.CNTR_NO
-             , T1.CNTR_SN
-             , T1.CNTR_NO || '-' || T1.CNTR_SN AS CNTR_DTL_NO
-             , T1.CNTR_CST_NM AS CST_KNM
-             , T1.COPN_DV_CD
-             , F_CMZ_CD_NM('TNT_WELLS', 'COPN_DV_CD', T1.COPN_DV_CD) AS COPN_DV_NM /*법인격구분명*/
-             , T1.SELL_TP_CD
-             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T1.SELL_TP_CD) AS SELL_TP_NM
-             , P2.PD_CLSF_NM
-             , T1.SL_RCOG_DT
-             , B1.CRAL_LOCARA_TNO
-             , B1.MEXNO_ENCR
-             , B1.CRAL_IDV_TNO
-             , T1.DP_TP_CD
-             , F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', T1.DP_TP_CD) AS FNT_DV_NM
-             , T1.DLQ_AMT
-             , T1.DLQ_BLAM
-             , N1.CLCTAM_PRTNR_NO
-             , N2.PRTNR_KNM
-             , '1588-4113' AS DSPH_TNO              /*발신번호*/
-          FROM RENTAL_CB T1
-        INNER JOIN TB_CUBS_CST_BAS B1
-            ON T1.CNTR_CST_NO = B1.CST_NO
-        INNER JOIN TB_PDBS_PD_BAS P1
-            ON T1.BASE_PD_CD = P1.PD_CD
-        INNER JOIN TB_PDBS_PD_CLSF_BAS P2
-            ON P1.PD_CLSF_ID = P2.PD_CLSF_ID
-        INNER JOIN LATERAL (
-                SELECT X1.*
-                  FROM TB_CBBO_BND_CNTR_BAS X1
-                 WHERE T1.CNTR_NO = X1.CNTR_NO
-                   AND T1.CNTR_SN = X1.CNTR_SN
-                   AND X1.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'), -1),'YYYYMM')
-                   AND X1.BND_CLCTN_PRP_RSON_CD IN ('20', '3C', '80')
-                 ORDER BY X1.BASE_YM ASC
-                FETCH FIRST 1 ROW ONLY
-               ) N1
-            ON 1 = 1
-        LEFT JOIN TB_CBBO_CLCTAM_PRTNR_DTL N2
-            ON N1.CLCTAM_PRTNR_NO = N2.PRTNR_NO
-         WHERE 1 = 1
-    <if test="@MybatisUtils@isNotEmpty(cstNo)">
-        AND B1.CST_NO = #{cstNo}                  /*고객번호*/
-    </if>
-    <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)">
-        AND B1.CRAL_LOCARA_TNO = #{cralLocaraTno} /*휴대폰번호1*/
-    </if>
-    <if test="@MybatisUtils@isNotEmpty(mexnoEncr)">
-        AND B1.MEXNO_ENCR = #{mexnoEncr}          /*휴대폰번호2-입력된값을 암호화하여 대입*/
-    </if>
-    <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
-        AND B1.CRAL_IDV_TNO = #{cralIdvTno}       /*휴대폰번호3*/
-    </if>
-        AND T1.DLQ_AMT > 0
-        AND T1.DLQ_BLAM > 0 /* 계약별 조회는 연체금액/연체잔액이 존재하는 모든 건수를 조회*/
-        AND NOT EXISTS (SELECT 1
-                         FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ X1
-                        WHERE T1.CNTR_CST_NO = X1.CST_NO
-                          AND X1.CTNT_EXCD_BND_BIZ_CD = '02' -- 렌탈CB
-                          AND X1.DTA_DL_YN = 'N'
-                          AND #{baseYm} BETWEEN SUBSTR(X1.APY_STRTDT, 1, 6) AND SUBSTR(X1.APY_ENDDT, 1, 6))
+        SELECT
+            N1.CST_NO, /*고객번호*/
+            D1.CNTR_NO, /*계약번호*/
+            D1.CNTR_SN, /*계약일련번호*/
+            D1.CNTR_NO || '-' || D1.CNTR_SN AS CNTR_DTL_NO, /*계약상세번호*/
+            C1.CST_KNM, /*고객명*/
+            T1.COPN_DV_CD, /*법인격구분코드*/
+            F_CMZ_CD_NM('TNT_WELLS', 'COPN_DV_CD', T1.COPN_DV_CD) AS COPN_DV_NM, /*법인격구분명*/
+            T2.SELL_TP_CD, /*상품구분코드*/
+            F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T2.SELL_TP_CD) AS SELL_TP_NM, /*상품구분명*/
+            P2.PD_CLSF_NM, /*상품명*/
+            S1.SL_RCOG_DT, /*매출일자*/
+            C1.CRAL_LOCARA_TNO,
+            C1.MEXNO_ENCR,
+            C1.CRAL_IDV_TNO,
+            T4.MPY_BSDT, /*자동이체약정일자*/
+            T4.DP_TP_CD, /*입금유형코드*/
+            NVL(F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', T4.DP_TP_CD), '-') AS FNT_DV_NM,
+            (D1.EOT_DLQ_AMT /*기말연체금액*/
+                + D1.BTD_DLQ_ADD_AMT  /*기초연체가산금액*/
+                - LEAST(D1.THM_CTR_DLQ_ADD_AMT + D1.THM_DLQ_ADD_DP_SUM_AMT - D1.THM_DLQ_ADD_RFND_SUM_AMT, D1.BTD_DLQ_ADD_AMT) /*(당월연체가산금액 변동분)*/
+                + NVL(Q2.EOT_BOR_AMT, 0) /*기말위약금액*/
+                - D1.BTD_DLQ_ADD_AMT
+                + D1.THM_DLQ_ADD_DP_SUM_AMT
+            ) AS DLQ_AMT, /*연체금액*/
+            (D1.EOT_DLQ_AMT /*기말연체금액*/
+                + D1.BTD_DLQ_ADD_AMT /*기초연체가산금액*/
+                - LEAST(D1.THM_CTR_DLQ_ADD_AMT + D1.THM_DLQ_ADD_DP_SUM_AMT - D1.THM_DLQ_ADD_RFND_SUM_AMT, D1.BTD_DLQ_ADD_AMT) /*(당월연체가산금액 변동분)*/
+                + NVL(Q2.EOT_BOR_AMT, 0) /*기말위약금액*/
+                - D1.BTD_DLQ_ADD_AMT
+                - (S1.MLG_DP_AMT - S1.MLG_RFND_AMT + S1.THM_ATAM_DP_AMT - S1.THM_ATAM_RFND_AMT) /*마일리지, 당월선수금*/
+            ) AS DLQ_BLAM, /*연체잔액*/
+            N1.CLCTAM_PRTNR_NO, /*집금담당자번호*/
+            N2.PRTNR_KNM, /*집금담당자명*/
+            '1588-4113' AS DSPH_TNO,              /*발신번호*/
+            X1.NOTY_FW_OJ_YN, /*알림발송대상여부*/
+            TO_CHAR(TO_DATE(Z3.FWBOO_DTM,'YYYYMMDD') + 8,'YYYYMMDD') AS RGST_SCH_DT, /*등록예정일자-알림톡발송일자 +8일*/
+            X1.NICE_FW_EXCD_YN AS NICE_FW_EXCD_YN,  /*NICE발송제외여부*/
+            SUBSTR(Z3.FWBOO_DTM, 1, 8) AS FWBOO_DTM,    /*알림톡발송일자*/
+            '' AS NOTY_FW_OJ_DT  /*알림톡발송제외일자*/
+        FROM
+            TB_CBCL_DLQ_BAS D1    /*연체기본*/
+            INNER JOIN TB_CBBO_BND_CNTR_BAS N1   /*채권계약기본*/
+                ON N1.BASE_YM = #{baseYm}
+                AND D1.CNTR_NO = N1.CNTR_NO
+                AND D1.CNTR_SN = N1.CNTR_SN
+                AND N1.BND_CLCTN_PRP_RSON_CD IN ('20', '3C', '80')
+            INNER JOIN TB_CBBO_CLCTAM_PRTNR_DTL N2 /*집금파트너상세*/
+                ON N1.CLCTAM_PRTNR_NO = N2.PRTNR_NO
+            INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ S1 /* WELLS매출월마감내역 */
+                ON N1.BASE_YM = S1.SL_CL_YM
+                AND N1.CNTR_NO = S1.CNTR_NO
+                AND N1.CNTR_SN = S1.CNTR_SN
+                AND S1.SELL_TP_CD = '2' /*렌탈리스*/
+                AND S1.SELL_TP_DTL_CD IN ('22', '24', '25') /*판매유형상세코드-리스*/
+            INNER JOIN TB_SSCT_CNTR_BAS T1 /*계약기본*/
+                ON N1.CNTR_NO = T1.CNTR_NO
+                AND T1.CNTR_CNFM_DTM >= '20200901'
+                AND N1.CST_NO = T1.CNTR_CST_NO
+                AND T1.DTA_DL_YN = 'N'
+            INNER JOIN TB_SSCT_CNTR_DTL T2  /* 계약상세 */
+                ON D1.CNTR_NO = T2.CNTR_NO
+                AND D1.CNTR_SN = T2.CNTR_SN
+                AND T2.DTA_DL_YN = 'N'
+                AND T2.SELL_TP_CD = '2' /*렌탈리스*/
+                AND T2.SELL_TP_DTL_CD IN ('22', '24', '25') /*판매유형상세코드-리스*/
+            INNER JOIN TB_SSCT_CNTR_STLM_REL T3 /*계약결제관계*/
+                ON D1.CNTR_NO = T3.DTL_CNTR_NO
+                AND D1.CNTR_SN = T3.DTL_CNTR_SN
+                AND T3.DTA_DL_YN = 'N'
+                AND S1.SL_CL_YM BETWEEN SUBSTR(T3.VL_STRT_DTM, 1, 6) AND SUBSTR(T3.VL_END_DTM, 1, 6)
+            INNER JOIN TB_SSCT_CNTR_STLM_BAS T4 /*계약결제기본*/
+                ON T3.CNTR_STLM_ID = T4.CNTR_STLM_ID
+                AND T4.DTA_DL_YN = 'N'
+                AND T4.DP_TP_CD IN ('0102', '0203')
+            INNER JOIN TB_CUBS_CST_BAS C1 /*고객기본*/
+                ON N1.CST_NO = C1.CST_NO
+            INNER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
+                ON T2.BASE_PD_CD = P1.PD_CD
+                AND P1.DTA_DL_YN = 'N'
+            INNER JOIN TB_PDBS_PD_CLSF_BAS P2 /*상품분류*/
+                ON P1.PD_CLSF_ID = P2.PD_CLSF_ID
+            LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS Q2   /* WELLS위약금액기본 */
+                ON N1.BASE_YM = Q2.PERF_YM
+                AND N1.CNTR_NO = Q2.CNTR_NO
+                AND N1.CNTR_SN = Q2.CNTR_SN
+                AND Q2.DTA_DL_YN = 'N'
+            LEFT JOIN TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ X1 /*WELLS렌탈CB연체내역*/
+                ON N1.CNTR_NO = X1.CNTR_NO
+                AND N1.CST_NO = X1.CST_NO
+                AND X1.RENTAL_CB_RGST_DV_CD IN ('1','3')
+                AND NVL(X1.DLQ_BLAM, 0) > 0  /* 연체잔액 */
+                AND X1.DTA_DL_YN = 'N'
+            LEFT JOIN TB_CBBO_BND_MSG_RELY_IZ Z3  /* 채권메시지중계내역 */
+                ON N1.CNTR_NO = Z3.CNTR_NO
+                AND N1.CNTR_SN = Z3.CNTR_SN
+                AND Z3.FW_BIZ_NM = 'BN_KAKAO_MESSAGE' /*발송업무명*/
+                AND Z3.MSG_FW_TP_CD = '01' /*메시지발송유형코드-01:카카오알림톡*/
+                AND Z3.BND_MSG_TP_VAL1 = 'B' /*채권알림톡업무코드-B:등록관련*/
+                AND Z3.BND_MSG_TP_VAL2 = 'B05' /*채권알림톡업무상세코드-B05:렌탈CB연체정보등록 예고*/
+                AND N1.CST_NO = Z3.CST_NO
+                AND Z3.DTA_DL_YN = 'N'
+        WHERE
+            D1.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'), -1),'YYYYMM')
+            AND D1.DLQ_MCN >= 0
+            AND (D1.EOT_DLQ_AMT + D1.BTD_DLQ_ADD_AMT) > 0
+            AND D1.DTA_DL_YN = 'N'
+            AND NOT EXISTS (SELECT 1 FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ X1
+                            WHERE N1.CST_NO = X1.CST_NO
+                                AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN X1.APY_STRTDT AND X1.APY_ENDDT
+                                AND X1.CTNT_EXCD_BND_BIZ_CD = '02'
+                                AND X1.DTA_DL_YN = 'N')
+            AND NOT EXISTS (SELECT 1 FROM TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ X1
+                            WHERE N1.CST_NO = X1.CST_NO
+                                AND X1.RENTAL_CB_RGST_DV_CD IN ('1','3')
+                                AND X1.NOTY_RCV_YN = 'Y'
+                                AND X1.DTA_DL_YN = 'N')
+            AND (D1.EOT_DLQ_AMT /*기말연체금액*/
+                + D1.BTD_DLQ_ADD_AMT /*기초연체가산금액*/
+                - LEAST(D1.THM_CTR_DLQ_ADD_AMT + D1.THM_DLQ_ADD_DP_SUM_AMT - D1.THM_DLQ_ADD_RFND_SUM_AMT, D1.BTD_DLQ_ADD_AMT) /*(당월연체가산금액 변동분)*/
+                + NVL(Q2.EOT_BOR_AMT, 0) /*기말위약금액*/
+                - D1.BTD_DLQ_ADD_AMT
+                - (S1.MLG_DP_AMT - S1.MLG_RFND_AMT + S1.THM_ATAM_DP_AMT - S1.THM_ATAM_RFND_AMT) /*마일리지, 당월선수금*/
+            ) > 0
+            AND N1.CST_NO IN (SELECT CST_NO FROM RENTAL_CB)
+        <if test="@MybatisUtils@isNotEmpty(cstNo)">
+            AND N1.CST_NO = #{cstNo}                /*고객번호*/
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)">
+            AND C1.CRAL_LOCARA_TNO = #{cralLocaraTno} /*휴대폰번호1*/
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(mexnoEncr)">
+            AND C1.MEXNO_ENCR = #{mexnoEncr}          /*휴대폰번호2-입력된값을 암호화하여 대입*/
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
+            AND C1.CRAL_IDV_TNO = #{cralIdvTno}       /*휴대폰번호3*/
+        </if>
     </select>
 
     <update id="updateMessageObjectYn" >
         /* 렌탈CB 연체정보 조회 - 저장(알림톡 대상 선정) */
         MERGE INTO TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ MRG_CB    /*WELLS렌탈CB연체내역*/
         USING (WITH RENTAL_CB AS (
-                SELECT Y1.LCDAMT - Y1.BTD_DLQ_ADD_AMT + Y1.THM_DLQ_ADD_DP_SUM_AMT AS DLQ_AMT
-                     , Y1.LCDAMT - Y1.BTD_DLQ_ADD_AMT - Y1.NET_DP_AMT AS DLQ_BLAM
-                     , Y1.*
-                  FROM (
-                        SELECT C2.CNTR_NO
-                             , C2.CNTR_SN
-                             , C1.CNTR_CST_NO
-                             , C1.CNTR_CST_NM
-                             , C1.COPN_DV_CD
-                             , C1.CNTR_CNFM_DTM
-                             , C2.SELL_TP_CD
-                             , C2.SELL_TP_DTL_CD
-                             , C2.CNTR_DTL_STAT_CD
-                             , C2.CNTR_PD_STRTDT
-                             , C2.CNTR_PD_ENDDT
-                             , NVL(Q1.EOT_DLQ_AMT, 0) AS EOT_DLQ_AMT
-                             , NVL(Q1.EOT_DLQ_AMT, 0) + (NVL(Q1.BTD_DLQ_ADD_AMT, 0) - LEAST(NVL(Q1.THM_CTR_DLQ_ADD_AMT, 0) + NVL(Q1.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(Q1.THM_DLQ_ADD_RFND_SUM_AMT, 0), NVL(Q1.BTD_DLQ_ADD_AMT, 0))) + NVL(Q2.EOT_BOR_AMT, 0)AS LCDAMT -- 연체금액(LCDAMT)
-                             , NVL(Q1.BTD_DLQ_ADD_AMT, 0) AS BTD_DLQ_ADD_AMT-- 기초금액(LCAM81)
-                             , S1.MLG_DP_AMT
-                             , S1.MLG_RFND_AMT
-                             , S1.THM_ATAM_DP_AMT
-                             , S1.THM_ATAM_RFND_AMT
-                             , NVL(Q1.THM_DLQ_ADD_DP_SUM_AMT, 0) AS THM_DLQ_ADD_DP_SUM_AMT -- 당월연체가산입금합계금액
-                             , S1.MLG_DP_AMT - S1.MLG_RFND_AMT + S1.THM_ATAM_DP_AMT - S1.THM_ATAM_RFND_AMT AS NET_DP_AMT
-                             , S1.SL_RCOG_DT
-                             , C2.BASE_PD_CD
-                             , C4.DP_TP_CD
-                             , C4.MPY_BSDT
-                             , (CASE WHEN TO_CHAR(ADD_MONTHS(TO_DATE(Q1.PERF_YM, 'YYYYMM'), 1), 'YYYYMM') = #{baseYm}
-                                    THEN #{baseYm} || '01'
-                                    ELSE Q1.PERF_YM || C4.MPY_BSDT END
-                             ) AS OC_BSDT /*발생일자-MPY_BSDT 납부기준일자*/
-                             , ROW_NUMBER() OVER (PARTITION BY C2.CNTR_NO, C2.CNTR_SN ORDER BY C4.FNL_MDFC_DTM DESC) AS RN
-                          FROM TB_SSCT_CNTR_BAS C1
-                        INNER JOIN TB_SSCT_CNTR_DTL C2
-                            ON C1.CNTR_NO = C2.CNTR_NO
-                        LEFT JOIN TB_CBCL_DLQ_BAS Q1
-                            ON C2.CNTR_NO = Q1.CNTR_NO
-                           AND C2.CNTR_SN = Q1.CNTR_SN
-                           AND Q1.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'),-1),'YYYYMM') /*전월기준*/
-                           AND Q1.DTA_DL_YN = 'N'
-                       LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS Q2
-                            ON Q1.CNTR_NO = Q2.CNTR_NO
-                           AND Q1.CNTR_SN = Q2.CNTR_SN
-                           AND Q1.PERF_YM = Q2.PERF_YM
-                           AND Q2.DTA_DL_YN = 'N'
-                        INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ S1
-                            ON C2.CNTR_NO = S1.CNTR_NO
-                           AND C2.CNTR_SN = S1.CNTR_SN
-                           AND S1.SL_CL_YM = #{baseYm} /*당월기준*/
-                        INNER JOIN TB_SSCT_CNTR_STLM_REL C3
-                            ON C2.CNTR_NO = C3.DTL_CNTR_NO
-                           AND C2.CNTR_SN = C3.DTL_CNTR_SN
-                           AND #{baseYm} BETWEEN SUBSTR(C3.VL_STRT_DTM, 1, 6) AND SUBSTR(C3.VL_END_DTM, 1, 6)
-                        INNER JOIN TB_SSCT_CNTR_STLM_BAS C4
-                            ON C3.CNTR_STLM_ID = C4.CNTR_STLM_ID
-                            AND C4.DP_TP_CD IN ('0102', '0203')
-                        WHERE 1 = 1
-                           AND C1.DTA_DL_YN = 'N'
-                           AND C2.DTA_DL_YN = 'N'
-                           AND C2.SELL_TP_CD = '2'
-                           AND C2.SELL_TP_DTL_CD IN ('22', '24', '25') /*판매유형상세코드-리스*/
-                           AND C1.CNTR_CNFM_DTM >= '20200901'
-                           AND NOT EXISTS (SELECT '1'
-                                             FROM TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ X1
-                                            WHERE C1.CNTR_CST_NO = X1.CST_NO
-                                              AND X1.RENTAL_CB_RGST_DV_CD IN ('1','3')
-                                              AND X1.NOTY_RCV_YN = 'Y'
-                                              AND X1.DTA_DL_YN = 'N')
-                        ) Y1
-                  WHERE 1 = 1
-                    AND Y1.RN = 1
-            )
-            SELECT B1.CST_NO
-                 , T1.CNTR_CST_NM AS CST_KNM
-                 , T1.CNTR_NO
-                 , B1.CRAL_LOCARA_TNO
-                 , B1.MEXNO_ENCR
-                 , B1.CRAL_IDV_TNO
-                 , T1.DLQ_AMT
-                 , T1.DLQ_BLAM
-                 , N1.CLCTAM_PRTNR_NO
-                 , T1.OC_BSDT
-                 , (SELECT RENTAL_CB_RGST_DV_CD
-                     FROM TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ X1
-                    WHERE B1.CST_NO = X1.CST_NO
-                      AND T1.CNTR_NO = X1.CNTR_NO
-                      AND X1.DTA_DL_YN = 'N') AS RENTAL_CB_RGST_DV_CD
-              FROM RENTAL_CB T1
-            INNER JOIN TB_CUBS_CST_BAS B1
-                ON T1.CNTR_CST_NO = B1.CST_NO
-            INNER JOIN TB_PDBS_PD_BAS P1
-                ON T1.BASE_PD_CD = P1.PD_CD
-            INNER JOIN TB_PDBS_PD_CLSF_BAS P2
-                ON P1.PD_CLSF_ID = P2.PD_CLSF_ID
-            INNER JOIN LATERAL (
-                    SELECT X1.*
-                      FROM TB_CBBO_BND_CNTR_BAS X1
-                     WHERE T1.CNTR_NO = X1.CNTR_NO
-                       AND T1.CNTR_SN = X1.CNTR_SN
-                   AND X1.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'), -1),'YYYYMM')
-                       AND X1.BND_CLCTN_PRP_RSON_CD IN ('20', '3C', '80')
-                     ORDER BY X1.BASE_YM ASC
-                    FETCH FIRST 1 ROW ONLY
-                   ) N1
-                ON 1 = 1
-            LEFT JOIN TB_CBBO_CLCTAM_PRTNR_DTL N2
+            SELECT N1.CST_NO
+            FROM TB_CBCL_DLQ_BAS D1    /*연체기본*/
+            INNER JOIN TB_CBBO_BND_CNTR_BAS N1   /*채권계약기본*/
+                ON N1.BASE_YM = #{baseYm}
+                AND D1.CNTR_NO = N1.CNTR_NO
+                AND D1.CNTR_SN = N1.CNTR_SN
+                AND N1.BND_CLCTN_PRP_RSON_CD IN ('20', '3C', '80')
+            INNER JOIN TB_CBBO_CLCTAM_PRTNR_DTL N2 /*집금파트너상세*/
                 ON N1.CLCTAM_PRTNR_NO = N2.PRTNR_NO
-             WHERE 1 = 1
-                AND T1.DLQ_AMT > 0
-                AND T1.DLQ_BLAM > 0
-                AND T1.CNTR_CST_NO IN (SELECT X1.CNTR_CST_NO
-                                        FROM RENTAL_CB X1
-                                     GROUP BY X1.CNTR_CST_NO
-                                     HAVING SUM(X1.DLQ_BLAM) >= 100000) /* 연체잔액합계가 10만이 넘는 고객들을 계약별로 조회하여 저장 */
-                AND NOT EXISTS (SELECT 1
-                                 FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ X1
-                                WHERE T1.CNTR_CST_NO = X1.CST_NO
-                                  AND X1.CTNT_EXCD_BND_BIZ_CD = '02' -- 렌탈CB
-                                  AND X1.DTA_DL_YN = 'N'
-                                  AND #{baseYm} BETWEEN SUBSTR(X1.APY_STRTDT, 1, 6) AND SUBSTR(X1.APY_ENDDT, 1, 6))
-               ) SRC2
-           ON (MRG_CB.CNTR_NO = SRC2.CNTR_NO)
-         WHEN NOT MATCHED THEN
+            INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ S1 /* WELLS매출월마감내역 */
+                ON N1.BASE_YM = S1.SL_CL_YM
+                AND N1.CNTR_NO = S1.CNTR_NO
+                AND N1.CNTR_SN = S1.CNTR_SN
+                AND S1.SELL_TP_CD = '2' /*렌탈리스*/
+                AND S1.SELL_TP_DTL_CD IN ('22', '24', '25') /*판매유형상세코드-리스*/
+            INNER JOIN TB_SSCT_CNTR_BAS T1 /*계약기본*/
+                ON N1.CNTR_NO = T1.CNTR_NO
+                AND T1.CNTR_CNFM_DTM >= '20200901'
+                AND N1.CST_NO = T1.CNTR_CST_NO
+                AND T1.DTA_DL_YN = 'N'
+            INNER JOIN TB_SSCT_CNTR_DTL T2  /* 계약상세 */
+                ON D1.CNTR_NO = T2.CNTR_NO
+                AND D1.CNTR_SN = T2.CNTR_SN
+                AND T2.DTA_DL_YN = 'N'
+                AND T2.SELL_TP_CD = '2' /*렌탈리스*/
+                AND T2.SELL_TP_DTL_CD IN ('22', '24', '25') /*판매유형상세코드-리스*/
+            INNER JOIN TB_SSCT_CNTR_STLM_REL T3 /*계약결제관계*/
+                ON D1.CNTR_NO = T3.DTL_CNTR_NO
+                AND D1.CNTR_SN = T3.DTL_CNTR_SN
+                AND T3.DTA_DL_YN = 'N'
+                AND S1.SL_CL_YM BETWEEN SUBSTR(T3.VL_STRT_DTM, 1, 6) AND SUBSTR(T3.VL_END_DTM, 1, 6)
+            INNER JOIN TB_SSCT_CNTR_STLM_BAS T4 /*계약결제기본*/
+                ON T3.CNTR_STLM_ID = T4.CNTR_STLM_ID
+                AND T4.DTA_DL_YN = 'N'
+                AND T4.DP_TP_CD IN ('0102', '0203')
+            LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS Q2   /* WELLS위약금액기본 */
+                ON N1.BASE_YM = Q2.PERF_YM
+                AND N1.CNTR_NO = Q2.CNTR_NO
+                AND N1.CNTR_SN = Q2.CNTR_SN
+                AND Q2.DTA_DL_YN = 'N'
+            WHERE
+                D1.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'), -1),'YYYYMM')
+                AND D1.DLQ_MCN >= 0
+                AND (D1.EOT_DLQ_AMT + D1.BTD_DLQ_ADD_AMT) > 0
+                AND D1.DTA_DL_YN = 'N'
+                AND NOT EXISTS (SELECT 1 FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ X1
+                                WHERE N1.CST_NO = X1.CST_NO
+                                    AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN X1.APY_STRTDT AND X1.APY_ENDDT
+                                    AND X1.CTNT_EXCD_BND_BIZ_CD = '02'
+                                    AND X1.DTA_DL_YN = 'N')
+                AND NOT EXISTS (SELECT 1 FROM TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ X1
+                                WHERE N1.CST_NO = X1.CST_NO
+                                    AND X1.RENTAL_CB_RGST_DV_CD IN ('1','3')
+                                    AND X1.NOTY_RCV_YN = 'Y'
+                                    AND X1.DTA_DL_YN = 'N')
+            GROUP BY N1.CST_NO
+            HAVING SUM(D1.EOT_DLQ_AMT /*기말연체금액*/
+                        + D1.BTD_DLQ_ADD_AMT /*기초연체가산금액*/
+                        - LEAST(D1.THM_CTR_DLQ_ADD_AMT + D1.THM_DLQ_ADD_DP_SUM_AMT - D1.THM_DLQ_ADD_RFND_SUM_AMT, D1.BTD_DLQ_ADD_AMT) /*(당월연체가산금액 변동분)*/
+                        + NVL(Q2.EOT_BOR_AMT, 0) /*기말위약금액*/
+                        - D1.BTD_DLQ_ADD_AMT
+                        - (S1.MLG_DP_AMT - S1.MLG_RFND_AMT + S1.THM_ATAM_DP_AMT - S1.THM_ATAM_RFND_AMT) /*마일리지, 당월선수금*/
+                    ) >= 100000
+        )
+        SELECT
+            N1.CST_NO, /*고객번호*/
+            C1.CST_KNM, /*고객명*/
+            D1.CNTR_NO, /*계약번호*/
+            C1.CRAL_LOCARA_TNO,
+            C1.MEXNO_ENCR,
+            C1.CRAL_IDV_TNO,
+            (D1.EOT_DLQ_AMT /*기말연체금액*/
+                + D1.BTD_DLQ_ADD_AMT  /*기초연체가산금액*/
+                - LEAST(D1.THM_CTR_DLQ_ADD_AMT + D1.THM_DLQ_ADD_DP_SUM_AMT - D1.THM_DLQ_ADD_RFND_SUM_AMT, D1.BTD_DLQ_ADD_AMT) /*(당월연체가산금액 변동분)*/
+                + NVL(Q2.EOT_BOR_AMT, 0) /*기말위약금액*/
+                - D1.BTD_DLQ_ADD_AMT
+                + D1.THM_DLQ_ADD_DP_SUM_AMT
+            ) AS DLQ_AMT, /*연체금액*/
+            (D1.EOT_DLQ_AMT /*기말연체금액*/
+                + D1.BTD_DLQ_ADD_AMT /*기초연체가산금액*/
+                - LEAST(D1.THM_CTR_DLQ_ADD_AMT + D1.THM_DLQ_ADD_DP_SUM_AMT - D1.THM_DLQ_ADD_RFND_SUM_AMT, D1.BTD_DLQ_ADD_AMT) /*(당월연체가산금액 변동분)*/
+                + NVL(Q2.EOT_BOR_AMT, 0) /*기말위약금액*/
+                - D1.BTD_DLQ_ADD_AMT
+                - (S1.MLG_DP_AMT - S1.MLG_RFND_AMT + S1.THM_ATAM_DP_AMT - S1.THM_ATAM_RFND_AMT) /*마일리지, 당월선수금*/
+            ) AS DLQ_BLAM, /*연체잔액*/
+            N1.CLCTAM_PRTNR_NO, /*집금담당자번호*/
+            (CASE WHEN TO_CHAR(ADD_MONTHS(TO_DATE(D1.PERF_YM, 'YYYYMM'), 1), 'YYYYMM') = #{baseYm}
+                   THEN #{baseYm} || '01'
+                   ELSE D1.PERF_YM || T4.MPY_BSDT END
+            ) AS OC_BSDT, /*발생일자-MPY_BSDT 납부기준일자*/
+            X1.RENTAL_CB_RGST_DV_CD
+        FROM
+            TB_CBCL_DLQ_BAS D1    /*연체기본*/
+            INNER JOIN TB_CBBO_BND_CNTR_BAS N1   /*채권계약기본*/
+                ON N1.BASE_YM = #{baseYm}
+                AND D1.CNTR_NO = N1.CNTR_NO
+                AND D1.CNTR_SN = N1.CNTR_SN
+                AND N1.BND_CLCTN_PRP_RSON_CD IN ('20', '3C', '80')
+            INNER JOIN TB_CBBO_CLCTAM_PRTNR_DTL N2 /*집금파트너상세*/
+                ON N1.CLCTAM_PRTNR_NO = N2.PRTNR_NO
+            INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ S1 /* WELLS매출월마감내역 */
+                ON N1.BASE_YM = S1.SL_CL_YM
+                AND N1.CNTR_NO = S1.CNTR_NO
+                AND N1.CNTR_SN = S1.CNTR_SN
+                AND S1.SELL_TP_CD = '2' /*렌탈리스*/
+                AND S1.SELL_TP_DTL_CD IN ('22', '24', '25') /*판매유형상세코드-리스*/
+            INNER JOIN TB_SSCT_CNTR_BAS T1 /*계약기본*/
+                ON N1.CNTR_NO = T1.CNTR_NO
+                AND T1.CNTR_CNFM_DTM >= '20200901'
+                AND N1.CST_NO = T1.CNTR_CST_NO
+                AND T1.DTA_DL_YN = 'N'
+            INNER JOIN TB_SSCT_CNTR_DTL T2  /* 계약상세 */
+                ON D1.CNTR_NO = T2.CNTR_NO
+                AND D1.CNTR_SN = T2.CNTR_SN
+                AND T2.DTA_DL_YN = 'N'
+                AND T2.SELL_TP_CD = '2' /*렌탈리스*/
+                AND T2.SELL_TP_DTL_CD IN ('22', '24', '25') /*판매유형상세코드-리스*/
+            INNER JOIN TB_SSCT_CNTR_STLM_REL T3 /*계약결제관계*/
+                ON D1.CNTR_NO = T3.DTL_CNTR_NO
+                AND D1.CNTR_SN = T3.DTL_CNTR_SN
+                AND T3.DTA_DL_YN = 'N'
+                AND S1.SL_CL_YM BETWEEN SUBSTR(T3.VL_STRT_DTM, 1, 6) AND SUBSTR(T3.VL_END_DTM, 1, 6)
+            INNER JOIN TB_SSCT_CNTR_STLM_BAS T4 /*계약결제기본*/
+                ON T3.CNTR_STLM_ID = T4.CNTR_STLM_ID
+                AND T4.DTA_DL_YN = 'N'
+                AND T4.DP_TP_CD IN ('0102', '0203')
+            INNER JOIN TB_CUBS_CST_BAS C1 /*고객기본*/
+                ON N1.CST_NO = C1.CST_NO
+            INNER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
+                ON T2.BASE_PD_CD = P1.PD_CD
+                AND P1.DTA_DL_YN = 'N'
+            INNER JOIN TB_PDBS_PD_CLSF_BAS P2 /*상품분류*/
+                ON P1.PD_CLSF_ID = P2.PD_CLSF_ID
+            LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS Q2   /* WELLS위약금액기본 */
+                ON N1.BASE_YM = Q2.PERF_YM
+                AND N1.CNTR_NO = Q2.CNTR_NO
+                AND N1.CNTR_SN = Q2.CNTR_SN
+                AND Q2.DTA_DL_YN = 'N'
+            LEFT JOIN TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ X1 /*WELLS렌탈CB연체내역*/
+                ON N1.CNTR_NO = X1.CNTR_NO
+                AND N1.CST_NO = X1.CST_NO
+                AND X1.RENTAL_CB_RGST_DV_CD IN ('1','3')
+                AND NVL(X1.DLQ_BLAM, 0) > 0  /* 연체잔액 */
+                AND X1.DTA_DL_YN = 'N'
+            LEFT JOIN TB_CBBO_BND_MSG_RELY_IZ Z3  /* 채권메시지중계내역 */
+                ON N1.CNTR_NO = Z3.CNTR_NO
+                AND N1.CNTR_SN = Z3.CNTR_SN
+                AND Z3.FW_BIZ_NM = 'BN_KAKAO_MESSAGE' /*발송업무명*/
+                AND Z3.MSG_FW_TP_CD = '01' /*메시지발송유형코드-01:카카오알림톡*/
+                AND Z3.BND_MSG_TP_VAL1 = 'B' /*채권알림톡업무코드-B:등록관련*/
+                AND Z3.BND_MSG_TP_VAL2 = 'B05' /*채권알림톡업무상세코드-B05:렌탈CB연체정보등록 예고*/
+                AND N1.CST_NO = Z3.CST_NO
+                AND Z3.DTA_DL_YN = 'N'
+        WHERE
+            D1.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'), -1),'YYYYMM')
+            AND D1.DLQ_MCN >= 0
+            AND (D1.EOT_DLQ_AMT + D1.BTD_DLQ_ADD_AMT) > 0
+            AND D1.DTA_DL_YN = 'N'
+            AND NOT EXISTS (SELECT 1 FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ X1
+                            WHERE N1.CST_NO = X1.CST_NO
+                                AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN X1.APY_STRTDT AND X1.APY_ENDDT
+                                AND X1.CTNT_EXCD_BND_BIZ_CD = '02'
+                                AND X1.DTA_DL_YN = 'N')
+            AND NOT EXISTS (SELECT 1 FROM TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ X1
+                            WHERE N1.CST_NO = X1.CST_NO
+                                AND X1.RENTAL_CB_RGST_DV_CD IN ('1','3')
+                                AND X1.NOTY_RCV_YN = 'Y'
+                                AND X1.DTA_DL_YN = 'N')
+            AND (D1.EOT_DLQ_AMT /*기말연체금액*/
+                + D1.BTD_DLQ_ADD_AMT /*기초연체가산금액*/
+                - LEAST(D1.THM_CTR_DLQ_ADD_AMT + D1.THM_DLQ_ADD_DP_SUM_AMT - D1.THM_DLQ_ADD_RFND_SUM_AMT, D1.BTD_DLQ_ADD_AMT) /*(당월연체가산금액 변동분)*/
+                + NVL(Q2.EOT_BOR_AMT, 0) /*기말위약금액*/
+                - D1.BTD_DLQ_ADD_AMT
+                - (S1.MLG_DP_AMT - S1.MLG_RFND_AMT + S1.THM_ATAM_DP_AMT - S1.THM_ATAM_RFND_AMT) /*마일리지, 당월선수금*/
+            ) > 0
+            AND N1.CST_NO IN (SELECT CST_NO FROM RENTAL_CB)
+        ) SRC2
+            ON (MRG_CB.CNTR_NO = SRC2.CNTR_NO)
+        WHEN NOT MATCHED THEN
             INSERT (
                  MRG_CB.CNTR_NO                 /*계약번호*/
                , MRG_CB.CST_NO                  /*고객번호*/
@@ -511,33 +638,105 @@
 
     <select id="selectRentalCbMgtPaymentInfos" resultType="com.kyowon.sms.wells.web.bond.credit.dvo.WbndRentalCbDelinquentIzDvo">
         /* 렌탈CB납입정보(팝업) */
+        WITH RENTAL_CB AS (
+            SELECT N1.CST_NO
+            FROM TB_CBCL_DLQ_BAS D1    /*연체기본*/
+            INNER JOIN TB_CBBO_BND_CNTR_BAS N1   /*채권계약기본*/
+                ON N1.BASE_YM = #{baseYm}
+                AND D1.CNTR_NO = N1.CNTR_NO
+                AND D1.CNTR_SN = N1.CNTR_SN
+                AND N1.BND_CLCTN_PRP_RSON_CD IN ('20', '3C', '80')
+            INNER JOIN TB_CBBO_CLCTAM_PRTNR_DTL N2 /*집금파트너상세*/
+                ON N1.CLCTAM_PRTNR_NO = N2.PRTNR_NO
+            INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ S1 /* WELLS매출월마감내역 */
+                ON N1.BASE_YM = S1.SL_CL_YM
+                AND N1.CNTR_NO = S1.CNTR_NO
+                AND N1.CNTR_SN = S1.CNTR_SN
+                AND S1.SELL_TP_CD = '2' /*렌탈리스*/
+                AND S1.SELL_TP_DTL_CD IN ('22', '24', '25') /*판매유형상세코드-리스*/
+            INNER JOIN TB_SSCT_CNTR_BAS T1 /*계약기본*/
+                ON N1.CNTR_NO = T1.CNTR_NO
+                AND T1.CNTR_CNFM_DTM >= '20200901'
+                AND N1.CST_NO = T1.CNTR_CST_NO
+                AND T1.DTA_DL_YN = 'N'
+            INNER JOIN TB_SSCT_CNTR_DTL T2  /* 계약상세 */
+                ON D1.CNTR_NO = T2.CNTR_NO
+                AND D1.CNTR_SN = T2.CNTR_SN
+                AND T2.DTA_DL_YN = 'N'
+                AND T2.SELL_TP_CD = '2' /*렌탈리스*/
+                AND T2.SELL_TP_DTL_CD IN ('22', '24', '25') /*판매유형상세코드-리스*/
+            INNER JOIN TB_SSCT_CNTR_STLM_REL T3 /*계약결제관계*/
+                ON D1.CNTR_NO = T3.DTL_CNTR_NO
+                AND D1.CNTR_SN = T3.DTL_CNTR_SN
+                AND T3.DTA_DL_YN = 'N'
+                AND S1.SL_CL_YM BETWEEN SUBSTR(T3.VL_STRT_DTM, 1, 6) AND SUBSTR(T3.VL_END_DTM, 1, 6)
+            INNER JOIN TB_SSCT_CNTR_STLM_BAS T4 /*계약결제기본*/
+                ON T3.CNTR_STLM_ID = T4.CNTR_STLM_ID
+                AND T4.DTA_DL_YN = 'N'
+                AND T4.DP_TP_CD IN ('0102', '0203')
+            LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS Q2   /* WELLS위약금액기본 */
+                ON N1.BASE_YM = Q2.PERF_YM
+                AND N1.CNTR_NO = Q2.CNTR_NO
+                AND N1.CNTR_SN = Q2.CNTR_SN
+                AND Q2.DTA_DL_YN = 'N'
+            WHERE
+                D1.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'), -1),'YYYYMM')
+                AND D1.DLQ_MCN >= 0
+                AND (D1.EOT_DLQ_AMT + D1.BTD_DLQ_ADD_AMT) > 0
+                AND D1.DTA_DL_YN = 'N'
+                AND NOT EXISTS (SELECT 1 FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ X1
+                                WHERE N1.CST_NO = X1.CST_NO
+                                    AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN X1.APY_STRTDT AND X1.APY_ENDDT
+                                    AND X1.CTNT_EXCD_BND_BIZ_CD = '02'
+                                    AND X1.DTA_DL_YN = 'N')
+                AND NOT EXISTS (SELECT 1 FROM TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ X1
+                                WHERE N1.CST_NO = X1.CST_NO
+                                    AND X1.RENTAL_CB_RGST_DV_CD IN ('1','3')
+                                    AND X1.NOTY_RCV_YN = 'Y'
+                                    AND X1.DTA_DL_YN = 'N')
+            GROUP BY N1.CST_NO
+            HAVING SUM(D1.EOT_DLQ_AMT /*기말연체금액*/
+                        + D1.BTD_DLQ_ADD_AMT /*기초연체가산금액*/
+                        - LEAST(D1.THM_CTR_DLQ_ADD_AMT + D1.THM_DLQ_ADD_DP_SUM_AMT - D1.THM_DLQ_ADD_RFND_SUM_AMT, D1.BTD_DLQ_ADD_AMT) /*(당월연체가산금액 변동분)*/
+                        + NVL(Q2.EOT_BOR_AMT, 0) /*기말위약금액*/
+                        - D1.BTD_DLQ_ADD_AMT
+                        - (S1.MLG_DP_AMT - S1.MLG_RFND_AMT + S1.THM_ATAM_DP_AMT - S1.THM_ATAM_RFND_AMT) /*마일리지, 당월선수금*/
+                    ) >= 100000
+        )
         SELECT
-            T1.CST_NO, /*고객번호*/
-            T1.CNTR_NO || '-' || T1.CNTR_SN AS CNTR_DTL_NO, /*계약상세번호*/
-            T2.CST_KNM, /*고객명*/
-            F_CMZ_CD_NM('TNT_WELLS', 'COPN_DV_CD', T3.COPN_DV_CD) AS COPN_DV_NM, /*법인격구분명*/
-            F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T4.SELL_TP_CD) AS SELL_TP_NM, /*상품구분명*/
+            N1.CST_NO, /*고객번호*/
+            D1.CNTR_NO || '-' || D1.CNTR_SN AS CNTR_DTL_NO, /*계약상세번호*/
+            C1.CST_KNM, /*고객명*/
+            F_CMZ_CD_NM('TNT_WELLS', 'COPN_DV_CD', T1.COPN_DV_CD) AS COPN_DV_NM, /*법인격구분명*/
+            F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T2.SELL_TP_CD) AS SELL_TP_NM, /*상품구분명*/
             P2.PD_CLSF_NM, /*상품명*/
             S1.SL_RCOG_DT, /*매출일자*/
-            T2.CRAL_LOCARA_TNO,
-            T2.MEXNO_ENCR,
-            T2.CRAL_IDV_TNO,
-            T1.DP_DT, /*입금일자*/
-            F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', T1.DP_TP_CD) AS FNT_DV_NM,
-            (CASE WHEN T1.DP_DV_CD IN ('1', '3') THEN NVL(T1.RVE_AMT, 0) ELSE 0 END)
-            - (CASE WHEN T1.DP_DV_CD IN ('2', '4') THEN NVL(T1.RVE_AMT, 0) ELSE 0 END) AS TOTAL_DP_AMT, /*연체입금금액*/
-            (NVL(Q1.EOT_DLQ_AMT, 0) /*기말연체금액*/
-                + NVL(Q1.BTD_DLQ_ADD_AMT, 0) /*기초연체가산금액*/
-                - LEAST(NVL(Q1.THM_CTR_DLQ_ADD_AMT, 0) + NVL(Q1.THM_DLQ_ADD_DP_SUM_AMT, 0) - NVL(Q1.THM_DLQ_ADD_RFND_SUM_AMT, 0)
-                      , NVL(Q1.BTD_DLQ_ADD_AMT, 0)) /*당월연체가산금액 변동분*/
+            C1.CRAL_LOCARA_TNO,
+            C1.MEXNO_ENCR,
+            C1.CRAL_IDV_TNO,
+            NVL(R1.DP_DT, '-') AS DP_DT, /*입금일자*/
+            NVL(F_CMZ_CD_NM('TNT_WELLS', 'DP_TP_CD', T4.DP_TP_CD), '-') AS FNT_DV_NM,
+            (D1.EOT_DLQ_AMT /*기말연체금액*/
+                + D1.BTD_DLQ_ADD_AMT  /*기초연체가산금액*/
+                - LEAST(D1.THM_CTR_DLQ_ADD_AMT + D1.THM_DLQ_ADD_DP_SUM_AMT - D1.THM_DLQ_ADD_RFND_SUM_AMT, D1.BTD_DLQ_ADD_AMT) /*(당월연체가산금액 변동분)*/
                 + NVL(Q2.EOT_BOR_AMT, 0) /*기말위약금액*/
-                - NVL(Q1.BTD_DLQ_ADD_AMT, 0)  /*기초연체가산금액*/
-                - (S1.MLG_DP_AMT - S1.MLG_RFND_AMT + S1.THM_ATAM_DP_AMT - S1.THM_ATAM_RFND_AMT) /*마일리지*/
+                - D1.BTD_DLQ_ADD_AMT
+                + D1.THM_DLQ_ADD_DP_SUM_AMT
+            ) AS DLQ_AMT, /*연체금액*/
+            (D1.THM_CTR_DLQ_ADD_AMT /*당월조정연체가산금액*/
+             + D1.THM_DLQ_ADD_DP_SUM_AMT /*당월연체가산입금합계금액*/
+            ) AS TOTAL_DP_AMT, /*연체입금금액*/
+            (D1.EOT_DLQ_AMT /*기말연체금액*/
+                + D1.BTD_DLQ_ADD_AMT /*기초연체가산금액*/
+                - LEAST(D1.THM_CTR_DLQ_ADD_AMT + D1.THM_DLQ_ADD_DP_SUM_AMT - D1.THM_DLQ_ADD_RFND_SUM_AMT, D1.BTD_DLQ_ADD_AMT) /*(당월연체가산금액 변동분)*/
+                + NVL(Q2.EOT_BOR_AMT, 0) /*기말위약금액*/
+                - D1.BTD_DLQ_ADD_AMT
+                - (S1.MLG_DP_AMT - S1.MLG_RFND_AMT + S1.THM_ATAM_DP_AMT - S1.THM_ATAM_RFND_AMT) /*마일리지, 당월선수금*/
             ) AS DLQ_BLAM, /*연체잔액*/
             N2.PRTNR_KNM, /*집금담당자명*/
             '1588-4113' AS DSPH_TNO,              /*발신번호*/
             TO_CHAR(TO_DATE(Z3.FWBOO_DTM,'YYYYMMDD') + 8,'YYYYMMDD') AS RGST_SCH_DT, /*등록예정일자-알림톡발송일자 +8일*/
-            X1.RENTAL_CB_RGST_DV_CD AS NICE_FW_EXCD_YN,  /*NICE발송제외여부*/
+            X1.NICE_FW_EXCD_YN AS NICE_FW_EXCD_YN,  /*NICE발송제외여부*/
             SUBSTR(Z3.FWBOO_DTM, 1, 8) AS FWBOO_DTM,    /*알림톡발송일자*/
             (SELECT (CASE WHEN X9.RESULT = '1000' THEN 'Y' ELSE 'N' END)
                 FROM TB_CBBO_BND_MSG_RELY_IZ X7  /* 채권메시지중계내역 */
@@ -554,82 +753,113 @@
                     AND X7.MSG_FW_TP_CD = '01'  /* 메시지발송유형코드-01:카카오알림톡 */
                     AND X7.BND_MSG_TP_VAL1 = 'B'  /* 채권알림톡업무코드-B:등록관련 */
                     AND X7.BND_MSG_TP_VAL2 = 'B05'  /* 채권알림톡업무상세코드-B05:렌탈CB연체정보등록 예고 */
-                    AND X7.CST_NO = T1.CST_NO
+                    AND X7.CST_NO = N1.CST_NO
                 ORDER BY X9.MT_SEQ DESC
                 FETCH FIRST 1 ROWS ONLY
             ) AS RESULT_YN, /*알림톡성공여부*/
             '' AS NOTY_FW_OJ_DT  /*알림톡발송제외일자*/
         FROM
-            TB_RVDW_RVE_DTL T1 /*T:수납상세*/
-            INNER JOIN TB_CUBS_CST_BAS T2 /*고객기본*/
-                ON T1.CST_NO = T2.CST_NO
-            INNER JOIN TB_SSCT_CNTR_BAS T3 /*계약기본*/
-                ON T1.CNTR_NO = T3.CNTR_NO
-                AND T3.CNTR_CNFM_DTM >= '20200901'
-                AND T3.DTA_DL_YN = 'N'
-            INNER JOIN TB_SSCT_CNTR_DTL T4  /* 계약상세 */
-                ON T1.CNTR_NO = T4.CNTR_NO
-                AND T1.CNTR_SN = T4.CNTR_SN
-                AND T4.SELL_TP_CD = '2' /*렌탈리스*/
-                AND T4.SELL_TP_DTL_CD IN ('22', '24', '25') /*판매유형상세코드-리스*/
-                AND T4.DTA_DL_YN = 'N'
+            TB_CBCL_DLQ_BAS D1    /*연체기본*/
+            INNER JOIN TB_CBBO_BND_CNTR_BAS N1   /*채권계약기본*/
+                ON N1.BASE_YM = #{baseYm}
+                AND D1.CNTR_NO = N1.CNTR_NO
+                AND D1.CNTR_SN = N1.CNTR_SN
+                AND N1.BND_CLCTN_PRP_RSON_CD IN ('20', '3C', '80')
+            INNER JOIN TB_CBBO_CLCTAM_PRTNR_DTL N2 /*집금파트너상세*/
+                ON N1.CLCTAM_PRTNR_NO = N2.PRTNR_NO
             INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ S1 /* WELLS매출월마감내역 */
-                ON T1.CNTR_NO = S1.CNTR_NO
-               AND T1.CNTR_SN = S1.CNTR_SN
-               AND SUBSTR(T1.PERF_DT, 1, 6) = TO_CHAR(ADD_MONTHS(TO_DATE(S1.SL_CL_YM,'YYYYMM'), -1),'YYYYMM')
-            LEFT JOIN TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ X1
-                ON T1.CST_NO = X1.CST_NO
-                AND T1.CNTR_NO = X1.CNTR_NO
+                ON N1.BASE_YM = S1.SL_CL_YM
+                AND N1.CNTR_NO = S1.CNTR_NO
+                AND N1.CNTR_SN = S1.CNTR_SN
+                AND S1.SELL_TP_CD = '2' /*렌탈리스*/
+                AND S1.SELL_TP_DTL_CD IN ('22', '24', '25') /*판매유형상세코드-리스*/
+            INNER JOIN TB_SSCT_CNTR_BAS T1 /*계약기본*/
+                ON N1.CNTR_NO = T1.CNTR_NO
+                AND T1.CNTR_CNFM_DTM >= '20200901'
+                AND N1.CST_NO = T1.CNTR_CST_NO
+                AND T1.DTA_DL_YN = 'N'
+            INNER JOIN TB_SSCT_CNTR_DTL T2  /* 계약상세 */
+                ON D1.CNTR_NO = T2.CNTR_NO
+                AND D1.CNTR_SN = T2.CNTR_SN
+                AND T2.DTA_DL_YN = 'N'
+                AND T2.SELL_TP_CD = '2' /*렌탈리스*/
+                AND T2.SELL_TP_DTL_CD IN ('22', '24', '25') /*판매유형상세코드-리스*/
+            INNER JOIN TB_SSCT_CNTR_STLM_REL T3 /*계약결제관계*/
+                ON D1.CNTR_NO = T3.DTL_CNTR_NO
+                AND D1.CNTR_SN = T3.DTL_CNTR_SN
+                AND T3.DTA_DL_YN = 'N'
+                AND S1.SL_CL_YM BETWEEN SUBSTR(T3.VL_STRT_DTM, 1, 6) AND SUBSTR(T3.VL_END_DTM, 1, 6)
+            INNER JOIN TB_SSCT_CNTR_STLM_BAS T4 /*계약결제기본*/
+                ON T3.CNTR_STLM_ID = T4.CNTR_STLM_ID
+                AND T4.DTA_DL_YN = 'N'
+                AND T4.DP_TP_CD IN ('0102', '0203')
+            INNER JOIN TB_CUBS_CST_BAS C1 /*고객기본*/
+                ON N1.CST_NO = C1.CST_NO
+            INNER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
+                ON T2.BASE_PD_CD = P1.PD_CD
+                AND P1.DTA_DL_YN = 'N'
+            INNER JOIN TB_PDBS_PD_CLSF_BAS P2 /*상품분류*/
+                ON P1.PD_CLSF_ID = P2.PD_CLSF_ID
+            LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS Q2   /* WELLS위약금액기본 */
+                ON N1.BASE_YM = Q2.PERF_YM
+                AND N1.CNTR_NO = Q2.CNTR_NO
+                AND N1.CNTR_SN = Q2.CNTR_SN
+                AND Q2.DTA_DL_YN = 'N'
+            LEFT JOIN TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ X1 /*WELLS렌탈CB연체내역*/
+                ON N1.CNTR_NO = X1.CNTR_NO
+                AND N1.CST_NO = X1.CST_NO
                 AND X1.RENTAL_CB_RGST_DV_CD IN ('1','3')
                 AND NVL(X1.DLQ_BLAM, 0) > 0  /* 연체잔액 */
                 AND X1.DTA_DL_YN = 'N'
-                AND X1.RLS_DT IS NULL
-            LEFT JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
-                ON T4.BASE_PD_CD = P1.PD_CD
-            LEFT JOIN TB_PDBS_PD_CLSF_BAS P2 /*상품분류*/
-                ON P1.PD_CLSF_ID = P2.PD_CLSF_ID
-            LEFT JOIN TB_CBCL_DLQ_BAS Q1    /*연체기본*/
-                ON S1.CNTR_NO = Q1.CNTR_NO
-                AND S1.CNTR_SN = Q1.CNTR_SN
-                AND SUBSTR(T1.DP_DT, 1, 6) = Q1.PERF_YM
-                AND Q1.DTA_DL_YN = 'N'
-            LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS Q2   /* WELLS위약금액기본 */
-                ON Q1.CNTR_NO = Q2.CNTR_NO
-                AND Q1.CNTR_SN = Q2.CNTR_SN
-                AND Q1.PERF_YM = Q2.PERF_YM
-                AND Q2.DTA_DL_YN = 'N'
-            LEFT JOIN TB_CBBO_BND_CNTR_BAS N1   /*채권계약기본*/
-                ON T1.CNTR_NO = N1.CNTR_NO
-                AND T1.CNTR_SN = N1.CNTR_SN
-                AND SUBSTR(T1.DP_DT, 1, 6) = N1.BASE_YM
-                AND N1.BND_CLCTN_PRP_RSON_CD IN ('20', '3C', '80')
-            LEFT JOIN TB_CBBO_CLCTAM_PRTNR_DTL N2
-                ON N1.CLCTAM_PRTNR_NO = N2.PRTNR_NO
             LEFT JOIN TB_CBBO_BND_MSG_RELY_IZ Z3  /* 채권메시지중계내역 */
-                ON T1.CST_NO = Z3.CST_NO
-                AND T1.CNTR_NO = Z3.CNTR_NO
-                AND T1.CNTR_SN = Z3.CNTR_SN
-                AND Z3.FW_BIZ_NM = 'BN_KAKAO_MESSAGE'  /*발송업무명*/
-                AND Z3.MSG_FW_TP_CD = '01'  /*메시지발송유형코드-01:카카오알림톡*/
-                AND Z3.BND_MSG_TP_VAL1 = 'B'  /*채권알림톡업무코드-B:등록관련*/
-                AND Z3.BND_MSG_TP_VAL2 = 'B05'  /*채권알림톡업무상세코드-B05:렌탈CB연체정보등록 예고*/
+                ON N1.CNTR_NO = Z3.CNTR_NO
+                AND N1.CNTR_SN = Z3.CNTR_SN
+                AND Z3.FW_BIZ_NM = 'BN_KAKAO_MESSAGE' /*발송업무명*/
+                AND Z3.MSG_FW_TP_CD = '01' /*메시지발송유형코드-01:카카오알림톡*/
+                AND Z3.BND_MSG_TP_VAL1 = 'B' /*채권알림톡업무코드-B:등록관련*/
+                AND Z3.BND_MSG_TP_VAL2 = 'B05' /*채권알림톡업무상세코드-B05:렌탈CB연체정보등록 예고*/
+                AND N1.CST_NO = Z3.CST_NO
                 AND Z3.DTA_DL_YN = 'N'
+            LEFT JOIN TB_RVDW_RVE_DTL R1 /*T:수납상세*/
+                ON N1.CNTR_NO = R1.CNTR_NO
+                AND N1.CNTR_SN = R1.CNTR_SN
+                AND N1.BASE_YM = SUBSTR(R1.PERF_DT, 1, 6)
+                AND N1.CST_NO = R1.CST_NO
+                AND R1.RVE_DV_CD IN ('02','03','04','05','07','08','19','13','18','97')
+                AND R1.DP_DV_CD IN ('1','2','3','4')
+                AND R1.DP_MES_CD IN ('01', '02') /*입금수단코드-01:현금,02:신용카드*/
+                AND R1.DP_TP_CD IN ('0102', '0203') /*계좌자동이체, 카드자동이체*/
+                AND R1.RVE_PROCS_YN = 'Y' /*수납처리여부*/
+                AND R1.DTA_DL_YN = 'N'
+                AND R1.KW_GRP_CO_CD = '2000'
         WHERE
-            T1.CST_NO = #{cstNo}
-            AND T1.RVE_DV_CD IN ('02','03','04','05','07','08','19','13','18','97')
-            AND T1.DP_DV_CD IN ('1','2','3','4')
-            AND T1.RVE_PROCS_YN = 'Y'       /*수납처리여부*/
-            AND T1.DTA_DL_YN = 'N'
-            AND T1.DP_MES_CD IN ('01', '02')    /*입금수단코드-01:현금,02:신용카드*/
-            AND SUBSTR(T1.DP_DT, 1, 6) = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'), -1),'YYYYMM') /*전월기준*/
-            AND NOT EXISTS (SELECT 1
-                         FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ X1
-                        WHERE T1.CST_NO = X1.CST_NO
-                          AND X1.CTNT_EXCD_BND_BIZ_CD = '02' -- 렌탈CB
-                          AND X1.DTA_DL_YN = 'N'
-                          AND #{baseYm} BETWEEN SUBSTR(X1.APY_STRTDT, 1, 6) AND SUBSTR(X1.APY_ENDDT, 1, 6))
-        ORDER BY T1.DP_DT DESC, T1.CNTR_NO DESC
+            N1.CST_NO = #{cstNo}
+            AND D1.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'), -1),'YYYYMM')
+            AND D1.DLQ_MCN >= 0
+            AND (D1.EOT_DLQ_AMT + D1.BTD_DLQ_ADD_AMT) > 0
+            AND D1.DTA_DL_YN = 'N'
+            AND NOT EXISTS (SELECT 1 FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ X1
+                            WHERE N1.CST_NO = X1.CST_NO
+                                AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN X1.APY_STRTDT AND X1.APY_ENDDT
+                                AND X1.CTNT_EXCD_BND_BIZ_CD = '02'
+                                AND X1.DTA_DL_YN = 'N')
+            AND NOT EXISTS (SELECT 1 FROM TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ X1
+                            WHERE N1.CST_NO = X1.CST_NO
+                                AND X1.RENTAL_CB_RGST_DV_CD IN ('1','3')
+                                AND X1.NOTY_RCV_YN = 'Y'
+                                AND X1.DTA_DL_YN = 'N')
+            AND (D1.EOT_DLQ_AMT /*기말연체금액*/
+                + D1.BTD_DLQ_ADD_AMT /*기초연체가산금액*/
+                - LEAST(D1.THM_CTR_DLQ_ADD_AMT + D1.THM_DLQ_ADD_DP_SUM_AMT - D1.THM_DLQ_ADD_RFND_SUM_AMT, D1.BTD_DLQ_ADD_AMT) /*(당월연체가산금액 변동분)*/
+                + NVL(Q2.EOT_BOR_AMT, 0) /*기말위약금액*/
+                - D1.BTD_DLQ_ADD_AMT
+                - (S1.MLG_DP_AMT - S1.MLG_RFND_AMT + S1.THM_ATAM_DP_AMT - S1.THM_ATAM_RFND_AMT) /*마일리지, 당월선수금*/
+            ) > 0
+            AND N1.CST_NO IN (SELECT CST_NO FROM RENTAL_CB)
+        ORDER BY D1.CNTR_NO DESC, D1.PERF_YM DESC
     </select>
 </mapper>
+
+
 
 
