@@ -1,259 +1,470 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncVisitCustomerRglvlAgrgMapper">
-    <select id="selectVisitCustomerRglvlAgrgs" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncVisitCustomerRglvlAgrgDto$SearchRes">
+    <select id="selectVisitCustomerRglvlAgrgRgrps" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncVisitCustomerRglvlAgrgDto$SearchRgrpRes">
         SELECT
-    <if test='@MybatisUtils@equals(inqrDiv, "1")'>	/* 지역단 */
                DDDP
-             , (SELECT BLD_NM
-                  FROM TB_OGBS_MM_OG_IZ V1
-                 WHERE BASE_YM = #{vstYm}
-                   AND V1.OG_ID = OG_ID) AS DBNA
-    </if>
-    <if test='@MybatisUtils@equals(inqrDiv, "2")'>  /* 담당자 */
-               LPAD(LCDE,7,'0')   LCDE
-             , MAX(DDDP)
-             , MAX(DDPT)
-             , PRTNR_KNM AS LNAM
-             , ( SELECT BLD_NM
-                   FROM TB_OGBS_MM_OG_IZ V1
-                  WHERE BASE_YM = #{vstYm}
-                   AND V1.OG_ID = OG_ID) AS DBNA
-             , MAX(PSTN_DV_CD) AS LDEG
-             , HELDT
-             , BYEDT
-             , ROUND(months_between(DECODE(BYEDT, NULL, SYSDATE, BYEDT), HELDT)) AS DULDT
-    </if>
-             , COUNT(MCT1)  MCT1
-             , COUNT(MCT2)  MCT2
-             , COUNT(NCNT)  NCNT
-             , COUNT(G1CN)  G1CN
-             , COUNT(W1CT)  W1CT
-             , COUNT(W2CT)  W2CT
+             , DBNA
+             , COUNT(MCT1) AS MCT1
+             , COUNT(MCT2) AS MCT2
+             , COUNT(NCNT) AS NCNT
+             , COUNT(G1CN) AS G1CN
+             , COUNT(W1CT) AS W1CT
+             , COUNT(W2CT) AS W2CT
              , COUNT(W1CT) + COUNT(W2CT) AS WACC
              , TRUNC(((COUNT(W1CT)+COUNT(W2CT))/MAX(FIX_CHK_WRK_CNT)*100),1) AS WPER
              , (COUNT(W1CT)*1 + COUNT(W2CT)*2) AS HACC
              , TRUNC(((COUNT(W1CT)*1 + COUNT(W2CT)*2)/MAX(FIX_CHK_WRK_CNT)*100),1) AS HPER
-             , COUNT(W3CT)  W3CT
-             , COUNT(W4CT)  W4CT
-             , COUNT(W5CT)  W5CT
-             , COUNT(G1CN) + COUNT(W1CT) + COUNT(W2CT) + COUNT(W3CT)
-             + COUNT(W4CT) + COUNT(W5CT) WCNT
-             , COUNT(ECNT)  ECNT
-             , COUNT(GCNT)  GCNT
+             , COUNT(W3CT) AS W3CT
+             , COUNT(W4CT) AS W4CT
+             , COUNT(W5CT) AS W5CT
+             , COUNT(G1CN) + COUNT(W1CT) + COUNT(W2CT) + COUNT(W3CT) + COUNT(W4CT) + COUNT(W5CT) WCNT
+             , COUNT(ECNT) AS ECNT
+             , COUNT(GCNT) AS GCNT
              , MAX(FIX_CHK_WRK_CNT) AS WRK_CNT
-          FROM (SELECT LCDE 						-- 관리파트너번호
-                     , DDDP							-- 지역단
-                     , DDPT							-- 지점
-                     , DDDP_OG_ID					-- 지점ID
-                     , PRTNR_KNM					-- 파트너한글명
-                     , OG_ID						-- 조직ID
-                     , PSTN_DV_CD					-- 직급구분코드
-                     , MCT1							-- 고정파트너여부
-                     , MCT2							-- 고정파트너여부
-                     , NCNT							-- 매니저급지구분코드..'1'
-                     , G1CN							-- 매니저급지구분코드..'2'
-                     , W1CT							-- 매니저급지구분코드..'3'
-                     , W2CT							-- 매니저급지구분코드..'4'
-                     , W3CT							-- 매니저급지구분코드..'5'
-                     , W4CT							-- 매니저급지구분코드..'6'
-                     , W5CT							-- 매니저급지구분코드..'7'
-                     , ECNT							-- 매니저급지구분코드..''
-                     , GCNT							-- 매니저급지구분코드
-                     , KGUB
-                     , FIX_CHK_WRK_CNT
-                     , HELDT						-- 계약년월일
-                     , BYEDT						-- 해약년월일
-                  FROM (SELECT AC202.MNGT_PRTNR_NO                    LCDE
-                             , T3.DGR1_LEVL_OG_CD AS CDPT
-                             , T3.DGR2_LEVL_OG_CD AS DDDP
-                             , T3.DGR2_LEVL_OG_ID AS DDDP_OG_ID
-                             , T3.DGR3_LEVL_OG_CD DDPT
-                             , T2.PRTNR_KNM
-                             , T2.OG_ID
-                             , PRT_DTL.PSTN_DV_CD
-                             , DECODE(AC202.FXN_PRTNR_YN,'9','','1') MCT1
-                             , DECODE(AC202.FXN_PRTNR_YN,'9','1','') MCT2
-                             , DECODE(AC202.MNGER_RGLVL_DV_CD,'1','1','') NCNT
-                             , DECODE(AC202.MNGER_RGLVL_DV_CD,'2','1','') G1CN
-                             , DECODE(AC202.MNGER_RGLVL_DV_CD,'3','1','') W1CT
-                             , DECODE(AC202.MNGER_RGLVL_DV_CD,'4','1','') W2CT
-                             , DECODE(AC202.MNGER_RGLVL_DV_CD,'5','1','') W3CT
-                             , DECODE(AC202.MNGER_RGLVL_DV_CD,'6','1','') W4CT
-                             , DECODE(AC202.MNGER_RGLVL_DV_CD,'7','1','') W5CT
-                             , DECODE(AC202.MNGER_RGLVL_DV_CD,'' ,'1','') ECNT
-                             , AC202.MNGER_RGLVL_DV_CD                    GCNT
-                             , CASE WHEN AC202.FXN_PRTNR_YN = '9'
-                                    THEN '1'
-                                    ELSE (SELECT SUB7.MNGR_DV_CD
-                                            FROM TB_SVPD_LOCARA_BFSVC_OGMGR_IZ SUB7
-                                           WHERE SUB7.NEW_ADR_ZIP = G_ADR.NEW_ADR_ZIP)
-                               END  AS MGT_GB
-                             , CASE WHEN(SELECT COUNT(*)
-                                           FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ SUB1
-                                          WHERE SUB1.ASN_OJ_YM  = AC202.MNGT_YM
-                                            AND SUB1.CNTR_NO = AC202.CNTR_NO
-                                            AND SUB1.CNTR_SN = AC202.CNTR_SN
-                                            AND WK_EXCN_DT IS NULL) > 0
-                                    THEN '3'
-                                    WHEN(SELECT COUNT(*)
-                                           FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ SUB2
-                                          WHERE SUB2.ASN_OJ_YM  = AC202.MNGT_YM
-                                            AND SUB2.CNTR_NO = AC202.CNTR_NO
-                                            AND SUB2.CNTR_SN = AC202.CNTR_SN
-                                            AND WK_EXCN_DT IS NOT NULL) > 0
-                                    THEN '4'
-                                    WHEN AC202.CAN_DT IS NOT NULL
-                                    THEN '5'
-                                    WHEN PECOM.PD_PRP_VAL20    = '1' AND
-                                         AC202.VST_NMN_N <![CDATA[ <= ]]> 3
-                                    THEN '1'
-                                    WHEN PECOM.PD_PRP_VAL20   != '1' AND
-                                         AC202.VST_NMN_N <![CDATA[ <= ]]> 2
-                                    THEN '1'
+          FROM (
+                 SELECT LCDE 						-- 관리파트너번호
+                      , DDDP							-- 지역단
+                      , DDPT							-- 지점
+                      , DBNA
+                      , DDDP_OG_ID					-- 지점ID
+                      , PRTNR_KNM					-- 파트너한글명
+                      , OG_ID						-- 조직ID
+                      , PSTN_DV_CD					-- 직급구분코드
+                      , MCT1							-- 고정파트너여부
+                      , MCT2							-- 고정파트너여부
+                      , NCNT							-- 매니저급지구분코드..'1'
+                      , G1CN							-- 매니저급지구분코드..'2'
+                      , W1CT							-- 매니저급지구분코드..'3'
+                      , W2CT							-- 매니저급지구분코드..'4'
+                      , W3CT							-- 매니저급지구분코드..'5'
+                      , W4CT							-- 매니저급지구분코드..'6'
+                      , W5CT							-- 매니저급지구분코드..'7'
+                      , ECNT							-- 매니저급지구분코드..''
+                      , GCNT							-- 매니저급지구분코드
+                      , KGUB
+                      , FIX_CHK_WRK_CNT
+                      , HELDT						-- 계약년월일
+                      , BYEDT						-- 해약년월일
+                   FROM (
+                          SELECT AC202.MNGT_PRTNR_NO AS LCDE
+                               , T3.DGR1_LEVL_OG_CD AS CDPT
+                               , T3.DGR1_LEVL_OG_ID AS DGR1_LEVL_OG_ID
+                               , T3.DGR2_LEVL_OG_CD AS DDDP
+                               , T3.BLD_NM AS DBNA
+                               , T3.DGR2_LEVL_OG_ID AS DDDP_OG_ID
+                               , T3.DGR3_LEVL_OG_CD AS DDPT
+                               , T3.DGR3_LEVL_OG_ID AS DGR3_LEVL_OG_ID
+                               , T2.PRTNR_KNM
+                               , T2.OG_ID
+                               , PRT_DTL.PSTN_DV_CD
+                               , DECODE(AC202.FXN_PRTNR_YN,'9','','1') MCT1
+                               , DECODE(AC202.FXN_PRTNR_YN,'9','1','') MCT2
+                               , DECODE(AC202.MNGER_RGLVL_DV_CD,'1','1','') NCNT
+                               , DECODE(AC202.MNGER_RGLVL_DV_CD,'2','1','') G1CN
+                               , DECODE(AC202.MNGER_RGLVL_DV_CD,'3','1','') W1CT
+                               , DECODE(AC202.MNGER_RGLVL_DV_CD,'4','1','') W2CT
+                               , DECODE(AC202.MNGER_RGLVL_DV_CD,'5','1','') W3CT
+                               , DECODE(AC202.MNGER_RGLVL_DV_CD,'6','1','') W4CT
+                               , DECODE(AC202.MNGER_RGLVL_DV_CD,'7','1','') W5CT
+                               , DECODE(AC202.MNGER_RGLVL_DV_CD,'' ,'1','') ECNT
+                               , AC202.MNGER_RGLVL_DV_CD                    GCNT
+                               , CASE WHEN AC202.FXN_PRTNR_YN = '9'
+                                      THEN '1'
+                                      ELSE (
+                                             SELECT SUB7.MNGR_DV_CD
+                                               FROM TB_SVPD_LOCARA_BFSVC_OGMGR_IZ SUB7
+                                              WHERE SUB7.NEW_ADR_ZIP = G_ADR.NEW_ADR_ZIP
+                                           )
+                                  END  AS MGT_GB
+                               , CASE WHEN (
+                                             SELECT COUNT(*)
+                                               FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ SUB1
+                                              WHERE SUB1.ASN_OJ_YM  = AC202.MNGT_YM
+                                                AND SUB1.CNTR_NO = AC202.CNTR_NO
+                                                AND SUB1.CNTR_SN = AC202.CNTR_SN
+                                                AND WK_EXCN_DT IS NULL
+                                           ) > 0 THEN '3'
+                                      WHEN (
+                                             SELECT COUNT(*)
+                                               FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ SUB2
+                                              WHERE SUB2.ASN_OJ_YM  = AC202.MNGT_YM
+                                                AND SUB2.CNTR_NO = AC202.CNTR_NO
+                                                AND SUB2.CNTR_SN = AC202.CNTR_SN
+                                                AND WK_EXCN_DT IS NOT NULL
+                                           ) > 0 THEN '4'
+                                      WHEN AC202.CAN_DT IS NOT NULL THEN '5'
+                                      WHEN PECOM.PD_PRP_VAL20    = '1' AND AC202.VST_NMN_N <![CDATA[ <= ]]> 3 THEN '1'
+                                    WHEN PECOM.PD_PRP_VAL20   != '1' AND AC202.VST_NMN_N <![CDATA[ <= ]]> 2 THEN '1'
                                     ELSE '2'
-                               END  AS KGUB
-                             , FIX_CHK_WRK_CNT
-                             , CNTR_DT AS HELDT   /* 계약년월일 */
-                             , NVL(FNL_CLTN_DT, CLTN_DT)  AS BYEDT /* 해약년월일 */
-                          FROM TB_SVPD_MCBY_CST_SV_OJ_IZ AC202
-                    INNER JOIN TB_SVPD_CST_SV_EXCN_IZ AC201
-                            ON AC201.CNTR_NO = AC202.CNTR_NO
-                           AND AC201.CNTR_SN = AC202.CNTR_SN
-                    INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261
-                            ON AC202.CNTR_NO = AC261.CNTR_NO
-                           AND AC202.CNTR_SN = AC261.CNTR_SN
-                           AND AC261.ASN_OJ_YM = AC202.MNGT_YM
-                           AND AC261.VST_PRGS_STAT_CD NOT IN ('73')
-                           AND AC261.SV_BIZ_DCLSF_CD NOT IN ('2140')
-                    INNER JOIN TB_OGBS_PRTNR_BAS T2 /*파트너기본*/
-                            ON AC261.CNFM_PSIC_PRTNR_NO = T2.PRTNR_NO
-                           AND AC261.CNFM_PSIC_PRTNR_OG_TP_CD = T2.OG_TP_CD
-                    INNER JOIN TB_OGBS_PRTNR_DTL PRT_DTL
-                            ON PRT_DTL.OG_TP_CD = AC261.CNFM_PSIC_PRTNR_OG_TP_CD
-                           AND PRT_DTL.PRTNR_NO = AC261.CNFM_PSIC_PRTNR_NO
-                    INNER JOIN TB_OGBS_MM_OG_IZ T3 /*월조직내역*/
-                            ON T3.BASE_YM = #{vstYm}
-                           AND T3.OG_ID = T2.OG_ID
-                           AND T3.OG_TP_CD IN ('W02')    /*조직유형코드 W01 P추진, W02 M추진, W03 홈마스터, W04 B2B, W05 온라인총판, W06 엔지니어, ALC 제휴채널, HR1 임직원, BND 채권, L01 라이프, X01 KLC, X02 L C전문강사*/
-                           AND T3.CLO_DT IS NULL
-                           AND T3.DTA_DL_YN = 'N'
-                    INNER JOIN TB_PDBS_PD_BAS PBAS
-                            ON PBAS.PD_CD  = AC202.PDCT_PD_CD
-                    INNER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL PECOM /*상품각사속성상세*/
-                            ON PBAS.PD_CD = PECOM.PD_CD
-                           AND PECOM.PD_EXTS_PRP_GRP_CD = 'PART'
-                    INNER JOIN WSMDBS.TB_SSCT_CNTR_ADR_REL ADR_REL /*계약주소관계*/
-                            ON AC261.CNTR_NO = ADR_REL.DTL_CNTR_NO
-                           AND AC261.CNTR_SN = ADR_REL.DTL_CNTR_SN
-                           AND ADR_REL.ADRPC_TP_CD IN ('2','3')    /*1 계약주소, 2 배달주소,3 설치주소*/
-                           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN ADR_REL.VL_STRT_DTM AND ADR_REL.VL_END_DTM
-                    INNER JOIN WSMDBS.TB_SSCT_CNTR_ADRPC_BAS ADR_BAS /*계약주소지기본*/
-                            ON ADR_REL.CNTR_ADRPC_ID = ADR_BAS.CNTR_ADRPC_ID
-               LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS G_ADR
-                            ON ADR_BAS.ADR_ID = G_ADR.ADR_ID
-               LEFT OUTER JOIN TB_OGBS_PRTNR_BAS SUB3 /*파트너기본*/
-                            ON AC202.MNGT_PRTNR_NO = SUB3.PRTNR_NO
-                           AND AC202.MNGT_PRTNR_OG_TP_CD = SUB3.OG_TP_CD
-               LEFT OUTER JOIN TB_OGBS_MM_OG_IZ SUB4 /*월조직내역*/
-                            ON SUB4.BASE_YM = #{vstYm}
-                           AND SUB4.OG_ID = T2.OG_ID
-                           AND SUB4.OG_TP_CD IN ('W02')    /*조직유형코드 W01 P추진, W02 M추진, W03 홈마스터, W04 B2B, W05 온라인총판, W06 엔지니어, ALC 제휴채널, HR1 임직원, BND 채권, L01 라이프, X01 KLC, X02 L C전문강사*/
-                           AND SUB4.CLO_DT IS NULL
-                           AND SUB4.DTA_DL_YN = 'N'
-               LEFT OUTER JOIN ( SELECT   BIZ_CD
+                                  END  AS KGUB
+                               , FIX_CHK_WRK_CNT
+                               , CNTR_DT AS HELDT   /* 계약년월일 */
+                               , NVL(FNL_CLTN_DT, CLTN_DT)  AS BYEDT /* 해약년월일 */
+                            FROM TB_SVPD_MCBY_CST_SV_OJ_IZ AC202
+                           INNER JOIN TB_SVPD_CST_SV_EXCN_IZ AC201
+                              ON AC201.CNTR_NO = AC202.CNTR_NO
+                             AND AC201.CNTR_SN = AC202.CNTR_SN
+                           INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261
+                              ON AC202.CNTR_NO = AC261.CNTR_NO
+                             AND AC202.CNTR_SN = AC261.CNTR_SN
+                             AND AC261.ASN_OJ_YM = AC202.MNGT_YM
+                             AND AC261.VST_PRGS_STAT_CD NOT IN ('73')
+                             AND AC261.SV_BIZ_DCLSF_CD NOT IN ('2140')
+                           INNER JOIN TB_OGBS_PRTNR_BAS T2 /*파트너기본*/
+                              ON AC261.CNFM_PSIC_PRTNR_NO = T2.PRTNR_NO
+                             AND AC261.CNFM_PSIC_PRTNR_OG_TP_CD = T2.OG_TP_CD
+                           INNER JOIN TB_OGBS_PRTNR_DTL PRT_DTL
+                              ON PRT_DTL.OG_TP_CD = AC261.CNFM_PSIC_PRTNR_OG_TP_CD
+                             AND PRT_DTL.PRTNR_NO = AC261.CNFM_PSIC_PRTNR_NO
+                           INNER JOIN TB_OGBS_MM_OG_IZ T3 /*월조직내역*/
+                              ON T3.BASE_YM = #{vstYm}
+                             AND T3.OG_ID = T2.OG_ID
+                             AND T3.OG_TP_CD IN ('W02')    /*조직유형코드 W01 P추진, W02 M추진, W03 홈마스터, W04 B2B, W05 온라인총판, W06 엔지니어, ALC 제휴채널, HR1 임직원, BND 채권, L01 라이프, X01 KLC, X02 L C전문강사*/
+                             AND T3.CLO_DT IS NULL
+                             AND T3.DTA_DL_YN = 'N'
+                           INNER JOIN TB_PDBS_PD_BAS PBAS
+                              ON PBAS.PD_CD  = AC202.PDCT_PD_CD
+                           INNER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL PECOM /*상품각사속성상세*/
+                              ON PBAS.PD_CD = PECOM.PD_CD
+                             AND PECOM.PD_EXTS_PRP_GRP_CD = 'PART'
+                           INNER JOIN WSMDBS.TB_SSCT_CNTR_ADR_REL ADR_REL /*계약주소관계*/
+                              ON AC261.CNTR_NO = ADR_REL.DTL_CNTR_NO
+                             AND AC261.CNTR_SN = ADR_REL.DTL_CNTR_SN
+                             AND ADR_REL.ADRPC_TP_CD IN ('2','3')    /*1 계약주소, 2 배달주소,3 설치주소*/
+                             AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN ADR_REL.VL_STRT_DTM AND ADR_REL.VL_END_DTM
+                           INNER JOIN WSMDBS.TB_SSCT_CNTR_ADRPC_BAS ADR_BAS /*계약주소지기본*/
+                              ON ADR_REL.CNTR_ADRPC_ID = ADR_BAS.CNTR_ADRPC_ID
+                      LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS G_ADR
+                              ON ADR_BAS.ADR_ID = G_ADR.ADR_ID
+                      LEFT OUTER JOIN TB_OGBS_PRTNR_BAS SUB3 /*파트너기본*/
+                              ON AC202.MNGT_PRTNR_NO = SUB3.PRTNR_NO
+                             AND AC202.MNGT_PRTNR_OG_TP_CD = SUB3.OG_TP_CD
+                      LEFT OUTER JOIN TB_OGBS_MM_OG_IZ SUB4 /*월조직내역*/
+                              ON SUB4.BASE_YM = #{vstYm}
+                             AND SUB4.OG_ID = T2.OG_ID
+                             AND SUB4.OG_TP_CD IN ('W02')    /*조직유형코드 W01 P추진, W02 M추진, W03 홈마스터, W04 B2B, W05 온라인총판, W06 엔지니어, ALC 제휴채널, HR1 임직원, BND 채권, L01 라이프, X01 KLC, X02 L C전문강사*/
+                             AND SUB4.CLO_DT IS NULL
+                             AND SUB4.DTA_DL_YN = 'N'
+                      LEFT OUTER JOIN
+                               (
+                                 SELECT   BIZ_CD
                                       , COUNT(1) AS FIX_CHK_WRK_CNT
-                                   FROM (SELECT  T3.DGR2_LEVL_OG_CD AS BIZ_CD
-                                              , AC261.CNTR_NO
-                                              , AC261.CST_SV_ASN_NO
-                                              , CASE WHEN(SELECT COUNT(*)
-                                                            FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ SUB1
-                                                           WHERE SUB1.ASN_OJ_YM  = AC202.MNGT_YM
-                                                             AND SUB1.CNTR_NO = AC202.CNTR_NO
-                                                             AND SUB1.CNTR_SN = AC202.CNTR_SN
-                                                             AND WK_EXCN_DT IS NULL) > 0
-                                                          THEN '3'
-                                                     WHEN(SELECT COUNT(*)
-                                                            FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ SUB2
-                                                           WHERE SUB2.ASN_OJ_YM  = AC202.MNGT_YM
-                                                             AND SUB2.CNTR_NO = AC202.CNTR_NO
-                                                             AND SUB2.CNTR_SN = AC202.CNTR_SN
-                                                             AND WK_EXCN_DT IS NOT NULL) > 0
-                                                            THEN '4'
-                                                     WHEN AC202.CAN_DT IS NOT NULL
-                                                            THEN '5'
-                                                     WHEN PECOM.PD_PRP_VAL20   = '1' AND AC202.VST_NMN_N <![CDATA[ <= ]]> 3
-                                                            THEN '1'
-                                                     WHEN PECOM.PD_PRP_VAL20  != '1' AND AC202.VST_NMN_N <![CDATA[ <= ]]> 2
-                                                            THEN '1'
-                                                     ELSE '2'
-                                                 END  AS KGUB
-                                           FROM  TB_SVPD_CST_SV_BFSVC_ASN_IZ	AC261
-                                     INNER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ AC202
-                                             ON AC202.CNTR_NO = AC261.CNTR_NO
-                                            AND AC202.CNTR_SN = AC261.CNTR_SN
-                                            AND AC202.MNGT_YM = #{vstYm}
-                                     INNER JOIN TB_PDBS_PD_BAS PBAS
-                                             ON PBAS.PD_CD  = AC202.PDCT_PD_CD
-                                     INNER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL PECOM /*상품각사속성상세*/
-                                             ON PBAS.PD_CD = PECOM.PD_CD
-                                            AND PECOM.PD_EXTS_PRP_GRP_CD = 'PART'
-                                     INNER JOIN TB_OGBS_PRTNR_BAS T2 /*파트너기본*/
-                                             ON AC261.CNFM_PSIC_PRTNR_NO = T2.PRTNR_NO
-                                            AND AC261.CNFM_PSIC_PRTNR_OG_TP_CD = T2.OG_TP_CD
-                                     INNER JOIN TB_OGBS_MM_OG_IZ T3 /*월조직내역*/
-                                             ON T3.BASE_YM = #{vstYm}
-                                            AND T3.OG_ID = T2.OG_ID
-                                            AND T3.OG_TP_CD IN ('W02')    /*조직유형코드 W01 P추진, W02 M추진, W03 홈마스터, W04 B2B, W05 온라인총판, W06 엔지니어, ALC 제휴채널, HR1 임직원, BND 채권, L01 라이프, X01 KLC, X02 L C전문강사*/
-                                            AND T3.CLO_DT IS NULL
-                                            AND T3.DTA_DL_YN = 'N'
-                                LEFT OUTER JOIN TB_SSCT_CNTR_DTL CNTR_DTL
-                                             ON CNTR_DTL.CNTR_NO = AC261.CNTR_NO
-                                            AND CNTR_DTL.CNTR_SN = AC261.CNTR_SN
-                                            AND CNTR_DTL.CNTR_PD_ENDDT = AC261.ASN_OJ_YM
-                                          WHERE AC261.ASN_OJ_YM  = #{vstYm}
-                                            AND DECODE(AC261.CNFM_PSIC_DV_CD,'','1', AC261.CNFM_PSIC_DV_CD) = '1'  /* 1 매니져, 2 엔지니어 */
-                                            AND SUBSTR(CST_SV_ASN_NO,1,1) = '2'
-                                            AND (AC261.SV_BIZ_DCLSF_CD = '2110' OR AC261.SV_BIZ_DCLSF_CD NOT IN ('2110','2140') )/* 정기점검만 */
-                                            /*취소가 아닌 대기 건수 + 완료건수 (중지건은 제외)*/
-                                            AND (AC261.VST_PRGS_STAT_CD = '20' OR (AC261.VST_PRGS_STAT_CD NOT IN ('20','73') AND REQD_DT IS NULL AND CAN_DT IS NULL AND CPS_DT IS NULL AND AC261.CNTR_NO IS NULL))
+                                   FROM (
+                                          SELECT  T3.DGR2_LEVL_OG_CD AS BIZ_CD
+                                               , AC261.CNTR_NO
+                                               , AC261.CST_SV_ASN_NO
+                                               , CASE WHEN (
+                                                             SELECT COUNT(*)
+                                                               FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ SUB1
+                                                              WHERE SUB1.ASN_OJ_YM  = AC202.MNGT_YM
+                                                                AND SUB1.CNTR_NO = AC202.CNTR_NO
+                                                                AND SUB1.CNTR_SN = AC202.CNTR_SN
+                                                                AND WK_EXCN_DT IS NULL
+                                                           ) > 0 THEN '3'
+                                                      WHEN (
+                                                             SELECT COUNT(*)
+                                                               FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ SUB2
+                                                              WHERE SUB2.ASN_OJ_YM  = AC202.MNGT_YM
+                                                                AND SUB2.CNTR_NO = AC202.CNTR_NO
+                                                                AND SUB2.CNTR_SN = AC202.CNTR_SN
+                                                                AND WK_EXCN_DT IS NOT NULL
+                                                           ) > 0 THEN '4'
+                                                      WHEN AC202.CAN_DT IS NOT NULL THEN '5'
+                                                      WHEN PECOM.PD_PRP_VAL20   = '1' AND AC202.VST_NMN_N <![CDATA[ <= ]]> 3 THEN '1'
+                                                      WHEN PECOM.PD_PRP_VAL20  != '1' AND AC202.VST_NMN_N <![CDATA[ <= ]]> 2 THEN '1'
+                                                      ELSE '2'
+                                                  END AS KGUB
+                                            FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ	AC261
+                                           INNER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ AC202
+                                              ON AC202.CNTR_NO = AC261.CNTR_NO
+                                             AND AC202.CNTR_SN = AC261.CNTR_SN
+                                             AND AC202.MNGT_YM = #{vstYm}
+                                           INNER JOIN TB_PDBS_PD_BAS PBAS
+                                              ON PBAS.PD_CD  = AC202.PDCT_PD_CD
+                                           INNER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL PECOM /*상품각사속성상세*/
+                                              ON PBAS.PD_CD = PECOM.PD_CD
+                                             AND PECOM.PD_EXTS_PRP_GRP_CD = 'PART'
+                                           INNER JOIN TB_OGBS_PRTNR_BAS T2 /*파트너기본*/
+                                              ON AC261.CNFM_PSIC_PRTNR_NO = T2.PRTNR_NO
+                                             AND AC261.CNFM_PSIC_PRTNR_OG_TP_CD = T2.OG_TP_CD
+                                           INNER JOIN TB_OGBS_MM_OG_IZ T3 /*월조직내역*/
+                                              ON T3.BASE_YM = #{vstYm}
+                                             AND T3.OG_ID = T2.OG_ID
+                                             AND T3.OG_TP_CD IN ('W02')    /*조직유형코드 W01 P추진, W02 M추진, W03 홈마스터, W04 B2B, W05 온라인총판, W06 엔지니어, ALC 제휴채널, HR1 임직원, BND 채권, L01 라이프, X01 KLC, X02 L C전문강사*/
+                                             AND T3.CLO_DT IS NULL
+                                             AND T3.DTA_DL_YN = 'N'
+                                      LEFT OUTER JOIN TB_SSCT_CNTR_DTL CNTR_DTL
+                                              ON CNTR_DTL.CNTR_NO = AC261.CNTR_NO
+                                             AND CNTR_DTL.CNTR_SN = AC261.CNTR_SN
+                                             AND CNTR_DTL.CNTR_PD_ENDDT = AC261.ASN_OJ_YM
+                                           WHERE 1=1
+                                             AND AC261.ASN_OJ_YM  = #{vstYm}
+                                             AND DECODE(AC261.CNFM_PSIC_DV_CD,'','1', AC261.CNFM_PSIC_DV_CD) = '1'  /* 1 매니져, 2 엔지니어 */
+                                             AND SUBSTR(CST_SV_ASN_NO,1,1) = '2'
+                                             AND (AC261.SV_BIZ_DCLSF_CD = '2110' OR AC261.SV_BIZ_DCLSF_CD NOT IN ('2110','2140') )/* 정기점검만 */
+                                             /*취소가 아닌 대기 건수 + 완료건수 (중지건은 제외)*/
+                                             AND (AC261.VST_PRGS_STAT_CD = '20' OR (AC261.VST_PRGS_STAT_CD NOT IN ('20','73') AND REQD_DT IS NULL AND CAN_DT IS NULL AND CPS_DT IS NULL AND AC261.CNTR_NO IS NULL))
                                         )
-    <if test='@MybatisUtils@isNotEmpty(rcgvpDiv)'>
-                                  WHERE KGUB    = #{rcgvpDiv} -- 고객구분
-    </if>
-                                  GROUP BY BIZ_CD
-                             ) MEM_T
+        <if test='@MybatisUtils@isNotEmpty(rcgvpDiv)'>
+                           WHERE KGUB    = #{rcgvpDiv} -- 고객구분
+        </if>
+                           GROUP BY BIZ_CD
+                               ) MEM_T
                             ON BIZ_CD = T3.DGR2_LEVL_OG_CD
                          WHERE AC202.MNGT_YM = #{vstYm}
                            AND (AC202.MNGR_DV_CD IS NULL OR AC202.MNGR_DV_CD = '1')
-                      )
-          WHERE 1=1
-    <if test='@MybatisUtils@isNotEmpty(rcgvpDiv)'>
-            AND KGUB    = #{rcgvpDiv} -- 고객구분
-    </if>
-    <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
-            AND CDPT    = #{dgr1LevlOgId} -- 총괄단
-    </if>
-    <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
-            AND DDDP    = #{dgr2LevlOgId} -- 지역단
-    </if>
-    <if test='@MybatisUtils@equals(inqrDiv, "2")'>  /* 2 담당자 */
-        <if test='@MybatisUtils@isNotEmpty(partnerNo)'>
-            AND LCDE    = #{partnerNo} -- 매니저
+                        )
+                  WHERE 1=1
+        <if test='@MybatisUtils@isNotEmpty(rcgvpDiv)'>
+                    AND KGUB = #{rcgvpDiv} -- 고객구분
         </if>
-    </if>
-                             )
-    <if test='@MybatisUtils@equals(inqrDiv, "1")'>   /* 1 지역단 */
-          GROUP
-             BY DDDP, DDDP_OG_ID
-          ORDER
-             BY DDDP
-    </if>
-    <if test='@MybatisUtils@equals(inqrDiv, "2")'>  /* 2 담당자 */
-          GROUP
-             BY LCDE,PRTNR_KNM , OG_ID,HELDT,BYEDT
-          ORDER
-             BY LCDE
-    </if>
+        <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
+                    AND DGR1_LEVL_OG_ID = #{dgr1LevlOgId} -- 총괄단
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
+                    AND DDDP_OG_ID = #{dgr2LevlOgId} -- 지역단
+        </if>
+               )
+         GROUP BY DDDP, DBNA, DDDP_OG_ID
+         ORDER BY DDDP
+    </select>
+
+    <select id="selectVisitCustomerRglvlAgrgPsics" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncVisitCustomerRglvlAgrgDto$SearchPsicRes">
+        SELECT
+               LPAD(LCDE,7,'0') AS LCDE
+             , MAX(DDDP) AS DDDP
+             , MAX(DDPT) AS DDPT
+             , PRTNR_KNM AS LNAM
+             , DBNA
+             , MAX(PSTN_DV_CD) AS LDEG
+             , HELDT
+             , BYEDT
+             , ROUND(months_between(DECODE(BYEDT, NULL, SYSDATE, BYEDT), HELDT)) AS DULDT
+             , COUNT(MCT1) AS MCT1
+             , COUNT(MCT2) AS MCT2
+             , COUNT(NCNT) AS NCNT
+             , COUNT(G1CN) AS G1CN
+             , COUNT(W1CT) AS W1CT
+             , COUNT(W2CT) AS W2CT
+             , COUNT(W1CT) + COUNT(W2CT) AS WACC
+             , TRUNC(((COUNT(W1CT)+COUNT(W2CT))/MAX(FIX_CHK_WRK_CNT)*100),1) AS WPER
+             , (COUNT(W1CT)*1 + COUNT(W2CT)*2) AS HACC
+             , TRUNC(((COUNT(W1CT)*1 + COUNT(W2CT)*2)/MAX(FIX_CHK_WRK_CNT)*100),1) AS HPER
+             , COUNT(W3CT) AS W3CT
+             , COUNT(W4CT) AS W4CT
+             , COUNT(W5CT) AS W5CT
+             , COUNT(G1CN) + COUNT(W1CT) + COUNT(W2CT) + COUNT(W3CT) + COUNT(W4CT) + COUNT(W5CT) WCNT
+             , COUNT(ECNT) AS ECNT
+             , COUNT(GCNT) AS GCNT
+             , MAX(FIX_CHK_WRK_CNT) AS WRK_CNT
+          FROM (
+                 SELECT LCDE 						-- 관리파트너번호
+                      , DDDP							-- 지역단
+                      , DDPT							-- 지점
+                      , DBNA                        -- 빌딩명
+                      , DDDP_OG_ID					-- 지점ID
+                      , PRTNR_KNM					-- 파트너한글명
+                      , OG_ID						-- 조직ID
+                      , PSTN_DV_CD					-- 직급구분코드
+                      , MCT1							-- 고정파트너여부
+                      , MCT2							-- 고정파트너여부
+                      , NCNT							-- 매니저급지구분코드..'1'
+                      , G1CN							-- 매니저급지구분코드..'2'
+                      , W1CT							-- 매니저급지구분코드..'3'
+                      , W2CT							-- 매니저급지구분코드..'4'
+                      , W3CT							-- 매니저급지구분코드..'5'
+                      , W4CT							-- 매니저급지구분코드..'6'
+                      , W5CT							-- 매니저급지구분코드..'7'
+                      , ECNT							-- 매니저급지구분코드..''
+                      , GCNT							-- 매니저급지구분코드
+                      , KGUB
+                      , FIX_CHK_WRK_CNT
+                      , HELDT						-- 계약년월일
+                      , BYEDT						-- 해약년월일
+                   FROM (
+                          SELECT AC202.MNGT_PRTNR_NO AS LCDE
+                               , T3.DGR1_LEVL_OG_CD AS CDPT
+                               , T3.DGR1_LEVL_OG_ID AS DGR1_LEVL_OG_ID
+                               , T3.DGR2_LEVL_OG_CD AS DDDP
+                               , T3.BLD_NM AS DBNA
+                               , T3.DGR2_LEVL_OG_ID AS DDDP_OG_ID
+                               , T3.DGR3_LEVL_OG_CD DDPT
+                               , T2.PRTNR_KNM
+                               , T2.OG_ID
+                               , PRT_DTL.PSTN_DV_CD
+                               , DECODE(AC202.FXN_PRTNR_YN,'9','','1') MCT1
+                               , DECODE(AC202.FXN_PRTNR_YN,'9','1','') MCT2
+                               , DECODE(AC202.MNGER_RGLVL_DV_CD,'1','1','') NCNT
+                               , DECODE(AC202.MNGER_RGLVL_DV_CD,'2','1','') G1CN
+                               , DECODE(AC202.MNGER_RGLVL_DV_CD,'3','1','') W1CT
+                               , DECODE(AC202.MNGER_RGLVL_DV_CD,'4','1','') W2CT
+                               , DECODE(AC202.MNGER_RGLVL_DV_CD,'5','1','') W3CT
+                               , DECODE(AC202.MNGER_RGLVL_DV_CD,'6','1','') W4CT
+                               , DECODE(AC202.MNGER_RGLVL_DV_CD,'7','1','') W5CT
+                               , DECODE(AC202.MNGER_RGLVL_DV_CD,'' ,'1','') ECNT
+                               , AC202.MNGER_RGLVL_DV_CD                    GCNT
+                               , CASE WHEN AC202.FXN_PRTNR_YN = '9'
+                                      THEN '1'
+                                      ELSE (
+                                             SELECT SUB7.MNGR_DV_CD
+                                               FROM TB_SVPD_LOCARA_BFSVC_OGMGR_IZ SUB7
+                                              WHERE SUB7.NEW_ADR_ZIP = G_ADR.NEW_ADR_ZIP
+                                           )
+                                  END  AS MGT_GB
+                               , CASE WHEN (
+                                             SELECT COUNT(*)
+                                               FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ SUB1
+                                              WHERE SUB1.ASN_OJ_YM  = AC202.MNGT_YM
+                                                AND SUB1.CNTR_NO = AC202.CNTR_NO
+                                                AND SUB1.CNTR_SN = AC202.CNTR_SN
+                                                AND WK_EXCN_DT IS NULL
+                                           ) > 0 THEN '3'
+                                      WHEN (
+                                             SELECT COUNT(*)
+                                               FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ SUB2
+                                              WHERE SUB2.ASN_OJ_YM  = AC202.MNGT_YM
+                                                AND SUB2.CNTR_NO = AC202.CNTR_NO
+                                                AND SUB2.CNTR_SN = AC202.CNTR_SN
+                                                AND WK_EXCN_DT IS NOT NULL
+                                           ) > 0 THEN '4'
+                                      WHEN AC202.CAN_DT IS NOT NULL THEN '5'
+                                      WHEN PECOM.PD_PRP_VAL20    = '1' AND AC202.VST_NMN_N <![CDATA[ <= ]]> 3 THEN '1'
+                                    WHEN PECOM.PD_PRP_VAL20   != '1' AND AC202.VST_NMN_N <![CDATA[ <= ]]> 2 THEN '1'
+                                    ELSE '2'
+                                  END  AS KGUB
+                               , FIX_CHK_WRK_CNT
+                               , CNTR_DT AS HELDT   /* 계약년월일 */
+                               , NVL(FNL_CLTN_DT, CLTN_DT)  AS BYEDT /* 해약년월일 */
+                            FROM TB_SVPD_MCBY_CST_SV_OJ_IZ AC202
+                           INNER JOIN TB_SVPD_CST_SV_EXCN_IZ AC201
+                              ON AC201.CNTR_NO = AC202.CNTR_NO
+                             AND AC201.CNTR_SN = AC202.CNTR_SN
+                           INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261
+                              ON AC202.CNTR_NO = AC261.CNTR_NO
+                             AND AC202.CNTR_SN = AC261.CNTR_SN
+                             AND AC261.ASN_OJ_YM = AC202.MNGT_YM
+                             AND AC261.VST_PRGS_STAT_CD NOT IN ('73')
+                             AND AC261.SV_BIZ_DCLSF_CD NOT IN ('2140')
+                           INNER JOIN TB_OGBS_PRTNR_BAS T2 /*파트너기본*/
+                              ON AC261.CNFM_PSIC_PRTNR_NO = T2.PRTNR_NO
+                             AND AC261.CNFM_PSIC_PRTNR_OG_TP_CD = T2.OG_TP_CD
+                           INNER JOIN TB_OGBS_PRTNR_DTL PRT_DTL
+                              ON PRT_DTL.OG_TP_CD = AC261.CNFM_PSIC_PRTNR_OG_TP_CD
+                             AND PRT_DTL.PRTNR_NO = AC261.CNFM_PSIC_PRTNR_NO
+                           INNER JOIN TB_OGBS_MM_OG_IZ T3 /*월조직내역*/
+                              ON T3.BASE_YM = #{vstYm}
+                             AND T3.OG_ID = T2.OG_ID
+                             AND T3.OG_TP_CD IN ('W02')    /*조직유형코드 W01 P추진, W02 M추진, W03 홈마스터, W04 B2B, W05 온라인총판, W06 엔지니어, ALC 제휴채널, HR1 임직원, BND 채권, L01 라이프, X01 KLC, X02 L C전문강사*/
+                             AND T3.CLO_DT IS NULL
+                             AND T3.DTA_DL_YN = 'N'
+                           INNER JOIN TB_PDBS_PD_BAS PBAS
+                              ON PBAS.PD_CD  = AC202.PDCT_PD_CD
+                           INNER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL PECOM /*상품각사속성상세*/
+                              ON PBAS.PD_CD = PECOM.PD_CD
+                             AND PECOM.PD_EXTS_PRP_GRP_CD = 'PART'
+                           INNER JOIN WSMDBS.TB_SSCT_CNTR_ADR_REL ADR_REL /*계약주소관계*/
+                              ON AC261.CNTR_NO = ADR_REL.DTL_CNTR_NO
+                             AND AC261.CNTR_SN = ADR_REL.DTL_CNTR_SN
+                             AND ADR_REL.ADRPC_TP_CD IN ('2','3')    /*1 계약주소, 2 배달주소,3 설치주소*/
+                             AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN ADR_REL.VL_STRT_DTM AND ADR_REL.VL_END_DTM
+                           INNER JOIN WSMDBS.TB_SSCT_CNTR_ADRPC_BAS ADR_BAS /*계약주소지기본*/
+                              ON ADR_REL.CNTR_ADRPC_ID = ADR_BAS.CNTR_ADRPC_ID
+                      LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS G_ADR
+                              ON ADR_BAS.ADR_ID = G_ADR.ADR_ID
+                      LEFT OUTER JOIN TB_OGBS_PRTNR_BAS SUB3 /*파트너기본*/
+                              ON AC202.MNGT_PRTNR_NO = SUB3.PRTNR_NO
+                             AND AC202.MNGT_PRTNR_OG_TP_CD = SUB3.OG_TP_CD
+                      LEFT OUTER JOIN TB_OGBS_MM_OG_IZ SUB4 /*월조직내역*/
+                              ON SUB4.BASE_YM = #{vstYm}
+                             AND SUB4.OG_ID = T2.OG_ID
+                             AND SUB4.OG_TP_CD IN ('W02')    /*조직유형코드 W01 P추진, W02 M추진, W03 홈마스터, W04 B2B, W05 온라인총판, W06 엔지니어, ALC 제휴채널, HR1 임직원, BND 채권, L01 라이프, X01 KLC, X02 L C전문강사*/
+                             AND SUB4.CLO_DT IS NULL
+                             AND SUB4.DTA_DL_YN = 'N'
+                      LEFT OUTER JOIN
+                               (
+                                 SELECT   BIZ_CD
+                                      , COUNT(1) AS FIX_CHK_WRK_CNT
+                                   FROM (
+                                          SELECT  T3.DGR2_LEVL_OG_CD AS BIZ_CD
+                                               , AC261.CNTR_NO
+                                               , AC261.CST_SV_ASN_NO
+                                               , CASE WHEN (
+                                                             SELECT COUNT(*)
+                                                               FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ SUB1
+                                                              WHERE SUB1.ASN_OJ_YM  = AC202.MNGT_YM
+                                                                AND SUB1.CNTR_NO = AC202.CNTR_NO
+                                                                AND SUB1.CNTR_SN = AC202.CNTR_SN
+                                                                AND WK_EXCN_DT IS NULL
+                                                           ) > 0 THEN '3'
+                                                      WHEN (
+                                                             SELECT COUNT(*)
+                                                               FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ SUB2
+                                                              WHERE SUB2.ASN_OJ_YM  = AC202.MNGT_YM
+                                                                AND SUB2.CNTR_NO = AC202.CNTR_NO
+                                                                AND SUB2.CNTR_SN = AC202.CNTR_SN
+                                                                AND WK_EXCN_DT IS NOT NULL
+                                                           ) > 0 THEN '4'
+                                                      WHEN AC202.CAN_DT IS NOT NULL THEN '5'
+                                                      WHEN PECOM.PD_PRP_VAL20   = '1' AND AC202.VST_NMN_N <![CDATA[ <= ]]> 3 THEN '1'
+                                                      WHEN PECOM.PD_PRP_VAL20  != '1' AND AC202.VST_NMN_N <![CDATA[ <= ]]> 2 THEN '1'
+                                                      ELSE '2'
+                                                  END AS KGUB
+                                            FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ	AC261
+                                           INNER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ AC202
+                                              ON AC202.CNTR_NO = AC261.CNTR_NO
+                                             AND AC202.CNTR_SN = AC261.CNTR_SN
+                                             AND AC202.MNGT_YM = #{vstYm}
+                                           INNER JOIN TB_PDBS_PD_BAS PBAS
+                                              ON PBAS.PD_CD  = AC202.PDCT_PD_CD
+                                           INNER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL PECOM /*상품각사속성상세*/
+                                              ON PBAS.PD_CD = PECOM.PD_CD
+                                             AND PECOM.PD_EXTS_PRP_GRP_CD = 'PART'
+                                           INNER JOIN TB_OGBS_PRTNR_BAS T2 /*파트너기본*/
+                                              ON AC261.CNFM_PSIC_PRTNR_NO = T2.PRTNR_NO
+                                             AND AC261.CNFM_PSIC_PRTNR_OG_TP_CD = T2.OG_TP_CD
+                                           INNER JOIN TB_OGBS_MM_OG_IZ T3 /*월조직내역*/
+                                              ON T3.BASE_YM = #{vstYm}
+                                             AND T3.OG_ID = T2.OG_ID
+                                             AND T3.OG_TP_CD IN ('W02')    /*조직유형코드 W01 P추진, W02 M추진, W03 홈마스터, W04 B2B, W05 온라인총판, W06 엔지니어, ALC 제휴채널, HR1 임직원, BND 채권, L01 라이프, X01 KLC, X02 L C전문강사*/
+                                             AND T3.CLO_DT IS NULL
+                                             AND T3.DTA_DL_YN = 'N'
+                                      LEFT OUTER JOIN TB_SSCT_CNTR_DTL CNTR_DTL
+                                              ON CNTR_DTL.CNTR_NO = AC261.CNTR_NO
+                                             AND CNTR_DTL.CNTR_SN = AC261.CNTR_SN
+                                             AND CNTR_DTL.CNTR_PD_ENDDT = AC261.ASN_OJ_YM
+                                           WHERE 1=1
+                                             AND AC261.ASN_OJ_YM  = #{vstYm}
+                                             AND DECODE(AC261.CNFM_PSIC_DV_CD,'','1', AC261.CNFM_PSIC_DV_CD) = '1'  /* 1 매니져, 2 엔지니어 */
+                                             AND SUBSTR(CST_SV_ASN_NO,1,1) = '2'
+                                             AND (AC261.SV_BIZ_DCLSF_CD = '2110' OR AC261.SV_BIZ_DCLSF_CD NOT IN ('2110','2140') )/* 정기점검만 */
+                                             /*취소가 아닌 대기 건수 + 완료건수 (중지건은 제외)*/
+                                             AND (AC261.VST_PRGS_STAT_CD = '20' OR (AC261.VST_PRGS_STAT_CD NOT IN ('20','73') AND REQD_DT IS NULL AND CAN_DT IS NULL AND CPS_DT IS NULL AND AC261.CNTR_NO IS NULL))
+                                        )
+        <if test='@MybatisUtils@isNotEmpty(rcgvpDiv)'>
+                           WHERE KGUB    = #{rcgvpDiv} -- 고객구분
+        </if>
+                           GROUP BY BIZ_CD
+                               ) MEM_T
+                            ON BIZ_CD = T3.DGR2_LEVL_OG_CD
+                         WHERE AC202.MNGT_YM = #{vstYm}
+                           AND (AC202.MNGR_DV_CD IS NULL OR AC202.MNGR_DV_CD = '1')
+                        )
+                  WHERE 1=1
+        <if test='@MybatisUtils@isNotEmpty(rcgvpDiv)'>
+                    AND KGUB = #{rcgvpDiv} -- 고객구분
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
+                    AND DGR1_LEVL_OG_ID = #{dgr1LevlOgId} -- 총괄단
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
+                    AND DDDP_OG_ID = #{dgr2LevlOgId} -- 지역단
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(partnerNo)'>
+                    AND LCDE = #{partnerNo} -- 매니저
+        </if>
+               )
+         GROUP BY LCDE, PRTNR_KNM, OG_ID, DBNA, HELDT, BYEDT
+         ORDER BY LCDE
     </select>
 </mapper>
