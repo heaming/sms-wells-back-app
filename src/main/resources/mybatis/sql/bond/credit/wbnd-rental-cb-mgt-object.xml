@@ -638,71 +638,6 @@
 
     <select id="selectRentalCbMgtPaymentInfos" resultType="com.kyowon.sms.wells.web.bond.credit.dvo.WbndRentalCbDelinquentIzDvo">
         /* 렌탈CB납입정보(팝업) */
-        WITH RENTAL_CB AS (
-            SELECT N1.CST_NO
-            FROM TB_CBCL_DLQ_BAS D1    /*연체기본*/
-            INNER JOIN TB_CBBO_BND_CNTR_BAS N1   /*채권계약기본*/
-                ON N1.BASE_YM = #{baseYm}
-                AND D1.CNTR_NO = N1.CNTR_NO
-                AND D1.CNTR_SN = N1.CNTR_SN
-                AND N1.BND_CLCTN_PRP_RSON_CD IN ('20', '3C', '80')
-            INNER JOIN TB_CBBO_CLCTAM_PRTNR_DTL N2 /*집금파트너상세*/
-                ON N1.CLCTAM_PRTNR_NO = N2.PRTNR_NO
-            INNER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ S1 /* WELLS매출월마감내역 */
-                ON N1.BASE_YM = S1.SL_CL_YM
-                AND N1.CNTR_NO = S1.CNTR_NO
-                AND N1.CNTR_SN = S1.CNTR_SN
-                AND S1.SELL_TP_CD = '2' /*렌탈리스*/
-                AND S1.SELL_TP_DTL_CD IN ('22', '24', '25') /*판매유형상세코드-리스*/
-            INNER JOIN TB_SSCT_CNTR_BAS T1 /*계약기본*/
-                ON N1.CNTR_NO = T1.CNTR_NO
-                AND T1.CNTR_CNFM_DTM >= '20200901'
-                AND N1.CST_NO = T1.CNTR_CST_NO
-                AND T1.DTA_DL_YN = 'N'
-            INNER JOIN TB_SSCT_CNTR_DTL T2  /* 계약상세 */
-                ON D1.CNTR_NO = T2.CNTR_NO
-                AND D1.CNTR_SN = T2.CNTR_SN
-                AND T2.DTA_DL_YN = 'N'
-                AND T2.SELL_TP_CD = '2' /*렌탈리스*/
-                AND T2.SELL_TP_DTL_CD IN ('22', '24', '25') /*판매유형상세코드-리스*/
-            INNER JOIN TB_SSCT_CNTR_STLM_REL T3 /*계약결제관계*/
-                ON D1.CNTR_NO = T3.DTL_CNTR_NO
-                AND D1.CNTR_SN = T3.DTL_CNTR_SN
-                AND T3.DTA_DL_YN = 'N'
-                AND S1.SL_CL_YM BETWEEN SUBSTR(T3.VL_STRT_DTM, 1, 6) AND SUBSTR(T3.VL_END_DTM, 1, 6)
-            INNER JOIN TB_SSCT_CNTR_STLM_BAS T4 /*계약결제기본*/
-                ON T3.CNTR_STLM_ID = T4.CNTR_STLM_ID
-                AND T4.DTA_DL_YN = 'N'
-                AND T4.DP_TP_CD IN ('0102', '0203')
-            LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS Q2   /* WELLS위약금액기본 */
-                ON N1.BASE_YM = Q2.PERF_YM
-                AND N1.CNTR_NO = Q2.CNTR_NO
-                AND N1.CNTR_SN = Q2.CNTR_SN
-                AND Q2.DTA_DL_YN = 'N'
-            WHERE
-                D1.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'), -1),'YYYYMM')
-                AND D1.DLQ_MCN >= 0
-                AND (D1.EOT_DLQ_AMT + D1.BTD_DLQ_ADD_AMT) > 0
-                AND D1.DTA_DL_YN = 'N'
-                AND NOT EXISTS (SELECT 1 FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ X1
-                                WHERE N1.CST_NO = X1.CST_NO
-                                    AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN X1.APY_STRTDT AND X1.APY_ENDDT
-                                    AND X1.CTNT_EXCD_BND_BIZ_CD = '02'
-                                    AND X1.DTA_DL_YN = 'N')
-                AND NOT EXISTS (SELECT 1 FROM TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ X1
-                                WHERE N1.CST_NO = X1.CST_NO
-                                    AND X1.RENTAL_CB_RGST_DV_CD IN ('1','3')
-                                    AND X1.NOTY_RCV_YN = 'Y'
-                                    AND X1.DTA_DL_YN = 'N')
-            GROUP BY N1.CST_NO
-            HAVING SUM(D1.EOT_DLQ_AMT /*기말연체금액*/
-                        + D1.BTD_DLQ_ADD_AMT /*기초연체가산금액*/
-                        - LEAST(D1.THM_CTR_DLQ_ADD_AMT + D1.THM_DLQ_ADD_DP_SUM_AMT - D1.THM_DLQ_ADD_RFND_SUM_AMT, D1.BTD_DLQ_ADD_AMT) /*(당월연체가산금액 변동분)*/
-                        + NVL(Q2.EOT_BOR_AMT, 0) /*기말위약금액*/
-                        - D1.BTD_DLQ_ADD_AMT
-                        - (S1.MLG_DP_AMT - S1.MLG_RFND_AMT + S1.THM_ATAM_DP_AMT - S1.THM_ATAM_RFND_AMT) /*마일리지, 당월선수금*/
-                    ) >= 100000
-        )
         SELECT
             N1.CST_NO, /*고객번호*/
             D1.CNTR_NO || '-' || D1.CNTR_SN AS CNTR_DTL_NO, /*계약상세번호*/
@@ -855,7 +790,6 @@
                 - D1.BTD_DLQ_ADD_AMT
                 - (S1.MLG_DP_AMT - S1.MLG_RFND_AMT + S1.THM_ATAM_DP_AMT - S1.THM_ATAM_RFND_AMT) /*마일리지, 당월선수금*/
             ) > 0
-            AND N1.CST_NO IN (SELECT CST_NO FROM RENTAL_CB)
         ORDER BY D1.CNTR_NO DESC, D1.PERF_YM DESC
     </select>
 </mapper>
