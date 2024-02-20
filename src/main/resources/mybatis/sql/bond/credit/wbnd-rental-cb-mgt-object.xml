@@ -53,7 +53,7 @@
             FROM
                 TB_CBCL_DLQ_BAS D1    /*연체기본*/
                 INNER JOIN TB_CBBO_BND_CNTR_BAS N1   /*채권계약기본*/
-                    ON N1.BASE_YM = #{baseYm}
+                    ON D1.PERF_YM = N1.BASE_YM
                     AND D1.CNTR_NO = N1.CNTR_NO
                     AND D1.CNTR_SN = N1.CNTR_SN
                     AND N1.BND_CLCTN_PRP_RSON_CD IN ('20', '3C', '80')
@@ -84,7 +84,7 @@
                 INNER JOIN TB_SSCT_CNTR_STLM_BAS T4 /*계약결제기본*/
                     ON T3.CNTR_STLM_ID = T4.CNTR_STLM_ID
                     AND T4.DTA_DL_YN = 'N'
-                    AND T4.DP_TP_CD IN ('0102', '0203')
+                    AND T4.DP_TP_CD IN ('0101', '0102', '0201','0203') /*계좌자동이체, 카드자동이체*/
                 INNER JOIN TB_CUBS_CST_BAS C1 /*고객기본*/
                     ON N1.CST_NO = C1.CST_NO
                 INNER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
@@ -113,9 +113,9 @@
                     AND N1.CST_NO = Z3.CST_NO
                     AND Z3.DTA_DL_YN = 'N'
             WHERE
-                D1.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'), -1),'YYYYMM')
+                D1.PERF_YM = #{baseYm}
                 AND D1.DLQ_MCN >= 0
-                AND (D1.EOT_DLQ_AMT + D1.BTD_DLQ_ADD_AMT) > 0
+                AND (D1.EOT_DLQ_AMT + D1.EOT_DLQ_ADD_AMT) > 0
                 AND D1.DTA_DL_YN = 'N'
                 AND NOT EXISTS (SELECT 1 FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ X1
                                 WHERE N1.CST_NO = X1.CST_NO
@@ -126,7 +126,9 @@
                                 WHERE N1.CST_NO = X1.CST_NO
                                     AND X1.RENTAL_CB_RGST_DV_CD IN ('1','3')
                                     AND X1.NOTY_RCV_YN = 'Y'
+                                    AND TO_CHAR(TO_DATE(X1.OC_CRT_DT, 'YYYYMMDD'), 'YYYYMM') = #{baseYm}
                                     AND X1.DTA_DL_YN = 'N')
+            ORDER BY D1.CNTR_NO DESC, D1.PERF_YM DESC
         ) A
         WHERE
             A.DLQ_BLAM >= 100000
@@ -150,7 +152,7 @@
             SELECT N1.CST_NO
             FROM TB_CBCL_DLQ_BAS D1    /*연체기본*/
             INNER JOIN TB_CBBO_BND_CNTR_BAS N1   /*채권계약기본*/
-                ON N1.BASE_YM = #{baseYm}
+                ON D1.PERF_YM = N1.BASE_YM
                 AND D1.CNTR_NO = N1.CNTR_NO
                 AND D1.CNTR_SN = N1.CNTR_SN
                 AND N1.BND_CLCTN_PRP_RSON_CD IN ('20', '3C', '80')
@@ -181,16 +183,16 @@
             INNER JOIN TB_SSCT_CNTR_STLM_BAS T4 /*계약결제기본*/
                 ON T3.CNTR_STLM_ID = T4.CNTR_STLM_ID
                 AND T4.DTA_DL_YN = 'N'
-                AND T4.DP_TP_CD IN ('0102', '0203')
+                AND T4.DP_TP_CD IN ('0101', '0102', '0201','0203') /*계좌자동이체, 카드자동이체*/
             LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS Q2   /* WELLS위약금액기본 */
                 ON N1.BASE_YM = Q2.PERF_YM
                 AND N1.CNTR_NO = Q2.CNTR_NO
                 AND N1.CNTR_SN = Q2.CNTR_SN
                 AND Q2.DTA_DL_YN = 'N'
             WHERE
-                D1.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'), -1),'YYYYMM')
+                D1.PERF_YM = #{baseYm}
                 AND D1.DLQ_MCN >= 0
-                AND (D1.EOT_DLQ_AMT + D1.BTD_DLQ_ADD_AMT) > 0
+                AND (D1.EOT_DLQ_AMT + D1.EOT_DLQ_ADD_AMT) > 0
                 AND D1.DTA_DL_YN = 'N'
                 AND NOT EXISTS (SELECT 1 FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ X1
                                 WHERE N1.CST_NO = X1.CST_NO
@@ -201,7 +203,9 @@
                                 WHERE N1.CST_NO = X1.CST_NO
                                     AND X1.RENTAL_CB_RGST_DV_CD IN ('1','3')
                                     AND X1.NOTY_RCV_YN = 'Y'
+                                    AND TO_CHAR(TO_DATE(X1.OC_CRT_DT, 'YYYYMMDD'), 'YYYYMM') = #{baseYm}
                                     AND X1.DTA_DL_YN = 'N')
+            ORDER BY D1.CNTR_NO DESC, D1.PERF_YM DESC
             GROUP BY N1.CST_NO
             HAVING SUM(D1.EOT_DLQ_AMT /*기말연체금액*/
                         + D1.BTD_DLQ_ADD_AMT /*기초연체가산금액*/
@@ -254,7 +258,7 @@
         FROM
             TB_CBCL_DLQ_BAS D1    /*연체기본*/
             INNER JOIN TB_CBBO_BND_CNTR_BAS N1   /*채권계약기본*/
-                ON N1.BASE_YM = #{baseYm}
+                ON D1.PERF_YM = N1.BASE_YM
                 AND D1.CNTR_NO = N1.CNTR_NO
                 AND D1.CNTR_SN = N1.CNTR_SN
                 AND N1.BND_CLCTN_PRP_RSON_CD IN ('20', '3C', '80')
@@ -285,7 +289,7 @@
             INNER JOIN TB_SSCT_CNTR_STLM_BAS T4 /*계약결제기본*/
                 ON T3.CNTR_STLM_ID = T4.CNTR_STLM_ID
                 AND T4.DTA_DL_YN = 'N'
-                AND T4.DP_TP_CD IN ('0102', '0203')
+                AND T4.DP_TP_CD IN ('0101', '0102', '0201','0203') /*계좌자동이체, 카드자동이체*/
             INNER JOIN TB_CUBS_CST_BAS C1 /*고객기본*/
                 ON N1.CST_NO = C1.CST_NO
             INNER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
@@ -314,9 +318,9 @@
                 AND N1.CST_NO = Z3.CST_NO
                 AND Z3.DTA_DL_YN = 'N'
         WHERE
-            D1.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'), -1),'YYYYMM')
+            D1.PERF_YM = #{baseYm}
             AND D1.DLQ_MCN >= 0
-            AND (D1.EOT_DLQ_AMT + D1.BTD_DLQ_ADD_AMT) > 0
+            AND (D1.EOT_DLQ_AMT + D1.EOT_DLQ_ADD_AMT) > 0
             AND D1.DTA_DL_YN = 'N'
             AND NOT EXISTS (SELECT 1 FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ X1
                             WHERE N1.CST_NO = X1.CST_NO
@@ -327,6 +331,7 @@
                             WHERE N1.CST_NO = X1.CST_NO
                                 AND X1.RENTAL_CB_RGST_DV_CD IN ('1','3')
                                 AND X1.NOTY_RCV_YN = 'Y'
+                                AND TO_CHAR(TO_DATE(X1.OC_CRT_DT, 'YYYYMMDD'), 'YYYYMM') = #{baseYm}
                                 AND X1.DTA_DL_YN = 'N')
             AND (D1.EOT_DLQ_AMT /*기말연체금액*/
                 + D1.BTD_DLQ_ADD_AMT /*기초연체가산금액*/
@@ -348,6 +353,7 @@
         <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
             AND C1.CRAL_IDV_TNO = #{cralIdvTno}       /*휴대폰번호3*/
         </if>
+        ORDER BY D1.CNTR_NO DESC, D1.PERF_YM DESC
     </select>
 
     <update id="updateMessageObjectYn" >
@@ -357,7 +363,7 @@
             SELECT N1.CST_NO
             FROM TB_CBCL_DLQ_BAS D1    /*연체기본*/
             INNER JOIN TB_CBBO_BND_CNTR_BAS N1   /*채권계약기본*/
-                ON N1.BASE_YM = #{baseYm}
+                ON D1.PERF_YM = N1.BASE_YM
                 AND D1.CNTR_NO = N1.CNTR_NO
                 AND D1.CNTR_SN = N1.CNTR_SN
                 AND N1.BND_CLCTN_PRP_RSON_CD IN ('20', '3C', '80')
@@ -388,16 +394,16 @@
             INNER JOIN TB_SSCT_CNTR_STLM_BAS T4 /*계약결제기본*/
                 ON T3.CNTR_STLM_ID = T4.CNTR_STLM_ID
                 AND T4.DTA_DL_YN = 'N'
-                AND T4.DP_TP_CD IN ('0102', '0203')
+                AND T4.DP_TP_CD IN ('0101', '0102', '0201','0203') /*계좌자동이체, 카드자동이체*/
             LEFT JOIN TB_CBCL_WELLS_BOR_AMT_BAS Q2   /* WELLS위약금액기본 */
                 ON N1.BASE_YM = Q2.PERF_YM
                 AND N1.CNTR_NO = Q2.CNTR_NO
                 AND N1.CNTR_SN = Q2.CNTR_SN
                 AND Q2.DTA_DL_YN = 'N'
             WHERE
-                D1.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'), -1),'YYYYMM')
+                D1.PERF_YM = #{baseYm}
                 AND D1.DLQ_MCN >= 0
-                AND (D1.EOT_DLQ_AMT + D1.BTD_DLQ_ADD_AMT) > 0
+                AND (D1.EOT_DLQ_AMT + D1.EOT_DLQ_ADD_AMT) > 0
                 AND D1.DTA_DL_YN = 'N'
                 AND NOT EXISTS (SELECT 1 FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ X1
                                 WHERE N1.CST_NO = X1.CST_NO
@@ -408,7 +414,9 @@
                                 WHERE N1.CST_NO = X1.CST_NO
                                     AND X1.RENTAL_CB_RGST_DV_CD IN ('1','3')
                                     AND X1.NOTY_RCV_YN = 'Y'
+                                    AND TO_CHAR(TO_DATE(X1.OC_CRT_DT, 'YYYYMMDD'), 'YYYYMM') = #{baseYm}
                                     AND X1.DTA_DL_YN = 'N')
+            ORDER BY D1.CNTR_NO DESC, D1.PERF_YM DESC
             GROUP BY N1.CST_NO
             HAVING SUM(D1.EOT_DLQ_AMT /*기말연체금액*/
                         + D1.BTD_DLQ_ADD_AMT /*기초연체가산금액*/
@@ -448,7 +456,7 @@
         FROM
             TB_CBCL_DLQ_BAS D1    /*연체기본*/
             INNER JOIN TB_CBBO_BND_CNTR_BAS N1   /*채권계약기본*/
-                ON N1.BASE_YM = #{baseYm}
+                ON D1.PERF_YM = N1.BASE_YM
                 AND D1.CNTR_NO = N1.CNTR_NO
                 AND D1.CNTR_SN = N1.CNTR_SN
                 AND N1.BND_CLCTN_PRP_RSON_CD IN ('20', '3C', '80')
@@ -479,7 +487,7 @@
             INNER JOIN TB_SSCT_CNTR_STLM_BAS T4 /*계약결제기본*/
                 ON T3.CNTR_STLM_ID = T4.CNTR_STLM_ID
                 AND T4.DTA_DL_YN = 'N'
-                AND T4.DP_TP_CD IN ('0102', '0203')
+                AND T4.DP_TP_CD IN ('0101', '0102', '0201','0203') /*계좌자동이체, 카드자동이체*/
             INNER JOIN TB_CUBS_CST_BAS C1 /*고객기본*/
                 ON N1.CST_NO = C1.CST_NO
             INNER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
@@ -508,9 +516,9 @@
                 AND N1.CST_NO = Z3.CST_NO
                 AND Z3.DTA_DL_YN = 'N'
         WHERE
-            D1.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'), -1),'YYYYMM')
+            D1.PERF_YM = #{baseYm}
             AND D1.DLQ_MCN >= 0
-            AND (D1.EOT_DLQ_AMT + D1.BTD_DLQ_ADD_AMT) > 0
+            AND (D1.EOT_DLQ_AMT + D1.EOT_DLQ_ADD_AMT) > 0
             AND D1.DTA_DL_YN = 'N'
             AND NOT EXISTS (SELECT 1 FROM TB_CBBO_BND_CNTC_EXCD_OJ_IZ X1
                             WHERE N1.CST_NO = X1.CST_NO
@@ -521,6 +529,7 @@
                             WHERE N1.CST_NO = X1.CST_NO
                                 AND X1.RENTAL_CB_RGST_DV_CD IN ('1','3')
                                 AND X1.NOTY_RCV_YN = 'Y'
+                                AND TO_CHAR(TO_DATE(X1.OC_CRT_DT, 'YYYYMMDD'), 'YYYYMM') = #{baseYm}
                                 AND X1.DTA_DL_YN = 'N')
             AND (D1.EOT_DLQ_AMT /*기말연체금액*/
                 + D1.BTD_DLQ_ADD_AMT /*기초연체가산금액*/
@@ -632,7 +641,7 @@
         <include refid="COMMON.insertSystemFieldValue"/>
           FROM TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ /*T:WELLS렌탈CB연체내역*/
          WHERE 1 = 1
-           AND OC_BSDT LIKE #{baseYm}||'%'
+           AND OC_CRT_DT LIKE #{baseYm}||'%'
            AND NOTY_FW_OJ_YN = 'Y'
     </insert>
 
@@ -658,8 +667,8 @@
                 - D1.BTD_DLQ_ADD_AMT
                 + D1.THM_DLQ_ADD_DP_SUM_AMT
             ) AS DLQ_AMT, /*연체금액*/
-            (D1.THM_CTR_DLQ_ADD_AMT /*당월조정연체가산금액*/
-             + D1.THM_DLQ_ADD_DP_SUM_AMT /*당월연체가산입금합계금액*/
+            (NVL((CASE WHEN R1.DP_DV_CD IN ('1','3') THEN NVL(R1.DP_AMT, 0) ELSE 0 END), 0)  /*입금금액*/
+             - NVL((CASE WHEN R1.DP_DV_CD IN ('2','4') THEN NVL(R1.DP_AMT, 0) ELSE 0 END), 0) /*환불금액*/
             ) AS TOTAL_DP_AMT, /*연체입금금액*/
             (D1.EOT_DLQ_AMT /*기말연체금액*/
                 + D1.BTD_DLQ_ADD_AMT /*기초연체가산금액*/
@@ -696,7 +705,7 @@
         FROM
             TB_CBCL_DLQ_BAS D1    /*연체기본*/
             INNER JOIN TB_CBBO_BND_CNTR_BAS N1   /*채권계약기본*/
-                ON N1.BASE_YM = #{baseYm}
+                ON D1.PERF_YM = N1.BASE_YM
                 AND D1.CNTR_NO = N1.CNTR_NO
                 AND D1.CNTR_SN = N1.CNTR_SN
                 AND N1.BND_CLCTN_PRP_RSON_CD IN ('20', '3C', '80')
@@ -727,7 +736,7 @@
             INNER JOIN TB_SSCT_CNTR_STLM_BAS T4 /*계약결제기본*/
                 ON T3.CNTR_STLM_ID = T4.CNTR_STLM_ID
                 AND T4.DTA_DL_YN = 'N'
-                AND T4.DP_TP_CD IN ('0102', '0203')
+                AND T4.DP_TP_CD IN ('0101', '0102', '0201','0203') /*계좌자동이체, 카드자동이체*/
             INNER JOIN TB_CUBS_CST_BAS C1 /*고객기본*/
                 ON N1.CST_NO = C1.CST_NO
             INNER JOIN TB_PDBS_PD_BAS P1 /*상품기본*/
@@ -743,6 +752,8 @@
             LEFT JOIN TB_CBBO_WELLS_RENTAL_CB_DLQ_IZ X1 /*WELLS렌탈CB연체내역*/
                 ON N1.CNTR_NO = X1.CNTR_NO
                 AND N1.CST_NO = X1.CST_NO
+                AND X1.RENTAL_CB_RGST_DV_CD IN ('1','3')
+                AND NVL(X1.DLQ_BLAM, 0) > 0  /* 연체잔액 */
                 AND X1.DTA_DL_YN = 'N'
             LEFT JOIN TB_CBBO_BND_MSG_RELY_IZ Z3  /* 채권메시지중계내역 */
                 ON N1.CNTR_NO = Z3.CNTR_NO
@@ -761,14 +772,16 @@
                 AND R1.RVE_DV_CD IN ('02','03','04','05','07','08','19','13','18','97')
                 AND R1.DP_DV_CD IN ('1','2','3','4')
                 AND R1.DP_MES_CD IN ('01', '02') /*입금수단코드-01:현금,02:신용카드*/
-                AND R1.DP_TP_CD IN ('0102', '0203') /*계좌자동이체, 카드자동이체*/
+                AND R1.DP_TP_CD IN ('0101', '0102', '0201','0203') /*계좌자동이체, 카드자동이체*/
                 AND R1.RVE_PROCS_YN = 'Y' /*수납처리여부*/
                 AND R1.DTA_DL_YN = 'N'
                 AND R1.KW_GRP_CO_CD = '2000'
+                AND R1.RVE_SN = (SELECT MAX(SR1.RVE_SN) AS RVE_SN FROM TB_RVDW_RVE_DTL SR1 WHERE SR1.KW_GRP_CO_CD = R1.KW_GRP_CO_CD AND SR1.RVE_NO = R1.RVE_NO)
         WHERE
             N1.CST_NO = #{cstNo}
-            AND D1.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm},'YYYYMM'), -1),'YYYYMM')
+            AND D1.PERF_YM = #{baseYm}
             AND D1.DLQ_MCN >= 0
+            AND (D1.EOT_DLQ_AMT + D1.EOT_DLQ_ADD_AMT) > 0
             AND D1.DTA_DL_YN = 'N'
         ORDER BY D1.CNTR_NO DESC, D1.PERF_YM DESC
     </select>
