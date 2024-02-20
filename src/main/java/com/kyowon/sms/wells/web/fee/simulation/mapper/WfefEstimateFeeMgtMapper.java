@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.fee.simulation.mapper;
 
 import com.kyowon.sms.common.web.fee.standard.dvo.ZfeyTargetPartnerConditionDvo;
+import com.kyowon.sms.wells.web.fee.calculation.dvo.WfebMogMetDvo;
 import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.*;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -18,7 +19,7 @@ public interface WfefEstimateFeeMgtMapper {
     List<SaleP> selectSaleP(SearchEstimateReq req, String userDvCd);
 
     BaseM selectBaseM(SearchEstimateReq req, String userDvCd);
-    MeetingM selectMeetingM(SearchEstimateReq req, String userDvCd);
+    List<Map> selectMeetingM(SearchEstimateReq req, String userDvCd, String qlfDvCd, List<WfebMogMetDvo> meetingPerfAtcCds, String pivotColumn);
     List<PerformanceM> selectPerformanceM(SearchEstimateReq req, String userDvCd);
     List<BsM> selectBsM(SearchEstimateReq req, String userDvCd);
     List<OgBsM> selectOgBsM(SearchEstimateReq req, String userDvCd);
