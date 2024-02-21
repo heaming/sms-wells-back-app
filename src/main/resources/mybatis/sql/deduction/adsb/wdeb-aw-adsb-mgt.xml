@@ -342,12 +342,23 @@
 			                     , ROW_NUMBER() OVER(PARTITION BY B3.CNTR_NO,B3.CNTR_SN ORDER BY B3.FST_RGST_DTM DESC) AS RN
 			                  FROM TB_FEAM_WELS_NRCTR_MM_CL B3
 			                 WHERE B3.FEE_TCNT_DV_CD = '02'
-			                   AND B3.CNTR_PERF_CRT_DV_CD IN ('05','11') /*총판 되물림, 재지급*/
+                               <if test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W04")'>
+                               AND B3.CNTR_PERF_CRT_DV_CD IN ('06','12') /*B2B 되물림, 재지급*/
+                               </if>
+                               <if test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W05")'>
+                               AND B3.CNTR_PERF_CRT_DV_CD IN ('05','11') /*총판 되물림, 재지급*/
+                               </if>
+
 			                   AND B3.BASE_YM <![CDATA[ <= ]]> TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM') /*PARAM: 파라미터로 넘어온 발생년월 전월*/
 			               ) B3
 			         WHERE B3.RN = 1
 			           AND B3.PERF_TP_CD = '10' /* 연체되물림 */
-			           AND B3.CNTR_PERF_CRT_DV_CD = '05' /* 총판되물림 */
+                        <if test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W04")'>
+                        AND B3.CNTR_PERF_CRT_DV_CD = '06' /* B2B 되물림 */
+                        </if>
+                        <if test='@MybatisUtils@isNotEmpty(ogTpCd) and @MybatisUtils@equals(ogTpCd, "W05")'>
+                        AND B3.CNTR_PERF_CRT_DV_CD = '05' /* 총판되물림 */
+                        </if>
         	) N1 /*마지막 데이터가 연체되물림인 데이터만 추출*/
            ON S1.CNTR_NO = N1.CNTR_NO
           AND S1.CNTR_SN = N1.CNTR_SN
@@ -362,7 +373,7 @@
                 ON 1 = 1
              WHERE 1 = 1
                AND S1.SL_CL_YM = #{baseYm} /*PARAM: 발생년월(당월)*/
-               AND S1.OG_TP_CD = 'W05'
+               AND S1.OG_TP_CD = #{ogTpCd} /*PARAM: 조직유형*/
                AND C1.CNTR_DTL_STAT_CD IS NOT NULL
                AND NVL(C1.CNTR_DTL_STAT_CD, ' ') NOT LIKE '3%'
                AND NVL(Q1.BEFORE_MONTH_TOT_DLQ_AMT, 0) = 0
