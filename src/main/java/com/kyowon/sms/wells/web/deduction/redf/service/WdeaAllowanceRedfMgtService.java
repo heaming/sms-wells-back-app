@@ -61,16 +61,7 @@ public class WdeaAllowanceRedfMgtService {
      * @param dto
      * @return PagingResult<SearchRedfBizdRes>
      */
-    //    public PagingResult<SearchRedfBizdRes> getRedfBizdMgt(SearchRedfBizdReq dto, PageInfo pageInfo) {
-    //        return mapper.selectRedfBizdMgts(dto, pageInfo);
-    //    }
-
-    /**
-     * 수당(실적) 되물림 관리 - 영업부 되물림 생성 목록 조회
-     * @param dto
-     * @return PagingResult<SearchRedfBizdRes>
-     */
-    public PagingResult<SearchRedfBizdTestRes> getRedfBizdMgtTest(SearchRedfBizdReq dto, PageInfo pageInfo) {
+    public PagingResult<SearchRedfBizdTestRes> getRedfBizdMgt(SearchRedfBizdReq dto, PageInfo pageInfo) {
 
         PagingResult<SearchRedfBizdTestRes> returnList = null;
         PagingResult<WdeaAllowanceRedfMgtDvo> dvo = new PagingResult<>();
@@ -135,7 +126,7 @@ public class WdeaAllowanceRedfMgtService {
             returnList.setPageInfo(pageInfo);
         }
         if ("ALL".equals(dto.redfAdsbTpCd())) {
-            dvo = mapper.selectRedfBizdMgtsTest(dto, pageInfo); // P조직 쿼리 return
+            dvo = mapper.selectRedfBizdMgts(dto, pageInfo); // P조직 쿼리 return
             returnList = converter.mapRedfBizdW01Res(dvo);
             returnList.setPageInfo(pageInfo);
         }
@@ -148,16 +139,7 @@ public class WdeaAllowanceRedfMgtService {
      * @param dto
      * @return SXSSFWorkbook
      */
-    //    public List<SearchRedfBizdRes> getRedfBizdMgtForExcelDownload(SearchRedfBizdReq dto) throws Exception {
-    //        return mapper.selectRedfBizdMgts(dto);
-    //    }
-
-    /**
-     * 수당(실적) 되물림 관리 - 영업부 되물림 생성 목록 엑셀다운로드
-     * @param dto
-     * @return SXSSFWorkbook
-     */
-    public List<SearchRedfBizdTestRes> getRedfBizdMgtForExcelDownloadTest(SearchRedfBizdReq dto) throws Exception {
+    public List<SearchRedfBizdTestRes> getRedfBizdMgtForExcelDownload(SearchRedfBizdReq dto) throws Exception {
         List<SearchRedfBizdTestRes> returnList = null;
         List<WdeaAllowanceRedfMgtDvo> dvo = new PagingResult<>();
 
@@ -219,7 +201,7 @@ public class WdeaAllowanceRedfMgtService {
             returnList = converter.mapRedfBizdW02Res(dvo);
         }
         if ("ALL".equals(dto.redfAdsbTpCd())) {
-            dvo = mapper.selectRedfBizdMgtsTest(dto); // P조직 쿼리 return
+            dvo = mapper.selectRedfBizdMgts(dto); // P조직 쿼리 return
             returnList = converter.mapRedfBizdW01Res(dvo);
         }
 

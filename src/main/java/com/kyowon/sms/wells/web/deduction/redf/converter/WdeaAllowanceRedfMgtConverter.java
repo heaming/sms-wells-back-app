@@ -21,6 +21,4 @@ public interface WdeaAllowanceRedfMgtConverter {
 
     List<SearchRedfBizdTestRes> mapRedfBizdW02Res(List<WdeaAllowanceRedfMgtDvo> dtos);
 
-    /*M조직 연체 컨버터*/
-    //    redfBizdW02DelinquentRes mapRedfBizdW02DelinquentRes(WdeaAllowanceRedfMgtDvo dto);
 }

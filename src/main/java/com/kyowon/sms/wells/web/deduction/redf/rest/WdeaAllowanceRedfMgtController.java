@@ -106,25 +106,6 @@ public class WdeaAllowanceRedfMgtController {
 
     }
 
-    //    @ApiImplicitParams(value = {
-    //        @ApiImplicitParam(name = "redfAdsbOcYmFrom", value = "발생년월(from)", paramType = "query", required = true),
-    //        @ApiImplicitParam(name = "redfAdsbOcYmTo", value = "발생년월(to)", paramType = "query", required = true),
-    //        @ApiImplicitParam(name = "perfYmFrom", value = "실적년월(from)", paramType = "query", required = true),
-    //        @ApiImplicitParam(name = "perfYmTo", value = "실적년월(to)", paramType = "query", required = true),
-    //        @ApiImplicitParam(name = "redfAdsbTpCd", value = "처리유형", paramType = "query", required = false),
-    //        @ApiImplicitParam(name = "ogTpCd", value = "조직유형", paramType = "query", required = false),
-    //        @ApiImplicitParam(name = "rsbDvCd", value = "직책구분", paramType = "query", required = true),
-    //        @ApiImplicitParam(name = "ogCd", value = "조직코드", paramType = "query", required = true),
-    //        @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = false),
-    //    })
-    //    @ApiOperation(value = "수당(실적) 되물림 관리 - 영업부 되물림 생성 목록 조회", notes = "수당(실적) 되물림 관리 - 영업부 되물림 생성 목록을 조회한다.")
-    //    @GetMapping("/bizd-paging")
-    //    public PagingResult<SearchRedfBizdRes> getRedfBizdMgt(SearchRedfBizdReq dto, PageInfo pageInfo) throws Exception {
-    //
-    //        return service.getRedfBizdMgt(dto, pageInfo);
-    //
-    //    }
-
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "redfAdsbOcYmFrom", value = "발생년월(from)", paramType = "query", required = true),
         @ApiImplicitParam(name = "redfAdsbOcYmTo", value = "발생년월(to)", paramType = "query", required = true),
@@ -138,31 +119,12 @@ public class WdeaAllowanceRedfMgtController {
     })
     @ApiOperation(value = "수당(실적) 되물림 관리 - 영업부 되물림 생성 목록 조회", notes = "수당(실적) 되물림 관리 - 영업부 되물림 생성 목록을 조회한다.")
     @GetMapping("/bizd-paging")
-    public PagingResult<SearchRedfBizdTestRes> getRedfBizdMgtTest(SearchRedfBizdReq dto, PageInfo pageInfo)
+    public PagingResult<SearchRedfBizdTestRes> getRedfBizdMgt(SearchRedfBizdReq dto, PageInfo pageInfo)
         throws Exception {
 
-        return service.getRedfBizdMgtTest(dto, pageInfo);
+        return service.getRedfBizdMgt(dto, pageInfo);
 
     }
-
-    //    @ApiImplicitParams(value = {
-    //        @ApiImplicitParam(name = "redfAdsbOcYmFrom", value = "발생년월(from)", paramType = "query", required = true),
-    //        @ApiImplicitParam(name = "redfAdsbOcYmTo", value = "발생년월(to)", paramType = "query", required = true),
-    //        @ApiImplicitParam(name = "perfYmFrom", value = "실적년월(from)", paramType = "query", required = true),
-    //        @ApiImplicitParam(name = "perfYmTo", value = "실적년월(to)", paramType = "query", required = true),
-    //        @ApiImplicitParam(name = "redfAdsbTpCd", value = "처리유형", paramType = "query", required = false),
-    //        @ApiImplicitParam(name = "ogTpCd", value = "조직유형", paramType = "query", required = false),
-    //        @ApiImplicitParam(name = "rsbDvCd", value = "직책구분", paramType = "query", required = true),
-    //        @ApiImplicitParam(name = "ogCd", value = "조직코드", paramType = "query", required = true),
-    //        @ApiImplicitParam(name = "prtnrNo", value = "파트너번호", paramType = "query", required = false),
-    //    })
-    //    @ApiOperation(value = "수당(실적) 되물림 관리 - 영업부 되물림 생성 목록 엑셀다운로드", notes = "수당(실적) 되물림 관리 - 영업부 되물림 생성 목록을 엑셀다운로드 한다.")
-    //    @GetMapping("/bizd-excel-download")
-    //    public List<SearchRedfBizdRes> getRedfBizdMgtForExcelDownload(SearchRedfBizdReq dto) throws Exception {
-    //
-    //        return service.getRedfBizdMgtForExcelDownload(dto);
-    //
-    //    }
 
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "redfAdsbOcYmFrom", value = "발생년월(from)", paramType = "query", required = true),
@@ -177,9 +139,9 @@ public class WdeaAllowanceRedfMgtController {
     })
     @ApiOperation(value = "수당(실적) 되물림 관리 - 영업부 되물림 생성 목록 엑셀다운로드", notes = "수당(실적) 되물림 관리 - 영업부 되물림 생성 목록을 엑셀다운로드 한다.")
     @GetMapping("/bizd-excel-download")
-    public List<SearchRedfBizdTestRes> getRedfBizdMgtForExcelDownloadTest(SearchRedfBizdReq dto) throws Exception {
+    public List<SearchRedfBizdTestRes> getRedfBizdMgtForExcelDownload(SearchRedfBizdReq dto) throws Exception {
 
-        return service.getRedfBizdMgtForExcelDownloadTest(dto);
+        return service.getRedfBizdMgtForExcelDownload(dto);
 
     }
 

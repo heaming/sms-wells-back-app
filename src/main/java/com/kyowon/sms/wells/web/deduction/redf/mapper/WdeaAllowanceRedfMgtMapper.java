@@ -28,9 +28,7 @@ public interface WdeaAllowanceRedfMgtMapper {
 
     /* 수당(실적) 되물림 관리 - 영업부 되물림 생성 목록 조회 */
     /*P조직*/
-    //    PagingResult<SearchRedfBizdRes> selectRedfBizdMgts(SearchRedfBizdReq dto, PageInfo pageInfo);
-
-    PagingResult<WdeaAllowanceRedfMgtDvo> selectRedfBizdMgtsTest(SearchRedfBizdReq dto, PageInfo pageInfo);
+    PagingResult<WdeaAllowanceRedfMgtDvo> selectRedfBizdMgts(SearchRedfBizdReq dto, PageInfo pageInfo);
 
     /*페이징용*/
     /*M조직*/
@@ -77,8 +75,7 @@ public interface WdeaAllowanceRedfMgtMapper {
 
     /* 수당(실적) 되물림 관리 - 영업부 되물림 생성 목록 조회 - 엑셀다운로드*/
     /*P조직*/
-    //    List<SearchRedfBizdRes> selectRedfBizdMgts(SearchRedfBizdReq dto);
-    List<WdeaAllowanceRedfMgtDvo> selectRedfBizdMgtsTest(SearchRedfBizdReq dto);
+    List<WdeaAllowanceRedfMgtDvo> selectRedfBizdMgts(SearchRedfBizdReq dto);
 
     /*엑셀 다운로드용*/
     /*M조직*/
