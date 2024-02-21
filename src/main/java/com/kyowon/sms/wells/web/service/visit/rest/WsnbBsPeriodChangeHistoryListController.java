@@ -23,7 +23,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping(SnServiceConst.REST_URL_V1 + "/bs-period-change-history-list")
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/zip-assignments/bs-period-change-history-list")
 @Api(tags = "[WSNB] B/S 주기변경 이력 조회 REST API")
 @RequiredArgsConstructor
 @Validated
