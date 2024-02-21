@@ -120,6 +120,12 @@ public class WdeaAllowanceRedfMgtDvo {
     String envrElhmFxam; /*환경가전 정액.되물림실적*/
     String envrElhmFxamA; /*환경가전 정액.되물림후실적*/
 
+    /*가전외 인정실적*/
+    String elhmExcpAckmtPerfT; /*가전외 인정실적.귀속월실적*/
+    String elhmExcpAckmtPerfB; /*가전외 인정실적.되물림전실적*/
+    String elhmExcpAckmtPerf; /*가전외 인정실적.되물림실적*/
+    String elhmExcpAckmtPerfA; /*가전외 인정실적.되물림후실적*/
+
     /*환경가전외*/
     String envrElhmExcpTb; /*환경가전외.귀속전월실적*/
     String envrElhmExcpT; /*환경가전외.귀속월실적*/
@@ -242,8 +248,8 @@ public class WdeaAllowanceRedfMgtDvo {
     String rstl; /*재약정*/
     String metg; /*미팅*/
     String elhmSpmtEnrg; /*가전추가장려*/
-    String indvMutu; /*개인상조*/
-    String ogMutu; /*조직상조*/
+    String wmLifRedfAmt; /*상조취소되물림(M조직)*/
+    String wmLif0203RedfAmt; /*상조연체되물림(M조직)*/
 
     /*WELLS-P 되물림수수료*/
     String wpFxamRedfDstrc; /*정액(지구장이하)*/
@@ -264,8 +270,8 @@ public class WdeaAllowanceRedfMgtDvo {
     String dlqRedfPerfRental; /*되물림 구분 연체일 때, 연체되물림실적.렌탈*/
     String dlqRedfPerfExcp; /*되물림 구분 연체일 때, 연체되물림실적.가전외일시불*/
     String dlqRedfPerfTot; /*되물림 구분 연체일 때, 연체되물림실적.계*/
-    String wpLifRedfAmt; /*상조되물림 취소*/
-    String wpLif0203RedfAmt; /*상조되물림 연체*/
+    String wpLifRedfAmt; /*상조되물림 취소(P조직)*/
+    String wpLif0203RedfAmt; /*상조되물림 연체(P조직)*/
 
     /*되물림 합계금액(그리드별)*/
     String canRedfAmt; /*되물림 취소 전체합계*/

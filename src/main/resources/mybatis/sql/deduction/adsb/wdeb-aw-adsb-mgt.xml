@@ -335,12 +335,22 @@
         INNER JOIN TB_SSCT_CNTR_DTL C1
                 ON S1.CNTR_NO = C1.CNTR_NO
                AND S1.CNTR_SN = C1.CNTR_SN
-        INNER JOIN TB_FEAM_WELS_NRCTR_MM_CL N1
-                ON S1.CNTR_NO = N1.CNTR_NO
-               AND S1.CNTR_SN = N1.CNTR_SN
-               AND N1.FEE_TCNT_DV_CD = '02'
-               AND N1.PERF_TP_CD = '10'
-               AND N1.CNTR_PERF_CRT_DV_CD = '05'
+        INNER JOIN (
+			        SELECT B3.*
+			          FROM (
+			                SELECT B3.*
+			                     , ROW_NUMBER() OVER(PARTITION BY B3.CNTR_NO,B3.CNTR_SN ORDER BY B3.FST_RGST_DTM DESC) AS RN
+			                  FROM TB_FEAM_WELS_NRCTR_MM_CL B3
+			                 WHERE B3.FEE_TCNT_DV_CD = '02'
+			                   AND B3.CNTR_PERF_CRT_DV_CD IN ('05','11') /*총판 되물림, 재지급*/
+			                   AND B3.BASE_YM <![CDATA[ <= ]]> TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM') /*PARAM: 파라미터로 넘어온 발생년월 전월*/
+			               ) B3
+			         WHERE B3.RN = 1
+			           AND B3.PERF_TP_CD = '10' /* 연체되물림 */
+			           AND B3.CNTR_PERF_CRT_DV_CD = '05' /* 총판되물림 */
+        	) N1 /*마지막 데이터가 연체되물림인 데이터만 추출*/
+           ON S1.CNTR_NO = N1.CNTR_NO
+          AND S1.CNTR_SN = N1.CNTR_SN
         INNER JOIN LATERAL (
                     SELECT MAX(CASE WHEN X1.PERF_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{baseYm}, 'YYYYMM'), -1), 'YYYYMM') THEN X1.EOT_DLQ_AMT + X1.EOT_DLQ_ADD_AMT ELSE 0 END) AS BEFORE_MONTH_TOT_DLQ_AMT
                          , MAX(CASE WHEN X1.PERF_YM = #{baseYm} THEN X1.EOT_DLQ_AMT + X1.EOT_DLQ_ADD_AMT ELSE 0 END) AS NOW_MONTH_TOT_DLQ_AMT
@@ -353,7 +363,8 @@
              WHERE 1 = 1
                AND S1.SL_CL_YM = #{baseYm} /*PARAM: 발생년월(당월)*/
                AND S1.OG_TP_CD = 'W05'
-               AND C1.CNTR_DTL_STAT_CD = '101'
+               AND C1.CNTR_DTL_STAT_CD IS NOT NULL
+               AND NVL(C1.CNTR_DTL_STAT_CD, ' ') NOT LIKE '3%'
                AND NVL(Q1.BEFORE_MONTH_TOT_DLQ_AMT, 0) = 0
                AND NVL(Q1.NOW_MONTH_TOT_DLQ_AMT, 0) = 0
                AND NOT EXISTS (SELECT '1'
