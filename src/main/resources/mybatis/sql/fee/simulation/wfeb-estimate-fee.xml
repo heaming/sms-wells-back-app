@@ -36,26 +36,27 @@
     </select>
 
     <select id='selectMeetingP' resultType="com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto$MeetingP">
-        SELECT (SELECT SUBSTR(MAX(EDUC_CPC_ACKMT_DT), 1, 6)
-                  FROM TB_PSCA_MCPTN_EDUC_IZ
-                 WHERE PRTNR_NO          =  #{req.sellPrtnrNo}
-                   AND EDUC_CPC_ACKMT_DT >= (SELECT NVL(RCNTR_DT, CNTR_DT)
-                                               FROM TB_OGBS_MM_PRTNR_IZ
-                                              WHERE BASE_YM = #{req.perfYm} --교육수료인정일자
-                                                AND OG_TP_CD = 'W01'
-                                                AND PRTNR_NO = #{req.sellPrtnrNo})
-                   AND EDUC_CPC_ACKMT_YN = 'Y'               --교육수료인정여부
-                   AND DTA_DL_YN         = 'N'
-                   AND EDUC_CRSE_NO = '14') AS PLAR_SRTUP
+        SELECT 'A' AS TYPE
              , (SELECT SUBSTR(MAX(EDUC_CPC_ACKMT_DT), 1, 6)
                   FROM TB_PSCA_MCPTN_EDUC_IZ
                  WHERE PRTNR_NO          =  #{req.sellPrtnrNo}
                    AND EDUC_CPC_ACKMT_DT >= (SELECT NVL(RCNTR_DT, CNTR_DT)
                                                FROM TB_OGBS_MM_PRTNR_IZ
-                                              WHERE BASE_YM = #{req.perfYm} --교육수료인정일자
+                                              WHERE BASE_YM = #{req.perfYm}
                                                 AND OG_TP_CD = 'W01'
                                                 AND PRTNR_NO = #{req.sellPrtnrNo})
-                   AND EDUC_CPC_ACKMT_YN = 'Y'               --교육수료인정여부
+                   AND EDUC_CPC_ACKMT_YN = 'Y'
+                   AND DTA_DL_YN         = 'N'
+                   AND EDUC_CRSE_NO = '14') AS PLAR_SRTUP
+             , (SELECT SUBSTR(MAX(EDUC_CPC_ACKMT_DT), 1, 4) || '-' || SUBSTR(MAX(EDUC_CPC_ACKMT_DT), 5, 2)
+                  FROM TB_PSCA_MCPTN_EDUC_IZ
+                 WHERE PRTNR_NO          =  #{req.sellPrtnrNo}
+                   AND EDUC_CPC_ACKMT_DT >= (SELECT NVL(RCNTR_DT, CNTR_DT)
+                                               FROM TB_OGBS_MM_PRTNR_IZ
+                                              WHERE BASE_YM = #{req.perfYm}
+                                                AND OG_TP_CD = 'W01'
+                                                AND PRTNR_NO = #{req.sellPrtnrNo})
+                   AND EDUC_CPC_ACKMT_YN = 'Y'
                    AND DTA_DL_YN         = 'N'
                    AND EDUC_CRSE_NO = '19') AS PLANNER_PRCTC
              , ( SELECT NVL(SUM(PERF_VAL), 0)
@@ -64,8 +65,44 @@
                     AND BASE_YM                    = #{req.perfYm}
                     AND OG_TP_CD                   = 'W01'
                     AND PRTNR_NO                   = #{req.sellPrtnrNo}
-                    AND PERF_ATC_CD                = 'W01P00012'
+                    AND PERF_ATC_CD                = 'W01P00012' /* 미팅참석일 */
                     AND DTA_DL_YN                  = 'N'  ) AS METG_PRSC_D
+             , ( SELECT NVL(SUM(PERF_VAL), 0)
+                   FROM TB_FEAM_PRTNR_PERF_MM_ACU_CL  /* 월누적파트너계약실적마감 */
+                  WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
+                    AND BASE_YM                    = #{req.perfYm}
+                    AND OG_TP_CD                   = 'W01'
+                    AND PRTNR_NO                   = #{req.sellPrtnrNo}
+                    AND PERF_ATC_CD                = 'W01P00020' /* 실활동인원수 */
+                    AND DTA_DL_YN                  = 'N'  ) AS ACL_ACTI_PSNO
+        FROM DUAL
+        UNION ALL
+        SELECT 'B' AS TYPE
+             , '' AS PLAR_SRTUP
+             , ( SELECT NVL(FEE_PERF_ATC_VAL, 'N')
+                   FROM TB_FEAM_PRTNR_PERF_MM_ACU_CL  /* 월누적파트너계약실적마감 */
+                  WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
+                    AND BASE_YM                    = #{req.perfYm}
+                    AND OG_TP_CD                   = 'W01'
+                    AND PRTNR_NO                   = #{req.sellPrtnrNo}
+                    AND PERF_ATC_CD                = 'W01P00047' /* 플래너실적교육이수여부 */
+                    AND DTA_DL_YN                  = 'N'  ) AS PLANNER_PRCTC
+             , ( SELECT NVL(SUM(PERF_VAL), 0)
+                   FROM TB_FEAM_PRTNR_PERF_MM_ACU_CL  /* 월누적파트너계약실적마감 */
+                  WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
+                    AND BASE_YM                    = #{req.perfYm}
+                    AND OG_TP_CD                   = 'W01'
+                    AND PRTNR_NO                   = #{req.sellPrtnrNo}
+                    AND PERF_ATC_CD                = 'W01P00012' /* 미팅참석일 */
+                    AND DTA_DL_YN                  = 'N'  ) AS METG_PRSC_D
+             , ( SELECT NVL(SUM(PERF_VAL), 0)
+                   FROM TB_FEAM_PRTNR_PERF_MM_ACU_CL  /* 월누적파트너계약실적마감 */
+                  WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
+                    AND BASE_YM                    = #{req.perfYm}
+                    AND OG_TP_CD                   = 'W01'
+                    AND PRTNR_NO                   = #{req.sellPrtnrNo}
+                    AND PERF_ATC_CD                = 'W01P00020' /* 실활동인원수 */
+                    AND DTA_DL_YN                  = 'N'  ) AS ACL_ACTI_PSNO
         FROM DUAL
     </select>
 
@@ -88,6 +125,15 @@
                                        AND PERF_ATC_CD = 'W01P00004' /* 가전 실적 */
                                        AND PERF_DV_CD = '0'
                                        AND ROWNUM = 1)  AS AMT_EXCEPT_ELHM
+                                 , (SELECT PERF_VAL
+                                      FROM TB_FEAM_MACUP_PERF_CL
+                                     WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
+                                       AND BASE_YM = #{req.perfYm}
+                                       AND OG_TP_CD = 'W01'
+                                       AND PRTNR_NO = #{req.sellPrtnrNo}
+                                       AND PERF_ATC_CD = 'W01P00018' /* BS판매건수 */
+                                       AND PERF_DV_CD = '0'
+                                       AND ROWNUM = 1)  AS AMT_BS_SALE
                                  , (SELECT COUNT(1)
                                       FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ /* 라이프제휴수수료계약내역 */
                                      WHERE BASE_YM =#{req.perfYm}
@@ -121,6 +167,15 @@
                                    AND PERF_ATC_CD = 'W01P00004' /* 가전 실적 */
                                    AND PERF_DV_CD = '2'
                                    AND ROWNUM = 1)  AS AMT_EXCEPT_ELHM
+                             , (SELECT PERF_VAL
+                                  FROM TB_FEAM_MACUP_PERF_CL
+                                 WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
+                                   AND BASE_YM = #{req.perfYm}
+                                   AND OG_TP_CD = 'W01'
+                                   AND PRTNR_NO = #{req.sellPrtnrNo}
+                                   AND PERF_ATC_CD = 'W01P00018' /* BS판매건수 */
+                                   AND PERF_DV_CD = '2'
+                                   AND ROWNUM = 1)  AS AMT_BS_SALE
                              , (SELECT COUNT(1)
                                   FROM TB_IFIN_LIF_ALNC_FEE_CNTR_IZ T1 /* 라이프제휴수수료계약내역 */
                                   INNER JOIN TB_FEAM_MM_PRTNR_HOO_IZ T2
@@ -145,6 +200,8 @@
         SELECT 'A' AS TYPE
              , AMT_ELHM
              , AMT_EXCEPT_ELHM
+             , AMT_NET_ORDER
+             , AMT_BS_SALE
              , AMT_MUTU_429
              , AMT_MUTU_599
           FROM INDV_PERF
@@ -152,6 +209,8 @@
         SELECT 'B' AS TYPE
              , AMT_ELHM
              , AMT_EXCEPT_ELHM
+             , AMT_NET_ORDER
+             , AMT_BS_SALE
              , AMT_MUTU_429
              , AMT_MUTU_599
           FROM INDV_PERF
@@ -160,6 +219,8 @@
         SELECT 'C' AS TYPE
              , AMT_ELHM
              , AMT_EXCEPT_ELHM
+             , AMT_NET_ORDER
+             , AMT_BS_SALE
              , AMT_MUTU_429
              , AMT_MUTU_599
           FROM OG_PERF
@@ -167,6 +228,8 @@
         SELECT 'D' AS TYPE
              , AMT_ELHM
              , AMT_EXCEPT_ELHM
+             , AMT_NET_ORDER
+             , AMT_BS_SALE
              , AMT_MUTU_429
              , AMT_MUTU_599
           FROM OG_PERF
@@ -558,6 +621,7 @@
              , NVL(SUM(W1), 0)     AS W1
              , NVL(SUM(W2), 0)     AS W2
              , NVL(SUM(PRD_SUM), 0) AS PRD_SUM
+             , 0 AS NMN_ASN
          FROM T0
         WHERE T0.VST_DUEDT != 'X'  --방문예정일자
         UNION ALL
@@ -574,6 +638,7 @@
              , NVL(SUM(W1), 0)       AS W1
              , NVL(SUM(W2), 0)       AS W2
              , NVL(SUM(PRD_SUM), 0) AS PRD_SUM
+             , 0 AS NMN_ASN
         FROM T0
        WHERE T0.WK_EXCN_DT != 'X'  --작업수행일자
        UNION ALL
@@ -590,6 +655,7 @@
            , NVL(SUM(W1), 0)       AS W1
            , NVL(SUM(W2), 0)       AS W2
            , NVL(SUM(PRD_SUM), 0) AS PRD_SUM
+           , 0 AS NMN_ASN
       FROM T0
      WHERE T0.WK_EXCN_DT != 'X'  --작업수행일자
     </select>
