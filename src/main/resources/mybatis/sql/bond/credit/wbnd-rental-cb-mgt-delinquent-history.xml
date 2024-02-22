@@ -36,11 +36,11 @@
             INNER JOIN TB_SSCT_CNTR_STLM_BAS C4
                 ON C3.CNTR_STLM_ID = C4.CNTR_STLM_ID
                 AND C4.DTA_DL_YN = 'N'
-                AND C4.DP_TP_CD IN ('0101', '0102', '0201','0203') /*계좌자동이체, 카드자동이체*/
+                AND C4.DP_TP_CD IN ('0102', '0203') /*계좌자동이체, 카드자동이체*/
             INNER JOIN LATERAL (
                 SELECT X1.*
                   FROM TB_CBBO_BND_CNTR_BAS X1
-                 WHERE X1.BASE_YM = #{baseYm}
+                 WHERE X1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
                    AND M1.CNTR_NO = X1.CNTR_NO
                    AND X1.BND_CLCTN_PRP_RSON_CD IN ('20', '3C', '80')
                  ORDER BY X1.BASE_YM ASC
@@ -52,7 +52,7 @@
                      , NVL(SUM(CASE WHEN X1.DP_DV_CD IN ('2', '4') THEN NVL(X1.DP_AMT, 0) ELSE 0 END), 0) AS RFND_RVE_AMT /*환불금액*/
                   FROM TB_RVDW_RVE_DTL X1
                  WHERE M1.CNTR_NO = X1.CNTR_NO
-                   AND SUBSTR(X1.PERF_DT, 1, 6) = #{baseYm}
+                   AND SUBSTR(X1.PERF_DT, 1, 6) = TO_CHAR(SYSDATE, 'YYYYMM')
                    AND M1.CST_NO = X1.CST_NO
                    AND X1.RVE_DV_CD IN ('02','03','04','05','07','08','19','13','18','97')
                    AND X1.DP_DV_CD IN ('1','2','3','4')
@@ -71,8 +71,7 @@
                 AND NVL(M1.DLQ_BLAM, 0) > 0  /* 연체잔액 */
                 AND M1.DTA_DL_YN = 'N'
                 AND M1.NOTY_FW_OJ_YN = 'Y'
-                AND M1.RLS_DT IS NULL
-                AND TO_CHAR(TO_DATE(M1.OC_CRT_DT, 'YYYYMMDD'), 'YYYYMM') = #{baseYm}
+                AND TO_CHAR(TO_DATE(M1.OC_CRT_DT, 'YYYYMMDD'), 'YYYYMM') = TO_CHAR(SYSDATE, 'YYYYMM')
             GROUP BY M1.CST_NO
         ) K1
         INNER JOIN TB_CUBS_CST_BAS B1
@@ -215,3 +214,5 @@
                               AND DTA_DL_YN = 'N')
     </update>
 </mapper>
+
+
