@@ -26,7 +26,8 @@ public class WsnaWareItemReceivingAndPayingStateDto {
         String useYn,
         String itmKndCd,
         String pdCd,
-        List<String> itmPdCds
+        List<String> itmPdCds,
+        String svMatGrpCd
     ) {}
 
     @ApiModel(value = "WsnaWareItemReceivingAndPayingStateDto-SearchRes")

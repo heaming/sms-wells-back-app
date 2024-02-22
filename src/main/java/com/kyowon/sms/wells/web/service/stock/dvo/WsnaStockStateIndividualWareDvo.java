@@ -31,4 +31,5 @@ public class WsnaStockStateIndividualWareDvo {
     String toSapCd;
     String pdCdFrom;
     String pdCdTo;
+    String svMatGrpCd;
 }

@@ -94,6 +94,7 @@ public class WsnaStockStateIndividualWareService {
         dvo.setToSapCd(dto.toSapCd());
         dvo.setPdCdFrom(dto.pdCdFrom());
         dvo.setPdCdTo(dto.pdCdTo());
+        dvo.setSvMatGrpCd(dto.svMatGrpCd());
 
         return dvo;
     }
