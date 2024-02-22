@@ -50,12 +50,12 @@
                 ON (    T2.CNTR_NO = T1.CNTR_NO /*계약번호*/
                     AND T2.CNTR_SN = T1.CNTR_SN /*계약일련번호*/
                     AND T2.DTA_DL_YN = 'N' /*삭제여부*/
+                    <if test='@MybatisUtils@isNotEmpty(sellTpCd) and sellTpCd != "ALL" and sellTpCd != "all"'>
                     AND T2.SELL_TP_CD = #{sellTpCd}
-                  <choose>
-                   <when test='@MybatisUtils@isNotEmpty(sellTpDtlCd) and sellTpDtlCd != "ALL" and sellTpDtlCd != "all"'>
-                   AND T2.SELL_TP_DTL_CD = #{sellTpDtlCd} /* 판매유형상세 */
-                   </when>
-                  </choose>
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(sellTpDtlCd) and sellTpDtlCd != "ALL" and sellTpDtlCd != "all"'>
+                    AND T2.SELL_TP_DTL_CD = #{sellTpDtlCd} /* 판매유형상세 */
+                    </if>
                     )
             INNER JOIN (SELECT S1.CNTR_NO /*게약번호*/
                              , S1.CNTR_SN /*계약일련번호*/
@@ -152,7 +152,7 @@
                   </otherwise>
                 </choose>
             </if>
-             ORDER BY T1.RVE_DT , T1.PERF_DT , T1.CNTR_NO , T1.CNTR_SN
+             ORDER BY T2.SELL_TP_CD , T1.RVE_DT , T1.PERF_DT , T1.CNTR_NO , T1.CNTR_SN
 
     </select>
 
@@ -168,12 +168,12 @@
                 ON (    T2.CNTR_NO = T1.CNTR_NO /*계약번호*/
                     AND T2.CNTR_SN = T1.CNTR_SN /*계약일련번호*/
                     AND T2.DTA_DL_YN = 'N' /*삭제여부*/
+                    <if test='@MybatisUtils@isNotEmpty(sellTpCd) and sellTpCd != "ALL" and sellTpCd != "all"'>
                     AND T2.SELL_TP_CD = #{sellTpCd}
-                  <choose>
-                   <when test='@MybatisUtils@isNotEmpty(sellTpDtlCd) and sellTpDtlCd != "ALL" and sellTpDtlCd != "all"'>
-                   AND T2.SELL_TP_DTL_CD = #{sellTpDtlCd} /* 판매유형상세 */
-                   </when>
-                  </choose>
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(sellTpDtlCd) and sellTpDtlCd != "ALL" and sellTpDtlCd != "all"'>
+                    AND T2.SELL_TP_DTL_CD = #{sellTpDtlCd} /* 판매유형상세 */
+                    </if>
                     )
             INNER JOIN (SELECT S1.CNTR_NO /*게약번호*/
                              , S1.CNTR_SN /*계약일련번호*/
@@ -266,7 +266,7 @@
                   </otherwise>
                 </choose>
             </if>
-             ORDER BY T1.RVE_DT , T1.PERF_DT , T1.CNTR_NO , T1.CNTR_SN
+             ORDER BY T2.SELL_TP_CD , T1.RVE_DT , T1.PERF_DT , T1.CNTR_NO , T1.CNTR_SN
 
     </select>
 
@@ -341,12 +341,12 @@
                         ON (    T2.CNTR_NO = T1.CNTR_NO /*계약번호*/
                             AND T2.CNTR_SN = T1.CNTR_SN /*계약일련번호*/
                             AND T2.DTA_DL_YN = 'N' /*삭제여부*/
+                            <if test='@MybatisUtils@isNotEmpty(sellTpCd) and sellTpCd != "ALL" and sellTpCd != "all"'>
                             AND T2.SELL_TP_CD = #{sellTpCd}
-                          <choose>
-                           <when test='@MybatisUtils@isNotEmpty(sellTpDtlCd) and sellTpDtlCd != "ALL" and sellTpDtlCd != "all"'>
-                           AND T2.SELL_TP_DTL_CD = #{sellTpDtlCd} /* 판매유형상세 */
-                           </when>
-                          </choose>
+                            </if>
+                            <if test='@MybatisUtils@isNotEmpty(sellTpDtlCd) and sellTpDtlCd != "ALL" and sellTpDtlCd != "all"'>
+                            AND T2.SELL_TP_DTL_CD = #{sellTpDtlCd} /* 판매유형상세 */
+                            </if>
                            )
                     LEFT OUTER JOIN TB_RVDW_RFND_RCP_DTL T4
                       ON (    T4.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
@@ -423,7 +423,10 @@
 
     <select id="selectBalanceTransferRefundHistory"
             resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbRefundCurrentStatusDto$SearchBalanceTransferRefundHistoryRes">
-        SELECT CASE WHEN REFUND_DIVISION IN  '21' THEN '렌탈'
+        SELECT CASE  WHEN REFUND_DIVISION = '11' THEN '일반'
+                     WHEN REFUND_DIVISION = '12' THEN '홈케어'
+                     WHEN REFUND_DIVISION = '13' THEN '환경가전'
+                     WHEN REFUND_DIVISION = '21' THEN '렌탈'
                      WHEN REFUND_DIVISION = '22' THEN '리스'
                      WHEN REFUND_DIVISION = '24' THEN '환경리스'
                      WHEN REFUND_DIVISION = '25' THEN '장기할부'
@@ -505,7 +508,8 @@
                          , SUM( CASE WHEN T4.SELL_TP_CD = '6' THEN RFND_DSB_AMT
                                      ELSE 0
                                       END ) AS RGLR_SPP_AMT /*정기배송*/
-                         , MAX( CASE WHEN M2.SELL_TP_CD = '2' THEN CASE WHEN M2.SELL_TP_DTL_CD IN ('21' , '23') THEN '21'
+                         , MAX( CASE WHEN M2.SELL_TP_CD = '1' THEN M2.SELL_TP_DTL_CD
+                                     WHEN M2.SELL_TP_CD = '2' THEN CASE WHEN M2.SELL_TP_DTL_CD IN ('21' , '23') THEN '21'
                                                                         WHEN M2.SELL_TP_DTL_CD = '22' THEN '22'
                                                                         WHEN M2.SELL_TP_DTL_CD = '24' THEN '24'
                                                                         WHEN M2.SELL_TP_DTL_CD = '25' THEN '25'
@@ -576,9 +580,9 @@
                            <when test="@MybatisUtils@isNotEmpty(sellTpCd)">
                        AND M2.SELL_TP_CD = #{sellTpCd}
                            </when>
-                           <otherwise>
-                       AND M2.SELL_TP_CD != '1'
-                           </otherwise>
+<!--                           <otherwise>-->
+<!--                       AND M2.SELL_TP_CD != '1'-->
+<!--                           </otherwise>-->
                        </choose>
                        <choose>
                            <when test="@MybatisUtils@isNotEmpty(sellTpDtlCd)">
@@ -587,7 +591,7 @@
                        </choose>
                      GROUP BY M2.SELL_TP_CD , M2.SELL_TP_DTL_CD
           ) MAIN
-          GROUP BY REFUND_DIVISION
-          ORDER BY REFUND_DIVISION
+          GROUP BY REFUND_DIVISION , SELL_TP_CD
+          ORDER BY REFUND_DIVISION , SELL_TP_CD
     </select>
 </mapper>
