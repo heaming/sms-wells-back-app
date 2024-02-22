@@ -15,7 +15,6 @@ import lombok.Setter;
 @Getter
 public class WsniCustomerInformationDvo {
 
-    String asAkId;
     String sysDvCd;
     String fstRgstDtm;
     String fstRgstUsrId;
