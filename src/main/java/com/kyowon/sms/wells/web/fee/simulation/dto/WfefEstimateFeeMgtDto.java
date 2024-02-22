@@ -18,6 +18,7 @@ public class WfefEstimateFeeMgtDto {
         String prtnrKnm,
         String ogCd, // 조직코드
         String rsbDvCd, // 직책구분코드
+        String qlfDvCd, // 자격구분코드
         String startYm, // 개시차월
         String prfmtYm, // 승진차월
         Integer metgDc, // 미팅일수
