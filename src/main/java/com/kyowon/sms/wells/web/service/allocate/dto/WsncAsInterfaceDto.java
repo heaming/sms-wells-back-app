@@ -291,9 +291,7 @@ public class WsncAsInterfaceDto {
 
     @ApiModel(value = "WsncWellsAsInterfaceDto-SearchCustomerInformationReq")
     public record SearchCustomerInformationReq(
-        @NotBlank
-        @JsonProperty("AS_AK_ID")
-        String asAkId,
+
         @NotBlank
         @JsonProperty("CNTR_NO")
         String cntrNo,
@@ -304,8 +302,7 @@ public class WsncAsInterfaceDto {
 
     @ApiModel(value = "WsncWellsAsInterfaceDto-SearchCustomerInformationRes")
     public record SearchCustomerInformationRes(
-        @JsonProperty("AS_AK_ID")
-        String asAkId,
+
         @JsonProperty("SYS_DV_CD")
         String sysDvCd,
         @JsonProperty("FST_RGST_DTM")
