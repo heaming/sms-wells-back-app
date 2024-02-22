@@ -28,15 +28,18 @@ public class WfefEstimateFeeMgtDto {
     ) {}
 
     public record MeetingP(
+        String type,
         String plarSrtup,
         String plannerPrctc,
-        String metgPrscD
+        String metgPrscD,
+        String aclActiPsno
     ) {}
 
     public record PerformanceP(
         String type, // 구분
         Long amtElhm, // 가전
         Long amtExceptElhm, // 가전외
+        Long amtBsSale, // BS판매건수
         Long amtMutu429, // 상조-429
         Long amtMutu599 // 상조-599
     ) {}
@@ -67,7 +70,7 @@ public class WfefEstimateFeeMgtDto {
     public record SearchOgPRes(
         String userDvCd,
         BaseP base,
-        MeetingP meeting,
+        List<MeetingP> meeting,
         List<PerformanceP> performances,
         List<EstimatePM> estimate,
         List<SaleP> sales
@@ -119,6 +122,7 @@ public class WfefEstimateFeeMgtDto {
         Long bdtEtc, /* 비데,연수기         */
         Long w1,/* 급지구분    - 1:1급지, 2:2급지, 3:3급지 */
         Long w2, /* 급지구분    - 1:1급지, 2:2급지, 3:3급지 */
+        Long nmnAsn, /* 차월배정건수 */
         Long prdSum
     ) {}
 

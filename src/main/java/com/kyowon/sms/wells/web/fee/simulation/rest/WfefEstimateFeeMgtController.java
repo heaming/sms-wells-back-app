@@ -1,6 +1,6 @@
 package com.kyowon.sms.wells.web.fee.simulation.rest;
 
-import com.kyowon.sms.wells.web.fee.calculation.dvo.WfebMogMetDvo;
+import com.kyowon.sms.wells.web.fee.calculation.dvo.WfebGridMetgDvo;
 import com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto.*;
 import com.kyowon.sms.wells.web.fee.simulation.service.WfefEstimateFeeMgtService;
 import com.kyowon.sms.wells.web.fee.zcommon.constants.CtFeeConst;
@@ -24,7 +24,6 @@ import java.util.Map;
 public class WfefEstimateFeeMgtController {
 
     private final WfefEstimateFeeMgtService service;
-
 
     @ApiOperation(value = "예상수수료 - 조회(p조직)", notes = "예상수수료 p조직을 조회한다.")
     @ApiImplicitParams(value = {
@@ -55,8 +54,8 @@ public class WfefEstimateFeeMgtController {
         @ApiImplicitParam(name = "sellPrtnrNo", value = "번호", paramType = "query", required = true),
     })
     @GetMapping("/m-og/meeting-grid-headers")
-    public List<WfebMogMetDvo> getMtPerfAtcCds(@Valid SearchEstimateReq req) throws Exception {
-        return service.getMtPerfAtcCds(req);
+    public List<WfebGridMetgDvo> getMtPerfAtcCds(@Valid SearchEstimateReq req) throws Exception {
+        return service.getMogGridMtPerfAtcCds(req);
     }
 
     @ApiOperation(value = "예상수수료 - 조회(m조직)", notes = "예상수수료 m조직을 조회한다.")
