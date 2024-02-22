@@ -57,6 +57,9 @@
                   /*사용여부 Y, N 조건 값이 있을 경우, 전체면 조건 제거*/
                   AND P1.PD_PRP_VAL32 = #{useYn}
         </if>
+        <if test='@MybatisUtils@isNotEmpty(svMatGrpCd)'>
+                  AND P1.PD_PRP_VAL36 = #{svMatGrpCd}          /* 자재그룹 */
+        </if>
                   AND P1.DTA_DL_YN = 'N'
              )
            , WARE_INF
@@ -97,12 +100,28 @@
                SELECT S1.WARE_NO
                     , S1.ITM_PD_CD
                     /*등급에 따라 재고 수량 계산*/
-                    , (CASE WHEN #{itmGdCd} = 'A' THEN SUM(S1.BTD_STOC_A_GD_QTY)
-                            WHEN #{itmGdCd} = 'B' THEN SUM(S1.BTD_STOC_B_GD_QTY)
-                            WHEN #{itmGdCd} = 'E' THEN SUM(S1.BTD_STOC_E_GD_QTY)
-                            WHEN #{itmGdCd} = 'R' THEN SUM(S1.BTD_STOC_R_GD_QTY)
-                            ELSE 0
-                       END) AS BTD_QTY
+        <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
+            <choose>
+                <when test='@MybatisUtils@equals(itmGdCd, "A")'>
+                    , SUM(S1.BTD_STOC_A_GD_QTY) AS BTD_QTY
+                </when>
+                <when test='@MybatisUtils@equals(itmGdCd, "B")'>
+                    , SUM(S1.BTD_STOC_B_GD_QTY) AS BTD_QTY
+                </when>
+                <when test='@MybatisUtils@equals(itmGdCd, "E")'>
+                    , SUM(S1.BTD_STOC_E_GD_QTY) AS BTD_QTY
+                </when>
+                <when test='@MybatisUtils@equals(itmGdCd, "R")'>
+                    , SUM(S1.BTD_STOC_R_GD_QTY) AS BTD_QTY
+                </when>
+                <otherwise>
+                    , 0 AS BTD_QTY
+                </otherwise>
+            </choose>
+        </if>
+        <if test="@MybatisUtils@isEmpty(itmGdCd)">
+                    , 0 AS BTD_QTY
+        </if>
                     /*전체 등급이라면
                     , SUM(S1.BTD_STOC_A_GD_QTY)
                     + SUM(S1.BTD_STOC_B_GD_QTY)
@@ -144,7 +163,9 @@
                            /*조회기간입력조건*/
                            AND S1.STR_RGST_DT BETWEEN SUBSTR(#{startDt},1,6) || '01' AND #{endDt}
                            /*등급입력조건*/
+        <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
                            AND S1.ITM_GD_CD = #{itmGdCd}
+        </if>
                            AND S1.DTA_DL_YN = 'N'
                          GROUP BY S1.STR_WARE_NO, S1.STR_TP_CD, S1.ITM_PD_CD
                       ) V1
@@ -179,7 +200,9 @@
                            /*조회기간입력조건*/
                            AND S1.OSTR_DT BETWEEN SUBSTR(#{startDt},1,6) || '01' AND #{endDt}
                            /*등급입력조건*/
+        <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
                            AND S1.ITM_GD_CD = #{itmGdCd}
+        </if>
                            AND S1.DTA_DL_YN = 'N'
                          GROUP BY S1.OSTR_WARE_NO, S1.OSTR_TP_CD, S1.ITM_PD_CD
                       ) V1
@@ -243,7 +266,9 @@
                            /*조회기간입력조건*/
                            AND S1.STAT_CTR_APY_DT BETWEEN SUBSTR(#{startDt},1,6) || '01' AND #{endDt}
                            /*등급입력조건*/
+        <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
                            AND (S1.BFCT_ITM_GD_CD = #{itmGdCd} OR S1.AFCT_ITM_GD_CD = #{itmGdCd})
+        </if>
                            AND S1.DTA_DL_YN = 'N'
                          GROUP BY S1.WARE_NO, S1.PD_CD, S1.BFCT_ITM_GD_CD, S1.AFCT_ITM_GD_CD
                       ) V1
@@ -292,7 +317,9 @@
                            /*조회기간입력조건*/
                            AND S1.FNL_VST_FSH_DT BETWEEN SUBSTR(#{startDt},1,6) || '01' AND #{endDt}
                            /*등급입력조건*/
+        <if test="@MybatisUtils@isNotEmpty(itmGdCd)">
                            AND S1.FNL_ITM_GD_CD = #{itmGdCd}
+        </if>
                            AND S1.DTA_DL_YN = 'N'
                       ) V1
                   WHERE 1=1
