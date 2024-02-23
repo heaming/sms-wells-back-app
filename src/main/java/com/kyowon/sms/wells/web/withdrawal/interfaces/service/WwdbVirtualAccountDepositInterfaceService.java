@@ -27,6 +27,10 @@ public class WwdbVirtualAccountDepositInterfaceService {
         if ("STL".equals(dto.vacDvCd())) {
             mapper.updateVirtualAccountSettleBankDepositFinish(dto);
         }
+        // KICC 가상계좌인 경우 통합입금 완료 후 계좌해지처리
+        if ("KICC".equals(dto.vacDvCd())) {
+            mapper.updateVirtualAccountSettleBankDepositFinish(dto);
+        }
         return new SearchRes("Y");
     }
 }
