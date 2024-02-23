@@ -27,6 +27,7 @@ public interface WfefEstimateFeeMgtMapper {
 
     BaseHome selectBaseHome(SearchEstimateReq req);
     List<PerformanceHome> selectPerformanceHome(SearchEstimateReq req);
+    List<ServicePerformanceHome> selectServicePerformanceHome(SearchEstimateReq req);
     List<Map<String, Object>> selectEstimateHome(SearchEstimateReq req, List<ZfeyTargetPartnerConditionDvo> feeCds, String pivotColums);
     List<SaleHome> selectSaleHome(SearchEstimateReq req);
 

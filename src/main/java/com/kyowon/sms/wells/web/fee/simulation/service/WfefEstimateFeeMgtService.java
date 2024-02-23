@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -33,6 +34,10 @@ public class WfefEstimateFeeMgtService {
     public static final String P_OG_TP_CD = "W01";
     public static final String M_OG_TP_CD = "W02";
     public static final String HOME_OG_TP_CD = "W03";
+    public static final String FEE_PERF_ATC_VAL = "FEE_PERF_ATC_VAL";
+    public static final String EDUC = "EDUC";
+    public static final String METG = "METG";
+    public static final String PERF = "PERF";
 
     private final ZfeyFeeStandardService feeStandardService;
     private final ZfefFeeSmlCalculationService feeSmlCalculationService;
@@ -497,16 +502,22 @@ public class WfefEstimateFeeMgtService {
          feeSmlCalculationService.processFeeSmlCalculation(req.perfYm(), "301", req.perType(), req.sellPrtnrNo());
         List<ZfeyTargetPartnerConditionDvo> feeCds = feeStandardService.getSimulationTargetFeeCodes(req.perfYm(), HOME_OG_TP_CD, req.sellPrtnrNo());
         String pivotColumns = feeCds.stream().map(item -> "'" + item.getDtaCrtFeeCd() + "' AS " + item.getDtaCrtFeeCd()).collect(Collectors.joining(", "));
-        return new SearchHomeRes(mapper.selectBaseHome(req), mapper.selectPerformanceHome(req), mapper.selectEstimateHome(req, feeCds, pivotColumns) ,mapper.selectSaleHome(req));
+        return new SearchHomeRes(mapper.selectBaseHome(req), mapper.selectPerformanceHome(req), mapper.selectServicePerformanceHome(req), mapper.selectEstimateHome(req, feeCds, pivotColumns) ,mapper.selectSaleHome(req));
     }
 
     /**
      * 추가실적 입력 예상수수료 조회 - 홈마스터
      *
-     * 가전인정건수 : 'W03P00002', TB_FEAM_MACUP_PERF_CL
-     * 일시불 : 'W00P00080', TB_FEAM_MACUP_CNTR_PERF_CL
-     * 전체처리건 : 'W03P00085', TB_FEAM_MACUP_PERF_CL
-     * 가전처리건 : 'W03P00117', TB_FEAM_MACUP_PERF_CL
+     * 가전판매건수 : 'W03P00002', TB_FEAM_MACUP_PERF_CL
+     * 매트리스 렌탈금액 : 'W00P00031', TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성, W03P00122, W00P00005 실적 추가생성
+     * 매트리스 외 렌탈금액 : 'W03P00122', TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성, W00P00031, W00P00005 실적 추가생성
+     * 환경가전 일시불금액 : 'W00P00004', TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성, W00P00006 실적 추가생성
+     * 환경가전 외 일시불금액 : 'W00P00006', TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성, W00P00004 실적 추가생성
+     * 서비스 전체처리건 : 'W03P00085', TB_FEAM_MACUP_PERF_CL
+     * 서비스 가전처리건 : 'W03P00117', TB_FEAM_MACUP_PERF_CL
+     * 서비스 B급지처리건 : 'W03P00119', TB_FEAM_MACUP_PERF_CL
+     * 서비스 C급지처리건 : 'W03P00120', TB_FEAM_MACUP_PERF_CL
+     * 서비스 D급지처리건 : 'W03P00121', TB_FEAM_MACUP_PERF_CL
      * 교육수료 : 'W03P00111', 'W03P00112' TB_FEAM_PRTNR_PERF_MM_ACU_CL
      *
      * @param req
@@ -521,11 +532,13 @@ public class WfefEstimateFeeMgtService {
             String perfAgrgCrtDvCd = getPerfAgrgCrtDvCd(req.perType());
             addPerformances.keySet().forEach(keyName -> {
                 switch(keyName) {
-                    /* 가전인정건수, 전체처리건, 가전처리건 */
-                    case "W03P00002":
-                    case "W03P00085":
-                    case "W03P00117":
-                        /* 가전인정건수, 전체처리건, 가전처리건로 파트너단위 업데이트 */
+                    case "W03P00002": /* 가전판매건수 */
+                    case "W03P00085": /* 서비스 전체처리건수 */
+                    case "W03P00117": /* 서비스 가전처리건수 */
+                    case "W03P00119": /* 서비스 B급지처리건수 */
+                    case "W03P00120": /* 서비스 C급지처리건수 */
+                    case "W03P00121": /* 서비스 D급지처리건수 */
+                        /* 파트너단위 업데이트 */
                         feeSmlCalculationService.saveMacupPerfCl(ZfefMacupPerfClDvo.builder()
                                 .mmAcuPerfAgrgCrtDvCd(req.perType())
                                 .baseYm(req.perfYm())
@@ -535,8 +548,20 @@ public class WfefEstimateFeeMgtService {
                                 .perfAtcCd(keyName)
                                 .perfVal((Integer)addPerformances.get(keyName)).build());
                         break;
-                    /* 일시불 */
-                    case "W00P00080":
+                    case "W00P00031": /* 매트리스 렌탈금액 */
+                    case "W03P00122": /* 매트리스 외 렌탈금액 */
+                    case "W00P00004": /* 매트리스 렌탈금액 */
+                    case "W00P00006": /* 매트리스 외 렌탈금액 */
+                        List<String> addPerfAtcCds = new ArrayList<>();
+                        if("W00P00031".equals(keyName)) {
+                            addPerfAtcCds.addAll(Arrays.asList("W03P00122", "W00P00005"));
+                        } else if("W03P00122".equals(keyName)) {
+                            addPerfAtcCds.addAll(Arrays.asList("W00P00031", "W00P00005"));
+                        } else if("W00P00004".equals(keyName)) {
+                            addPerfAtcCds.addAll(Arrays.asList("W00P00006"));
+                        } else if("W00P00006".equals(keyName)) {
+                            addPerfAtcCds.addAll(Arrays.asList("W00P00004"));
+                        }
                         /* 일시불로 DUMMY 계약으로 INSERT */
                         feeSmlCalculationService.saveMacupCntrPerf(ZfefMacupCntrPerfDvo.builder()
                                 .mmAcuPerfAgrgCrtDvCd(req.perType())
@@ -546,11 +571,10 @@ public class WfefEstimateFeeMgtService {
                                 .prtnrNo(req.sellPrtnrNo())
                                 .hooPrtnrNo(req.sellPrtnrNo())
                                 .perfAtcCd(keyName)
-                                .perfVal((Integer)addPerformances.get(keyName)).build());
+                                .perfVal((Integer)addPerformances.get(keyName)).build(), addPerfAtcCds);
                         break;
-                    /* 교육수료 SUM */
-                    case "W03P00111":
-                    case "W03P00112":
+                    case "W03P00111": /* 신입교육수료 */
+                    case "W03P00112": /* 동행교육수료 */
                         /* 신입교육, 동행교육 파트너 실적으로 업데이트 */
                         feeSmlCalculationService.savePrtnrPerfMmAcuCl(ZfefPrtnrPerfMmAcuClDvo.builder()
                                 .mmAcuPerfAgrgCrtDvCd(req.perType())
@@ -611,37 +635,37 @@ public class WfefEstimateFeeMgtService {
              switch (qlfDvCd) {
                  /* 프리매니저 */
                  case "2":
-                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type("METG").perfAtcCd("W02P00001").perfColNm("FEE_PERF_ATC_VAL").eduCd("").build());
-                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type("EDUC").perfAtcCd("W02P00115").perfColNm("FEE_PERF_ATC_VAL").eduCd("96").build());
-                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type("EDUC").perfAtcCd("W02P00116").perfColNm("FEE_PERF_ATC_VAL").eduCd("129").build());
-                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type("EDUC").perfAtcCd("W02P00117").perfColNm("FEE_PERF_ATC_VAL").eduCd("143").build());
+                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type(METG).perfAtcCd("W02P00001").perfColNm(FEE_PERF_ATC_VAL).eduCd("").build());
+                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type(EDUC).perfAtcCd("W02P00115").perfColNm(FEE_PERF_ATC_VAL).eduCd("96").build());
+                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type(EDUC).perfAtcCd("W02P00116").perfColNm(FEE_PERF_ATC_VAL).eduCd("129").build());
+                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type(EDUC).perfAtcCd("W02P00117").perfColNm(FEE_PERF_ATC_VAL).eduCd("143").build());
                      break;
                  /* BS프리매니저 */
                  case "6":
-                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type("METG").perfAtcCd("W02P00001").perfColNm("FEE_PERF_ATC_VAL").eduCd("").build());
-                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type("EDUC").perfAtcCd("W02P00115").perfColNm("FEE_PERF_ATC_VAL").eduCd("96").build());
-                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type("EDUC").perfAtcCd("W02P00116").perfColNm("FEE_PERF_ATC_VAL").eduCd("129").build());
-                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type("EDUC").perfAtcCd("W02P00117").perfColNm("FEE_PERF_ATC_VAL").eduCd("143").build());
-                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type("EDUC").perfAtcCd("W02P00127").perfColNm("FEE_PERF_ATC_VAL").eduCd("144").build());
-                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type("EDUC").perfAtcCd("W02P00128").perfColNm("FEE_PERF_ATC_VAL").eduCd("145").build());
-                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type("EDUC").perfAtcCd("W02P00129").perfColNm("FEE_PERF_ATC_VAL").eduCd("146").build());
-                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type("EDUC").perfAtcCd("W02P00130").perfColNm("FEE_PERF_ATC_VAL").eduCd("147").build());
-                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type("EDUC").perfAtcCd("W02P00131").perfColNm("FEE_PERF_ATC_VAL").eduCd("148").build());
+                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type(METG).perfAtcCd("W02P00001").perfColNm(FEE_PERF_ATC_VAL).eduCd("").build());
+                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type(EDUC).perfAtcCd("W02P00115").perfColNm(FEE_PERF_ATC_VAL).eduCd("96").build());
+                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type(EDUC).perfAtcCd("W02P00116").perfColNm(FEE_PERF_ATC_VAL).eduCd("129").build());
+                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type(EDUC).perfAtcCd("W02P00117").perfColNm(FEE_PERF_ATC_VAL).eduCd("143").build());
+                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type(EDUC).perfAtcCd("W02P00127").perfColNm(FEE_PERF_ATC_VAL).eduCd("144").build());
+                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type(EDUC).perfAtcCd("W02P00128").perfColNm(FEE_PERF_ATC_VAL).eduCd("145").build());
+                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type(EDUC).perfAtcCd("W02P00129").perfColNm(FEE_PERF_ATC_VAL).eduCd("146").build());
+                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type(EDUC).perfAtcCd("W02P00130").perfColNm(FEE_PERF_ATC_VAL).eduCd("147").build());
+                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type(EDUC).perfAtcCd("W02P00131").perfColNm(FEE_PERF_ATC_VAL).eduCd("148").build());
                      break;
                  /* 웰스매니저 */
                  case "3":
-                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type("METG").perfAtcCd("W02P00001").perfColNm("FEE_PERF_ATC_VAL").eduCd("").build());
-                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type("EDUC").perfAtcCd("W02P00115").perfColNm("FEE_PERF_ATC_VAL").eduCd("96").build());
-                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type("EDUC").perfAtcCd("W02P00116").perfColNm("FEE_PERF_ATC_VAL").eduCd("129").build());
-                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type("EDUC").perfAtcCd("W02P00117").perfColNm("FEE_PERF_ATC_VAL").eduCd("143").build());
-                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type("EDUC").perfAtcCd("W02P00124").perfColNm("FEE_PERF_ATC_VAL").eduCd("4").build());
-                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type("EDUC").perfAtcCd("W02P00125").perfColNm("FEE_PERF_ATC_VAL").eduCd("119").build());
-                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type("EDUC").perfAtcCd("W02P00126").perfColNm("FEE_PERF_ATC_VAL").eduCd("140").build());
+                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type(METG).perfAtcCd("W02P00001").perfColNm(FEE_PERF_ATC_VAL).eduCd("").build());
+                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type(EDUC).perfAtcCd("W02P00115").perfColNm(FEE_PERF_ATC_VAL).eduCd("96").build());
+                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type(EDUC).perfAtcCd("W02P00116").perfColNm(FEE_PERF_ATC_VAL).eduCd("129").build());
+                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type(EDUC).perfAtcCd("W02P00117").perfColNm(FEE_PERF_ATC_VAL).eduCd("143").build());
+                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type(EDUC).perfAtcCd("W02P00124").perfColNm(FEE_PERF_ATC_VAL).eduCd("4").build());
+                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type(EDUC).perfAtcCd("W02P00125").perfColNm(FEE_PERF_ATC_VAL).eduCd("119").build());
+                     meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type(EDUC).perfAtcCd("W02P00126").perfColNm(FEE_PERF_ATC_VAL).eduCd("140").build());
                      break;
              }
          } else {
-             meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type("EDUC").perfAtcCd("W02P00120").perfColNm("FEE_PERF_ATC_VAL").eduCd("135").build());
-             meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type("PERF").perfAtcCd("W02P00111").perfColNm("PERF_VAL").eduCd("").build());
+             meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type(EDUC).perfAtcCd("W02P00120").perfColNm(FEE_PERF_ATC_VAL).eduCd("135").build());
+             meetingPerfAtcCds.add(WfebGridMetgDvo.builder().type(PERF).perfAtcCd("W02P00111").perfColNm("PERF_VAL").eduCd("").build());
          }
 
          return meetingPerfAtcCds;
