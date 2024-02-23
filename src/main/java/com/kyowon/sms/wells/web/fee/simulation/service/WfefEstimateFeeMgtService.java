@@ -298,7 +298,8 @@ public class WfefEstimateFeeMgtService {
      * 일시불기준가(조직) : W00P00004_2, TB_FEAM_MACUP_CNTR_PERF_CL, 지점장 소속 플래너로 생성, W00P00003_2, W00P00005_2 동일계약번호로 0원 추가
      * 가전외인정실적(개인) : W02P00112_0, TB_FEAM_MACUP_CNTR_PERF_CL, 본인실적으로 생성, W00P00007_0 동일계약번호로 0원 추가
      * 가전외인정실적(조직) : W02P00112_2, TB_FEAM_MACUP_CNTR_PERF_CL, 지점장 소속 플래너로 생성, W00P00007_2 동일계약번호로 0원 추가
-     * 순증(조직) : W02P00113_2, TB_FEAM_MACUP_CNTR_PERF_CL, 지점장 소속 플래너로 생성
+     * 순증(개인) : W02P00113_0, TB_FEAM_MACUP_PERF_CL, 본인실적으로 생성
+     * 순증(조직) : W02P00113_2, TB_FEAM_MACUP_PERF_CL, 지점장 조직실적으로 생성
      * BS관리수수료기준금액 : W02P00096, TB_FEAM_MACUP_PERF_CL, 각 상품별 완료건수 * 기준금액의 합
      *                     BS정수기1완료건수(7000원), BS정수기2완료건수(8000원), BS정수기3완료건수(8500원), BS정수기4완료건수(10000원)
      *                   , BS비정수기완료건수(5000원), BS청정기1완료건수(6300원), BS청정기2완료건수(6700원), BS아웃소싱류완료건수(6500원)
@@ -423,9 +424,8 @@ public class WfefEstimateFeeMgtService {
                                 .perfAtcCd(keyName.split("_")[0])
                                 .perfVal((Integer)addPerformances.get(keyName)).build(), addOgPerfAtcCds);
                         break;
-                    /* 가전인정건수(조직), 순증(조직) */
+                    /* 가전인정건수(조직) */
                     case "W02P00002_2":
-                    case "W02P00113_2":
                         /* 가전인정건수(조직), 순증(조직)로 DUMMY 계약으로 INSERT */
                         feeSmlCalculationService.saveMacupCntrPerf(ZfefMacupCntrPerfDvo.builder()
                                 .mmAcuPerfAgrgCrtDvCd(req.perType())
@@ -452,6 +452,8 @@ public class WfefEstimateFeeMgtService {
                     case "W02P00085_0": // BS실적건수(개인)
                     case "W02P00085_2": // Bs실적건수(조직)
                     case "W02P00098_0": // 차월배정건수
+                    case "W02P00113_0": // 순증 본인
+                    case "W02P00113_2": // 순증 조직
                         feeSmlCalculationService.saveMacupPerfCl(ZfefMacupPerfClDvo.builder()
                                 .mmAcuPerfAgrgCrtDvCd(req.perType())
                                 .baseYm(req.perfYm())
