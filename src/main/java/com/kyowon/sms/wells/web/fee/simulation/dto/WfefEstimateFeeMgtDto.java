@@ -171,12 +171,22 @@ public class WfefEstimateFeeMgtDto {
 
     public record PerformanceHome(
         String type, // 구분
-        Integer elhmAckmtCt,
-        Long amtSpayHcr,
-        Integer allProcCt,
-        Integer elhmProcCt,
+        Integer elhmSellCt,
+        Long mattRentalAmt,
+        Long mattExcpRentalAmt,
+        Long envrElhmSpayAmt,
+        Long envrElhmExcpSpayAmt,
         String nwcmrEducYn,
         String acpnEducYn
+    ) {}
+
+    public record ServicePerformanceHome(
+        String type, // 구분
+        Integer woProcsCt,
+        Integer elhmProcsCt,
+        Integer bRglvlProcsCt,
+        Integer cRglvlProcsCt,
+        Integer dRglvlProcsCt
     ) {}
 
     public record SaleHome(
@@ -197,6 +207,7 @@ public class WfefEstimateFeeMgtDto {
     public record SearchHomeRes(
         BaseHome base,
         List<PerformanceHome> performances,
+        List<ServicePerformanceHome> servicePerformances,
         List<Map<String, Object>> estimates,
         List<SaleHome> sales
     ) {}

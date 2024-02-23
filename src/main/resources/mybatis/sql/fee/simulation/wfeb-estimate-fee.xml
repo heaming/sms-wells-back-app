@@ -762,36 +762,45 @@
                                        AND BASE_YM = #{req.perfYm}
                                        AND OG_TP_CD = 'W03'
                                        AND PRTNR_NO = #{req.sellPrtnrNo}
-                                       AND PERF_ATC_CD = 'W03P00002' /* 가전인정건수 */
+                                       AND PERF_ATC_CD = 'W03P00002' /* 가전판매건수 */
                                        AND PERF_DV_CD = '0'
-                                       AND ROWNUM = 1), 0)  AS ELHM_ACKMT_CT
+                                       AND ROWNUM = 1), 0)  AS ELHM_SELL_CT
                                  , NVL((SELECT PERF_VAL
                                       FROM TB_FEAM_MACUP_PERF_CL
                                      WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
                                        AND BASE_YM = #{req.perfYm}
                                        AND OG_TP_CD = 'W03'
                                        AND PRTNR_NO = #{req.sellPrtnrNo}
-                                       AND PERF_ATC_CD = 'W00P00080' /* 일시불 */
+                                       AND PERF_ATC_CD = 'W00P00031' /* 매트리스 렌탈금액 */
                                        AND PERF_DV_CD = '0'
-                                       AND ROWNUM = 1), 0)  AS AMT_SPAY_HCR
+                                       AND ROWNUM = 1), 0)  AS MATT_RENTAL_AMT
                                  , NVL((SELECT PERF_VAL
                                       FROM TB_FEAM_MACUP_PERF_CL
                                      WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
                                        AND BASE_YM = #{req.perfYm}
                                        AND OG_TP_CD = 'W03'
                                        AND PRTNR_NO = #{req.sellPrtnrNo}
-                                       AND PERF_ATC_CD = 'W03P00085' /* 전체처리건 */
+                                       AND PERF_ATC_CD = 'W03P00122' /* 매트리스 외 렌탈금액 */
                                        AND PERF_DV_CD = '0'
-                                       AND ROWNUM = 1), 0)  AS ALL_PROC_CT
+                                       AND ROWNUM = 1), 0)  AS MATT_EXCP_RENTAL_AMT
                                  , NVL((SELECT PERF_VAL
                                       FROM TB_FEAM_MACUP_PERF_CL
                                      WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
                                        AND BASE_YM = #{req.perfYm}
                                        AND OG_TP_CD = 'W03'
                                        AND PRTNR_NO = #{req.sellPrtnrNo}
-                                       AND PERF_ATC_CD = 'W03P00117' /* 가전처리건 */
+                                       AND PERF_ATC_CD = 'W00P00004' /* 환경가전 일시불금액 */
                                        AND PERF_DV_CD = '0'
-                                       AND ROWNUM = 1), 0)  AS ELHM_PROC_CT
+                                       AND ROWNUM = 1), 0)  AS ENVR_ELHM_SPAY_AMT
+                                 , NVL((SELECT PERF_VAL
+                                      FROM TB_FEAM_MACUP_PERF_CL
+                                     WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
+                                       AND BASE_YM = #{req.perfYm}
+                                       AND OG_TP_CD = 'W03'
+                                       AND PRTNR_NO = #{req.sellPrtnrNo}
+                                       AND PERF_ATC_CD = 'W00P00006' /* 환경가전 외 일시불금액 */
+                                       AND PERF_DV_CD = '0'
+                                       AND ROWNUM = 1), 0)  AS ENVR_ELHM_EXCP_SPAY_AMT
                                  , NVL((SELECT FEE_PERF_ATC_VAL
                                       FROM TB_FEAM_PRTNR_PERF_MM_ACU_CL
                                      WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
@@ -810,21 +819,87 @@
                                        AND ROWNUM = 1), 'N')  AS ACPN_EDUC_YN
                             FROM DUAL)
         SELECT 'A' AS TYPE
-             , ELHM_ACKMT_CT /* 가전인정건수 */
-             , AMT_SPAY_HCR /* 일시불       */
-             , ALL_PROC_CT /* 전체처리건   */
-             , ELHM_PROC_CT /* 가전처리건   */
+             , ELHM_SELL_CT /* 가전판매건수 */
+             , MATT_RENTAL_AMT /* 매트리스 렌탈금액       */
+             , MATT_EXCP_RENTAL_AMT /* 매트리스 외 렌탈금액   */
+             , ENVR_ELHM_SPAY_AMT /* 환경가전 일시불금액   */
+             , ENVR_ELHM_EXCP_SPAY_AMT /* 환경가전 외 일시불금액   */
              , NWCMR_EDUC_YN /* 신입교육 수료  */
              , ACPN_EDUC_YN /* 동행교육 수료  */
           FROM INDV_PERF
         UNION ALL
         SELECT 'B' AS TYPE
-             , ELHM_ACKMT_CT /* 가전인정건수 */
-             , AMT_SPAY_HCR /* 일시불       */
-             , ALL_PROC_CT /* 전체처리건   */
-             , ELHM_PROC_CT /* 가전처리건   */
+             , ELHM_SELL_CT /* 가전판매건수 */
+             , MATT_RENTAL_AMT /* 매트리스 렌탈금액       */
+             , MATT_EXCP_RENTAL_AMT /* 매트리스 외 렌탈금액   */
+             , ENVR_ELHM_SPAY_AMT /* 환경가전 일시불금액   */
+             , ENVR_ELHM_EXCP_SPAY_AMT /* 환경가전 외 일시불금액   */
              , NWCMR_EDUC_YN /* 신입교육 수료  */
              , ACPN_EDUC_YN /* 동행교육 수료  */
+          FROM INDV_PERF
+    </select>
+
+    <select id="selectServicePerformanceHome" resultType="com.kyowon.sms.wells.web.fee.simulation.dto.WfefEstimateFeeMgtDto$ServicePerformanceHome">
+        WITH INDV_PERF AS (SELECT NVL((SELECT PERF_VAL
+                                      FROM TB_FEAM_MACUP_PERF_CL
+                                     WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
+                                       AND BASE_YM = #{req.perfYm}
+                                       AND OG_TP_CD = 'W03'
+                                       AND PRTNR_NO = #{req.sellPrtnrNo}
+                                       AND PERF_ATC_CD = 'W03P00085' /* 전체처리건수 */
+                                       AND PERF_DV_CD = '0'
+                                       AND ROWNUM = 1), 0)  AS WO_PROCS_CT
+                                 , NVL((SELECT PERF_VAL
+                                      FROM TB_FEAM_MACUP_PERF_CL
+                                     WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
+                                       AND BASE_YM = #{req.perfYm}
+                                       AND OG_TP_CD = 'W03'
+                                       AND PRTNR_NO = #{req.sellPrtnrNo}
+                                       AND PERF_ATC_CD = 'W03P00117' /* 가전처리건수 */
+                                       AND PERF_DV_CD = '0'
+                                       AND ROWNUM = 1), 0)  AS ELHM_PROCS_CT
+                                 , NVL((SELECT PERF_VAL
+                                      FROM TB_FEAM_MACUP_PERF_CL
+                                     WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
+                                       AND BASE_YM = #{req.perfYm}
+                                       AND OG_TP_CD = 'W03'
+                                       AND PRTNR_NO = #{req.sellPrtnrNo}
+                                       AND PERF_ATC_CD = 'W03P00119' /* B급지처리건수 */
+                                       AND PERF_DV_CD = '0'
+                                       AND ROWNUM = 1), 0)  AS B_RGLVL_PROCS_CT
+                                 , NVL((SELECT PERF_VAL
+                                      FROM TB_FEAM_MACUP_PERF_CL
+                                     WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
+                                       AND BASE_YM = #{req.perfYm}
+                                       AND OG_TP_CD = 'W03'
+                                       AND PRTNR_NO = #{req.sellPrtnrNo}
+                                       AND PERF_ATC_CD = 'W03P00120' /* C급지처리건수 */
+                                       AND PERF_DV_CD = '0'
+                                       AND ROWNUM = 1), 0)  AS C_RGLVL_PROCS_CT
+                                 , NVL((SELECT PERF_VAL
+                                      FROM TB_FEAM_MACUP_PERF_CL
+                                     WHERE MM_ACU_PERF_AGRG_CRT_DV_CD = #{req.perType}
+                                       AND BASE_YM = #{req.perfYm}
+                                       AND OG_TP_CD = 'W03'
+                                       AND PRTNR_NO = #{req.sellPrtnrNo}
+                                       AND PERF_ATC_CD = 'W03P00121' /* D급지처리건수 */
+                                       AND PERF_DV_CD = '0'
+                                       AND ROWNUM = 1), 0)  AS D_RGLVL_PROCS_CT
+                            FROM DUAL)
+        SELECT 'A' AS TYPE
+             , WO_PROCS_CT /* 전체처리건수 */
+             , ELHM_PROCS_CT /* 전체처리건수 */
+             , B_RGLVL_PROCS_CT /* B급지처리건수 */
+             , C_RGLVL_PROCS_CT /* C급지처리건수 */
+             , D_RGLVL_PROCS_CT /* D급지처리건수 */
+          FROM INDV_PERF
+        UNION ALL
+        SELECT 'B' AS TYPE
+             , WO_PROCS_CT /* 전체처리건수 */
+             , ELHM_PROCS_CT /* 전체처리건수 */
+             , B_RGLVL_PROCS_CT /* B급지처리건수 */
+             , C_RGLVL_PROCS_CT /* C급지처리건수 */
+             , D_RGLVL_PROCS_CT /* D급지처리건수 */
           FROM INDV_PERF
     </select>
 
