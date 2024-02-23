@@ -27,4 +27,11 @@ public interface WwdbVirtualAccountDepositInterfaceMapper {
      * @return
      */
     int updateVirtualAccountSettleBankDepositFinish(SearchReq dto);
+
+    /**
+     * KICC 가상계좌 입금 완료 후 가상계좌 해지 처리
+     * @param dto
+     * @return
+     */
+    int updateVirtualAccountKiccDepositFinish(SearchReq dto);
 }
