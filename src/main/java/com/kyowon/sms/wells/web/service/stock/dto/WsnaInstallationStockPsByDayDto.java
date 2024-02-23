@@ -20,7 +20,8 @@ public class WsnaInstallationStockPsByDayDto {
         String baseDt,
         String pdGdCd,
         String itmKndCd,
-        String pdCd,
+        String itmPdCd,
+        String itmGrpCd,
         String svCnr
     ) {}
 
