@@ -18,7 +18,8 @@ public class WsnaStoreNaprvStateDto {
         String strWareDvCd,
         String strWareNoM,
         String strWareNoD,
-        String wareDtlDvCd
+        String wareDtlDvCd,
+        String strTpCd
     ) {}
 
     @ApiModel(value = "WsnaStoreNaprvStateDto-SearchRes")
