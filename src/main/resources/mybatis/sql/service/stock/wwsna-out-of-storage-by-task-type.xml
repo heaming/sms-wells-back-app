@@ -13,20 +13,51 @@
     </select>
 
     <select id="selectOutOfStorageByTaskType" resultType="camelMap">
-        WITH PD_INF AS ( SELECT T1.PD_CD
+        WITH PD_PRC AS (  SELECT *
+                            FROM ( SELECT MTRL_CD
+                                        , PLANT
+                                        , SHEET_YM
+                                        , STANDARD_COST
+                                        , PLANT_PRIORITY
+                                        , RANK () OVER (PARTITION BY MTRL_CD ORDER BY PLANT_PRIORITY, SHEET_YM DESC) AS RN
+                                    FROM ( SELECT MTRL_CD
+                                                , PLANT
+                                                , MAX(SHEET_YM) AS SHEET_YM
+                                                , NVL(STOCK_COST,0) AS STANDARD_COST    /*22.06.17 김인수 파트장님 확인, 표준원가는 임시개념이라, 실제 원가를 쓰는게 맞다고 답변 받음*/
+                                                , (CASE WHEN PLANT = '2106' THEN 1  /*2106 합병후 교원웰스본사*/
+                                                        WHEN PLANT = '2108' THEN 2  /*2108 합병후 교원파주물류 */
+                                                        WHEN PLANT = '1102' THEN 3  /*1102 합병전 교원웰스본사*/
+                                                        WHEN PLANT = '1308' THEN 4  /*1308 합병전 교원파주물류 */
+                                                        ELSE 5
+                                                END) AS PLANT_PRIORITY /*우선순위*/
+                            FROM TB_IFIN_SAP_BI_WIP_PS_RCV_ETXT
+                            WHERE 1=1
+                            AND PLANT IN ('1102', '2106'  --1102 합병전 교원웰스본사, 2106 합병후 교원웰스본사
+                            , '1308', '2108'
+                            )
+                            GROUP BY MTRL_CD, PLANT, STOCK_COST
+                            )
+                            ORDER BY MTRL_CD
+                            )
+                            WHERE 1=1
+                            AND RN = '1'
+        )
+          ,  PD_INF AS ( SELECT T1.PD_CD
                               , T1.PD_ABBR_NM AS PD_NM
                               , T2.PD_PRP_VAL19 AS ITM_KND_CD
                               , T2.PD_PRP_VAL20 AS PD_GRP_CD
                               , T2.PD_PRP_VAL04	AS LP_USE_YN
                               , T2.PD_PRP_VAL17 AS MAT_MNGT_DV_CD
                               , T2.PD_PRP_VAL30 AS TRNOVR_RT_OJ_YN
-                              , T1.PDCT_UPRC
+                              , STANDARD_COST AS PDCT_UPRC
                               , T1.SAP_MAT_CD
                               , T2.PD_PRP_VAL21 AS CMN_PART_DV_CD /* 중수리 01 */
                               , T2.PD_PRP_VAL15 AS ORDNY_HV_MAT_YN /* 기초자재 Y 상시보유 */
                               , T1.SELL_YN
                               , T2.PD_PRP_VAL36 AS SV_MAT_GRP_CD
                            FROM WSMDBS.TB_PDBS_PD_BAS T1 /*상품기본*/
+                LEFT OUTER JOIN PD_PRC
+                             ON TO_NUMBER(T1.SAP_MAT_CD) = TO_NUMBER(PD_PRC.MTRL_CD)
                 LEFT OUTER JOIN WSMDBS.TB_PDBS_PD_ECOM_PRP_DTL T2  /*상품각사속성상세*/
                             ON T1.PD_CD = T2.PD_CD
                             AND T2.PD_EXTS_PRP_GRP_CD IN ('PART')
