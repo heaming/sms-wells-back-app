@@ -26,7 +26,15 @@ public class WsnaOutOfStorageByTaskTypeDto {
         String itmPdCdFrom,
         String itmPdCdTo,
         String pdGdCd,
-        String useSel
+        String useSel,
+        String itmGrpCd,
+        String svMatGrpCd
+    ) {}
+
+    @ApiModel(value = "WsnaOutOfStorageByTaskTypeDto-SearchReq")
+    public record WareField(
+        String wareNo,
+        String wareNm
     ) {}
 
     @ApiModel(value = "WsnaOutOfStorageByTaskTypeDto-SearchRes")
@@ -64,5 +72,11 @@ public class WsnaOutOfStorageByTaskTypeDto {
         Integer typ200934,
         Integer typ201064,
         Integer typ999999
+    ) {}
+
+    @ApiModel(value = "WsnaOutOfStorageByTaskTypeDto-Warehouses")
+    public record Warehouses(
+        String wareNo,
+        String wareNm
     ) {}
 }
