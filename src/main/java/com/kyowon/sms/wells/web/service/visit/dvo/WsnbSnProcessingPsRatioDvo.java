@@ -14,6 +14,8 @@ public class WsnbSnProcessingPsRatioDvo {
     Long curMmReScan;
     Long handTotal;
     Long curMmReHand;
+    Long reReqTotal;
+    Long curMmReReq;
     Long yetProcs;
     Long curMmReYetProcs;
     Long stpTotal;

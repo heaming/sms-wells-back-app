@@ -27,7 +27,7 @@
             , PD_INF.SAP_MAT_CD
             , PD_INF.PD_CD
             , PD_INF.PD_NM
-            , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', B2.SELL_TP_CD, 'ko') AS SELL_TP_CD
+            , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T1.SELL_TP_CD, 'ko') AS SELL_TP_CD
             , A1.NEW_ADR_ZIP
             , A1.RNADR||' '||A1.RDADR AS ADDR
             , F_CMZ_CD_NM('TNT_WELLS', 'SV_BIZ_DCLSF_CD', S1.SV_BIZ_DCLSF_CD, 'ko') AS SV_BIZ_DCLSF_CD
@@ -53,6 +53,10 @@
           ON S1.CNTR_NO  = S2.CNTR_NO
          AND S1.CNTR_SN = S2.CNTR_SN
          AND S1.ASN_OJ_YM = SUBSTR(#{startDt},1,6)
+  INNER JOIN WSMDBS.TB_SSCT_CNTR_DTL T1 /* 계약상세 */
+          ON S1.CNTR_NO = T1.CNTR_NO
+         AND S1.CNTR_SN = T1.CNTR_SN
+         AND T1.DTA_DL_YN = 'N'
   INNER JOIN TB_SSCT_CNTR_ADR_REL T3 /*계약주소관계*/
           ON S1.CNTR_NO = T3.DTL_CNTR_NO
          AND S1.CNTR_SN = T3.DTL_CNTR_SN
@@ -66,14 +70,14 @@ LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS A1
           ON T4.ADR_ID = A1.ADR_ID   /*이해욱이사님,이진성프로님과 협의 설치, AS는 배정시에 주소를 사용 해야 하기 때문에 TB_SVPD_CST_SVAS_IST_OJ_IZ 에 ADR_ID 를 추가 하기로 함. 테이블이 변경 되면, T4.ADR_ID 를 T1.ADR_ID 으로 수정 해야 함*/
          AND A1.DTA_DL_YN = 'N'
   INNER JOIN ( SELECT T1.PD_CD
-                    , T1.PD_NM
+                    , T1.PD_ABBR_NM AS PD_NM
                     , T2.PD_PRP_VAL19 AS ITM_KND_CD
                     , T2.PD_PRP_VAL20 AS PD_GRP_CD
                     , T2.PD_PRP_VAL04  AS LP_USE_YN
                     /* , T2.PD_PRP_VAL17 AS MAT_MNGT_DV_CD */
                     , F_CMZ_CD_NM('TNT_WELLS', 'MAT_MNGT_DV_CD', T2.PD_PRP_VAL17, 'ko') AS MAT_MNGT_DV_CD
                     , T1.PDCT_UPRC
-                    , T1.SAP_MAT_CD
+                    , TO_NUMBER(T1.SAP_MAT_CD) AS SAP_MAT_CD
                     , T2.PD_PRP_VAL30 AS TRNOVR_RT_OJ_YN
                     , T2.PD_PRP_VAL21 AS CMN_PART_DV_CD /* 중수리 01 */
                     , T2.PD_PRP_VAL15 AS ORDNY_HV_MAT_YN /* 기초자재 Y 상시보유 */
@@ -159,28 +163,30 @@ LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S3 /* 고객서비스작업결과내역 
         <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
         AND S1.CNFM_PSIC_PRTNR_NO =  #{prtnrNo}
         </if>
-        ORDER BY P1.OG_CD
+        ORDER BY S1.CNTR_NO
         </select>
 
     <select id="selectSnProcessingPsRatio" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbSnProcessingPsDto$SearchRatio">
         SELECT SUM(NVL(BS_CNTR_TOTAL,0)) AS BS_CNTR_TOTAL /* BS 전체 */
              , NVL(SUM(CUR_MM_RE),0) AS CUR_MM_RE /* 당월 바코드 재발행 */
-             , NVL(SUM(PROCS_TOTAL),0) AS PROCS_TOTAL
-             , NVL(SUM(CUR_MM_RE_PROCS),0) AS CUR_MM_RE_PROCS
-             , NVL(SUM(SCAN_TOTAL),0) AS SCAN_TOTAL
-             , NVL(SUM(CUR_MM_RE_SCAN),0) AS CUR_MM_RE_SCAN
-             , NVL(SUM(HAND_TOTAL),0) AS HAND_TOTAL
-             , NVL(SUM(CUR_MM_RE_HAND), 0) AS CUR_MM_RE_HAND
-             , NVL(SUM(YET_PROCS), 0) AS YET_PROCS
-             , NVL(SUM(CUR_MM_RE_YET_PROCS),0) AS CUR_MM_RE_YET_PROCS
-             , NVL(SUM(STP_TOTAL),0) AS STP_TOTAL
-             , NVL(SUM(CUR_MM_RE_STP), 0) AS CUR_MM_RE_STP
-             , (CASE WHEN NVL(SUM(BS_CNTR_TOTAL) - NVL(SUM(STP_TOTAL),0),0) &gt; 0 THEN ROUND( (NVL(SUM(PROCS_TOTAL),0) / NVL(SUM(BS_CNTR_TOTAL) - NVL(SUM(STP_TOTAL),0),0))*100, 2) ELSE 0 END) AS RAT_PROCS_TOTAL /* 전체 처리율 */
-             , (CASE WHEN NVL(SUM(CUR_MM_RE) - NVL(SUM(CUR_MM_RE_STP),0),0) &gt; 0 THEN ROUND( NVL(SUM(CUR_MM_RE_PROCS),0) / (NVL(SUM(CUR_MM_RE) - NVL(SUM(CUR_MM_RE_STP),0),0))*100, 2) ELSE 0 END) AS RAT_RE_PROCS /* 재발행 처리율 */
-             , (CASE WHEN NVL(SUM(BS_CNTR_TOTAL) - NVL(SUM(STP_TOTAL),0),0) &gt; 0 THEN ROUND( ((NVL(SUM(SCAN_TOTAL),0) + NVL(SUM(HAND_TOTAL),0)) / NVL(SUM(BS_CNTR_TOTAL) - NVL(SUM(STP_TOTAL),0),0))*100, 2) ELSE 0 END) AS RAT_STICK_TOTAL /* 전체 부착율 */
-             , (CASE WHEN NVL(SUM(CUR_MM_RE) - NVL(SUM(CUR_MM_RE_STP),0),0) &gt; 0 THEN ROUND( ( (NVL(SUM(CUR_MM_RE_SCAN),0) + NVL(SUM(CUR_MM_RE_HAND),0)) / NVL(SUM(CUR_MM_RE) - NVL(SUM(CUR_MM_RE_STP),0),0))*100 , 2) ELSE 0 END) AS RAT_RE_STICK /* 재발행 부착율 */
-             , (CASE WHEN NVL(SUM(PROCS_TOTAL),0) &gt; 0 THEN ROUND(( NVL( SUM(SCAN_TOTAL),0 ) / NVL(SUM(PROCS_TOTAL),0))*100 , 2) ELSE 0 END) AS RAT_SCAN_TOTAL /* 전체 스캔율 */
-             , (CASE WHEN NVL(SUM(CUR_MM_RE_PROCS),0) &gt; 0 THEN ROUND( (NVL(SUM(CUR_MM_RE_SCAN),0) / NVL(SUM(CUR_MM_RE_PROCS),0) )*100 , 2) ELSE 0 END) AS RAT_RE_SCAN /* 재발행 스캔율 */
+             , NVL(SUM(PROCS_TOTAL),0) AS PROCS_TOTAL /* 전체 중 처리 */
+             , NVL(SUM(CUR_MM_RE_PROCS),0) AS CUR_MM_RE_PROCS /* 당월 재발행 중 처리 */
+             , NVL(SUM(SCAN_TOTAL),0) AS SCAN_TOTAL /* 스캔 전체 */
+             , NVL(SUM(CUR_MM_RE_SCAN),0) AS CUR_MM_RE_SCAN /* 당월 재발행 중 스캔 */
+             , NVL(SUM(HAND_TOTAL),0) AS HAND_TOTAL /* 전체 중 수기 */
+             , NVL(SUM(CUR_MM_RE_HAND), 0) AS CUR_MM_RE_HAND /* 당월 재발행 중 수기 */
+             , NVL(SUM(RE_REQ), 0) AS RE_REQ_TOTAL /* 전체 중 신청 */
+             , NVL(SUM(CUR_MM_RE_REQ), 0) AS CUR_MM_RE_REQ /* 당월 재발행 중 신청 */
+             , NVL(SUM(YET_PROCS), 0) AS YET_PROCS /* 전체 미처리 */
+             , NVL(SUM(CUR_MM_RE_YET_PROCS),0) AS CUR_MM_RE_YET_PROCS /* 당월 재발행 중 미처리 */
+             , NVL(SUM(STP_TOTAL),0) AS STP_TOTAL /* 중지 */
+             , NVL(SUM(CUR_MM_RE_STP), 0) AS CUR_MM_RE_STP /* 당월 재발행 중 중지 */
+             , (CASE WHEN NVL(SUM(BS_CNTR_TOTAL) - NVL(SUM(STP_TOTAL),0),0) > 0 THEN ROUND( (NVL(SUM(PROCS_TOTAL),0) / NVL(SUM(BS_CNTR_TOTAL) - NVL(SUM(STP_TOTAL),0),0))*100, 2) ELSE 0 END) AS RAT_PROCS_TOTAL /* 전체 처리율 */
+             , (CASE WHEN NVL(SUM(CUR_MM_RE) - NVL(SUM(CUR_MM_RE_STP),0),0) > 0 THEN ROUND( NVL(SUM(CUR_MM_RE_PROCS),0) / (NVL(SUM(CUR_MM_RE) - NVL(SUM(CUR_MM_RE_STP),0),0))*100, 2) ELSE 0 END) AS RAT_RE_PROCS /* 재발행 처리율 */
+             , (CASE WHEN NVL(SUM(BS_CNTR_TOTAL) - NVL(SUM(STP_TOTAL),0),0) > 0 THEN ROUND( ((NVL(SUM(SCAN_TOTAL),0) + NVL(SUM(HAND_TOTAL),0)) / NVL(SUM(BS_CNTR_TOTAL) - NVL(SUM(STP_TOTAL),0),0))*100, 2) ELSE 0 END) AS RAT_STICK_TOTAL /* 전체 부착율 */
+             , (CASE WHEN NVL(SUM(CUR_MM_RE) - NVL(SUM(CUR_MM_RE_STP),0),0) > 0 THEN ROUND( ( (NVL(SUM(CUR_MM_RE_SCAN),0) + NVL(SUM(CUR_MM_RE_HAND),0)) / NVL(SUM(CUR_MM_RE) - NVL(SUM(CUR_MM_RE_STP),0),0))*100 , 2) ELSE 0 END) AS RAT_RE_STICK /* 재발행 부착율 */
+             , (CASE WHEN NVL(SUM(PROCS_TOTAL),0) > 0 THEN ROUND(( NVL( SUM(SCAN_TOTAL),0 ) / NVL(SUM(PROCS_TOTAL),0))*100 , 2) ELSE 0 END) AS RAT_SCAN_TOTAL /* 전체 스캔율 */
+             , (CASE WHEN NVL(SUM(CUR_MM_RE_PROCS),0) > 0 THEN ROUND( (NVL(SUM(CUR_MM_RE_SCAN),0) / NVL(SUM(CUR_MM_RE_PROCS),0) )*100 , 2) ELSE 0 END) AS RAT_RE_SCAN /* 재발행 스캔율 */
         FROM ( SELECT /*+ leading(S1) */
                       1 AS BS_CNTR_TOTAL /* BS 전체 */
                     , (CASE WHEN B1.CNTR_NO IS NOT NULL THEN 1 END) AS CUR_MM_RE /* 당월 바코드 재발행 */
@@ -188,9 +194,10 @@ LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S3 /* 고객서비스작업결과내역 
                     , (CASE WHEN B1.CNTR_NO IS NOT NULL AND S3.CNTR_NO IS NOT NULL THEN 1 END) AS CUR_MM_RE_PROCS /* 당월 바코드 재발행 중 처리 */
                     , (CASE WHEN S3.BC_IN_MTHD_CD = 'S' THEN 1 END) AS SCAN_TOTAL /* 스캔 전체 */
                     , (CASE WHEN B1.CNTR_NO IS NOT NULL AND S3.BC_IN_MTHD_CD = 'S' THEN 1 END) AS CUR_MM_RE_SCAN /* 당월 바코드 재발행 중 스캔 */
-                    , (CASE WHEN S3.BC_NO IS NOT NULL AND (S3.BC_IN_MTHD_CD = 'S' OR S3.BC_IN_MTHD_CD IS NULL) THEN 1 END) AS HAND_TOTAL /* 수기 전체 */
-                    , (CASE WHEN B1.CNTR_NO IS NOT NULL AND S3.BC_NO IS NOT NULL AND (S3.BC_IN_MTHD_CD = 'S' OR S3.BC_IN_MTHD_CD IS NULL) THEN 1 END) AS CUR_MM_RE_HAND /* 당월 바코드 재발행 중 수기 */
+                    , (CASE WHEN S3.BC_NO IS NOT NULL AND (S3.BC_IN_MTHD_CD != 'S' OR S3.BC_IN_MTHD_CD IS NULL) THEN 1 END) AS HAND_TOTAL /* 수기 전체 */
+                    , (CASE WHEN B1.CNTR_NO IS NOT NULL AND S3.BC_NO IS NOT NULL AND (S3.BC_IN_MTHD_CD != 'S' OR S3.BC_IN_MTHD_CD IS NULL) THEN 1 END) AS CUR_MM_RE_HAND /* 당월 바코드 재발행 중 수기 */
                     , (CASE WHEN S1.VST_PRGS_STAT_CD = '20' AND S3.BC_NO IS NULL THEN 1 END) AS RE_REQ /* 전체 중 재발행 신청 */
+                    , (CASE WHEN B1.CNTR_NO IS NOT NULL AND S1.VST_PRGS_STAT_CD = '20' AND S3.BC_NO IS NULL THEN 1 END) AS CUR_MM_RE_REQ /* 재발행 중 재발행 신청 */
                     , (CASE WHEN S3.CNTR_NO IS NULL THEN 1 END) AS YET_PROCS /* 전체 중 미처리 */
                     , (CASE WHEN B1.CNTR_NO IS NOT NULL AND S3.CNTR_NO IS NULL THEN 1 END) AS CUR_MM_RE_YET_PROCS /* 당월 바코드 재발행 중 미처리 */
                     , (CASE WHEN S1.VST_PRGS_STAT_CD = '73' THEN 1 END) AS STP_TOTAL /* 방문 중지 */
