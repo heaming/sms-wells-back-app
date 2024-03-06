@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.visit.mapper;
 
+import static com.kyowon.sms.wells.web.service.visit.dto.WsnbCustomerPsByProductDto.SvVstPrdCd;
+
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
@@ -14,5 +16,7 @@ public interface WsnbCustomerPsByProductMapper {
     PagingResult<SearchRes> selectCustomerPsByProduct(SearchReq dto, PageInfo pageInfo);
 
     List<SearchRes> selectCustomerPsByProduct(SearchReq dto);
+
+    List<SvVstPrdCd> selectSvVstPrdCd();
 
 }

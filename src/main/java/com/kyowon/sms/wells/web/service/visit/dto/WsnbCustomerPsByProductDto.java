@@ -7,6 +7,13 @@ import com.sds.sflex.common.utils.DbEncUtil;
 import io.swagger.annotations.ApiModel;
 
 public class WsnbCustomerPsByProductDto {
+
+    @ApiModel(value = "WsnbCustomerPsByProductDto-SearchReq")
+    public record SvVstPrdCd(
+        String code,
+        String codeName
+    ) {}
+
     @ApiModel(value = "WsnbCustomerPsByProductDto-SearchReq")
     public record SearchReq(
         String baseDt,
@@ -24,39 +31,41 @@ public class WsnbCustomerPsByProductDto {
     public record SearchRes(
         String cntrNo,
         String cntrSn,
+        String rcgvpKnm,
         String sapMatCd,
         String pdCd,
         String pdNm,
         String newAdrZip,
         String brchOgId,
-        String brchOgCd,
         String brchOgNm,
-        String svcOgNm,
+        String ogCd,
         String addr,
+        String adrDvCd,
+        String adrId,
         String cralLocaraTno,
         String mexnoEncr,
         String cralIdvTno,
         String locaraTno,
         String exnoEncr,
         String idvTno,
+        String rsgFshDt,
+        String cntrCanDtm,
         String istDt,
-        String canDt,
         String reqdDt,
+        String sellTpCd,
         String sellTpNm,
-        String pdUswyCd,
+        String sellTpDtlCd,
+        String sellTpDtlNm,
+        String prdNm,
         String bcNo,
         String svStpDt,
-        Integer cntrPtrm,
-        Integer extFrisuAsMcn,
-        Integer svPrd,
-        String rcgvpKnm,
-        String ogNm,
-        String prtnrKnm,
-        String prtnrNo,
+        Integer stplPtrm,
+        Integer frisuAsPtrmN,
+        Integer frisuBfsvcPtrmN,
         String dlqAcuMcn,
-        String trnOvrRtOjYn,
-        String cmnPartDvCd,
-        String ordnyHvMatYn
+        String ogNm,
+        String prtnrNo,
+        String prtnrKnm
     ) {
         public SearchRes {
             mexnoEncr = StringUtils.isNotEmpty(mexnoEncr) ? DbEncUtil.dec(mexnoEncr) : mexnoEncr;

@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.visit.rest;
 
+import static com.kyowon.sms.wells.web.service.visit.dto.WsnbCustomerPsByProductDto.SvVstPrdCd;
+
 import java.util.List;
 
 import javax.validation.Valid;
@@ -27,6 +29,11 @@ import lombok.RequiredArgsConstructor;
 public class WsnbCustomerPsByProductController {
 
     private final WsnbCustomerPsByProductService service;
+
+    @GetMapping("/svVstPrdCd")
+    public List<SvVstPrdCd> getSvVstPrdCd() {
+        return this.service.getSvVstPrdCd();
+    }
 
     @GetMapping("/paging")
     public PagingResult<SearchRes> getProductServices(

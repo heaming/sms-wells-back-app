@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbCustomerPsByProductDto.SearchReq;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbCustomerPsByProductDto.SearchRes;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbCustomerPsByProductDto.SvVstPrdCd;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbCustomerPsByProductMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
@@ -27,6 +28,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WsnbCustomerPsByProductService {
     private final WsnbCustomerPsByProductMapper mapper;
+
+    public List<SvVstPrdCd> getSvVstPrdCd() {
+        return mapper.selectSvVstPrdCd();
+    }
 
     public List<SearchRes> getCustomerPsByProduct(SearchReq dto) {
         return mapper.selectCustomerPsByProduct(dto);
