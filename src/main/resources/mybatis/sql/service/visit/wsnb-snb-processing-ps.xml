@@ -227,6 +227,57 @@ LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S3 /* 고객서비스작업결과내역 
     </select>
 
     <select id="selectSnProcessingPsRatio" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbSnProcessingPsDto$SearchRatio">
+                WITH CNTR_LST AS ( SELECT DISTINCT *
+                             FROM ( SELECT /* 연결된 원주문 번호 추출*/
+                                           T1.OJ_DTL_CNTR_NO --AS CNTR_NO
+                                         , T1.OJ_DTL_CNTR_SN --AS  CNTR_SN
+                                         , T2.CNTR_NO
+                                         , T2.CNTR_SN
+                                     FROM TB_SSCT_CNTR_REL T1  /*계약관계*/
+                                         , TB_SVPD_CST_SV_BFSVC_ASN_IZ T2
+                                    WHERE 1=1
+                                      AND (T1.BASE_DTL_CNTR_NO = T2.CNTR_NO AND T1.BASE_DTL_CNTR_SN = T2.CNTR_SN OR  T1.OJ_DTL_CNTR_NO = CNTR_NO AND T1.OJ_DTL_CNTR_SN = T2.CNTR_SN)
+                                      AND T1.CNTR_REL_DTL_CD IN ('212','213', '214', '216') /*계약관계상세코드 : 108 무료체험교체, 211 필터 - 정수기, 212 멤버십 - 원주문, 213 정수기 - 부가서비스, 214 정기배송 - 원주문, 215 1+1연계, 216 모종결합, 217 소개추천, 218 에어컨결합, 219 홈케어, 221 홈케어멤버십, 22L 플래너상조제휴, 22M 다건, 22P 패키지(대수할인), 22W 패키지상품*/
+                                      AND T1.DTA_DL_YN = 'N'
+                                      AND T2.ASN_OJ_YM = SUBSTR(#{startDt},1,6)
+                                      <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+                                      AND T2.CNFM_PSIC_PRTNR_NO = #{prtnrNo}
+                                      </if>
+
+                                    UNION ALL
+
+                                   SELECT CNTR_NO AS OJ_DTL_CNTR_NO
+                                        , CNTR_SN AS OJ_DTL_CNTR_SN
+                                        , CNTR_NO
+                                        , CNTR_SN
+                                     FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ
+                                    WHERE 1=1
+                                      AND ASN_OJ_YM = SUBSTR(#{startDt},1,6)
+                                      <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+                                	  AND CNFM_PSIC_PRTNR_NO = #{prtnrNo}
+                                      </if>
+                             )
+        )
+        , B1 AS (  SELECT DISTINCT  MAIN.*
+                    FROM(	SELECT A.*
+                            , CNTR_LST.CNTR_NO AS BASE_CNTR_NO
+                            , CNTR_LST.CNTR_SN AS BASE_CNTR_SN
+                        FROM TB_SVPD_BC_RPBL_AK_CST_IZ A
+                            , CNTR_LST
+                        WHERE( (A.CNTR_NO = OJ_DTL_CNTR_NO AND A.CNTR_SN = OJ_DTL_CNTR_SN) OR (A.CNTR_NO = CNTR_LST.CNTR_NO AND A.CNTR_SN = CNTR_LST.CNTR_SN))
+                        AND (FST_PBL_DT LIKE SUBSTR(#{startDt},1,6)||'%' OR FNL_PBL_DT LIKE SUBSTR(#{endDt},1,6)||'%')
+
+                --		UNION ALL
+                --
+                --		SELECT B.*
+                --			, CNTR_LST.CNTR_NO AS BASE_CNTR_NO
+                --		, CNTR_LST.CNTR_SN AS BASE_CNTR_SN
+                --		FROM WSMDBS.TB_SVPD_BC_RPBL_AK_CST_IZ B
+                ----			, CNTR_LST
+                --		WHERE B.CNTR_NO = CNTR_LST.CNTR_NO AND B.CNTR_SN = CNTR_LST.CNTR_SN
+                --		AND (FST_PBL_DT LIKE SUBSTR('20230501',1,6)||'%' OR FNL_PBL_DT LIKE SUBSTR('20230531',1,6)||'%')
+                    ) MAIN
+        )
         SELECT SUM(NVL(BS_CNTR_TOTAL,0)) AS BS_CNTR_TOTAL /* BS 전체 */
              , NVL(SUM(CUR_MM_RE),0) AS CUR_MM_RE /* 당월 바코드 재발행 */
              , NVL(SUM(PROCS_TOTAL),0) AS PROCS_TOTAL /* 전체 중 처리 */
@@ -305,10 +356,10 @@ LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S3 /* 고객서비스작업결과내역 
                    ON T3.CNTR_ADRPC_ID = T4.CNTR_ADRPC_ID /*계약주소지ID*/
                 --  AND C2.ADR_ID = T4.ADR_ID
                   AND T4.DTA_DL_YN = 'N'
-      LEFT OUTER JOIN TB_SVPD_BC_RPBL_AK_CST_IZ B1 /* 바코드재발행요청고객내역 */
+      LEFT OUTER JOIN B1 /* 바코드재발행요청고객내역 */
                    ON S2.CNTR_NO = B1.CNTR_NO
                   AND S2.CNTR_SN = B1.CNTR_SN
-                  AND (B1.FST_PBL_DT LIKE SUBSTR(#{startDt},1,6)||'%' OR B1.FNL_PBL_DT LIKE SUBSTR(#{endDt},1,6)||'%')
+            --      AND (B1.FST_PBL_DT LIKE SUBSTR(#{startDt},1,6)||'%' OR B1.FNL_PBL_DT LIKE SUBSTR(#{endDt},1,6)||'%')
                   AND B1.BC_NO = S2.BC_NO
      LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ P1
                   ON S1.CNFM_PSIC_PRTNR_NO = P1.PRTNR_NO
