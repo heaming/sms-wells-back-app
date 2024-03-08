@@ -300,19 +300,19 @@ LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S3 /* 고객서비스작업결과내역 
              , (CASE WHEN NVL(SUM(CUR_MM_RE_PROCS),0) > 0 THEN ROUND( (NVL(SUM(CUR_MM_RE_SCAN),0) / NVL(SUM(CUR_MM_RE_PROCS),0) )*100 , 2) ELSE 0 END) AS RAT_RE_SCAN /* 재발행 스캔율 */
         FROM ( SELECT /*+ leading(S1) */
                       1 AS BS_CNTR_TOTAL /* BS 전체 */
-                    , (CASE WHEN B1.CNTR_NO IS NOT NULL THEN 1 END) AS CUR_MM_RE /* 당월 바코드 재발행 */
+                    , (CASE WHEN B1.BASE_CNTR_NO IS NOT NULL THEN 1 END) AS CUR_MM_RE /* 당월 바코드 재발행 */
                     , (CASE WHEN S3.CNTR_NO IS NOT NULL THEN 1 END) AS PROCS_TOTAL /* 처리 전체 */
-                    , (CASE WHEN B1.CNTR_NO IS NOT NULL AND S3.CNTR_NO IS NOT NULL THEN 1 END) AS CUR_MM_RE_PROCS /* 당월 바코드 재발행 중 처리 */
+                    , (CASE WHEN B1.BASE_CNTR_NO IS NOT NULL AND S3.CNTR_NO IS NOT NULL THEN 1 END) AS CUR_MM_RE_PROCS /* 당월 바코드 재발행 중 처리 */
                     , (CASE WHEN S3.BC_IN_MTHD_CD = 'S' THEN 1 END) AS SCAN_TOTAL /* 스캔 전체 */
-                    , (CASE WHEN B1.CNTR_NO IS NOT NULL AND S3.BC_IN_MTHD_CD = 'S' THEN 1 END) AS CUR_MM_RE_SCAN /* 당월 바코드 재발행 중 스캔 */
+                    , (CASE WHEN B1.BASE_CNTR_NO IS NOT NULL AND S3.BC_IN_MTHD_CD = 'S' THEN 1 END) AS CUR_MM_RE_SCAN /* 당월 바코드 재발행 중 스캔 */
                     , (CASE WHEN S3.BC_NO IS NOT NULL AND (S3.BC_IN_MTHD_CD != 'S' OR S3.BC_IN_MTHD_CD IS NULL) THEN 1 END) AS HAND_TOTAL /* 수기 전체 */
-                    , (CASE WHEN B1.CNTR_NO IS NOT NULL AND S3.BC_NO IS NOT NULL AND (S3.BC_IN_MTHD_CD != 'S' OR S3.BC_IN_MTHD_CD IS NULL) THEN 1 END) AS CUR_MM_RE_HAND /* 당월 바코드 재발행 중 수기 */
+                    , (CASE WHEN B1.BASE_CNTR_NO IS NOT NULL AND S3.BC_NO IS NOT NULL AND (S3.BC_IN_MTHD_CD != 'S' OR S3.BC_IN_MTHD_CD IS NULL) THEN 1 END) AS CUR_MM_RE_HAND /* 당월 바코드 재발행 중 수기 */
                     , (CASE WHEN S1.VST_PRGS_STAT_CD = '20' AND S3.BC_NO IS NULL THEN 1 END) AS RE_REQ /* 전체 중 재발행 신청 */
-                    , (CASE WHEN B1.CNTR_NO IS NOT NULL AND S1.VST_PRGS_STAT_CD = '20' AND S3.BC_NO IS NULL THEN 1 END) AS CUR_MM_RE_REQ /* 재발행 중 재발행 신청 */
+                    , (CASE WHEN B1.BASE_CNTR_NO IS NOT NULL AND S1.VST_PRGS_STAT_CD = '20' AND S3.BC_NO IS NULL THEN 1 END) AS CUR_MM_RE_REQ /* 재발행 중 재발행 신청 */
                     , (CASE WHEN S3.CNTR_NO IS NULL THEN 1 END) AS YET_PROCS /* 전체 중 미처리 */
-                    , (CASE WHEN B1.CNTR_NO IS NOT NULL AND S3.CNTR_NO IS NULL THEN 1 END) AS CUR_MM_RE_YET_PROCS /* 당월 바코드 재발행 중 미처리 */
+                    , (CASE WHEN B1.BASE_CNTR_NO IS NOT NULL AND S3.CNTR_NO IS NULL THEN 1 END) AS CUR_MM_RE_YET_PROCS /* 당월 바코드 재발행 중 미처리 */
                     , (CASE WHEN S1.VST_PRGS_STAT_CD = '73' THEN 1 END) AS STP_TOTAL /* 방문 중지 */
-                    , (CASE WHEN B1.CNTR_NO IS NOT NULL AND S1.VST_PRGS_STAT_CD = '73' THEN 1 END) AS CUR_MM_RE_STP /* 당월 바코드 재발행 중 방문중지 */
+                    , (CASE WHEN B1.BASE_CNTR_NO IS NOT NULL AND S1.VST_PRGS_STAT_CD = '73' THEN 1 END) AS CUR_MM_RE_STP /* 당월 바코드 재발행 중 방문중지 */
                  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ S1 /* 고객서비스BS배정내역 ac261 */
            INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S2
                    ON S1.CNTR_NO = S2.CNTR_NO
@@ -357,9 +357,8 @@ LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S3 /* 고객서비스작업결과내역 
                 --  AND C2.ADR_ID = T4.ADR_ID
                   AND T4.DTA_DL_YN = 'N'
       LEFT OUTER JOIN B1 /* 바코드재발행요청고객내역 */
-                   ON S2.CNTR_NO = B1.CNTR_NO
-                  AND S2.CNTR_SN = B1.CNTR_SN
-            --      AND (B1.FST_PBL_DT LIKE SUBSTR(#{startDt},1,6)||'%' OR B1.FNL_PBL_DT LIKE SUBSTR(#{endDt},1,6)||'%')
+                   ON S2.CNTR_NO = B1.BASE_CNTR_NO
+                  AND S2.CNTR_SN = B1.BASE_CNTR_SN
                   AND B1.BC_NO = S2.BC_NO
      LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ P1
                   ON S1.CNFM_PSIC_PRTNR_NO = P1.PRTNR_NO
