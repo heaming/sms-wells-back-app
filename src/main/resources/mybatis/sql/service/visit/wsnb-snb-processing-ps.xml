@@ -36,26 +36,16 @@
                              )
         )
         , B1 AS (  SELECT DISTINCT  MAIN.*
-                    FROM(	SELECT A.*
-                            , CNTR_LST.CNTR_NO AS BASE_CNTR_NO
-                            , CNTR_LST.CNTR_SN AS BASE_CNTR_SN
-                        FROM TB_SVPD_BC_RPBL_AK_CST_IZ A
-                            , CNTR_LST
+                    FROM( SELECT A.*
+                               , CNTR_LST.CNTR_NO AS BASE_CNTR_NO
+                               , CNTR_LST.CNTR_SN AS BASE_CNTR_SN
+                            FROM TB_SVPD_BC_RPBL_AK_CST_IZ A
+                                , CNTR_LST
                         WHERE( (A.CNTR_NO = OJ_DTL_CNTR_NO AND A.CNTR_SN = OJ_DTL_CNTR_SN) OR (A.CNTR_NO = CNTR_LST.CNTR_NO AND A.CNTR_SN = CNTR_LST.CNTR_SN))
                         AND (FST_PBL_DT LIKE SUBSTR(#{startDt},1,6)||'%' OR FNL_PBL_DT LIKE SUBSTR(#{endDt},1,6)||'%')
-
-                --		UNION ALL
-                --
-                --		SELECT B.*
-                --			, CNTR_LST.CNTR_NO AS BASE_CNTR_NO
-                --		, CNTR_LST.CNTR_SN AS BASE_CNTR_SN
-                --		FROM WSMDBS.TB_SVPD_BC_RPBL_AK_CST_IZ B
-                ----			, CNTR_LST
-                --		WHERE B.CNTR_NO = CNTR_LST.CNTR_NO AND B.CNTR_SN = CNTR_LST.CNTR_SN
-                --		AND (FST_PBL_DT LIKE SUBSTR('20230501',1,6)||'%' OR FNL_PBL_DT LIKE SUBSTR('20230531',1,6)||'%')
                     ) MAIN
         )
-		SELECT /*+ leading(S1) */
+		SELECT /*+ leading(X@SUB) QB_NAME(NMAIN) use_nl(P1@MAIN) use_nl(P1 S1) index(P1 IX_OGBS_MM_PRTNR_IZ_01) no_merge(PD_INF) index(S1 IX_SVPD_CST_SV_BFSVC_ASN_IZ_03) */
 -- 		      BASE_CNTR_NO,
                (CASE WHEN B1.BASE_CNTR_NO IS NOT NULL THEN '재발행' ELSE '' END) AS RE_YN
              , (CASE WHEN (S3.BC_NO IS NOT NULL AND S3.BC_IN_MTHD_CD = 'S') THEN '스캔'
@@ -166,7 +156,6 @@ LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ P1
 --          AND PD_INF.ITM_KND_CD = B2.ITM_KND_CD
 LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S3 /* 고객서비스작업결과내역 VS106 */
           ON S1.CST_SV_ASN_NO = S3.CST_SV_ASN_NO
-         AND S3.VST_FSH_DT BETWEEN #{startDt} AND #{endDt}
          /* AND B1.CST_SV_ASN_NO = S3.CST_SV_ASN_NO */
   INNER JOIN WSMDBS.TB_SSCT_CNTR_WELLS_DTL S4 /*계약상세*/
           ON S1.CNTR_NO = S4.CNTR_NO
@@ -180,8 +169,10 @@ LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S3 /* 고객서비스작업결과내역 
         AND S1.CNFM_PSIC_DV_CD = #{mngrDvCd}
         AND S1.CNFM_PSIC_PRTNR_NO IS NOT NULL
         AND S1.ASN_OJ_YM = SUBSTR(#{startDt},1,6)
+        AND (S3.VST_FSH_DT BETWEEN #{startDt} AND #{endDt} OR S3.VST_FSH_DT IS NULL)
         <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId) or @MybatisUtils@isNotEmpty(dgr3LevlOgId) or @MybatisUtils@isNotEmpty(ogId)">
-        AND P1.OG_ID IN (SELECT OG_ID
+        AND P1.OG_ID IN (SELECT /*+ unnest QB_NAME(SUB) */
+                                OG_ID
                            FROM ( SELECT T1.BASE_YM
                                        , T1.PRTNR_NO
                                        , T1.OG_TP_CD
@@ -266,19 +257,10 @@ LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S3 /* 고객서비스작업결과내역 
                             , CNTR_LST
                         WHERE( (A.CNTR_NO = OJ_DTL_CNTR_NO AND A.CNTR_SN = OJ_DTL_CNTR_SN) OR (A.CNTR_NO = CNTR_LST.CNTR_NO AND A.CNTR_SN = CNTR_LST.CNTR_SN))
                         AND (FST_PBL_DT LIKE SUBSTR(#{startDt},1,6)||'%' OR FNL_PBL_DT LIKE SUBSTR(#{endDt},1,6)||'%')
-
-                --		UNION ALL
-                --
-                --		SELECT B.*
-                --			, CNTR_LST.CNTR_NO AS BASE_CNTR_NO
-                --		, CNTR_LST.CNTR_SN AS BASE_CNTR_SN
-                --		FROM WSMDBS.TB_SVPD_BC_RPBL_AK_CST_IZ B
-                ----			, CNTR_LST
-                --		WHERE B.CNTR_NO = CNTR_LST.CNTR_NO AND B.CNTR_SN = CNTR_LST.CNTR_SN
-                --		AND (FST_PBL_DT LIKE SUBSTR('20230501',1,6)||'%' OR FNL_PBL_DT LIKE SUBSTR('20230531',1,6)||'%')
                     ) MAIN
         )
-        SELECT SUM(NVL(BS_CNTR_TOTAL,0)) AS BS_CNTR_TOTAL /* BS 전체 */
+        SELECT /*+ leading(X@SUB) QB_NAME(NMAIN) use_nl(P1@MAIN) use_nl(P1 S1) index(P1 IX_OGBS_MM_PRTNR_IZ_01) no_merge(PD_INF) index(S1 IX_SVPD_CST_SV_BFSVC_ASN_IZ_03) */
+               SUM(NVL(BS_CNTR_TOTAL,0)) AS BS_CNTR_TOTAL /* BS 전체 */
              , NVL(SUM(CUR_MM_RE),0) AS CUR_MM_RE /* 당월 바코드 재발행 */
              , NVL(SUM(PROCS_TOTAL),0) AS PROCS_TOTAL /* 전체 중 처리 */
              , NVL(SUM(CUR_MM_RE_PROCS),0) AS CUR_MM_RE_PROCS /* 당월 재발행 중 처리 */
@@ -374,6 +356,7 @@ LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S3 /* 고객서비스작업결과내역 
                   AND S1.CNTR_SN = S4.CNTR_SN
                   AND S4.DTA_DL_YN = 'N'
                 WHERE S1.VST_PRGS_STAT_CD != '73'
+                  AND (S3.VST_FSH_DT BETWEEN #{startDt} AND #{endDt} OR S3.VST_FSH_DT IS NULL)
                 <if test="@MybatisUtils@isNotEmpty(svBizMclsfCd)">
                   AND S1.SV_BIZ_MCLSF_CD = #{svBizMclsfCd}
                 </if>
@@ -382,7 +365,8 @@ LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S3 /* 고객서비스작업결과내역 
                   AND S1.CNFM_PSIC_PRTNR_NO IS NOT NULL
                   AND S1.ASN_OJ_YM = SUBSTR(#{startDt},1,6)
                 <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId) or @MybatisUtils@isNotEmpty(dgr3LevlOgId) or @MybatisUtils@isNotEmpty(ogId)">
-                 AND P1.OG_ID IN (SELECT OG_ID
+                 AND P1.OG_ID IN (SELECT /*+ unnest QB_NAME(SUB) */
+                                        OG_ID
                                     FROM ( SELECT T1.BASE_YM
                                                  , T1.PRTNR_NO
                                                  , T1.OG_TP_CD
@@ -406,7 +390,7 @@ LEFT OUTER JOIN TB_SVPD_CST_SV_WK_RS_IZ S3 /* 고객서비스작업결과내역 
                                              WHERE 1=1
                                                AND T1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
                                                /* AND (T1.PRTNR_NO IN (SELECT ICHR_PRTNR_NO FROM TEMP1) OR T1.PRTNR_NO IN (SELECT PRTNR_NO FROM TEMP1) OR T1.PRTNR_NO IN (SELECT FST_RGST_USR_ID FROM TEMP1)) */
-                                               AND T1.OG_TP_CD IN ('HR1', 'W02', 'W03','W06') /*조직유형코드 W01 P추진, W02 M추진, W03 홈마스터, W04 B2B, W05 온라인총판, W06 엔지니어, ALC 제휴채널, HR1 임직원, BND 채권, L01 라이프, X01 KLC, X02 LC전문강사*/
+                                               AND T1.OG_TP_CD IN ('W02','W06') /*조직유형코드 W01 P추진, W02 M추진, W03 홈마스터, W04 B2B, W05 온라인총판, W06 엔지니어, ALC 제휴채널, HR1 임직원, BND 채권, L01 라이프, X01 KLC, X02 LC전문강사*/
                                                /* AND T1.BZ_STAT_CD IN ('1','2','3') */  /*1 사업, 2 해약, 3 휴업*/
                                                AND T1.DTA_DL_YN = 'N'
                                                <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">
